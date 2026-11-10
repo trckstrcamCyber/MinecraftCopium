@@ -169,6 +169,8 @@ public:
 		static const Tier *DIAMOND; //
 		static const Tier *GOLD;
 		static const Tier *ZORO;
+		static const Tier *JDMON;	// neoLegacy - JDemon sword tier
+		static const Tier *CMON;	// neoLegacy - CMonster sword tier
 
 	private:
 		const int level;
@@ -231,6 +233,9 @@ public:
 	static Item *enma;
 	static Item *shusui;
 	static Item *cursed_hilt;
+	// neoLegacy - JDemon / CMonster swords
+	static Item *jdemon_sword;
+	static Item *cmonster_sword;
 	// neoLegacy - MAC-10 firearm system
 	static Item *mac10;
 	static Item *bullet_9mm;
@@ -501,6 +506,8 @@ public:
 	static const int enma_Id				= 453;
 	static const int shusui_Id				= 454;
 	static const int cursed_hilt_Id			= 455;	// neoLegacy
+	static const int jdemon_sword_Id			= 456;	// neoLegacy - JDemon sword
+	static const int cmonster_sword_Id		= 457;	// neoLegacy - CMonster sword
 	static const int mac10_Id				= 465;	// neoLegacy - reserved custom item ID
 	static const int bullet_9mm_Id			= 466;	// neoLegacy - reserved custom item ID
 	static const int m16_Id					= 467;	// neoLegacy - M16 rifle

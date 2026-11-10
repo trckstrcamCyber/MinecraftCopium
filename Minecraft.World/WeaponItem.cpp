@@ -6,6 +6,8 @@
 #include "net.minecraft.world.entity.monster.h"
 #include "net.minecraft.world.level.tile.h"
 #include "WeaponItem.h"
+#include "MobEffect.h"
+#include "MobEffectInstance.h"
 
 WeaponItem::WeaponItem(int id, const Tier *tier, ZoroSwordType zoroType) : Item(id), tier(tier), zoroType(zoroType)
 {
@@ -173,4 +175,50 @@ int WeaponItem::getZoroAttackCooldown() const
 	case ZORO_SHUSUI: return 11;
 	default: return 0;
 	}
+}
+
+JDemonSword::JDemonSword(int id, const Tier *tier) : WeaponItem(id, tier)
+{
+}
+
+bool JDemonSword::hurtEnemy(shared_ptr<ItemInstance> itemInstance, shared_ptr<LivingEntity> mob, shared_ptr<LivingEntity> attacker)
+{
+	mob->setOnFire(5);
+	return WeaponItem::hurtEnemy(itemInstance, mob, attacker);
+}
+
+shared_ptr<ItemInstance> JDemonSword::use(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player)
+{
+	player->setInvisible(true);
+	return WeaponItem::use(instance, level, player);
+}
+
+shared_ptr<ItemInstance> JDemonSword::useTimeDepleted(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player)
+{
+	player->setInvisible(false);
+	return instance;
+}
+
+void JDemonSword::releaseUsing(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player, int durationLeft)
+{
+	// Blocking ends here when the player lets go early. useTimeDepleted only
+	// fires if the full use duration elapses, which is an hour for a sword,
+	// so invisibility must be cleared here too or it would stick.
+	player->setInvisible(false);
+}
+
+CMonsterSword::CMonsterSword(int id, const Tier *tier) : WeaponItem(id, tier)
+{
+}
+
+bool CMonsterSword::hurtEnemy(shared_ptr<ItemInstance> itemInstance, shared_ptr<LivingEntity> mob, shared_ptr<LivingEntity> attacker)
+{
+	mob->addEffect(new MobEffectInstance(MobEffect::poison->id, 100, 1));
+	return WeaponItem::hurtEnemy(itemInstance, mob, attacker);
+}
+
+shared_ptr<ItemInstance> CMonsterSword::use(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player)
+{
+	player->addEffect(new MobEffectInstance(MobEffect::nightVision->id, 100, 0));
+	return WeaponItem::use(instance, level, player);
 }
