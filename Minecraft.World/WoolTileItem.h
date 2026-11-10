@@ -11,6 +11,8 @@ public:
 	static const unsigned int CLAY_COLOR_DESCS[];
 	static const unsigned int GLASS_COLOR_DESCS[];
 	static const unsigned int GLASS_PANE_COLOR_DESCS[];
+	static const unsigned int CONCRETE_POWDER_COLOR_DESCS[];
+	static const unsigned int CONCRETE_COLOR_DESCS[];
 
 	WoolTileItem(int id);
 	

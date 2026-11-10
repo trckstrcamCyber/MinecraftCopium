@@ -6,6 +6,7 @@
 #include "net.minecraft.world.level.h"
 #include "net.minecraft.world.h"
 #include "BedTile.h"
+#include "BedTileEntity.h"
 
 int BedTile::HEAD_DIRECTION_OFFSETS[4][2] =
 {
@@ -19,6 +20,46 @@ BedTile::BedTile(int id) : DirectionalTile(id, Material::cloth, isSolidRender())
 	iconEnd = nullptr;
 	iconSide = nullptr;
 	iconTop = nullptr;
+
+	_isEntityTile = true;	// neoLegacy - makes LevelChunk::getTileEntity create the BedTileEntity on demand (village beds, older placements)
+	m_dropVariant = BedTileEntity::DEFAULT_VARIANT;
+}
+
+shared_ptr<TileEntity> BedTile::newTileEntity(Level *level)
+{
+	return std::make_shared<BedTileEntity>();
+}
+
+void BedTile::onRemove(Level *level, int x, int y, int z, int id, int data)
+{
+	DirectionalTile::onRemove(level, x, y, z, id, data);
+	level->removeTileEntity(x, y, z);
+}
+
+int BedTile::cloneTileData(Level *level, int x, int y, int z)
+{
+	int variant = BedTileEntity::getVariantAt(level, x, y, z);
+	return (variant >= 0) ? variant : BedTileEntity::DEFAULT_VARIANT;
+}
+
+void BedTile::removeBothHalves(Level *level, int x, int y, int z)
+{
+	int data = level->getData(x, y, z);
+	int direction = getDirection(data);
+	int footX = x, footZ = z, headX = x, headZ = z;
+	if (isHeadPiece(data))
+	{
+		footX -= HEAD_DIRECTION_OFFSETS[direction][0];
+		footZ -= HEAD_DIRECTION_OFFSETS[direction][1];
+	}
+	else
+	{
+		headX += HEAD_DIRECTION_OFFSETS[direction][0];
+		headZ += HEAD_DIRECTION_OFFSETS[direction][1];
+	}
+	// Foot first: removing the head first would make the foot drop a bed item as it falls apart (neighborChanged).
+	if (level->getTile(footX, y, footZ) == Tile::bed_Id) level->removeTile(footX, y, footZ);
+	if (level->getTile(headX, y, headZ) == Tile::bed_Id) level->removeTile(headX, y, headZ);
 }
 
 void BedTile::createBlockStateDefinition()
@@ -113,6 +154,13 @@ bool BedTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player, 
 
 	if (!level->dimension->mayRespawn() || level->getBiome(x, z) == Biome::hell)
 	{
+		// neoLegacy - a straw bed simply breaks (no explosion, no drops) where a normal bed would blow up
+		if (BedTileEntity::getVariantAt(level, x, y, z) == BedTileEntity::VARIANT_STRAW)
+		{
+			removeBothHalves(level, x, y, z);
+			return true;
+		}
+
 		double xc = x + 0.5;
 		double yc = y + 0.5;
 		double zc = z + 0.5;
@@ -223,7 +271,9 @@ void BedTile::registerIcons(IconRegister *iconRegister)
 
 int BedTile::getRenderShape()
 {
-	return Tile::SHAPE_BED;
+	// neoLegacy - Fancy Beds: every bed (all 16 colors + straw) is drawn by BedRenderer from its BedTileEntity, not baked into the
+	// terrain atlas (which has no room for ~100 bed faces). The terrain icons above are still used for break particles.
+	return Tile::SHAPE_ENTITYTILE_ANIMATED;
 }
 
 bool BedTile::isCubeShaped()
@@ -256,6 +306,8 @@ void BedTile::neighborChanged(Level *level, int x, int y, int z, int type)
 	{
 		if (level->getTile(x + HEAD_DIRECTION_OFFSETS[direction][0], y, z + HEAD_DIRECTION_OFFSETS[direction][1]) != id)
 		{
+			int variant = BedTileEntity::getVariantAt(level, x, y, z);	// neoLegacy - read before the tile entity goes away
+			if (variant >= 0) m_dropVariant = variant;
 			level->removeTile(x, y, z);
 			if (!level->isClientSide)
 			{
@@ -340,10 +392,21 @@ Pos *BedTile::findStandUpPosition(Level *level, int x, int y, int z, int skipCou
 
 void BedTile::spawnResources(Level *level, int x, int y, int z, int data, float odds, int playerBonus)
 {
-	if (!isHeadPiece(data))
+	if (isHeadPiece(data)) return;
+	if (level->isClientSide) return;
+
+	// neoLegacy - drop the bed that was actually there (color / straw). The tile entity is usually already gone by now, so fall back to
+	// what playerWillDestroy / neighborChanged captured.
+	int variant = BedTileEntity::getVariantAt(level, x, y, z);
+	if (variant < 0) variant = m_dropVariant;
+
+	int count = getResourceCountForLootBonus(0, level->random);
+	for (int i = 0; i < count; i++)
 	{
-		Tile::spawnResources(level, x, y, z, data, odds, 0);
+		if (level->random->nextFloat() > odds) continue;
+		popResource(level, x, y, z, std::make_shared<ItemInstance>(Item::bed_Id, 1, variant));
 	}
+	m_dropVariant = BedTileEntity::DEFAULT_VARIANT;
 }
 
 int BedTile::getPistonPushReaction()
@@ -358,6 +421,10 @@ int BedTile::cloneTileId(Level *level, int x, int y, int z)
 
 void BedTile::playerWillDestroy(Level *level, int x, int y, int z, int data, shared_ptr<Player> player)
 {
+	// neoLegacy - remember which bed this is: the tile entity is removed before spawnResources() runs
+	int variant = BedTileEntity::getVariantAt(level, x, y, z);
+	m_dropVariant = (variant >= 0) ? variant : BedTileEntity::DEFAULT_VARIANT;
+
 	if (player->abilities.instabuild)
 	{
 		if (isHeadPiece(data))

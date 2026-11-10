@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Model.h"
 #include "SkinOffset.h"
 class HumanoidModel : public Model
@@ -11,6 +11,7 @@ public:
     int holdingRightHand;
     bool idle;
     bool sneaking;
+    bool swimming;
     bool bowAndArrow;
     bool eating;		
     float eating_t;			

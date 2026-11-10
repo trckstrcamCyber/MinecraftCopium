@@ -14,6 +14,8 @@ void RandomScatteredLargeFeature::staticCtor()
 	allowedBiomes.push_back( Biome::desertHills );
 	allowedBiomes.push_back( Biome::jungle );
 	allowedBiomes.push_back( Biome::jungleHills );
+	allowedBiomes.push_back( Biome::bambooJungle );
+	allowedBiomes.push_back( Biome::bambooJungleHills );
 	allowedBiomes.push_back( Biome::swampland );
 }
 
@@ -101,7 +103,7 @@ RandomScatteredLargeFeature::ScatteredFeatureStart::ScatteredFeatureStart()
 RandomScatteredLargeFeature::ScatteredFeatureStart::ScatteredFeatureStart(Level *level, Random *random, int chunkX, int chunkZ) : StructureStart(chunkX, chunkZ)
 {
 	Biome *biome = level->getBiome(chunkX * 16 + 8, chunkZ * 16 + 8);
-	if (biome == Biome::jungle || biome == Biome::jungleHills)
+	if (biome == Biome::jungle || biome == Biome::jungleHills || biome == Biome::bambooJungle || biome == Biome::bambooJungleHills)
 	{
 		ScatteredFeaturePieces::JunglePyramidPiece *startRoom = new ScatteredFeaturePieces::JunglePyramidPiece(random, chunkX * 16, chunkZ * 16);
 		pieces.push_back(startRoom);

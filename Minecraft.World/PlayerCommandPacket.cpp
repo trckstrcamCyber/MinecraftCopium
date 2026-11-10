@@ -16,6 +16,8 @@ const int PlayerCommandPacket::START_IDLEANIM =		6;
 const int PlayerCommandPacket::STOP_IDLEANIM =		7;
 const int PlayerCommandPacket::RIDING_JUMP =		8;
 const int PlayerCommandPacket::OPEN_INVENTORY =		9;
+const int PlayerCommandPacket::START_FALL_FLYING =	10;
+const int PlayerCommandPacket::STOP_FALL_FLYING =	11;
 
 
 PlayerCommandPacket::PlayerCommandPacket()

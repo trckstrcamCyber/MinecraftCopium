@@ -11,6 +11,15 @@ DesertBiome::DesertBiome(int id) : Biome(id)
 	friendlies_chicken.clear();	// 4J added
 	friendlies_wolf.clear(); 	// 4J added
 	friendlies.push_back(new MobSpawnerData(eTYPE_RABBIT, 12, 2, 3));
+	// (camels do not spawn naturally: one is placed at the centre of each desert village instead)
+	// neoLegacy - husks take the place of zombies in deserts
+	for (auto it = enemies.begin(); it != enemies.end();)
+	{
+		if ((*it)->mobClass == eTYPE_ZOMBIE) it = enemies.erase(it); else ++it;
+	}
+	enemies.push_back(new MobSpawnerData(eTYPE_HUSK, 10, 4, 4));
+	// neoLegacy - rare Jelly Slimes (by day, on the surface: JellySlime::canSpawn)
+	enemies.push_back(new MobSpawnerData(eTYPE_JELLYSLIME, 3, 1, 1));
 	topMaterial = static_cast<BYTE>(Tile::sand_Id);
 	material = static_cast<BYTE>(Tile::sand_Id);
 

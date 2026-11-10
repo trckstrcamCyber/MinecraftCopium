@@ -54,7 +54,7 @@ void PistonPieceRenderer::render(shared_ptr<TileEntity> _entity, double x, doubl
         }
 		else
 		{
-            if (tile == Tile::slimeBlock)
+            if (tile == Tile::slimeBlock || (Tile::jellyBlock != nullptr && tile == Tile::jellyBlock))	// neoLegacy - Jelly Block too
             {
                 tileRenderer->setFixedTexture(tile->getTexture(0, entity->getData()));
                 tileRenderer->fixedTextureAlpha = 0.35f;

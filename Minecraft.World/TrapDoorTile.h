@@ -83,6 +83,7 @@ public:
 
 public:
 	bool mayPlace(Level *level, int x, int y, int z, int face);
+	virtual void setPlacedBy(Level *level, int x, int y, int z, shared_ptr<LivingEntity> by, shared_ptr<ItemInstance> itemInstance) override;
 
 public:
 	static bool isOpen(int data);

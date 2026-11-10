@@ -7785,4 +7785,85 @@ Tous les coffres du Néant d'un monde sont liés. Les objets placés dans un cof
 	<data name="IDS_TOOLTIPS_CURE">
 		<value>Guérison</value>
 	</data>	
+	<data name="IDS_TILE_COOKIE_MINER">
+		<value>Cookie Miner</value>
+	</data>
+	<data name="IDS_DESC_TILE_COOKIE_MINER">
+		<value>A redstone-powered arcade cabinet for Cookie Miner.</value>
+	</data>
+	<data name="IDS_TILE_FLAPPY_CRAFT">
+		<value>Flappy Craft</value>
+	</data>
+	<data name="IDS_DESC_TILE_FLAPPY_CRAFT">
+		<value>A redstone-powered arcade cabinet for Flappy Craft.</value>
+	</data>
+	<data name="IDS_TILE_MINE_SNAKE">
+		<value>MineSnake</value>
+	</data>
+	<data name="IDS_DESC_TILE_MINE_SNAKE">
+		<value>A redstone-powered arcade cabinet for MineSnake.</value>
+	</data>
+	<data name="IDS_TILE_BAMBOO">
+		<value>Bamboo</value>
+	</data>
+	<data name="IDS_TILE_BAMBOO_BLOCK">
+		<value>Block of Bamboo</value>
+	</data>
+	<data name="IDS_TILE_STRIPPED_BAMBOO_BLOCK">
+		<value>Block of Stripped Bamboo</value>
+	</data>
+	<data name="IDS_TILE_BAMBOO_PLANKS">
+		<value>Bamboo Planks</value>
+	</data>
+	<data name="IDS_TILE_BAMBOO_MOSAIC">
+		<value>Bamboo Mosaic</value>
+	</data>
+	<data name="IDS_TILE_STRIPPED_OAK_LOG">
+		<value>Stripped Oak Log</value>
+	</data>
+	<data name="IDS_TILE_STRIPPED_SPRUCE_LOG">
+		<value>Stripped Spruce Log</value>
+	</data>
+	<data name="IDS_TILE_STRIPPED_BIRCH_LOG">
+		<value>Stripped Birch Log</value>
+	</data>
+	<data name="IDS_TILE_STRIPPED_JUNGLE_LOG">
+		<value>Stripped Jungle Log</value>
+	</data>
+	<data name="IDS_TILE_STRIPPED_ACACIA_LOG">
+		<value>Stripped Acacia Log</value>
+	</data>
+	<data name="IDS_TILE_STRIPPED_DARK_OAK_LOG">
+		<value>Stripped Dark Oak Log</value>
+	</data>
+	<data name="IDS_TILE_STONESLAB_BAMBOO">
+		<value>Bamboo Slab</value>
+	</data>
+	<data name="IDS_TILE_STONESLAB_BAMBOO_MOSAIC">
+		<value>Bamboo Mosaic Slab</value>
+	</data>
+	<data name="IDS_TILE_BAMBOO_FENCE">
+		<value>Bamboo Fence</value>
+	</data>
+	<data name="IDS_TILE_BAMBOO_GATE">
+		<value>Bamboo Fence Gate</value>
+	</data>
+	<data name="IDS_TILE_TRAPDOOR_BAMBOO">
+		<value>Bamboo Trapdoor</value>
+	</data>
+	<data name="IDS_ITEM_DOOR_BAMBOO">
+		<value>Bamboo Door</value>
+	</data>
+	<data name="IDS_TILE_STAIRS_BAMBOO">
+		<value>Bamboo Stairs</value>
+	</data>
+	<data name="IDS_TILE_STAIRS_BAMBOO_MOSAIC">
+		<value>Bamboo Mosaic Stairs</value>
+	</data>
+	<data name="IDS_ITEM_SIGN_BAMBOO">
+		<value>Bamboo Sign</value>
+	</data>
+	<data name="IDS_ITEM_RAFT_BAMBOO">
+		<value>Bamboo Raft</value>
+	</data>
 </root>

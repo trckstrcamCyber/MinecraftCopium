@@ -99,6 +99,8 @@ public:
 		e_ChatCommandTeleportToMe,
 
 		e_ChatActionBar,
+
+		e_ChatDeathFreeze,	// neoLegacy - "{*PLAYER*} froze to death"
 	};
 
 public:

@@ -11,6 +11,7 @@
 #include "net.minecraft.world.entity.projectile.h"
 #include "net.minecraft.world.entity.boss.enderdragon.h"
 #include "net.minecraft.world.entity.npc.h"
+#include "WanderingTrader.h"
 #include "net.minecraft.world.entity.h"
 #include "net.minecraft.world.level.h"
 #include "com.mojang.nbt.h"
@@ -72,6 +73,7 @@ void EntityIO::staticCtor()
 	setId(MinecartTNT::create, eTYPE_MINECART_TNT, L"MinecartTNT", 45);
 	setId(MinecartHopper::create, eTYPE_MINECART_HOPPER, L"MinecartHopper", 46);
 	setId(MinecartSpawner::create, eTYPE_MINECART_SPAWNER, L"MinecartSpawner", 47);
+	setId(MinecartDiamond::create, eTYPE_MINECART_DIAMOND, L"MinecartDiamond", 48);
 
 
 
@@ -122,6 +124,41 @@ void EntityIO::staticCtor()
       eMinecraftColour_Mob_PolarBear_Colour1,
       eMinecraftColour_Mob_PolarBear_Colour2, IDS_POLAR_BEAR);
 
+	// neoLegacy - Goat (spawn egg id 109)
+	setId(Goat::create, eTYPE_GOAT, L"Goat", 109,
+      eMinecraftColour_Mob_Goat_Colour1,
+      eMinecraftColour_Mob_Goat_Colour2, IDS_GOAT);
+
+	// neoLegacy - Camel, Drowned, Husk, Wandering Trader (spawn egg ids 110-113)
+	setId(Camel::create, eTYPE_CAMEL, L"Camel", 110,
+      eMinecraftColour_Mob_Camel_Colour1,
+      eMinecraftColour_Mob_Camel_Colour2, IDS_CAMEL);
+	setId(Drowned::create, eTYPE_DROWNED, L"Drowned", 111,
+      eMinecraftColour_Mob_Drowned_Colour1,
+      eMinecraftColour_Mob_Drowned_Colour2, IDS_DROWNED);
+	setId(Husk::create, eTYPE_HUSK, L"Husk", 112,
+      eMinecraftColour_Mob_Husk_Colour1,
+      eMinecraftColour_Mob_Husk_Colour2, IDS_HUSK);
+	setId(Frostbite::create, eTYPE_FROSTBITE, L"Frostbite", 115,
+      eMinecraftColour_Mob_Frostbite_Colour1,
+      eMinecraftColour_Mob_Frostbite_Colour2, IDS_FROSTBITE);	// neoLegacy
+	setId(Vindicator::create, eTYPE_VINDICATOR, L"Vindicator", 116, eMinecraftColour_Mob_Vindicator_Colour1, eMinecraftColour_Mob_Vindicator_Colour2, IDS_VINDICATOR);	// neoLegacy
+	setId(Evoker::create, eTYPE_EVOKER, L"Evoker", 117, eMinecraftColour_Mob_Evoker_Colour1, eMinecraftColour_Mob_Evoker_Colour2, IDS_EVOKER);
+	setId(Vex::create, eTYPE_VEX, L"Vex", 118, eMinecraftColour_Mob_Vex_Colour1, eMinecraftColour_Mob_Vex_Colour2, IDS_VEX);
+	setId(Iceologer::create, eTYPE_ICEOLOGER, L"Iceologer", 119, eMinecraftColour_Mob_Iceologer_Colour1, eMinecraftColour_Mob_Iceologer_Colour2, IDS_ICEOLOGER);
+	setId(Illusioner::create, eTYPE_ILLUSIONER, L"Illusioner", 123, eMinecraftColour_Mob_Illusioner_Colour1, eMinecraftColour_Mob_Illusioner_Colour2, IDS_ILLUSIONER);	// neoLegacy
+	setId(Pillager::create, eTYPE_PILLAGER, L"Pillager", 124, eMinecraftColour_Mob_Pillager_Colour1, eMinecraftColour_Mob_Pillager_Colour2, IDS_PILLAGER);	// neoLegacy
+	setId(EvokerFangs::create, eTYPE_EVOKER_FANGS, L"EvokerFangs", 121);
+	setId(IceCube::create, eTYPE_ICE_CUBE, L"IceCube", 122);
+	setId(WanderingTrader::create, eTYPE_WANDERING_TRADER, L"WanderingTrader", 113,
+      eMinecraftColour_Mob_WanderingTrader_Colour1,
+      eMinecraftColour_Mob_WanderingTrader_Colour2, IDS_WANDERING_TRADER);
+
+	// neoLegacy - Jelly Slime (spawn egg id 114)
+	setId(JellySlime::create, eTYPE_JELLYSLIME, L"JellySlime", 114,
+      eMinecraftColour_Mob_JellySlime_Colour1,
+      eMinecraftColour_Mob_JellySlime_Colour2, IDS_JELLY_SLIME);
+
 	setId(ArmorStand::create, eTYPE_ARMORSTAND, L"ArmorStand", 102);
 
 	//change IDS_Endermite later
@@ -139,9 +176,14 @@ void EntityIO::staticCtor()
 	setId(EntityHorse::create,	eTYPE_HORSE,	L"EntityHorse", 100 | ((EntityHorse::TYPE_DONKEY + 1) << 12),	eMinecraftColour_Mob_Horse_Colour1,		eMinecraftColour_Mob_Horse_Colour2,		IDS_DONKEY);
 	setId(EntityHorse::create,	eTYPE_HORSE,	L"EntityHorse", 100 | ((EntityHorse::TYPE_MULE + 1) << 12),		eMinecraftColour_Mob_Horse_Colour1,		eMinecraftColour_Mob_Horse_Colour2,		IDS_MULE);
 
-#ifndef _CONTENT_PACKAGE
+	// neoLegacy - Skeleton Horse and Zombie Horse exist in the game, so their eggs are available in every build
+	// (they used to be debug-only), plus eggs for the Wither Skeleton and Zombie Villager variants.
 	setId(EntityHorse::create,	eTYPE_HORSE,	L"EntityHorse", 100 | ((EntityHorse::TYPE_SKELETON + 1) << 12),	eMinecraftColour_Mob_Horse_Colour1,		eMinecraftColour_Mob_Horse_Colour2,		IDS_SKELETON_HORSE);
 	setId(EntityHorse::create,	eTYPE_HORSE,	L"EntityHorse", 100 | ((EntityHorse::TYPE_UNDEAD + 1) << 12),	eMinecraftColour_Mob_Horse_Colour1,		eMinecraftColour_Mob_Horse_Colour2,		IDS_ZOMBIE_HORSE);
+	setId(Skeleton::create,		eTYPE_SKELETON,	L"Skeleton",	51 | ((Skeleton::TYPE_WITHER + 1) << 12),		eMinecraftColour_Mob_WitherSkeleton_Colour1,	eMinecraftColour_Mob_WitherSkeleton_Colour2,	IDS_WITHER_SKELETON);
+	setId(Zombie::create,		eTYPE_ZOMBIE,	L"Zombie",		54 | (2 << 12),									eMinecraftColour_Mob_ZombieVillager_Colour1,	eMinecraftColour_Mob_ZombieVillager_Colour2,	IDS_ZOMBIE_VILLAGER);
+
+#ifndef _CONTENT_PACKAGE
 	setId(Ocelot::create,		eTYPE_OCELOT,	L"Ozelot",		98 | ((Ocelot::TYPE_BLACK + 1) << 12),			eMinecraftColour_Mob_Ocelot_Colour1,	eMinecraftColour_Mob_Ocelot_Colour2,	IDS_OZELOT );
 	setId(Ocelot::create,		eTYPE_OCELOT,	L"Ozelot",		98 | ((Ocelot::TYPE_RED + 1) << 12),			eMinecraftColour_Mob_Ocelot_Colour1,	eMinecraftColour_Mob_Ocelot_Colour2,	IDS_OZELOT );
 	setId(Ocelot::create,		eTYPE_OCELOT,	L"Ozelot",		98 | ((Ocelot::TYPE_SIAMESE + 1) << 12),		eMinecraftColour_Mob_Ocelot_Colour1,	eMinecraftColour_Mob_Ocelot_Colour2,	IDS_OZELOT );

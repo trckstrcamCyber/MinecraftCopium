@@ -1,5 +1,12 @@
 #include "stdafx.h"
 #include "ServerLevel.h"
+#include "../Minecraft.World/Material.h"
+#include "../Minecraft.World/HeapCheck.h"
+#include "../Minecraft.World/LightLayer.h"
+#include "../Minecraft.World/Difficulty.h"
+#include "../Minecraft.World/WanderingTrader.h"
+#include "../Minecraft.World/net.minecraft.world.entity.monster.h"
+#include "../Minecraft.World/net.minecraft.world.entity.animal.h"
 
 #include <memory>
 #include "MinecraftServer.h"
@@ -206,13 +213,20 @@ void ServerLevel::tick()
 	ts[0] = System::currentTimeMillis();
 #endif
 
+	HeapCheck::check("ServerLevel::tick - start");	// neoLegacy - opt-in, see HeapCheck.h
+	m_handlingTick = true;	// neoLegacy - cleared again right after runTileEvents()
 	Level::tick();
+	HeapCheck::check("ServerLevel::tick - after Level::tick (entities + tile entities)");
 	if (getLevelData()->isHardcore() && difficulty < 3)
 	{
 		difficulty = 3;
 	}
 
 	dimension->biomeSource->update();
+
+	trySpawnWanderingTrader();
+	trySpawnDrowned();
+	HeapCheck::check("ServerLevel::tick - after custom mob spawners");
 
 	if (allPlayersAreSleeping())
 	{
@@ -244,12 +258,14 @@ void ServerLevel::tick()
 		bool finalSpawnPersistent = finalSpawnFriendlies && ((levelData->getGameTime() % 80) == 0);		// All persistents are also friendly - do them once every other friendly spawning, ie once per 80 ticks
 		mobSpawner->tick(this, finalSpawnEnemies, finalSpawnFriendlies, finalSpawnPersistent);
 	}
+	HeapCheck::check("ServerLevel::tick - after mobSpawner");
 	PIXEndNamedEvent();
 #if defined(_WINDOWS64) && defined(MINECRAFT_SERVER_BUILD)
 	ts[2] = System::currentTimeMillis();
 #endif
 	PIXBeginNamedEvent(0,"Chunk source tick");
 	chunkSource->tick();
+	HeapCheck::check("ServerLevel::tick - after chunkSource->tick (chunk unload/save)");
 	PIXEndNamedEvent();
 	int newDark = getOldSkyDarken(1);
 	if (newDark != skyDarken)
@@ -346,6 +362,7 @@ void ServerLevel::tick()
 	PIXBeginNamedEvent(0,"runTileEvents");
 	runTileEvents();
 	PIXEndNamedEvent();
+	m_handlingTick = false;
 #if defined(_WINDOWS64) && defined(MINECRAFT_SERVER_BUILD)
 	ts[11] = System::currentTimeMillis();
 #endif
@@ -1713,3 +1730,107 @@ void ServerLevel::sendParticles(const ParticleType* type, double x, double y, do
     this->sendParticles(type, false, x, y, z, count, dx, dy, dz, speed, data);
 }
 
+// neoLegacy - Wandering Trader spawner. Overworld only, needs at least one player, and never more than one
+// trader at a time. Like the Java version: roll once per day; the chance starts at 25% and rises by 25% (to 75%)
+// after every miss. The trader appears 24-48 blocks from a random player, on open ground.
+void ServerLevel::trySpawnWanderingTrader()
+{
+	if (dimension->id != 0 || players.empty()) return;
+	if (--traderSpawnTimer > 0) return;
+	traderSpawnTimer = 24000;
+
+	if (countInstanceOf(eTYPE_WANDERING_TRADER, true) > 0) return;
+
+	if (random->nextInt(1000) >= traderSpawnChance)		// chance is in tenths of a percent: 25 = 2.5%
+	{
+		traderSpawnChance += 25;
+		if (traderSpawnChance > 75) traderSpawnChance = 75;
+		return;
+	}
+
+	shared_ptr<Player> player = players[random->nextInt(static_cast<int>(players.size()))];
+	for (int attempt = 0; attempt < 10; attempt++)
+	{
+		int dx = 24 + random->nextInt(25);
+		int dz = 24 + random->nextInt(25);
+		int x = Mth::floor(player->x) + (random->nextBoolean() ? dx : -dx);
+		int z = Mth::floor(player->z) + (random->nextBoolean() ? dz : -dz);
+		if (!hasChunkAt(x, 64, z)) continue;
+
+		int y = getTopSolidBlock(x, z);
+		if (y <= 0) continue;
+		if (getMaterial(x, y - 1, z)->isLiquid()) continue;
+
+		shared_ptr<WanderingTrader> trader = std::make_shared<WanderingTrader>(this);
+		trader->moveTo(x + 0.5, y, z + 0.5, random->nextFloat() * 360, 0);
+		if (!trader->canSpawn()) continue;
+
+		addEntity(trader);
+		traderSpawnChance = 25;
+
+		// Two leashed blue sheep travel with it (standing in for the trader llamas).
+		for (int i = 0; i < 2; i++)
+		{
+			shared_ptr<Sheep> sheep = std::make_shared<Sheep>(this);
+			sheep->moveTo(x + 0.5 + (i == 0 ? 1.5 : -1.5), y, z + 0.5 + (i == 0 ? -1.0 : 1.0), random->nextFloat() * 360, 0);
+			sheep->setColor(11);		// blue wool
+			addEntity(sheep);
+			sheep->setLeashedTo(trader, true);
+		}
+		return;
+	}
+}
+
+// neoLegacy - natural drowned spawning. Every second, for each player, try a few random spots 24-64 blocks away:
+// the spot must be in river/ocean water (with water under it), dark enough, and unobstructed. Rivers spawn them
+// freely; oceans only at depth. Capped at ~10 drowned per player so they can't pile up.
+void ServerLevel::trySpawnDrowned()
+{
+	if (difficulty == Difficulty::PEACEFUL || players.empty()) return;
+	if (--drownedSpawnTimer > 0) return;
+	drownedSpawnTimer = 20;
+
+	if (countInstanceOf(eTYPE_DROWNED, true) >= 10 * static_cast<int>(players.size())) return;
+
+	for (size_t p = 0; p < players.size(); p++)
+	{
+		shared_ptr<Player> player = players[p];
+		for (int attempt = 0; attempt < 6; attempt++)
+		{
+			double angle = random->nextDouble() * PI * 2;
+			double dist = 24 + random->nextInt(41);
+			int x = Mth::floor(player->x + cos(angle) * dist);
+			int z = Mth::floor(player->z + sin(angle) * dist);
+			if (!hasChunkAt(x, 64, z)) continue;
+
+			Biome *biome = getBiome(x, z);
+			bool river = (biome == Biome::river || biome == Biome::frozenRiver);
+			bool ocean = (biome == Biome::ocean || biome == Biome::frozenOcean || biome == Biome::deepOcean);
+			if (!river && !ocean) continue;
+
+			// a random depth in the water column
+			int top = seaLevel;
+			int y = top - 1 - random->nextInt(river ? 3 : 24);
+			if (y < 2) continue;
+			if (getMaterial(x, y, z) != Material::water || getMaterial(x, y - 1, z) == Material::air) continue;
+			if (getMaterial(x, y + 1, z) != Material::water) continue;			// head room in water
+
+			// oceans: only reasonably deep water; rivers: only 1 in 15 tries, like the Java rule
+			if (ocean && y > seaLevel - 5) continue;
+			if (river && random->nextInt(15) != 0) continue;
+			if (!river && random->nextInt(40) != 0) continue;
+
+			// dark enough (Java uses the monster light rule)
+			if (getBrightness(LightLayer::Sky, x, y, z) > random->nextInt(32)) continue;
+			if (getRawBrightness(x, y, z) > random->nextInt(8)) continue;
+
+			shared_ptr<Drowned> drowned = std::make_shared<Drowned>(this);
+			drowned->moveTo(x + 0.5, y, z + 0.5, random->nextFloat() * 360, 0);
+			if (!isUnobstructed(drowned->bb)) continue;
+
+			drowned->finalizeMobSpawn(nullptr);
+			addEntity(drowned);
+			break;		// one per player per second at most
+		}
+	}
+}

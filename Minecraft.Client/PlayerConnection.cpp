@@ -35,6 +35,9 @@
 #include "../Minecraft.World/JavaMath.h"
 
 #include "../Minecraft.World/ListTag.h"
+#include "../Minecraft.World/CompoundTag.h"
+#include "../Minecraft.World/Mac10Item.h"
+#include "../Minecraft.World/ElytraItem.h"
 // 4J Added
 #include "../Minecraft.World/net.minecraft.world.item.crafting.h"
 #include "Options.h"
@@ -42,10 +45,13 @@
 //neo: Command Includes
 #include "TeleportCommand.h"
 #include "../Minecraft.World/GiveItemCommand.h"
+#include "../Minecraft.World/ClearCommand.h"
 #include "../Minecraft.World/TimeCommand.h"
 #include "../Minecraft.World/KillCommand.h"
 #include "../Minecraft.World/GameModeCommand.h"
 #include "../Minecraft.World/ToggleDownfallCommand.h"
+#include "../Minecraft.World/LargeFeature.h"	// neoLegacy - /locate
+#include "../Minecraft.World/ComplexCraftingMenu.h"	// neoLegacy - Complex Table
 
 #include <sstream>
 
@@ -667,9 +673,27 @@ void PlayerConnection::handleUseItem(shared_ptr<UseItemPacket> packet)
 				return;
 		}
 #endif
-		player->gameMode->useItem(player, level, item);
-	}
-	else if ((packet->getY() < server->getMaxBuildHeight() - 1) || (packet->getFace() != Facing::UP && packet->getY() < server->getMaxBuildHeight()))
+        // neoLegacy - MAC-10: UseItemPacket carries the requested control action in its
+        // copied ItemInstance NBT. Copy only the action enum to the authoritative inventory
+        // stack; never trust client magazine, durability, or damage values.
+        if (item != nullptr && Mac10Item::isMac10(item))   // any gun (MAC-10, M16, Flintlock Pistols)
+        {
+            shared_ptr<ItemInstance> requestItem = packet->getItem();
+            if (requestItem != nullptr && requestItem->tag != nullptr && requestItem->tag->contains(L"Mac10.PendingAction"))
+            {
+                int requestedAction = requestItem->tag->getInt(L"Mac10.PendingAction");
+                if (requestedAction >= Mac10Item::ACTION_FIRE && requestedAction <= Mac10Item::ACTION_INSPECT)
+                {
+                    if (item->tag == nullptr) item->tag = new CompoundTag();
+                    item->tag->putInt(L"Mac10.PendingAction", requestedAction);
+                    // aim-down-sights only tightens the spread; it is a request flag like the action itself
+                    item->tag->putInt(L"Mac10.Ads", (requestItem->tag->contains(L"Mac10.Ads") && requestItem->tag->getInt(L"Mac10.Ads") != 0) ? 1 : 0);
+                }
+            }
+        }
+        player->gameMode->useItem(player, level, item);
+    }
+    else if ((packet->getY() < server->getMaxBuildHeight() - 1) || (packet->getFace() != Facing::UP && packet->getY() < server->getMaxBuildHeight()))
 	{
 		if (synched && player->distanceToSqr(x + 0.5, y + 0.5, z + 0.5) < 8 * 8)
 		{
@@ -761,7 +785,7 @@ void PlayerConnection::handleUseItem(shared_ptr<UseItemPacket> packet)
 							{
 								slot->count = savedItemCount;
 							}
-							else if (savedItemId > 0 && savedItemId < 256 && Tile::tiles[savedItemId] != nullptr && savedItemCount > 0)
+							else if (Tile::isTileItemId(savedItemId) && savedItemCount > 0)
 							{
 								slot = std::make_shared<ItemInstance>(Tile::tiles[savedItemId], savedItemCount);
 							}
@@ -1312,6 +1336,44 @@ if (cmd == L"tp" || cmd == L"teleport")
 			server->getCommandDispatcher()->performCommand(player, eGameCommand_Kill, data);
 		}
 	}
+	else if (cmd == L"clear")
+	{
+		if (!app.GetGameHostOption(eGameHostOption_CheatsEnabled))
+		{
+			warn(L"Cheats are not enabled on this server.");
+			return;
+		}
+
+		if (!player->hasPermission(eGameCommand_Clear))
+		{
+			warn(L"You do not have permission to use this command.");
+			return;
+		}
+
+		wstring targetName;
+		ss >> targetName;
+
+		shared_ptr<ServerPlayer> target;
+		if (targetName.empty())
+		{
+			target = player;
+		}
+		else
+		{
+			target = server->getPlayers()->getPlayer(targetName);
+			if (!target)
+			{
+				warn(L"Player not found: " + targetName);
+				return;
+			}
+		}
+
+		shared_ptr<GameCommandPacket> packet = ClearCommand::preparePacket(target);
+		if (packet != nullptr)
+		{
+			server->getCommandDispatcher()->performCommand(player, eGameCommand_Clear, packet->data);
+		}
+	}
 	else if (cmd == L"toggledownfall")
 	{
 		if (!app.GetGameHostOption(eGameHostOption_CheatsEnabled))
@@ -1412,6 +1474,78 @@ if (cmd == L"tp" || cmd == L"teleport")
     	shared_ptr<GameCommandPacket> packet = GiveItemCommand::preparePacket(target, item, amount, aux);
     	server->getCommandDispatcher()->performCommand(player, eGameCommand_Give, packet->data);
 	}
+	// neoLegacy - /locate <structure>: read-only lookup, no dispatcher round-trip needed (same shape as /time query)
+	else if (cmd == L"locate")
+	{
+		if (!app.GetGameHostOption(eGameHostOption_CheatsEnabled))
+		{
+			warn(L"Cheats are not enabled on this server.");
+			return;
+		}
+
+		if (!player->hasPermission(eGameCommand_Locate))
+		{
+			warn(L"You do not have permission to use this command.");
+			return;
+		}
+
+		wstring structureArg;
+		ss >> structureArg;
+		if (structureArg.empty())
+		{
+			warn(L"Usage: /locate <structure>");
+			warn(L"Available: village, stronghold, mineshaft, monument, temple");
+			return;
+		}
+
+		wstring featureKey;
+		wstring displayName;
+		if (structureArg == L"village")
+		{
+			featureKey = LargeFeature::VILLAGE;
+			displayName = L"Village";
+		}
+		else if (structureArg == L"stronghold")
+		{
+			featureKey = LargeFeature::STRONGHOLD;
+			displayName = L"Stronghold";
+		}
+		else if (structureArg == L"mineshaft")
+		{
+			featureKey = LargeFeature::MINESHAFT;
+			displayName = L"Mineshaft";
+		}
+		else if (structureArg == L"monument")
+		{
+			featureKey = LargeFeature::MONUMENT;
+			displayName = L"Ocean Monument";
+		}
+		else if (structureArg == L"temple")
+		{
+			featureKey = LargeFeature::TEMPLE;
+			displayName = L"Temple";
+		}
+		else
+		{
+			warn(L"Unknown structure: " + structureArg);
+			warn(L"Available: village, stronghold, mineshaft, monument, temple");
+			return;
+		}
+
+		Level *world = server->getCommandSenderWorld();
+		TilePos *pos = world->findNearestMapFeature(featureKey, (int)player->x, (int)player->y, (int)player->z);
+
+		if (pos != nullptr)
+		{
+			info(L"The nearest " + displayName + L" is at " +
+				to_wstring(pos->x) + L", " + to_wstring(pos->y) + L", " + to_wstring(pos->z));
+			delete pos;
+		}
+		else
+		{
+			warn(L"Could not find a nearby " + displayName + L". Try exploring further and search again.");
+		}
+	}
 }
 
 void PlayerConnection::handleAnimate(shared_ptr<AnimatePacket> packet)
@@ -1479,6 +1613,19 @@ void PlayerConnection::handlePlayerCommand(shared_ptr<PlayerCommandPacket> packe
 		{
 			dynamic_pointer_cast<EntityHorse>(player->riding)->openInventory(player);
 		}
+	}
+	else if (packet->action == PlayerCommandPacket::START_FALL_FLYING)
+	{
+		// neoLegacy - only believe a glide the player could really be doing: working elytra on the chest, not riding
+		shared_ptr<ItemInstance> chest = player->inventory->armor[LivingEntity::SLOT_CHEST - 1];
+		if (player->riding == nullptr && chest != nullptr && dynamic_cast<ElytraItem*>(chest->getItem()) != nullptr && ElytraItem::isFlyEnabled(chest))
+		{
+			player->setElytraFlying(true);
+		}
+	}
+	else if (packet->action == PlayerCommandPacket::STOP_FALL_FLYING)
+	{
+		player->setElytraFlying(false);
 	}
 	else if (packet->action == PlayerCommandPacket::START_IDLEANIM)
 	{
@@ -2593,6 +2740,30 @@ void PlayerConnection::handleCustomPayload(shared_ptr<CustomPayloadPacket> custo
 	        }
 	    }
 	}
+	else if (CustomPayloadPacket::ARCADE_SAVE_PACKET.compare(customPayloadPacket->identifier) == 0)
+	{
+		// neoLegacy - Arcade Machines: mode 0 = client asks for its saved progress, mode 1 = client stores new progress
+		if (player == nullptr || customPayloadPacket->data.data == nullptr || customPayloadPacket->length < 4) return;
+		ByteArrayInputStream bais(customPayloadPacket->data);
+		DataInputStream dis(&bais);
+		int mode = dis.readInt();
+		if (mode == 0)
+		{
+			ByteArrayOutputStream baos;
+			DataOutputStream dos(&baos);
+			player->arcadeData.write(&dos);
+			send(std::make_shared<CustomPayloadPacket>(CustomPayloadPacket::ARCADE_SYNC_PACKET, baos.toByteArray()));
+		}
+		else if (mode == 1 && customPayloadPacket->length >= 4 + 64)
+		{
+			ArcadeSaveData incoming;
+			incoming.read(&dis);	// clamps everything into a sane range
+			// A high score can only ever go up, so a stale or duplicated save can't roll one back.
+			if (incoming.flappyHighScore < player->arcadeData.flappyHighScore) incoming.flappyHighScore = player->arcadeData.flappyHighScore;
+			if (incoming.snakeHighScore < player->arcadeData.snakeHighScore) incoming.snakeHighScore = player->arcadeData.snakeHighScore;
+			player->arcadeData = incoming;
+		}
+	}
 	else if (CustomPayloadPacket::SET_ITEM_NAME_PACKET.compare(customPayloadPacket->identifier) == 0)
 	{
 	    AnvilMenu *menu = dynamic_cast<AnvilMenu *>(player->containerMenu);
@@ -2668,6 +2839,14 @@ void PlayerConnection::handleCraftItem(shared_ptr<CraftItemPacket> packet)
 		if (req.iType == RECIPE_TYPE_3x3 && dynamic_cast<CraftingMenu *>(player->containerMenu) == nullptr)
 		{
 			server->warn(L"Player " + player->getName() + L" tried to craft a 3x3 recipe without a crafting bench");
+			return;
+		}
+		// neoLegacy - Complex Table: the recipe-book list is already filtered client-side
+		// (IUIScene_CraftingMenu::CheckRecipesAvailable) so a normal client never sends this,
+		// but enforce it here too since the server shouldn't just trust the recipe index.
+		if (Recipes::isComplexOnly(req.pRecipy) != (dynamic_cast<ComplexCraftingMenu *>(player->containerMenu) != nullptr))
+		{
+			server->warn(L"Player " + player->getName() + L" tried to craft a recipe not available at this table");
 			return;
 		}
 		for (int i = 0; i < req.iIngC; i++){

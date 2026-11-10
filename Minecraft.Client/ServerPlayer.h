@@ -102,6 +102,8 @@ public:
 	virtual bool openFireworks(int x, int y, int z);					// 4J added
 	virtual bool startEnchanting(int x, int y, int z, const wstring &name);					// 4J added bool return
 	virtual bool startRepairing(int x, int y, int z);					// 4J added bool return
+	virtual bool startGrindstoneRepairing(int x, int y, int z);		// neoLegacy added
+	virtual bool startComplexCrafting(int x, int y, int z);			// neoLegacy - Complex Table
 	virtual bool openContainer(shared_ptr<Container> container);		// 4J added bool return
 	virtual bool openHopper(shared_ptr<HopperTileEntity> container);
 	virtual bool openHopper(shared_ptr<MinecartHopper> container);

@@ -30,6 +30,18 @@ private:
 protected:
 	int saveInterval;
 
+private:
+	// neoLegacy - Wandering Trader spawning: one attempt per in-game day; chance 2.5% (stored in tenths of a percent as 25),
+	// +2.5% after every miss, up to 7.5%.
+	int traderSpawnTimer = 24000;
+	int traderSpawnChance = 25;
+	void trySpawnWanderingTrader();
+
+	// neoLegacy - drowned spawn IN the water of rivers and oceans (the normal mob spawner only picks dry air
+	// positions, so it can't place them underwater).
+	int drownedSpawnTimer = 0;
+	void trySpawnDrowned();
+
 public:
 	ServerChunkCache *cache;
 	bool canEditSpawn;

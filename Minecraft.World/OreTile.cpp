@@ -17,6 +17,16 @@ int OreTile::getResource(int data, Random *random, int playerBonusLevel)
     return id;
 }
 
+// neoLegacy Added - Auto Smelt
+int OreTile::getSmeltedResource(int data)
+{
+	if (id == Tile::iron_ore_Id) return Item::iron_ingot_Id;
+	if (id == Tile::gold_ore_Id) return Item::gold_ingot_Id;
+	// coal/diamond/lapis/emerald/quartz already drop their processed form
+	// via getResource() above, so there's nothing left to smelt here.
+	return -1;
+}
+
 int OreTile::getResourceCount(Random *random)
 {
     if (id == Tile::lapis_ore_Id) return 4 + random->nextInt(5);

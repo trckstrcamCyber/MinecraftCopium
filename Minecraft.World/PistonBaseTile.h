@@ -18,6 +18,7 @@ public:
 	static const int MAX_PUSH_DEPTH = 12;
 	static const int TRIGGER_EXTEND = 0;
 	static const int TRIGGER_CONTRACT = 1;
+	static const int TRIGGER_DROP = 2;		// neoLegacy - Java: retract WITHOUT pulling the block back
 
 	static const wstring EDGE_TEX;
 	static const wstring PLATFORM_TEX;
@@ -72,22 +73,12 @@ public:
 	static int getFacing(int data);
 	static bool isExtended(int data);
 	static int getNewFacing(Level *level, int x, int y, int z, shared_ptr<LivingEntity> player);
+	// neoLegacy - Java PistonBaseBlock.isPushable(state, level, pos, direction, allowDestroyable, connectionDirection)
+	static bool isPushable(Level *level, int x, int y, int z, int direction, bool allowDestroyable, int connectionDirection);
 private:
 	static bool isPushable(int block, Level *level, int cx, int cy, int cz, bool allowDestroyable);
-	static bool canPush(Level *level, int sx, int sy, int sz, int facing);
-	static bool collectStructure(Level *level, int moveDir,
-		int startX, int startY, int startZ,
-		int skipX, int skipY, int skipZ,
-		int skip2X, int skip2Y, int skip2Z,
-		bool allowDestroy,
-		std::vector<BlockPos3> &toMove,
-		std::vector<BlockPos3> &toDestroy);
-	static void applyStructureMove(Level *level, int pistonX, int pistonY, int pistonZ,
-		int facing, int moveDir, bool isSticky,
-		std::vector<BlockPos3> &toMove,
-		std::vector<BlockPos3> &toDestroy,
-		bool isExtension);
 	static void stopSharingIfServer(Level *level, int x, int y, int z);			// 4J added
 
-	bool createPush(Level *level, int sx, int sy, int sz, int facing);
+	// neoLegacy - Java PistonBaseBlock.moveBlocks(level, pistonPos, direction, extending)
+	bool moveBlocks(Level *level, int x, int y, int z, int direction, bool extending);
 };

@@ -9,10 +9,11 @@ public:
 	int x, y, z;
 	bool m_bVerified;
 	bool m_bCensored;
+	int woodType;	// neoLegacy - see SignTileEntity::getWoodType
     wstring lines[4];
 
 	SignUpdatePacket();
-	SignUpdatePacket(int x, int y, int z, bool bVerified, bool bCensored, wstring lines[]);
+	SignUpdatePacket(int x, int y, int z, bool bVerified, bool bCensored, wstring lines[], int woodType = 0);
 	bool GetVerified() {return m_bVerified;}
 	bool GetCensored() {return m_bCensored;}
 	virtual void read(DataInputStream *dis);

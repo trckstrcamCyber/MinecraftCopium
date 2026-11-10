@@ -50,6 +50,13 @@ class BeetrootTile;
 class MagmaTile;
 class BoneBlockTile;
 class BannerTile;
+class LuckyBlockTile;
+class GrindstoneTile;
+class ObserverTile;
+class ArcadeMachineTile;
+class DrillTile;
+class ProcessorTile;
+class HalfSlabTile;
 
 class ChunkRebuildData;
 
@@ -105,6 +112,16 @@ public:
 	static const int TILE_NUM_MASK = 0xfff; // 4096 - 1
 	static const int TILE_NUM_SHIFT = 12; // 4096 is 12 bits
 
+	// neoLegacy - EXTENDED TILE IDS.  Chunk storage is 8 bit, so a tile id >= 256 is stored in the chunk as EXT_TILE_PLACEHOLDER
+	// and its real id lives in a per-chunk side table (see LevelChunk).  Tile id == item id for every block, so extended ids
+	// start ABOVE the last real item id: item ids 256..EXT_TILE_ID_FIRST-1 stay reserved for items, which keeps every existing
+	// save, schematic and hard-coded item id valid.  Usable extended tile ids: EXT_TILE_ID_FIRST .. EXT_TILE_ID_LAST.
+	static const int EXT_TILE_PLACEHOLDER = 255;		// never a real tile
+	static const int EXT_TILE_ID_FIRST = 2304;
+	static const int EXT_TILE_ID_LAST = 4095;			// TILE_NUM_COUNT - 1
+	// is this ITEM id the item form of a block?  (replaces the old "id < 256" tests)
+	static bool isTileItemId(int id) { return id > 0 && id < TILE_NUM_COUNT && id != cookie_miner_powered_Id && id != flappy_craft_powered_Id && id != mine_snake_powered_Id && id != bamboo_Id && id != bamboo_shoot_Id && tiles[id] != nullptr; }
+
 	// tile update flags
 	// neighbors: notify neighbors the block changed
 	static const int UPDATE_NEIGHBORS = (1 << 0);
@@ -115,6 +132,9 @@ public:
 	// clients: send tile update over network connections
 	static const int UPDATE_INVISIBLE_NO_LIGHT = (1 << 3) | UPDATE_INVISIBLE;
 
+	// neoLegacy - Java Edition setBlock flags used by the piston code (values match Java: 16 and 64)
+	static const int UPDATE_KNOWN_SHAPE = (1 << 4);		// do NOT send shape updates (observers) for this change
+	static const int UPDATE_MOVE_BY_PISTON = (1 << 6);	// the change is part of a piston move
 	static const int UPDATE_NONE = UPDATE_INVISIBLE;
 	static const int UPDATE_ALL = UPDATE_NEIGHBORS | UPDATE_CLIENTS;
 
@@ -207,8 +227,11 @@ public:
 	static const int SHAPE_QUARTZ = 39;
 	static const int SHAPE_THIN_PANE = 40;
 	static const int SHAPE_SLIME = 41;
+	// GRINDSTONE_RENDERER: custom five-cuboid model from grindstone.json
+	static const int SHAPE_GRINDSTONE = 42;
 
-	static const int SHAPE_COUNT = 42;
+	static const int SHAPE_BAMBOO = 43;	// neoLegacy
+	static const int SHAPE_COUNT = 44;
 
 	static  Tile **tiles;
 
@@ -408,6 +431,19 @@ public:
 	static const int slime_Id = 165;
 	static const int barrier_Id = 166;
 	static const int iron_trapdoor_Id = 167;
+
+	// neoLegacy - wood types beyond oak: trapdoors and signs (one tile per wood, Java style)
+	static const int spruce_trapdoor_Id = 232;
+	static const int birch_trapdoor_Id = 233;
+	static const int jungle_trapdoor_Id = 234;
+	static const int acacia_trapdoor_Id = 235;
+	static const int dark_oak_trapdoor_Id = 236;
+
+	static bool isWoodTrapdoorId(int id) { return id == trapdoor_Id || (id >= spruce_trapdoor_Id && id <= dark_oak_trapdoor_Id); }
+	static bool isStandingSignId(int id) { return id == standing_sign_Id; }	// neoLegacy - every wood shares ONE standing and ONE wall sign tile (the wood is in the tile entity)
+	static bool isWallSignId(int id) { return id == wall_standing_sign_Id; }
+	static int standingSignId(int woodType) { return standing_sign_Id; }
+	static int wallSignId(int woodType) { return wall_standing_sign_Id; }
 	static const int prismarine_Id = 168;
 	static const int sea_lantern_Id = 169;
 	static const int hay_block_Id = 170;
@@ -454,8 +490,71 @@ public:
 	static const int magma_Id = 213;
 	static const int nether_wart_block_Id = 214;
 	static const int red_nether_brick_Id = 215;
-	static const int bone_block_Id = 216;
-	//structure_void    217
+    static const int bone_block_Id = 216;
+    static const int calcite_block_Id = 217;
+    static const int stairs_calcite_block_Id = 218; // what I added do not lose
+    static const int calcite_wall_Id = 219;
+    static const int blackstone_block_Id = 220;
+    static const int stairs_blackstone_block_Id = 221;
+    static const int blackstone_wall_Id = 222;
+    static const int lucky_block_Id = 223;
+	static const int grindstone_Id = 224;
+
+    // Reserved for the upcoming observer. Do not reuse this ID.
+    static const int observer_Id = 225;
+
+    // 16 colors are stored in the tile data, so only two tile IDs are needed.
+    static const int concrete_powder_Id = 226;
+    static const int concrete_Id = 227;
+
+    // Concrete Stairs / Slabs: ONE ID per shape, all 16 colors. Block data can't hold the
+    // color (stairs use 3 data bits for orientation, slabs use 1 for top/bottom, concrete
+    // itself needs all 4 for its colors), so the 0-15 color is stored in a
+    // ConcreteColorTileEntity and the item aux value carries it. A slab needs a half and a
+    // full-block ID (the engine's solid-cube flag is per-ID), so slabs are 2 IDs total.
+    // IDs 229-243 and 246-247 are free again (they used to be the per-color stairs and the
+    // second half/full slab pair).
+    static const int concrete_stairs_Id      = 228;
+    static const int concrete_slab_half_Id   = 244;
+    static const int concrete_slab_full_Id   = 245;
+
+    // neoLegacy - Drill: redstone-powered block breaker (iron pickaxe speed / harvest level)
+    static const int drill_Id = 229;
+
+    // neoLegacy - Crusher / Refiner: hopper-fed item processors (same block class, see ProcessorTile)
+    static const int crusher_Id = 230;
+    static const int refiner_Id = 231;
+
+    // neoLegacy - Complex Table: Workbench clone, its own exclusive recipes
+    // neoLegacy - Bamboo. Uses the free vanilla ids so no extended id is needed.
+    static const int bamboo_Id = 237;
+    static const int bamboo_shoot_Id = 238;
+    static const int bamboo_fence_Id = 242;
+    static const int bamboo_fence_gate_Id = 243;
+    static const int bamboo_trapdoor_Id = 246;
+    static const int bamboo_door_Id = 247;
+    // 198 and 200 were the old per-wood sign tiles, free since every wood shares the vanilla sign tiles
+    static const int bamboo_stairs_Id = 198;
+    static const int bamboo_mosaic_stairs_Id = 200;
+    static const int bamboo_block_Id = 239;
+    static const int stripped_log_Id = 240;	// oak, spruce, birch, jungle  (see StrippedLogTile)
+    static const int stripped_log2_Id = 241;	// acacia, dark oak, bamboo
+    // bamboo planks and bamboo mosaic are planks (planks_Id) with data 6 and 7 - no ids of their own
+    static const int complex_table_Id = 248;
+
+    // neoLegacy - Arcade Machines. Powered states have separate IDs for light emission;
+    // they are deliberately not inventory items and always drop their unpowered ID.
+    static const int cookie_miner_Id = 249;
+    static const int flappy_craft_Id = 250;
+    static const int mine_snake_Id = 251;
+    static const int cookie_miner_powered_Id = 252;
+    static const int flappy_craft_powered_Id = 253;
+    static const int mine_snake_powered_Id = 254;
+
+    // neoLegacy - Jelly Block (honey-block behaviour, see JellyBlockTile.h). Uses a free vanilla-range id: extended ids (2304+) have crashed before.
+    static const int jelly_block_Id = 210;
+
+    // structure_void    217
 	// 
 	//
 	
@@ -530,6 +629,7 @@ public:
 	static Tile *rail;
 	static Tile *stairs_stone;
 	static Tile *wallSign;
+
 	static Tile *slimeBlock;
 	static Tile *lever;
 	static Tile *pressurePlate_stone;
@@ -642,6 +742,12 @@ public:
 
 	static Tile *barrier;
 	static Tile *iron_trapdoor;
+	static Tile *spruce_trapdoor;
+	static Tile *birch_trapdoor;
+	static Tile *jungle_trapdoor;
+	static Tile *acacia_trapdoor;
+	static Tile *dark_oak_trapdoor;
+
 
 	static Tile* spruce_door;
 	static Tile* birch_door;
@@ -678,6 +784,44 @@ public:
 	static BoneBlockTile* bone_block;
 	static Tile* seaLantern;
 	static Tile* prismarine;
+
+    static Tile* calcite;// added a new stone block type
+    static Tile* stairs_calcite;
+    static Tile* calciteWall;
+    static Tile* bamboo;
+    static Tile* bambooShoot;
+    static Tile* bambooFence;
+    static Tile* bambooGate;
+    static Tile* bambooTrapdoor;
+    static Tile* bambooDoor;
+    static Tile* bambooStairs;
+    static Tile* bambooMosaicStairs;
+    static Tile* bambooBlock;			// neoLegacy - Bamboo
+    static Tile* strippedLog;
+    static Tile* strippedLog2;
+    static Tile* blackstone;
+    static Tile* stairs_blackstone;
+    static Tile* blackstoneWall;
+    static Tile* lucky_block;
+    static GrindstoneTile* grindstone;
+    static Tile* concrete_powder;
+    static Tile* concrete;
+    static ObserverTile* observer;
+    static DrillTile* drill;		// neoLegacy - Drill
+    static ArcadeMachineTile* cookieMiner;	// neoLegacy - Arcade Machines
+    static ArcadeMachineTile* flappyCraft;
+    static ArcadeMachineTile* mineSnake;
+    static ArcadeMachineTile* cookieMinerPowered;
+    static ArcadeMachineTile* flappyCraftPowered;
+    static ArcadeMachineTile* mineSnakePowered;
+    static ProcessorTile* crusher;	// neoLegacy - Crusher
+    static ProcessorTile* refiner;	// neoLegacy - Refiner
+    static Tile* concrete_stairs;			// all 16 colors (color = tile entity / item aux)
+    static HalfSlabTile* concrete_slab_half;	// all 16 colors
+    static HalfSlabTile* concrete_slab_full;	// all 16 colors
+    static Tile* complexTable;	// neoLegacy - Complex Table
+    static Tile* jellyBlock;	// neoLegacy - Jelly Block
+
 
 	static TallGrass2* double_plant;
 
@@ -774,6 +918,13 @@ public:
 	virtual void onRemove(Level *level, int x, int y, int z, int id, int data);
 	virtual int getResourceCount(Random *random);
 	virtual int getResource(int data, Random *random, int playerBonusLevel);
+
+	// neoLegacy Added - Auto Smelt. Returns the smelted item id this tile
+	// should drop when the miner has Auto Smelt, or -1 if this tile has
+	// nothing to smelt (already-processed drops like coal/diamond/lapis/
+	// emerald/quartz ore return -1 here since getResource() already handles
+	// them - only tiles that still drop their own raw block id need this).
+	virtual int getSmeltedResource(int data);
 	virtual float getDestroyProgress(shared_ptr<Player> player, Level *level, int x, int y, int z);
 	virtual void spawnResources(Level *level, int x, int y, int z, int data, int playerBonusLevel);
 	virtual void spawnResources(Level *level, int x, int y, int z, int data, float odds, int playerBonusLevel);

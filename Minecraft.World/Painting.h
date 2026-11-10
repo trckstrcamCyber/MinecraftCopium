@@ -20,13 +20,14 @@ private:
 
 public:
 	enum MotiveEnum {
-		Kebab = 0, //
-		Aztec, //
+		Pika = 0, //
+		Zombie, //
 		Alban, //
 		Aztec2, //
 		Bomb, //
 		Plant, //
 		Wasteland, //
+	    Milesmorales,
 
 		Pool, //
 		Courbet, //

@@ -16,6 +16,7 @@
 #define MASK_INSTANTDAMAGE		0x200C
 #define MASK_WATERBREATHING		0x200F
 #define MASK_JUMPBOOST			0x200B
+#define MASK_FREEZING			0x200D	// neoLegacy - the free pattern 1101; only shows as a "clear potion" while no effect is registered for it
 
 // note from fireblade: good luck here
 // if youre adding a new potion, i genuinely hope you know what youre doing
@@ -49,6 +50,7 @@
 #define MACRO_POTION_IS_INVISIBILITY(aux)		((aux & 0x200F)									== MASK_INVISIBILITY)
 #define MACRO_POTION_IS_WATERBREATHING(aux)	    ((aux & 0x200F)									== MASK_WATERBREATHING)
 #define MACRO_POTION_IS_JUMPBOOST(aux)			((aux & 0x200F)									== MASK_JUMPBOOST)
+#define MACRO_POTION_IS_FREEZING(aux)			((aux & 0x200F)									== MASK_FREEZING)	// neoLegacy
 
 #define MACRO_POTION_IS_SPLASH(aux)				((aux & MASK_SPLASH)							== MASK_SPLASH)
 #define MACRO_POTION_IS_BOTTLE(aux)				((aux & MASK_SPLASH)							== 0)

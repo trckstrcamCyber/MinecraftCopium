@@ -12,6 +12,7 @@
 
 
 #define BLOCK_REGION_UPDATE_FULLCHUNK 0x01
+#define BLOCK_REGION_UPDATE_EXTTILES 0x04	// neoLegacy - a list of extended tile ids (>= 256) follows the block data
 #define BLOCK_REGION_UPDATE_ZEROHEIGHT 0x02	// added so we can still send a byte for ys, which really needs the range 0-256
 
 BlockRegionUpdatePacket::~BlockRegionUpdatePacket()
@@ -85,6 +86,9 @@ BlockRegionUpdatePacket::BlockRegionUpdatePacket(int x, int y, int z, int xs, in
 		delete [] rawBuffer.data;
 		size = inputSize;
 	}
+
+	// neoLegacy - the 8-bit block data above carries a placeholder for tiles with ids >= 256; send the real ids alongside
+	level->collectExtTiles(x, y, z, xs, this->ys, zs, extTiles);
 }
  
 void BlockRegionUpdatePacket::read(DataInputStream *dis) //throws IOException
@@ -150,6 +154,25 @@ void BlockRegionUpdatePacket::read(DataInputStream *dis) //throws IOException
 		}
 		assert(buffer.length == outputSize);
 	}
+
+	// neoLegacy - extended tile ids trailer
+	extTiles.clear();
+	if (chunkFlags & BLOCK_REGION_UPDATE_EXTTILES)
+	{
+		int count = dis->readInt();
+		if (count < 0 || count > 16 * 16 * 256) count = 0;
+		for (int i = 0; i < count; i++)
+		{
+			int rx = dis->read();
+			int ry = dis->read();
+			int rz = dis->read();
+			int tile = dis->readShort() & 0xffff;
+			extTiles.push_back(rx);
+			extTiles.push_back(ry);
+			extTiles.push_back(rz);
+			extTiles.push_back(tile);
+		}
+	}
 }
 
 void BlockRegionUpdatePacket::write(DataOutputStream *dos) // throws IOException
@@ -157,6 +180,7 @@ void BlockRegionUpdatePacket::write(DataOutputStream *dos) // throws IOException
 	byte chunkFlags = 0;
 	if(bIsFullChunk) chunkFlags |= BLOCK_REGION_UPDATE_FULLCHUNK;
 	if(ys == 0) chunkFlags |= BLOCK_REGION_UPDATE_ZEROHEIGHT;
+	if(!extTiles.empty()) chunkFlags |= BLOCK_REGION_UPDATE_EXTTILES;
 
 	dos->writeByte(chunkFlags);
 	dos->writeInt(x);
@@ -170,6 +194,18 @@ void BlockRegionUpdatePacket::write(DataOutputStream *dos) // throws IOException
 	sizeAndLevel |= ( levelIdx << 30 );
 	dos->writeInt(sizeAndLevel);
 	dos->write(buffer, 0, size);
+
+	if(!extTiles.empty())
+	{
+		dos->writeInt(static_cast<int>(extTiles.size() / 4));
+		for (size_t i = 0; i + 3 < extTiles.size(); i += 4)
+		{
+			dos->write(extTiles[i]);
+			dos->write(extTiles[i + 1]);
+			dos->write(extTiles[i + 2]);
+			dos->writeShort(static_cast<short>(extTiles[i + 3]));
+		}
+	}
 }
 
 void BlockRegionUpdatePacket::handle(PacketListener *listener)
@@ -179,6 +215,6 @@ void BlockRegionUpdatePacket::handle(PacketListener *listener)
 
 int BlockRegionUpdatePacket::getEstimatedSize() 
 {
-	return 17 + size;
+	return 17 + size + (extTiles.empty() ? 0 : 4 + static_cast<int>(extTiles.size() / 4) * 5);
 }
 

@@ -11,6 +11,16 @@ public:
 
 	BoatItem(int id);
 
+	// neoLegacy - the item's aux value is the wood type (0 oak,1 spruce,2 birch,3 jungle,4 acacia,5 dark oak)
+	virtual Icon *getIcon(int auxValue);
+	virtual unsigned int getDescriptionId(shared_ptr<ItemInstance> instance);
+	virtual unsigned int getDescriptionId(int iData = -1);
+	virtual void registerIcons(IconRegister *iconRegister);
+
+private:
+	Icon *woodIcons[7];
+public:
+
 	virtual bool TestUse(shared_ptr<ItemInstance> itemInstance, Level *level, shared_ptr<Player> player);
 	virtual shared_ptr<ItemInstance> use(shared_ptr<ItemInstance> itemInstance, Level *level, shared_ptr<Player> player);
 

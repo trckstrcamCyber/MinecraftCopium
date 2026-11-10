@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "Camel.h"
 #include "net.minecraft.h"
 #include "net.minecraft.world.level.h"
 #include "net.minecraft.world.level.storage.h"
@@ -14,8 +15,11 @@
 #include "Direction.h"
 #include "JavaMath.h"
 #include "BiomeSource.h"
+#include "BedTile.h"
+#include "DyePowderItem.h"
 
 WeighedTreasureArray VillagePieces::Smithy::treasureItems;
+WeighedTreasureArray VillagePieces::BlacksmithHouse::treasureItems;
 
 void VillagePieces::loadStatic()
 {
@@ -28,6 +32,8 @@ void VillagePieces::loadStatic()
 	StructureFeatureIO::setPieceId(eStructurePiece_SmallHut, SmallHut::Create, L"ViSmH");
 	StructureFeatureIO::setPieceId(eStructurePiece_SmallTemple, SmallTemple::Create, L"ViST");
 	StructureFeatureIO::setPieceId(eStructurePiece_Smithy, Smithy::Create, L"ViS");
+	StructureFeatureIO::setPieceId(eStructurePiece_BlacksmithHouse, BlacksmithHouse::Create, L"ViBS");
+	StructureFeatureIO::setPieceId(eStructurePiece_ModernHouse, ModernHouse::Create, L"ViMH");
 	StructureFeatureIO::setPieceId(eStructurePiece_VillageStartPiece, StartPiece::Create, L"ViStart");
 	StructureFeatureIO::setPieceId(eStructurePiece_StraightRoad, StraightRoad::Create, L"ViSR");
 	StructureFeatureIO::setPieceId(eStructurePiece_TwoRoomHouse, TwoRoomHouse::Create, L"ViTRH");
@@ -64,6 +70,8 @@ list<VillagePieces::PieceWeight *> *VillagePieces::createPieceSet(Random *random
 	newPieces->push_back(new PieceWeight(VillagePieces::EPieceClass_Farmland, 3, Mth::nextInt(random, 2 + villageSize, 4 + villageSize * 2)));
 	newPieces->push_back(new PieceWeight(VillagePieces::EPieceClass_Smithy, 15, Mth::nextInt(random, 0, 1 + villageSize)));
 	newPieces->push_back(new PieceWeight(VillagePieces::EPieceClass_TwoRoomHouse, 8, Mth::nextInt(random, 0 + villageSize, 3 + villageSize * 2)));
+	newPieces->push_back(new PieceWeight(VillagePieces::EPieceClass_BlacksmithHouse, 10, Mth::nextInt(random, 0, 1 + villageSize)));
+	newPieces->push_back(new PieceWeight(VillagePieces::EPieceClass_ModernHouse, 10, Mth::nextInt(random, 1 + villageSize, 3 + villageSize * 2)));
 
 	// silly way of filtering "infinite" buildings
     auto it = newPieces->begin();
@@ -138,6 +146,14 @@ VillagePieces::VillagePiece *VillagePieces::findAndCreatePieceFactory(StartPiece
 	else if (pieceClass == VillagePieces::EPieceClass_TwoRoomHouse)
 	{
 		villagePiece = TwoRoomHouse::createPiece(startPiece, pieces, random, footX, footY, footZ, direction, depth);
+	}
+	else if (pieceClass == VillagePieces::EPieceClass_BlacksmithHouse)
+	{
+		villagePiece = BlacksmithHouse::createPiece(startPiece, pieces, random, footX, footY, footZ, direction, depth);
+	}
+	else if (pieceClass == VillagePieces::EPieceClass_ModernHouse)
+	{
+		villagePiece = ModernHouse::createPiece(startPiece, pieces, random, footX, footY, footZ, direction, depth);
 	}
 
 	return villagePiece;
@@ -267,7 +283,7 @@ VillagePieces::VillagePiece::VillagePiece()
 {
 	heightPosition = -1;
 	spawnedVillagerCount = 0;
-	isDesertVillage = false;
+	villageStyle = EVillageStyle_Plains;
 	startPiece = nullptr;
 	// for reflection
 }
@@ -275,12 +291,12 @@ VillagePieces::VillagePiece::VillagePiece()
 VillagePieces::VillagePiece::VillagePiece(StartPiece *startPiece, int genDepth) : StructurePiece(genDepth)
 {
 	heightPosition = -1;
-	isDesertVillage = false;
+	villageStyle = EVillageStyle_Plains;
 	spawnedVillagerCount = 0;
 	this->startPiece = startPiece;
 	if (startPiece != nullptr)
 	{
-		this->isDesertVillage = startPiece->isDesertVillage;
+		this->villageStyle = startPiece->villageStyle;
 	}
 }
 
@@ -288,14 +304,25 @@ void VillagePieces::VillagePiece::addAdditonalSaveData(CompoundTag *tag)
 {
 	tag->putInt(L"HPos", heightPosition);
 	tag->putInt(L"VCount", spawnedVillagerCount);
-	tag->putBoolean(L"Desert", isDesertVillage);
+	tag->putInt(L"VStyle", villageStyle);
+	// Kept alongside VStyle so worlds saved before this update still load
+	// their villages as the style they always were.
+	tag->putBoolean(L"Desert", villageStyle == EVillageStyle_Desert);
 }
 
 void VillagePieces::VillagePiece::readAdditonalSaveData(CompoundTag *tag)
 {
 	heightPosition = tag->getInt(L"HPos");
 	spawnedVillagerCount = tag->getInt(L"VCount");
-	isDesertVillage = tag->getBoolean(L"Desert");
+	if (tag->contains(L"VStyle"))
+	{
+		villageStyle = tag->getInt(L"VStyle");
+	}
+	else
+	{
+		// Pre-update save: only Plains/Desert existed.
+		villageStyle = tag->getBoolean(L"Desert") ? EVillageStyle_Desert : EVillageStyle_Plains;
+	}
 }
 
 StructurePiece *VillagePieces::VillagePiece::generateHouseNorthernLeft(StartPiece *startPiece, list<StructurePiece *> *pieces, Random *random, int yOff, int zOff)
@@ -410,52 +437,75 @@ int VillagePieces::VillagePiece::getVillagerProfession(int villagerNumber)
 
 int VillagePieces::VillagePiece::biomeBlock(int tile, int data)
 {
-	if (isDesertVillage)
+	// Only the tile IDs actually touched below ever get redirected; anything
+	// else (stone brick, concrete, glass, fences, ...) always passes through
+	// unchanged regardless of villageStyle, which is what lets pieces like
+	// BlacksmithHouse/ModernHouse opt out of this entirely just by never
+	// using these six IDs directly (see their own biomeBlock overrides too).
+	switch (villageStyle)
 	{
-		if (tile == Tile::log_Id)
-		{
-			return Tile::sandstone_Id;
-		}
-		else if (tile == Tile::cobblestone_Id)
-		{
-			return Tile::sandstone_Id;
-		}
-		else if (tile == Tile::planks_Id)
-		{
-			return Tile::sandstone_Id;
-		}
-		else if (tile == Tile::oak_stairs_Id)
-		{
-			return Tile::sandstone_stairs_Id;
-		}
-		else if (tile == Tile::stone_stairs_Id)
-		{
-			return Tile::sandstone_stairs_Id;
-		}
-		else if (tile == Tile::gravel_Id)
-		{
-			return Tile::sandstone_Id;
-		}
+	case EVillageStyle_Desert:
+		if (tile == Tile::log_Id) return Tile::sandstone_Id;
+		else if (tile == Tile::cobblestone_Id) return Tile::sandstone_Id;
+		else if (tile == Tile::planks_Id) return Tile::sandstone_Id;
+		else if (tile == Tile::oak_stairs_Id) return Tile::sandstone_stairs_Id;
+		else if (tile == Tile::stone_stairs_Id) return Tile::sandstone_stairs_Id;
+		else if (tile == Tile::gravel_Id) return Tile::sandstone_Id;
+		break;
+
+	case EVillageStyle_Savanna:
+		// Acacia lives on log2/acacia_stairs; planks stays on the shared
+		// planks_Id and just gets acacia's data value in biomeData below.
+		if (tile == Tile::log_Id) return Tile::log2_Id;
+		else if (tile == Tile::oak_stairs_Id) return Tile::acacia_stairs_Id;
+		break;
+
+	case EVillageStyle_Taiga:
+		// Spruce shares log_Id/planks_Id with oak (just a different data
+		// value, set in biomeData below) - only the stairs need a distinct
+		// tile ID, same reasoning as every per-species stairs block.
+		if (tile == Tile::oak_stairs_Id) return Tile::spruce_stairs_Id;
+		break;
+
+	case EVillageStyle_Snowy:
+		// Same spruce wood as Taiga, but on a stone brick base instead of
+		// plain cobblestone for a slightly more "frosted" look.
+		if (tile == Tile::oak_stairs_Id) return Tile::spruce_stairs_Id;
+		else if (tile == Tile::cobblestone_Id) return Tile::stonebrick_Id;
+		else if (tile == Tile::stone_stairs_Id) return Tile::stone_brick_stairs_Id;
+		break;
+
+	default: // EVillageStyle_Plains
+		break;
 	}
 	return tile;
 }
 
 int VillagePieces::VillagePiece::biomeData(int tile, int data)
 {
-	if (isDesertVillage)
+	switch (villageStyle)
 	{
-		if (tile == Tile::log_Id)
-		{
-			return 0;
-		}
-		else if (tile == Tile::cobblestone_Id)
-		{
-			return SandStoneTile::TYPE_DEFAULT;
-		}
-		else if (tile == Tile::planks_Id)
-		{
-			return SandStoneTile::TYPE_SMOOTHSIDE;
-		}
+	case EVillageStyle_Desert:
+		if (tile == Tile::log_Id) return 0;
+		else if (tile == Tile::cobblestone_Id) return SandStoneTile::TYPE_DEFAULT;
+		else if (tile == Tile::planks_Id) return SandStoneTile::TYPE_SMOOTHSIDE;
+		break;
+
+	case EVillageStyle_Savanna:
+		// species bits only; every log placed by these pieces already
+		// passes axis-bits 0 (vertical), and acacia's species bit on log2
+		// is itself 0, so there's nothing to change there.
+		if (tile == Tile::planks_Id) return 4; // VERIFY: acacia is planks data 4 in this fork's numbering, matching every other wood-species tile pair here (oak=0, spruce=1, birch=2, jungle=3, acacia=4, dark_oak=5)
+		break;
+
+	case EVillageStyle_Taiga:
+	case EVillageStyle_Snowy:
+		if (tile == Tile::planks_Id) return 1; // spruce
+		else if (tile == Tile::log_Id) return (data & ~0x3) | 1; // spruce, axis bits preserved
+		break;
+
+	default: // EVillageStyle_Plains
+		break;
 	}
 	return data;
 }
@@ -483,13 +533,62 @@ void VillagePieces::VillagePiece::fillColumnDown(Level *level, int block, int da
 	StructurePiece::fillColumnDown(level, bblock, bdata, x, startY, z, chunkBB);
 }
 
+void VillagePieces::VillagePiece::placeBed(Level *level, BoundingBox *chunkBB, int x, int y, int z, int localDirection)
+{
+	// dx/dz use the UNROTATED local direction, same frame as x/y/z - the
+	// piece's own coordinate transform (via placeBlock -> getWorldX/Y/Z)
+	// rotates this offset into world space exactly like it does every other
+	// local coordinate, so this stays correct in all four piece orientations.
+	int dx = BedTile::HEAD_DIRECTION_OFFSETS[localDirection][0];
+	int dz = BedTile::HEAD_DIRECTION_OFFSETS[localDirection][1];
+
+	// getOrientationData() is NOT used here on purpose. Its generic
+	// DirectionalTile fallback (the one bed_Id would hit) turns out to hand
+	// back the OPPOSITE compass direction from the one that's actually
+	// correct, for every orientation this piece can land in - fine for
+	// whatever single tile it was written for, wrong for a bed that needs a
+	// real 4-way rotation. That's exactly the "head and foot in the opposite
+	// place" bug. Instead, this works out the world-space direction directly
+	// from the same per-orientation coordinate math getWorldX/getWorldZ use
+	// (NORTH/SOUTH keep x, flip or keep z; WEST/EAST swap x and z), so it's
+	// guaranteed to agree with where the two blocks actually end up.
+	int worldDx, worldDz;
+	switch (orientation)
+	{
+	case Direction::NORTH:
+		worldDx = dx; worldDz = -dz;
+		break;
+	case Direction::WEST:
+		worldDx = -dz; worldDz = dx;
+		break;
+	case Direction::EAST:
+		worldDx = dz; worldDz = dx;
+		break;
+	case Direction::SOUTH:
+	default:
+		worldDx = dx; worldDz = dz;
+		break;
+	}
+
+	int worldDirection;
+	if (worldDz == 1) worldDirection = Direction::SOUTH;
+	else if (worldDz == -1) worldDirection = Direction::NORTH;
+	else if (worldDx == -1) worldDirection = Direction::WEST;
+	else worldDirection = Direction::EAST;
+
+	placeBlock(level, Tile::bed_Id, worldDirection, x, y, z, chunkBB);
+	placeBlock(level, Tile::bed_Id, worldDirection | BedTile::HEAD_PIECE_DATA, x + dx, y, z + dz, chunkBB);
+}
+
 VillagePieces::Well::Well()
 {
 	// for reflection
+	camelSpawned = false;
 }
 
 VillagePieces::Well::Well(StartPiece *startPiece, int genDepth, Random *random, int west, int north) : VillagePiece(startPiece, genDepth)
 {
+	camelSpawned = false;
 	orientation = random->nextInt(4);
 
 	switch (orientation)
@@ -506,6 +605,7 @@ VillagePieces::Well::Well(StartPiece *startPiece, int genDepth, Random *random, 
 
 VillagePieces::Well::Well(StartPiece *startPiece, int genDepth, Random *random, BoundingBox *stairsBox, int direction) : VillagePiece(startPiece, genDepth)
 {
+	camelSpawned = false;
 	orientation = direction;
 	boundingBox = stairsBox;
 }
@@ -560,6 +660,21 @@ bool VillagePieces::Well::postProcess(Level *level, Random *random, BoundingBox 
 		}
 	}
 
+	// neoLegacy - exactly one camel per desert village, standing by the well (and never respawning).
+	if (!camelSpawned && getVillageStyle() == EVillageStyle_Desert)
+	{
+		int wx = getWorldX(0, 2);
+		int wy = getWorldY(height - 3);
+		int wz = getWorldZ(0, 2);
+		if (chunkBB->isInside(wx, wy, wz))
+		{
+			camelSpawned = true;
+			shared_ptr<Camel> camel = std::make_shared<Camel>(level);
+			camel->moveTo(wx + 0.5, wy, wz + 0.5, random->nextFloat() * 360, 0);
+			level->addEntity(camel);
+		}
+	}
+
 	return true;
 
 }
@@ -579,7 +694,30 @@ VillagePieces::StartPiece::StartPiece(BiomeSource *biomeSource, int genDepth, Ra
 	m_level = level;
 
 	Biome *biome = biomeSource->getBiome(west, north);
-	isDesertVillage = biome == Biome::desert || biome == Biome::desertHills;
+	if (biome == Biome::desert || biome == Biome::desertHills)
+	{
+		villageStyle = EVillageStyle_Desert;
+	}
+	else if (biome == Biome::savanna || biome == Biome::savannaPlateau ||
+		biome == Biome::savannaM || biome == Biome::savannaPlateauM)
+	{
+		villageStyle = EVillageStyle_Savanna;
+	}
+	else if (biome == Biome::iceFlats || biome == Biome::iceMountains || biome == Biome::iceSpikes ||
+		biome == Biome::coldTaiga || biome == Biome::coldTaigaHills || biome == Biome::coldTaigaM)
+	{
+		villageStyle = EVillageStyle_Snowy;
+	}
+	else if (biome == Biome::taiga || biome == Biome::taigaHills || biome == Biome::taigaM ||
+		biome == Biome::megaTaiga || biome == Biome::megaTaigaHills ||
+		biome == Biome::redwoodTaiga || biome == Biome::redwoodTaigaHills)
+	{
+		villageStyle = EVillageStyle_Taiga;
+	}
+	else
+	{
+		villageStyle = EVillageStyle_Plains;
+	}
 }
 
 VillagePieces::StartPiece::~StartPiece()
@@ -817,6 +955,9 @@ bool VillagePieces::SimpleHouse::postProcess(Level *level, Random *random, Bound
 
 	// fill room with air
 	generateBox(level, chunkBB, 1, 1, 1, 3, 3, 3, 0, 0, false);
+
+	// bed, against the left wall and clear of the doorway/window
+	placeBed(level, chunkBB, 1, 1, 2, Direction::SOUTH);
 
 	// roof fence
 	if (hasTerrace) {
@@ -1120,6 +1261,9 @@ bool VillagePieces::BookHouse::postProcess(Level *level, Random *random, Boundin
 	placeBlock(level, Tile::wooden_pressure_plate_Id, 0, 4, 2, 3, chunkBB);
 	placeBlock(level, Tile::crafting_table_Id, 0, 7, 1, 1, chunkBB);
 
+	// bed, in the back corner away from the door and clear of the tables/bookshelf
+	placeBed(level, chunkBB, 1, 1, 3, Direction::NORTH);
+
 	// entrance
 	placeBlock(level, 0, 0, 1, 1, 0, chunkBB);
 	placeBlock(level, 0, 0, 1, 2, 0, chunkBB);
@@ -1245,6 +1389,10 @@ bool VillagePieces::SmallHut::postProcess(Level *level, Random *random, Bounding
 		placeBlock(level, Tile::fence_Id, 0, tablePlacement, 1, 3, chunkBB);
 		placeBlock(level, Tile::wooden_pressure_plate_Id, 0, tablePlacement, 2, 3, chunkBB);
 	}
+
+	// bed - the x=2 column stays clear regardless of tablePlacement (the
+	// table only ever touches z=3)
+	placeBed(level, chunkBB, 2, 1, 1, Direction::SOUTH);
 
 	// entrance
 	placeBlock(level, 0, 0, 1, 1, 0, chunkBB);
@@ -1547,6 +1695,10 @@ bool VillagePieces::TwoRoomHouse::postProcess(Level *level, Random *random, Boun
 	placeBlock(level, Tile::log_Id, 0, 6, 4, 10, chunkBB);
 	placeBlock(level, Tile::planks_Id, 0, 5, 5, 10, chunkBB);
 
+	// two beds in the back room, one per villager this piece spawns
+	placeBed(level, chunkBB, 3, 1, 7, Direction::SOUTH);
+	placeBed(level, chunkBB, 7, 1, 7, Direction::SOUTH);
+
 	// entrance
 	placeBlock(level, 0, 0, 2, 1, 0, chunkBB);
 	placeBlock(level, 0, 0, 2, 2, 0, chunkBB);
@@ -1741,6 +1893,229 @@ bool VillagePieces::Smithy::postProcess(Level *level, Random *random, BoundingBo
 }
 
 int VillagePieces::Smithy::getVillagerProfession(int villagerNumber)
+{
+	return Villager::PROFESSION_SMITH;
+}
+
+void VillagePieces::BlacksmithHouse::staticCtor()
+{
+	// Distinct from Smithy::treasureItems on purpose (see engine-learnings:
+	// Cameron wants separate, non-combined outcome tables rather than one
+	// shared list) - leans further into armor/weapons/forge materials and
+	// drops the food and rare-horse-gear rolls that felt more like general
+	// treasure than a blacksmith's own stock.
+	treasureItems = WeighedTreasureArray(9);
+	treasureItems[0] = new WeighedTreasure(Item::diamond_Id, 0, 1, 2, 3);
+	treasureItems[1] = new WeighedTreasure(Item::iron_ingot_Id, 0, 2, 6, 12);
+	treasureItems[2] = new WeighedTreasure(Item::gold_ingot_Id, 0, 1, 4, 6);
+	treasureItems[3] = new WeighedTreasure(Item::iron_pickaxe_Id, 0, 1, 1, 6);
+	treasureItems[4] = new WeighedTreasure(Item::iron_sword_Id, 0, 1, 1, 6);
+	treasureItems[5] = new WeighedTreasure(Item::iron_chestplate_Id, 0, 1, 1, 4);
+	treasureItems[6] = new WeighedTreasure(Item::iron_helmet_Id, 0, 1, 1, 4);
+	treasureItems[7] = new WeighedTreasure(Item::iron_leggings_Id, 0, 1, 1, 4);
+	treasureItems[8] = new WeighedTreasure(Item::iron_boots_Id, 0, 1, 1, 4);
+}
+
+VillagePieces::BlacksmithHouse::BlacksmithHouse()
+{
+	hasPlacedChest = false;
+	// for reflection
+}
+
+VillagePieces::BlacksmithHouse::BlacksmithHouse(StartPiece *startPiece, int genDepth, Random *random, BoundingBox *stairsBox, int direction) : VillagePiece(startPiece, genDepth)
+{
+	hasPlacedChest = false;
+
+	orientation = direction;
+	boundingBox = stairsBox;
+}
+
+VillagePieces::BlacksmithHouse *VillagePieces::BlacksmithHouse::createPiece(StartPiece *startPiece, list<StructurePiece *> *pieces, Random *random, int footX, int footY, int footZ, int direction, int genDepth)
+{
+	BoundingBox *box = BoundingBox::orientBox(footX, footY, footZ, 0, 0, 0, width, height, depth, direction);
+
+	if (!isOkBox(box, startPiece) || StructurePiece::findCollisionPiece(pieces, box) != nullptr)
+	{
+		delete box;
+		return nullptr;
+	}
+
+	return new BlacksmithHouse(startPiece, genDepth, random, box, direction);
+}
+
+void VillagePieces::BlacksmithHouse::addAdditonalSaveData(CompoundTag *tag)
+{
+	VillagePiece::addAdditonalSaveData(tag);
+	tag->putBoolean(L"Chest", hasPlacedChest);
+}
+
+void VillagePieces::BlacksmithHouse::readAdditonalSaveData(CompoundTag *tag)
+{
+	VillagePiece::readAdditonalSaveData(tag);
+	hasPlacedChest = tag->getBoolean(L"Chest");
+}
+
+bool VillagePieces::BlacksmithHouse::postProcess(Level *level, Random *random, BoundingBox *chunkBB)
+{
+	if (heightPosition < 0)
+	{
+		heightPosition = getAverageGroundHeight(level, chunkBB);
+		if (heightPosition < 0)
+		{
+			return true;
+		}
+		boundingBox->move(0, heightPosition - boundingBox->y1 + height - 1, 0);
+	}
+
+	// The classic vanilla plains blacksmith, laid out the way it's actually
+	// built: 10x7, cobblestone/log/plank, single enclosed room (not an open
+	// porch - that was my own invention last time), stacked furnaces and a
+	// lava forge caged in iron bars, a gabled oak-stairs roof capped in
+	// smooth stone with a chimney over the forge, and a chest + grindstone
+	// for loot/work - no anvil, that was never part of the real building.
+
+	// fill inside with air
+	generateBox(level, chunkBB, 1, 1, 1, 8, 3, 5, 0, 0, false);
+
+	// floor
+	generateBox(level, chunkBB, 0, 0, 0, 9, 0, 6, Tile::cobblestone_Id, Tile::cobblestone_Id, false);
+
+	// 4 corner pillars, log, floor to top-plate
+	generateBox(level, chunkBB, 0, 1, 0, 0, 3, 0, Tile::log_Id, Tile::log_Id, false);
+	generateBox(level, chunkBB, 9, 1, 0, 9, 3, 0, Tile::log_Id, Tile::log_Id, false);
+	generateBox(level, chunkBB, 0, 1, 6, 0, 3, 6, Tile::log_Id, Tile::log_Id, false);
+	generateBox(level, chunkBB, 9, 1, 6, 9, 3, 6, Tile::log_Id, Tile::log_Id, false);
+
+	// walls - plank infill between the pillars, log top-plate beam at y3
+	generateBox(level, chunkBB, 1, 1, 0, 8, 2, 0, Tile::planks_Id, Tile::planks_Id, false); // front
+	generateBox(level, chunkBB, 1, 1, 6, 8, 2, 6, Tile::planks_Id, Tile::planks_Id, false); // back
+	generateBox(level, chunkBB, 0, 1, 1, 0, 2, 5, Tile::planks_Id, Tile::planks_Id, false); // left
+	generateBox(level, chunkBB, 9, 1, 1, 9, 2, 5, Tile::planks_Id, Tile::planks_Id, false); // right
+	generateBox(level, chunkBB, 1, 3, 0, 8, 3, 0, Tile::log_Id, Tile::log_Id, false);
+	generateBox(level, chunkBB, 1, 3, 6, 8, 3, 6, Tile::log_Id, Tile::log_Id, false);
+	generateBox(level, chunkBB, 0, 3, 1, 0, 3, 5, Tile::log_Id, Tile::log_Id, false);
+	generateBox(level, chunkBB, 9, 3, 1, 9, 3, 5, Tile::log_Id, Tile::log_Id, false);
+
+	// ceiling
+	generateBox(level, chunkBB, 0, 4, 0, 9, 4, 6, Tile::planks_Id, Tile::planks_Id, false);
+
+	// gabled roof - ridge runs along x, peak at z3; each row is backed
+	// solid up to (but not including) its own stair line so there are no
+	// hollow gaps behind the slope
+	int southStairs = getOrientationData(Tile::oak_stairs_Id, 3);
+	int northStairs = getOrientationData(Tile::oak_stairs_Id, 2);
+	for (int step = 0; step <= 3; step++)
+	{
+		int stairY = 5 + step;
+		for (int x = 0; x <= 9; x++)
+		{
+			for (int y = 5; y < stairY; y++)
+			{
+				placeBlock(level, Tile::planks_Id, 0, x, y, step, chunkBB);
+				if (step != 3)
+				{
+					placeBlock(level, Tile::planks_Id, 0, x, y, 6 - step, chunkBB);
+				}
+			}
+			if (step == 3)
+			{
+				// peak - one solid smooth stone slab ridge, not a stair
+				placeBlock(level, Tile::double_stone_slab_Id, 0, x, stairY, step, chunkBB);
+			}
+			else
+			{
+				placeBlock(level, Tile::oak_stairs_Id, southStairs, x, stairY, step, chunkBB);
+				placeBlock(level, Tile::oak_stairs_Id, northStairs, x, stairY, 6 - step, chunkBB);
+			}
+		}
+	}
+
+	// door
+	placeBlock(level, 0, 0, 4, 1, 0, chunkBB);
+	placeBlock(level, 0, 0, 4, 2, 0, chunkBB);
+	createDoor(level, chunkBB, random, 4, 1, 0, getOrientationData(Tile::wooden_door_Id, 1));
+
+	// windows
+	placeBlock(level, Tile::glass_pane_Id, 0, 6, 2, 6, chunkBB);
+	placeBlock(level, Tile::glass_pane_Id, 0, 0, 2, 3, chunkBB);
+	placeBlock(level, Tile::glass_pane_Id, 0, 9, 2, 3, chunkBB);
+
+    // smithing workshop
+
+    // stacked furnaces against the left wall
+    placeBlock(level, Tile::furnace_Id, 0, 1, 1, 4, chunkBB);
+    placeBlock(level, Tile::furnace_Id, 0, 1, 2, 4, chunkBB);
+
+    // grindstone workstation
+    placeBlock(level, Tile::grindstone_Id, Direction::SOUTH, 3, 1, 4, chunkBB);
+
+    // heavy stone workbench
+    placeBlock(level, Tile::double_stone_slab_Id, 0, 2, 1, 5, chunkBB);
+    placeBlock(level, Tile::double_stone_slab_Id, 0, 3, 1, 5, chunkBB);
+
+    // tool rack / storage shelves
+    placeBlock(level, Tile::oak_stairs_Id,
+    getOrientationData(Tile::oak_stairs_Id, 2),
+    6, 1, 5, chunkBB);
+
+    placeBlock(level, Tile::oak_stairs_Id,
+        getOrientationData(Tile::oak_stairs_Id, 2),
+        7, 1, 5, chunkBB);
+
+    placeBlock(level, Tile::oak_stairs_Id,
+        getOrientationData(Tile::oak_stairs_Id, 2),
+        8, 1, 5, chunkBB);
+
+    // central smithing desk
+    placeBlock(level, Tile::fence_Id, 0, 6, 1, 2, chunkBB);
+    placeBlock(level, Tile::wooden_pressure_plate_Id, 0, 6, 2, 2, chunkBB);
+
+    placeBlock(level, Tile::fence_Id, 0, 7, 1, 2, chunkBB);
+    placeBlock(level, Tile::wooden_pressure_plate_Id, 0, 7, 2, 2, chunkBB);
+
+    // storage chest in front-right corner
+    if (!hasPlacedChest)
+    {
+        int y = getWorldY(1);
+        int x = getWorldX(8, 1), z = getWorldZ(8, 1);
+
+        if (chunkBB->isInside(x, y, z))
+        {
+            hasPlacedChest = true;
+
+            createChest(
+                level,
+                chunkBB,
+                random,
+                8, 1, 1,
+                treasureItems,
+                3 + random->nextInt(6)
+            );
+        }
+    }
+
+	// entrance step
+	if (getBlock(level, 4, 0, -1, chunkBB) == 0 && getBlock(level, 4, -1, -1, chunkBB) != 0)
+	{
+		placeBlock(level, Tile::stone_stairs_Id, getOrientationData(Tile::stone_stairs_Id, 3), 4, 0, -1, chunkBB);
+	}
+
+	for (int z = 0; z < depth; z++)
+	{
+		for (int x = 0; x < width; x++)
+		{
+			generateAirColumnUp(level, x, height, z, chunkBB);
+			fillColumnDown(level, Tile::cobblestone_Id, 0, x, -1, z, chunkBB);
+		}
+	}
+
+	spawnVillagers(level, chunkBB, 4, 1, 1, 1);
+
+	return true;
+
+}
+
+int VillagePieces::BlacksmithHouse::getVillagerProfession(int villagerNumber)
 {
 	return Villager::PROFESSION_SMITH;
 }
@@ -2026,4 +2401,189 @@ bool VillagePieces::LightPost::postProcess(Level *level, Random *random, Boundin
 	placeBlock(level, Tile::torch_Id, 0, 1, 3, -1, chunkBB);
 
 	return true;
+}
+
+VillagePieces::ModernHouse::ModernHouse()
+{
+	// for reflection
+}
+
+VillagePieces::ModernHouse::ModernHouse(StartPiece *startPiece, int genDepth, Random *random, BoundingBox *stairsBox, int direction) : VillagePiece(startPiece, genDepth)
+{
+	orientation = direction;
+	boundingBox = stairsBox;
+}
+
+VillagePieces::ModernHouse *VillagePieces::ModernHouse::createPiece(StartPiece *startPiece, list<StructurePiece *> *pieces, Random *random, int footX, int footY, int footZ, int direction, int genDepth)
+{
+	BoundingBox *box = BoundingBox::orientBox(footX, footY, footZ, 0, 0, 0, width, height, depth, direction);
+
+	if (!isOkBox(box, startPiece) || StructurePiece::findCollisionPiece(pieces, box) != nullptr)
+	{
+		delete box;
+		return nullptr;
+	}
+
+	return new ModernHouse(startPiece, genDepth, random, box, direction);
+}
+
+bool VillagePieces::ModernHouse::postProcess(Level *level, Random *random, BoundingBox *chunkBB)
+{
+	if (heightPosition < 0)
+	{
+		heightPosition = getAverageGroundHeight(level, chunkBB);
+		if (heightPosition < 0)
+		{
+			return true;
+		}
+		boundingBox->move(0, heightPosition - boundingBox->y1 + height - 1, 0);
+	}
+
+	// Same two-room shape as TwoRoomHouse (proven, gap-free) and the same
+	// log/plank/cobblestone/oak_stairs palette as every other house here -
+	// this reskins by village style normally, same as everything else.
+	// Approximates a post-Village & Pillage plains house with the older
+	// block set this fork actually has (a bed, more windows) rather than
+	// going for a distinct "modern architecture" material style.
+
+	// fill inside with air
+	generateBox(level, chunkBB, 1, 1, 1, 7, 4, 4, 0, 0, false);
+	generateBox(level, chunkBB, 2, 1, 6, 8, 4, 10, 0, 0, false);
+
+	// floor
+	generateBox(level, chunkBB, 2, 0, 5, 8, 0, 10, Tile::planks_Id, Tile::planks_Id, false);
+	generateBox(level, chunkBB, 1, 0, 1, 7, 0, 4, Tile::planks_Id, Tile::planks_Id, false);
+	generateBox(level, chunkBB, 0, 0, 0, 0, 3, 5, Tile::cobblestone_Id, Tile::cobblestone_Id, false);
+	generateBox(level, chunkBB, 8, 0, 0, 8, 3, 10, Tile::cobblestone_Id, Tile::cobblestone_Id, false);
+	generateBox(level, chunkBB, 1, 0, 0, 7, 2, 0, Tile::cobblestone_Id, Tile::cobblestone_Id, false);
+	generateBox(level, chunkBB, 1, 0, 5, 2, 1, 5, Tile::cobblestone_Id, Tile::cobblestone_Id, false);
+	generateBox(level, chunkBB, 2, 0, 6, 2, 3, 10, Tile::cobblestone_Id, Tile::cobblestone_Id, false);
+	generateBox(level, chunkBB, 3, 0, 10, 7, 3, 10, Tile::cobblestone_Id, Tile::cobblestone_Id, false);
+
+	// room 1 roof
+	generateBox(level, chunkBB, 1, 2, 0, 7, 3, 0, Tile::planks_Id, Tile::planks_Id, false);
+	generateBox(level, chunkBB, 1, 2, 5, 2, 3, 5, Tile::planks_Id, Tile::planks_Id, false);
+	generateBox(level, chunkBB, 0, 4, 1, 8, 4, 1, Tile::planks_Id, Tile::planks_Id, false);
+	generateBox(level, chunkBB, 0, 4, 4, 3, 4, 4, Tile::planks_Id, Tile::planks_Id, false);
+	generateBox(level, chunkBB, 0, 5, 2, 8, 5, 3, Tile::planks_Id, Tile::planks_Id, false);
+	placeBlock(level, Tile::planks_Id, 0, 0, 4, 2, chunkBB);
+	placeBlock(level, Tile::planks_Id, 0, 0, 4, 3, chunkBB);
+	placeBlock(level, Tile::planks_Id, 0, 8, 4, 2, chunkBB);
+	placeBlock(level, Tile::planks_Id, 0, 8, 4, 3, chunkBB);
+	placeBlock(level, Tile::planks_Id, 0, 8, 4, 4, chunkBB);
+
+	int southStairs = getOrientationData(Tile::oak_stairs_Id, 3);
+	int northStairs = getOrientationData(Tile::oak_stairs_Id, 2);
+	for (int d = -1; d <= 2; d++)
+	{
+		for (int w = 0; w <= 8; w++)
+		{
+			placeBlock(level, Tile::oak_stairs_Id, southStairs, w, 4 + d, d, chunkBB);
+			if ((d > -1 || w <= 1) && (d > 0 || w <= 3) && (d > 1 || w <= 4 || w >= 6)) {
+				placeBlock(level, Tile::oak_stairs_Id, northStairs, w, 4 + d, 5 - d, chunkBB);
+			}
+		}
+	}
+
+	// room 2 roof
+	generateBox(level, chunkBB, 3, 4, 5, 3, 4, 10, Tile::planks_Id, Tile::planks_Id, false);
+	generateBox(level, chunkBB, 7, 4, 2, 7, 4, 10, Tile::planks_Id, Tile::planks_Id, false);
+	generateBox(level, chunkBB, 4, 5, 4, 4, 5, 10, Tile::planks_Id, Tile::planks_Id, false);
+	generateBox(level, chunkBB, 6, 5, 4, 6, 5, 10, Tile::planks_Id, Tile::planks_Id, false);
+	generateBox(level, chunkBB, 5, 6, 3, 5, 6, 10, Tile::planks_Id, Tile::planks_Id, false);
+	int westStairs = getOrientationData(Tile::oak_stairs_Id, 0);
+	for (int w = 4; w >= 1; w--)
+	{
+		placeBlock(level, Tile::planks_Id, 0, w, 2 + w, 7 - w, chunkBB);
+		for (int d = 8 - w; d <= 10; d++)
+		{
+			placeBlock(level, Tile::oak_stairs_Id, westStairs, w, 2 + w, d, chunkBB);
+		}
+	}
+	int eastStairs = getOrientationData(Tile::oak_stairs_Id, 1);
+	placeBlock(level, Tile::planks_Id, 0, 6, 6, 3, chunkBB);
+	placeBlock(level, Tile::planks_Id, 0, 7, 5, 4, chunkBB);
+	placeBlock(level, Tile::oak_stairs_Id, eastStairs, 6, 6, 4, chunkBB);
+	for (int w = 6; w <= 8; w++)
+	{
+		for (int d = 5; d <= 10; d++)
+		{
+			placeBlock(level, Tile::oak_stairs_Id, eastStairs, w, 12 - w, d, chunkBB);
+		}
+	}
+
+	// windows etc
+	placeBlock(level, Tile::log_Id, 0, 0, 2, 1, chunkBB);
+	placeBlock(level, Tile::log_Id, 0, 0, 2, 4, chunkBB);
+	placeBlock(level, Tile::glass_pane_Id, 0, 0, 2, 2, chunkBB);
+	placeBlock(level, Tile::glass_pane_Id, 0, 0, 2, 3, chunkBB);
+
+	placeBlock(level, Tile::log_Id, 0, 4, 2, 0, chunkBB);
+	placeBlock(level, Tile::glass_pane_Id, 0, 5, 2, 0, chunkBB);
+	placeBlock(level, Tile::log_Id, 0, 6, 2, 0, chunkBB);
+
+	placeBlock(level, Tile::log_Id, 0, 8, 2, 1, chunkBB);
+	placeBlock(level, Tile::glass_pane_Id, 0, 8, 2, 2, chunkBB);
+	placeBlock(level, Tile::glass_pane_Id, 0, 8, 2, 3, chunkBB);
+	placeBlock(level, Tile::log_Id, 0, 8, 2, 4, chunkBB);
+	placeBlock(level, Tile::planks_Id, 0, 8, 2, 5, chunkBB);
+	placeBlock(level, Tile::log_Id, 0, 8, 2, 6, chunkBB);
+	placeBlock(level, Tile::glass_pane_Id, 0, 8, 2, 7, chunkBB);
+	placeBlock(level, Tile::glass_pane_Id, 0, 8, 2, 8, chunkBB);
+	placeBlock(level, Tile::log_Id, 0, 8, 2, 9, chunkBB);
+	placeBlock(level, Tile::log_Id, 0, 2, 2, 6, chunkBB);
+	placeBlock(level, Tile::glass_pane_Id, 0, 2, 2, 7, chunkBB);
+	placeBlock(level, Tile::glass_pane_Id, 0, 2, 2, 8, chunkBB);
+	placeBlock(level, Tile::log_Id, 0, 2, 2, 9, chunkBB);
+
+	placeBlock(level, Tile::log_Id, 0, 4, 4, 10, chunkBB);
+	placeBlock(level, Tile::glass_pane_Id, 0, 5, 4, 10, chunkBB);
+	placeBlock(level, Tile::log_Id, 0, 6, 4, 10, chunkBB);
+	placeBlock(level, Tile::planks_Id, 0, 5, 5, 10, chunkBB);
+
+	// bed in room 2, away from the front door
+	placeBed(level, chunkBB, 3, 1, 7, Direction::SOUTH);
+
+	// entrance
+	placeBlock(level, 0, 0, 2, 1, 0, chunkBB);
+	placeBlock(level, 0, 0, 2, 2, 0, chunkBB);
+	placeBlock(level, Tile::torch_Id, 0, 2, 3, 1, chunkBB);
+	createDoor(level, chunkBB, random, 2, 1, 0, getOrientationData(Tile::wooden_door_Id, 1));
+	generateBox(level, chunkBB, 1, 0, -1, 3, 2, -1, 0, 0, false);
+	if (getBlock(level, 2, 0, -1, chunkBB) == 0 && getBlock(level, 2, -1, -1, chunkBB) != 0) {
+		placeBlock(level, Tile::stone_stairs_Id, getOrientationData(Tile::stone_stairs_Id, 3), 2, 0, -1, chunkBB);
+	}
+
+	for (int z = 0; z < 5; z++)
+	{
+		for (int x = 0; x < width; x++)
+		{
+			generateAirColumnUp(level, x, height, z, chunkBB);
+			fillColumnDown(level, Tile::cobblestone_Id, 0, x, -1, z, chunkBB);
+		}
+	}
+	for (int z = 5; z < depth - 1; z++)
+	{
+		for (int x = 2; x < width; x++)
+		{
+			generateAirColumnUp(level, x, height, z, chunkBB);
+			fillColumnDown(level, Tile::cobblestone_Id, 0, x, -1, z, chunkBB);
+		}
+	}
+
+	spawnVillagers(level, chunkBB, 4, 1, 2, 2);
+
+	return true;
+}
+
+void VillagePieces::Well::addAdditonalSaveData(CompoundTag *tag)
+{
+	VillagePiece::addAdditonalSaveData(tag);
+	tag->putBoolean(L"CamelSpawned", camelSpawned);
+}
+
+void VillagePieces::Well::readAdditonalSaveData(CompoundTag *tag)
+{
+	VillagePiece::readAdditonalSaveData(tag);
+	camelSpawned = tag->getBoolean(L"CamelSpawned");
 }

@@ -7,6 +7,7 @@
 #include "net.minecraft.world.h"
 #include "BowItem.h"
 #include "SoundTypes.h"
+#include "ExplosiveEnchantment.h"
 
 const wstring BowItem::TEXTURE_PULL[] = {L"bow_pull_0", L"bow_pull_1", L"bow_pull_2"};
 
@@ -46,6 +47,14 @@ void BowItem::releaseUsing(shared_ptr<ItemInstance> itemInstance, Level *level, 
 		{
 			arrow->setOnFire(100);
 		}
+
+		// neoLegacy Added - Explosive
+		int explosiveLevel = EnchantmentHelper::getEnchantmentLevel(Enchantment::explosive->id, itemInstance);
+		if (explosiveLevel > 0)
+		{
+			arrow->setExplosiveLevel(explosiveLevel);
+		}
+
 		itemInstance->hurtAndBreak(1, player);
 
 		level->playEntitySound(player, eSoundType_RANDOM_BOW, 1.0f, 1 / (random->nextFloat() * 0.4f + 1.2f) + pow * 0.5f);

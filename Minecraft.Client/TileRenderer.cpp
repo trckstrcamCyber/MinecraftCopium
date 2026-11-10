@@ -15,6 +15,7 @@
 #include "LevelRenderer.h"
 #include "Options.h"
 #include "../Minecraft.World/TallGrass2.h"
+#include "../Minecraft.World/BambooTile.h"
 
 bool TileRenderer::fancy = true;
 
@@ -27,6 +28,355 @@ static inline void tessColor(Tesselator* t, float r, float g, float b, float a)
 	else
 		t->color(r, g, b, a);
 }
+
+// Debug aid: uncomment to paint the in-world grindstone solid magenta
+// (ignores textures and lighting) -- tells "geometry is being submitted"
+// apart from "the texture/lighting path is wrong".
+// #define GRINDSTONE_DEBUG_MAGENTA
+
+// -----------------------------------------------------------------------------
+// GRINDSTONE_RENDERER
+// Exact five-cuboid model taken from grindstone.json.
+//
+// The LCE renderer predates baked JSON models, so the JSON is represented here
+// as five lightweight cuboids with per-face UV rectangles.  This keeps the
+// model in the existing TileRenderer/Tesselator path and avoids an entity
+// renderer or a new render pass.
+// -----------------------------------------------------------------------------
+
+namespace
+{
+	enum GrindstoneFace
+	{
+		GS_DOWN  = 0,
+		GS_UP    = 1,
+		GS_NORTH = 2,
+		GS_SOUTH = 3,
+		GS_WEST  = 4,
+		GS_EAST  = 5
+	};
+
+	struct GrindstoneUV
+	{
+		float u0, v0, u1, v1;
+	};
+
+	static void rotateGrindstonePoint(
+		float x, float z, int quarterTurns,
+		float &outX, float &outZ)
+	{
+		// Rotate around the center of the block.  The default JSON model is
+		// the north-facing variant; Java blockstate rotations are Y=90/180/270.
+		switch (quarterTurns & 3)
+		{
+		default:
+		case 0:
+			outX = x;
+			outZ = z;
+			break;
+
+		case 1:
+			outX = 1.0f - z;
+			outZ = x;
+			break;
+
+		case 2:
+			outX = 1.0f - x;
+			outZ = 1.0f - z;
+			break;
+
+		case 3:
+			outX = z;
+			outZ = 1.0f - x;
+			break;
+		}
+	}
+
+	static void rotateGrindstoneNormal(
+		float x, float z, int quarterTurns,
+		float &outX, float &outZ)
+	{
+		switch (quarterTurns & 3)
+		{
+		default:
+		case 0:
+			outX = x;
+			outZ = z;
+			break;
+
+		case 1:
+			outX = -z;
+			outZ = x;
+			break;
+
+		case 2:
+			outX = -x;
+			outZ = -z;
+			break;
+
+		case 3:
+			outX = z;
+			outZ = -x;
+			break;
+		}
+	}
+
+	static float grindstoneU(Icon *icon, float pixel)
+	{
+		return icon->getU(pixel, true);
+	}
+
+	static float grindstoneV(Icon *icon, float pixel)
+	{
+		return icon->getV(pixel, true);
+	}
+
+	// Which way a quad that faces `face` in the base (north-facing) model ends
+	// up facing once the model has been turned `quarterTurns` clockwise
+	// (viewed from above). Up and down never change.
+	static int rotateGrindstoneFace(int face, int quarterTurns)
+	{
+		static const int ring[4] = { GS_NORTH, GS_EAST, GS_SOUTH, GS_WEST };
+		for (int i = 0; i < 4; ++i)
+		{
+			if (ring[i] == face)
+				return ring[(i + quarterTurns) & 3];
+		}
+		return face;
+	}
+
+	// Emits one quad of a cuboid of the base model.
+	//
+	// x0..z1 are model-space coordinates inside the 0..1 block cell. (ox, oy, oz)
+	// is where that cell sits: the block's WORLD position when tesselating a
+	// chunk -- vertices handed to the chunk compiler must be in world
+	// coordinates, it subtracts the chunk origin itself via Tesselator::offset --
+	// or 0,0,0 for the inventory/hand renderer, which draws at the origin.
+	static void emitGrindstoneFace(
+		Tesselator *t,
+		Icon *icon,
+		int face,
+		float x0, float y0, float z0,
+		float x1, float y1, float z1,
+		const GrindstoneUV &uv,
+		int quarterTurns,
+		float ox, float oy, float oz,
+		bool writeNormal)
+	{
+		if (uv.u0 == uv.u1 || uv.v0 == uv.v1)
+			return;
+
+		if (icon == nullptr)
+			return;
+
+		const float u0 = grindstoneU(icon, uv.u0);
+		const float u1 = grindstoneU(icon, uv.u1);
+		const float v0 = grindstoneV(icon, uv.v0);
+		const float v1 = grindstoneV(icon, uv.v1);
+
+		if (writeNormal)
+		{
+			// Only the inventory/hand path lights with fixed-function normals;
+			// chunk geometry is lit by tex2()/color() and, like every other
+			// tesselator here, doesn't set one.
+			float normalX = 0.0f;
+			float normalY = 0.0f;
+			float normalZ = 0.0f;
+
+			switch (face)
+			{
+			case GS_DOWN:  normalY = -1.0f; break;
+			case GS_UP:    normalY = 1.0f; break;
+			case GS_NORTH: normalZ = -1.0f; break;
+			case GS_SOUTH: normalZ = 1.0f; break;
+			case GS_WEST:  normalX = -1.0f; break;
+			case GS_EAST:  normalX = 1.0f; break;
+			}
+
+			float rotatedNormalX;
+			float rotatedNormalZ;
+			rotateGrindstoneNormal(
+				normalX, normalZ, quarterTurns,
+				rotatedNormalX, rotatedNormalZ);
+
+			t->normal(rotatedNormalX, normalY, rotatedNormalZ);
+		}
+
+		// One vertex: turn the model-space point about the block centre, then
+		// move it to where the block actually is.
+		auto emit = [&](float px, float py, float pz, float u, float v)
+		{
+			float rx, rz;
+			rotateGrindstonePoint(px, pz, quarterTurns, rx, rz);
+			t->vertexUV(ox + rx, oy + py, oz + rz, u, v);
+		};
+
+		// Winding is counter-clockwise seen from outside (geometric normal ==
+		// face normal). Per Java model conventions u runs left-to-right and v
+		// top-to-bottom as seen from OUTSIDE the face.
+		switch (face)
+		{
+		case GS_DOWN:
+			emit(x0, y0, z1, u0, v1);
+			emit(x0, y0, z0, u0, v0);
+			emit(x1, y0, z0, u1, v0);
+			emit(x1, y0, z1, u1, v1);
+			break;
+
+		case GS_UP:
+			emit(x1, y1, z1, u1, v1);
+			emit(x1, y1, z0, u1, v0);
+			emit(x0, y1, z0, u0, v0);
+			emit(x0, y1, z1, u0, v1);
+			break;
+
+		case GS_NORTH:
+			// Seen from the north (looking south) +X is on the LEFT, so u
+			// runs from x1 to x0. It ran the other way before, which
+			// mirrored every north face.
+			emit(x0, y1, z0, u1, v0);
+			emit(x1, y1, z0, u0, v0);
+			emit(x1, y0, z0, u0, v1);
+			emit(x0, y0, z0, u1, v1);
+			break;
+
+		case GS_SOUTH:
+			emit(x0, y0, z1, u0, v1);
+			emit(x1, y0, z1, u1, v1);
+			emit(x1, y1, z1, u1, v0);
+			emit(x0, y1, z1, u0, v0);
+			break;
+
+		case GS_WEST:
+			emit(x0, y0, z0, u0, v1);
+			emit(x0, y0, z1, u1, v1);
+			emit(x0, y1, z1, u1, v0);
+			emit(x0, y1, z0, u0, v0);
+			break;
+
+		case GS_EAST:
+			emit(x1, y0, z1, u0, v1);
+			emit(x1, y0, z0, u1, v1);
+			emit(x1, y1, z0, u1, v0);
+			emit(x1, y1, z1, u0, v0);
+			break;
+		}
+	}
+
+	// faceLight (world path only): packed sky/block light for the six
+	// neighbouring cells, indexed by GS_*, with the block's own cell at [6].
+	// nullptr for the inventory/hand path, which uses fixed lighting instead.
+	static void renderGrindstoneCuboid(
+		Tesselator *t,
+		LevelSource *level,
+		GrindstoneTile *tile,
+		int blockX, int blockY, int blockZ,
+		float x0, float y0, float z0,
+		float x1, float y1, float z1,
+		Icon *northSouthTexture,
+		Icon *eastWestTexture,
+		const GrindstoneUV *uvs,
+		bool worldLighting,
+		int quarterTurns,
+		float brightness,
+		float alpha,
+		const int *faceLight = nullptr)
+	{
+		(void)level;
+
+		if (northSouthTexture == nullptr || tile == nullptr)
+			return;
+
+		// Where the block's cell sits: its world position in a chunk build,
+		// 0,0,0 for the inventory (callers pass 0,0,0 there).
+		const float ox = static_cast<float>(blockX);
+		const float oy = static_cast<float>(blockY);
+		const float oz = static_cast<float>(blockZ);
+
+		const float shade[6] =
+		{
+			0.5f, // down
+			1.0f, // up
+			0.8f, // north
+			0.8f, // south
+			0.6f, // west
+			0.6f  // east
+		};
+
+		// Does this face of the (unrotated) cuboid lie on the edge of the block
+		// cell? Those faces take the light of the neighbour they face; faces
+		// inside the cell take the block's own light. Sampling the neighbour for
+		// an inset face would leave a grindstone beside a wall pitch black.
+		auto onCellEdge =
+			[&](int face) -> bool
+			{
+				const float eps = 0.001f;
+				switch (face)
+				{
+				case GS_DOWN:  return y0 <= eps;
+				case GS_UP:    return y1 >= 1.0f - eps;
+				case GS_NORTH: return z0 <= eps;
+				case GS_SOUTH: return z1 >= 1.0f - eps;
+				case GS_WEST:  return x0 <= eps;
+				case GS_EAST:  return x1 >= 1.0f - eps;
+				}
+				return false;
+			};
+
+		auto setFaceLighting =
+			[&](int face)
+			{
+				// The direction this quad really faces once the model is turned.
+				// Shading and light lookups must use it, not the base-model face.
+				const int facing = rotateGrindstoneFace(face, quarterTurns);
+
+#ifdef GRINDSTONE_DEBUG_MAGENTA
+				tessColor(t, 1.0f, 0.0f, 1.0f, 1.0f);
+				return;
+#endif
+				const float s = shade[facing];
+
+				if (worldLighting && faceLight != nullptr &&
+					SharedConstants::TEXTURE_LIGHTING)
+				{
+					t->tex2(onCellEdge(face) ? faceLight[facing] : faceLight[6]);
+					tessColor(t, s, s, s, alpha);
+				}
+				else
+				{
+					const float c = s * brightness;
+					tessColor(t, c, c, c, alpha);
+				}
+			};
+
+		const bool writeNormal = !worldLighting;
+
+		setFaceLighting(GS_NORTH);
+		emitGrindstoneFace(t, northSouthTexture, GS_NORTH,
+			x0, y0, z0, x1, y1, z1, uvs[GS_NORTH], quarterTurns, ox, oy, oz, writeNormal);
+
+		setFaceLighting(GS_SOUTH);
+		emitGrindstoneFace(t, northSouthTexture, GS_SOUTH,
+			x0, y0, z0, x1, y1, z1, uvs[GS_SOUTH], quarterTurns, ox, oy, oz, writeNormal);
+
+		setFaceLighting(GS_UP);
+		emitGrindstoneFace(t, northSouthTexture, GS_UP,
+			x0, y0, z0, x1, y1, z1, uvs[GS_UP], quarterTurns, ox, oy, oz, writeNormal);
+
+		setFaceLighting(GS_DOWN);
+		emitGrindstoneFace(t, northSouthTexture, GS_DOWN,
+			x0, y0, z0, x1, y1, z1, uvs[GS_DOWN], quarterTurns, ox, oy, oz, writeNormal);
+
+		setFaceLighting(GS_WEST);
+		emitGrindstoneFace(t, eastWestTexture, GS_WEST,
+			x0, y0, z0, x1, y1, z1, uvs[GS_WEST], quarterTurns, ox, oy, oz, writeNormal);
+
+		setFaceLighting(GS_EAST);
+		emitGrindstoneFace(t, eastWestTexture, GS_EAST,
+			x0, y0, z0, x1, y1, z1, uvs[GS_EAST], quarterTurns, ox, oy, oz, writeNormal);
+	}
+}
+
 
 void TileRenderer::_init()
 {
@@ -140,9 +490,9 @@ int TileRenderer::getLightColor( Tile *tt, LevelSource *level, int x, int y, int
 					offset = Level::COMPRESSED_CHUNK_SECTION_TILES;
 				}
 
-				unsigned char ucTileId = tileIds[ offset + ( ( ( xx + 0 ) << 11 ) | ( ( zz + 0 ) << 7 ) | ( indexY + 0 ) ) ];
+				unsigned short ucTileId = tileIds[ offset + ( ( ( xx + 0 ) << 11 ) | ( ( zz + 0 ) << 7 ) | ( indexY + 0 ) ) ];
 				// Tiles that were determined to be invisible (by being surrounded by solid stuff) will be set to 255 rather than their actual ID
-				if( ucTileId != 255 )
+				if( ucTileId != 0xffff )
 				{
 					tileId = static_cast<int>(ucTileId);
 				}
@@ -155,7 +505,7 @@ int TileRenderer::getLightColor( Tile *tt, LevelSource *level, int x, int y, int
 	return tt->getLightColor(level, x, y, z);
 }
 
-TileRenderer::TileRenderer( LevelSource* level, int xMin, int yMin, int zMin, unsigned char *tileIds )
+TileRenderer::TileRenderer( LevelSource* level, int xMin, int yMin, int zMin, unsigned short *tileIds )
 {
 	this->level = level;
 	_init();
@@ -280,6 +630,59 @@ bool TileRenderer::tesselateInWorld( Tile* tt, int x, int y, int z, int forceDat
 	if (tt != nullptr && tt->id == Tile::barrier_Id)
 	{
 		return false;
+	}
+
+	// neoLegacy - the observer's arrow texture must point toward the block it watches (as in Java). The flip values are
+	// cleared again when this function returns, whichever return path it takes.
+	struct ObserverFlipReset
+	{
+		TileRenderer *r;
+		bool active;
+		~ObserverFlipReset()
+		{
+			if (!active) return;
+			r->northFlip = r->southFlip = r->eastFlip = r->westFlip = r->upFlip = r->downFlip = TileRenderer::FLIP_NONE;
+		}
+	} observerFlipReset = { this, false };
+	if (tt != nullptr && (tt->id == Tile::observer_Id || tt->id == Tile::drill_Id))
+	{
+		int obsData = (forceData == -1) ? level->getData(x, y, z) : forceData;
+		int obsFacing = obsData & 7;
+		observerFlipReset.active = true;
+		switch (obsFacing)
+		{
+		// horizontal: rotate the top/bottom arrows (the arrow in the image points to the north when unrotated)
+		case Facing::NORTH:	break;
+		case Facing::SOUTH:	upFlip = FLIP_180; downFlip = FLIP_180; break;
+		case Facing::EAST:	upFlip = FLIP_CW;  downFlip = FLIP_CCW; break;
+		case Facing::WEST:	upFlip = FLIP_CCW; downFlip = FLIP_CW;  break;
+		// vertical: the arrow is on the north/south faces and must point up (no rotation) or down (turned over)
+		case Facing::DOWN:	northFlip = FLIP_180; southFlip = FLIP_180; break;
+		default:			break;
+		}
+	}
+
+	// neoLegacy - the trapdoor texture is one rigid piece that turns with the door, as in Java. Open, the door stands up and the image
+	// is upright. Closing it swings the TOP of the image around the hinge: a floor (bottom-half) trapdoor ends up with the image top
+	// pointing AWAY from the hinge, a ceiling (top-half) one with the image top pointing TOWARD the hinge. The hinge side is the one
+	// the player placed it on (data & 3: 0 south, 1 north, 2 east, 3 west), so the iron straps always sit on the hinge side.
+	if (tt != nullptr && (Tile::isWoodTrapdoorId(tt->id) || tt->id == Tile::iron_trapdoor_Id))
+	{
+		int tdData = (forceData == -1) ? level->getData(x, y, z) : forceData;
+		bool tdOpen = (tdData & 4) != 0;
+		bool tdTop = (tdData & 8) != 0;
+		observerFlipReset.active = true;
+		if (!tdOpen)
+		{
+			// compass: 0 north, 1 east, 2 south, 3 west
+			static const int hingeCompass[4] = { 2, 0, 1, 3 };		// data 0 hinge south, 1 north, 2 east, 3 west
+			int hinge = hingeCompass[tdData & 3];
+			int imageTop = tdTop ? hinge : ((hinge + 2) & 3);		// where the top of the image must point
+			static const int upFlips[4]   = { FLIP_NONE, FLIP_CW,  FLIP_180, FLIP_CCW };	// image top pointing N, E, S, W seen from above
+			static const int downFlips[4] = { FLIP_NONE, FLIP_CCW, FLIP_180, FLIP_CW  };	// ... seen from below
+			upFlip = upFlips[imageTop];
+			downFlip = downFlips[imageTop];
+		}
 	}
 	int	shape = tt->getRenderShape();
 	tt->updateShape( level, x, y, z, forceData, forceEntity );
@@ -456,6 +859,12 @@ bool TileRenderer::tesselateInWorld( Tile* tt, int x, int y, int z, int forceDat
 		break;
 	case Tile::SHAPE_HOPPER:
 		retVal = tesselateHopperInWorld(tt, x, y, z);
+		break;
+	case Tile::SHAPE_GRINDSTONE:
+		retVal = tesselateGrindstoneInWorld(static_cast<GrindstoneTile *>(tt), x, y, z);
+		break;
+	case Tile::SHAPE_BAMBOO:
+		retVal = tesselateBambooInWorld(tt, x, y, z);
 		break;
 	};
 
@@ -4150,6 +4559,50 @@ bool TileRenderer::tesselateThinFenceInWorld( ThinFenceTile* tt, int x, int y, i
 	return true;
 }
 
+// neoLegacy - Bamboo: the stalk is a thin box (its size and sideways offset come from BambooTile::updateShape),
+// the leaves are two crossed quads with the small or large leaf texture.
+bool TileRenderer::tesselateBambooInWorld( Tile* tt, int x, int y, int z )
+{
+	Tesselator* t = Tesselator::getInstance();
+	int data = level->getData( x, y, z );
+
+	tt->updateShape( level, x, y, z );
+	bool rendered = tesselateBlockInWorld( tt, x, y, z );
+
+	int leaves = ( data & BambooTile::LEAVES_MASK ) >> BambooTile::LEAVES_SHIFT;
+	if ( leaves == BambooTile::LEAVES_NONE ) return rendered;
+
+	Icon *tex = static_cast<BambooTile *>( tt )->getLeavesIcon( leaves );
+	if ( tex == nullptr ) return rendered;
+
+	if ( SharedConstants::TEXTURE_LIGHTING )
+	{
+		t->tex2( getLightColor( tt, level, x, y, z ) );
+	}
+	t->color( 1.0f, 1.0f, 1.0f );
+
+	float ox, oz;
+	BambooTile::getOffset( x, z, ox, oz );
+	float u0 = tex->getU0( true );
+	float v0 = tex->getV0( true );
+	float u1 = tex->getU1( true );
+	float v1 = tex->getV1( true );
+
+	float w = 0.5f;
+	float cx = x + 0.5f + ox;
+	float cz = z + 0.5f + oz;
+	float x0 = cx - w, x1 = cx + w, z0 = cz - w, z1 = cz + w;
+	float yb = static_cast<float>( y ), yt = static_cast<float>( y ) + 1.0f;
+
+	// diagonal 1, both sides
+	t->vertexUV( x0, yt, z0, u0, v0 ); t->vertexUV( x0, yb, z0, u0, v1 ); t->vertexUV( x1, yb, z1, u1, v1 ); t->vertexUV( x1, yt, z1, u1, v0 );
+	t->vertexUV( x1, yt, z1, u0, v0 ); t->vertexUV( x1, yb, z1, u0, v1 ); t->vertexUV( x0, yb, z0, u1, v1 ); t->vertexUV( x0, yt, z0, u1, v0 );
+	// diagonal 2, both sides
+	t->vertexUV( x0, yt, z1, u0, v0 ); t->vertexUV( x0, yb, z1, u0, v1 ); t->vertexUV( x1, yb, z0, u1, v1 ); t->vertexUV( x1, yt, z0, u1, v0 );
+	t->vertexUV( x1, yt, z0, u0, v0 ); t->vertexUV( x1, yb, z0, u0, v1 ); t->vertexUV( x0, yb, z1, u1, v1 ); t->vertexUV( x0, yt, z1, u1, v0 );
+	return true;
+}
+
 bool TileRenderer::tesselateCrossInWorld( Tile* tt, int x, int y, int z )
 {
 	Tesselator* t = Tesselator::getInstance();
@@ -5094,6 +5547,231 @@ bool TileRenderer::tesselateBlockInWorld( Tile* tt, int x, int y, int z, int fac
 	{
 		return tesselateBlockInWorld( tt, x, y, z, r, g, b );
 	}
+}
+
+
+bool TileRenderer::tesselateGrindstoneInWorld(
+	GrindstoneTile *tt, int x, int y, int z)
+{
+	if (tt == nullptr)
+		return false;
+
+	Tesselator *t = Tesselator::getInstance();
+
+	// DirectionalTile uses the legacy horizontal values:
+	// SOUTH=0, WEST=1, NORTH=2, EAST=3.
+	// The JSON model is the north-facing base variant.
+	int direction = level->getData(x, y, z) & 0x3;
+	int quarterTurns = 0;
+
+	switch (direction)
+	{
+	case Direction::NORTH:
+		quarterTurns = 0;
+		break;
+	case Direction::EAST:
+		quarterTurns = 1;
+		break;
+	case Direction::SOUTH:
+		quarterTurns = 2;
+		break;
+	case Direction::WEST:
+		quarterTurns = 3;
+		break;
+	default:
+		quarterTurns = 0;
+		break;
+	}
+
+	const float b = tt->getBrightness(level, x, y, z);
+	const float alpha = 1.0f;
+
+	// Packed sky/block light for the six neighbouring cells (indexed by GS_*)
+	// and, at [6], the block's own cell -- read through the chunk compiler's
+	// light cache like every other tesselator in this file.
+	int faceLight[7];
+	faceLight[GS_DOWN]  = getLightColor(tt, level, x, y - 1, z);
+	faceLight[GS_UP]    = getLightColor(tt, level, x, y + 1, z);
+	faceLight[GS_NORTH] = getLightColor(tt, level, x, y, z - 1);
+	faceLight[GS_SOUTH] = getLightColor(tt, level, x, y, z + 1);
+	faceLight[GS_WEST]  = getLightColor(tt, level, x - 1, y, z);
+	faceLight[GS_EAST]  = getLightColor(tt, level, x + 1, y, z);
+	faceLight[6]        = getLightColor(tt, level, x, y, z);
+
+	// JSON face UVs.  The missing entries in the JSON are intentionally
+	// omitted here too; this matters for the open areas between the legs.
+	static const GrindstoneUV LEG_UV[6] =
+	{
+		{12, 6, 14, 10}, // down
+		{0, 0, 0, 0},    // no up
+		{2, 9, 4, 16},   // north
+		{12, 9, 14, 16}, // south
+		{6, 9, 10, 16},  // west
+		{10, 9, 6, 16}   // east
+	};
+
+	static const GrindstoneUV PIVOT_UV[6] =
+	{
+		{8, 0, 10, 6}, // down
+		{8, 0, 10, 6}, // up
+		{6, 0, 8, 6},  // north
+		{6, 0, 8, 6},  // south
+		{0, 0, 6, 6},  // west
+		{0, 0, 6, 6}   // east
+	};
+
+	static const GrindstoneUV ROUND_UV[6] =
+	{
+		{0, 0, 8, 12},  // down
+		{0, 0, 8, 12},  // up
+		{0, 0, 8, 12},  // north
+		{0, 0, 8, 12},  // south
+		{0, 0, 12, 12}, // west
+		{0, 0, 12, 12}  // east
+	};
+
+	// NOTE: tesselateGrindstoneInWorld runs *inside* the chunk compiler's
+	// single begin()/end() pass for the whole chunk section (see
+	// tesselateInWorld above -- none of the other SHAPE_* handlers call
+	// begin()/end() either), so do not call t->begin()/t->end() here: just
+	// append quads into the already-active batch.
+	//
+	// Vertices submitted here must be in WORLD coordinates (the chunk compiler
+	// subtracts the chunk origin via Tesselator::offset), so the helpers add
+	// (x, y, z) to the 0..1 model coordinates. Submitting bare 0..1
+	// coordinates is what made the placed grindstone show up as nothing but
+	// the selection outline (plus stray geometry near the world origin) while
+	// the inventory/hand rendering, which draws at the origin, looked fine.
+
+	// Right leg: [12,0,6] -> [14,7,10]
+	renderGrindstoneCuboid(
+		t, level, tt, x, y, z,
+		12.0f / 16.0f, 0.0f, 6.0f / 16.0f,
+		14.0f / 16.0f, 7.0f / 16.0f, 10.0f / 16.0f,
+		tt->getLegTexture(),
+		tt->getLegTexture(),
+		LEG_UV, true, quarterTurns, b, alpha, faceLight);
+
+	// Left leg: [2,0,6] -> [4,7,10]
+	renderGrindstoneCuboid(
+		t, level, tt, x, y, z,
+		2.0f / 16.0f, 0.0f, 6.0f / 16.0f,
+		4.0f / 16.0f, 7.0f / 16.0f, 10.0f / 16.0f,
+		tt->getLegTexture(),
+		tt->getLegTexture(),
+		LEG_UV, true, quarterTurns, b, alpha, faceLight);
+
+	// Right pivot: [12,7,5] -> [14,13,11]
+	renderGrindstoneCuboid(
+		t, level, tt, x, y, z,
+		12.0f / 16.0f, 7.0f / 16.0f, 5.0f / 16.0f,
+		14.0f / 16.0f, 13.0f / 16.0f, 11.0f / 16.0f,
+		tt->getPivotTexture(),
+		tt->getPivotTexture(),
+		PIVOT_UV, true, quarterTurns, b, alpha, faceLight);
+
+	// Left pivot: [2,7,5] -> [4,13,11]
+	renderGrindstoneCuboid(
+		t, level, tt, x, y, z,
+		2.0f / 16.0f, 7.0f / 16.0f, 5.0f / 16.0f,
+		4.0f / 16.0f, 13.0f / 16.0f, 11.0f / 16.0f,
+		tt->getPivotTexture(),
+		tt->getPivotTexture(),
+		PIVOT_UV, true, quarterTurns, b, alpha, faceLight);
+
+	// Main wheel: [4,4,2] -> [12,16,14]
+	renderGrindstoneCuboid(
+		t, level, tt, x, y, z,
+		4.0f / 16.0f, 4.0f / 16.0f, 2.0f / 16.0f,
+		12.0f / 16.0f, 1.0f, 14.0f / 16.0f,
+		tt->getRoundTexture(),
+		tt->getSideTexture(),
+		ROUND_UV, true, quarterTurns, b, alpha, faceLight);
+
+	// Keep the collision/render bounds valid for the next block.
+	setShape(2.0f / 16.0f, 0.0f, 2.0f / 16.0f,
+		14.0f / 16.0f, 1.0f, 14.0f / 16.0f);
+
+	return true;
+}
+
+void TileRenderer::renderGrindstoneInventory(
+	GrindstoneTile *tt, int data, float brightness, float alpha)
+{
+	if (tt == nullptr)
+		return;
+
+	Tesselator *t = Tesselator::getInstance();
+
+	static const GrindstoneUV LEG_UV[6] =
+	{
+		{12, 6, 14, 10}, {0, 0, 0, 0},
+		{2, 9, 4, 16}, {12, 9, 14, 16},
+		{6, 9, 10, 16}, {10, 16, 6, 9}
+	};
+
+	static const GrindstoneUV PIVOT_UV[6] =
+	{
+		{8, 0, 10, 6}, {8, 0, 10, 6},
+		{6, 0, 8, 6}, {6, 0, 8, 6},
+		{0, 0, 6, 6}, {0, 0, 6, 6}
+	};
+
+	static const GrindstoneUV ROUND_UV[6] =
+	{
+		{0, 0, 8, 12}, {0, 0, 8, 12},
+		{0, 0, 8, 12}, {0, 0, 8, 12},
+		{0, 0, 12, 12}, {0, 0, 12, 12}
+	};
+
+	// Inventory items use the base (north-facing) JSON model.  Block
+	// entities in the world apply the horizontal blockstate rotation.
+	int quarterTurns = 0;
+	(void)data;
+
+	// The inventory caller has already applied the standard -0.5 model
+	// translation, so this method emits the model in [0,1] coordinates.
+	t->tex2(0xf000f);
+	t->begin();
+
+	renderGrindstoneCuboid(
+		t, nullptr, tt, 0, 0, 0,
+		12.0f / 16.0f, 0.0f, 6.0f / 16.0f,
+		14.0f / 16.0f, 7.0f / 16.0f, 10.0f / 16.0f,
+		tt->getLegTexture(), tt->getLegTexture(),
+		LEG_UV, false, quarterTurns, brightness, alpha);
+
+	renderGrindstoneCuboid(
+		t, nullptr, tt, 0, 0, 0,
+		2.0f / 16.0f, 0.0f, 6.0f / 16.0f,
+		4.0f / 16.0f, 7.0f / 16.0f, 10.0f / 16.0f,
+		tt->getLegTexture(), tt->getLegTexture(),
+		LEG_UV, false, quarterTurns, brightness, alpha);
+
+	renderGrindstoneCuboid(
+		t, nullptr, tt, 0, 0, 0,
+		12.0f / 16.0f, 7.0f / 16.0f, 5.0f / 16.0f,
+		14.0f / 16.0f, 13.0f / 16.0f, 11.0f / 16.0f,
+		tt->getPivotTexture(), tt->getPivotTexture(),
+		PIVOT_UV, false, quarterTurns, brightness, alpha);
+
+	renderGrindstoneCuboid(
+		t, nullptr, tt, 0, 0, 0,
+		2.0f / 16.0f, 7.0f / 16.0f, 5.0f / 16.0f,
+		4.0f / 16.0f, 13.0f / 16.0f, 11.0f / 16.0f,
+		tt->getPivotTexture(), tt->getPivotTexture(),
+		PIVOT_UV, false, quarterTurns, brightness, alpha);
+
+	renderGrindstoneCuboid(
+		t, nullptr, tt, 0, 0, 0,
+		4.0f / 16.0f, 4.0f / 16.0f, 2.0f / 16.0f,
+		12.0f / 16.0f, 1.0f, 14.0f / 16.0f,
+		tt->getRoundTexture(), tt->getSideTexture(),
+		ROUND_UV, false, quarterTurns, brightness, alpha);
+
+	t->end();
+	setShape(2.0f / 16.0f, 0.0f, 2.0f / 16.0f,
+		14.0f / 16.0f, 1.0f, 14.0f / 16.0f);
 }
 
 bool TileRenderer::tesselateTreeInWorld(Tile *tt, int x, int y, int z)
@@ -6437,7 +7115,7 @@ bool TileRenderer::tesselateBlockInWorld( Tile* tt, int x, int y, int z, float r
 
 bool TileRenderer::tesselateSlimeBlockInWorld(Tile *tt, int x, int y, int z)
 {
- 	setFixedTexture(getTexture(Tile::slimeBlock));
+ 	setFixedTexture(getTexture(tt));	// neoLegacy - the tile's own icon (Slime Block or Jelly Block)
 	setShape(0, 0, 0, 1, 1, 1);
 
 	this->fixedTextureAlpha = 0.35f;
@@ -6463,7 +7141,7 @@ bool TileRenderer::tesselateSlimeInnerInWorld(Tile *tt, int x, int y, int z)
 {
 	const float innerSizeStart = 3.0f / 16.0f;
 	const float innerSizeFinish = 13.0f / 16.0f;
-	setFixedTexture(getTexture(Tile::slimeBlock));
+	setFixedTexture(getTexture(tt));	// neoLegacy - the tile's own icon (Slime Block or Jelly Block)
 	setShape(innerSizeStart, innerSizeStart, innerSizeStart, innerSizeFinish, innerSizeFinish, innerSizeFinish);
 	this->fixedTextureAlpha = 0.18f;
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -8133,7 +8811,9 @@ void TileRenderer::renderTile( Tile* tile, int data, float brightness, float fAl
 
 	bool isGrass = tile->id == Tile::grass_Id;
 
-	if (tile == Tile::dispenser || tile == Tile::furnace || tile == Tile::dropper)
+	// neoLegacy - the Drill is included so its drill_face front is the visible face in the inventory
+	// (data 3 = front on the SOUTH face, the one the GUI view shows), like the furnace/dispenser.
+	if (tile == Tile::dispenser || tile == Tile::furnace || tile == Tile::dropper || tile->id == Tile::drill_Id)
 	{
 		data = 3;
 	}
@@ -8314,7 +8994,7 @@ void TileRenderer::renderTile( Tile* tile, int data, float brightness, float fAl
 		bool hadFixedTexture = hasFixedTexture();
 		Icon *savedFixedTexture = fixedTexture;
 
-		setFixedTexture(getTexture(Tile::slimeBlock));
+		setFixedTexture(getTexture(tile));	// neoLegacy - the tile's own icon (Slime Block or Jelly Block)
 		setShape(3.0f / 16.0f, 3.0f / 16.0f, 3.0f / 16.0f, 13.0f / 16.0f, 13.0f / 16.0f, 13.0f / 16.0f);
 		t->begin();
 		t->normal(0.0f, -1.0f, 0.0f);
@@ -8331,7 +9011,7 @@ void TileRenderer::renderTile( Tile* tile, int data, float brightness, float fAl
 		renderEast(tile, 0, 0, 0, getTexture(tile, 5, data));
 		t->end();
 
-		setFixedTexture(getTexture(Tile::slimeBlock));
+		setFixedTexture(getTexture(tile));	// neoLegacy - the tile's own icon (Slime Block or Jelly Block)
 		setShape(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
 		glColor4f(brightness, brightness, brightness, fAlpha * 0.5f);
 		t->begin();
@@ -8422,6 +9102,8 @@ void TileRenderer::renderTile( Tile* tile, int data, float brightness, float fAl
 		tesselateTorch( tile, -0.5f, -0.5f, -0.5f, 0, 0, 0 );
 		t->end();
 	}
+	// neoLegacy - pass 'data' so single-ID colored stairs (concrete) show their color in the
+	// inventory. getTexture(tile, face) would use data 0 and always give color 0 (black).
 	else if ( shape == Tile::SHAPE_STAIRS )
 	{
 		for ( int i = 0; i < 2; i++ )
@@ -8432,32 +9114,32 @@ void TileRenderer::renderTile( Tile* tile, int data, float brightness, float fAl
 			glTranslatef( -0.5f, -0.5f, -0.5f );
 			t->begin();
 			t->normal( 0, -1, 0 );
-			renderFaceDown( tile, 0, 0, 0, getTexture(tile, 0 ) );
+			renderFaceDown( tile, 0, 0, 0, getTexture(tile, 0, data ) );
 			t->end();
 
 			t->begin();
 			t->normal( 0, 1, 0 );
-			renderFaceUp( tile, 0, 0, 0, getTexture(tile, 1 ) );
+			renderFaceUp( tile, 0, 0, 0, getTexture(tile, 1, data ) );
 			t->end();
 
 			t->begin();
 			t->normal( 0, 0, -1 );
-			renderNorth( tile, 0, 0, 0, getTexture(tile, 2 ) );
+			renderNorth( tile, 0, 0, 0, getTexture(tile, 2, data ) );
 			t->end();
 
 			t->begin();
 			t->normal( 0, 0, 1 );
-			renderSouth( tile, 0, 0, 0, getTexture(tile, 3 ) );
+			renderSouth( tile, 0, 0, 0, getTexture(tile, 3, data ) );
 			t->end();
 
 			t->begin();
 			t->normal( -1, 0, 0 );
-			renderWest( tile, 0, 0, 0, getTexture(tile, 4 ) );
+			renderWest( tile, 0, 0, 0, getTexture(tile, 4, data ) );
 			t->end();
 
 			t->begin();
 			t->normal( 1, 0, 0 );
-			renderEast( tile, 0, 0, 0, getTexture(tile, 5 ) );
+			renderEast( tile, 0, 0, 0, getTexture(tile, 5, data ) );
 			t->end();
 
 			glTranslatef( 0.5f, 0.5f, 0.5f );
@@ -8657,6 +9339,27 @@ void TileRenderer::renderTile( Tile* tile, int data, float brightness, float fAl
 		tesselateAnvilInWorld(static_cast<AnvilTile *>(tile), 0, 0, 0, data << 2, true);
 		glTranslatef(0.5f, 0.5f, 0.5f);
 	}
+	else if (shape == Tile::SHAPE_GRINDSTONE)
+	{
+		tile->updateDefaultShape();
+
+		// Match the orientation transform used by the normal block inventory
+		// renderer, then draw the JSON cuboids around the block center.
+		glRotatef(90, 0, 1, 0);
+		glTranslatef(-0.5f, -0.5f, -0.5f);
+
+		renderGrindstoneInventory(
+			static_cast<GrindstoneTile *>(tile),
+			data,
+			brightness,
+			fAlpha);
+
+		glTranslatef(0.5f, 0.5f, 0.5f);
+		glRotatef(-90, 0, 1, 0);
+
+		setShape(2.0f / 16.0f, 0.0f, 2.0f / 16.0f,
+			14.0f / 16.0f, 1.0f, 14.0f / 16.0f);
+	}
 	else if ( shape == Tile::SHAPE_PORTAL_FRAME )
 	{
 		// 4J added
@@ -8821,6 +9524,8 @@ bool TileRenderer::canRender( int renderShape )
 	if ( renderShape == Tile::SHAPE_ANVIL) return true;
 	if (renderShape == Tile::SHAPE_THIN_PANE) return true;
 	if (renderShape == Tile::SHAPE_WATER) return true;
+	if (renderShape == Tile::SHAPE_GRINDSTONE) return true;
+	if (renderShape == Tile::SHAPE_BAMBOO) return true;
 	return false;
 }
 

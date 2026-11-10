@@ -6,6 +6,7 @@
 #include "net.minecraft.world.level.h"
 #include "Facing.h"
 #include "Tile.h"
+#include "ObserverTile.h"
 
 
 
@@ -21,6 +22,7 @@ PistonPieceEntity::PistonPieceEntity()
 	this->_isSourcePiston = 0;
 	progress = 0.0f;
 	progressO = 0.0f;
+	lastTicked = 0;
 }
 
 PistonPieceEntity::PistonPieceEntity(int id, int data, int facing, bool extending, bool isSourcePiston) : TileEntity()
@@ -28,6 +30,7 @@ PistonPieceEntity::PistonPieceEntity(int id, int data, int facing, bool extendin
 	// 4J - added initialisers
 	progress = 0.0f;
 	progressO = 0.0f;
+	lastTicked = 0;
 
 	this->id = id;
 	this->data = data;
@@ -125,6 +128,11 @@ void PistonPieceEntity::moveCollidedEntities(float progress, float amount)
 		{
 			queryBox = AABB::newTemp(aabb->x0, aabb->y0, aabb->z0, aabb->x1, aabb->y1 + 1.0f, aabb->z1);
 		}
+		else if (Tile::jellyBlock != nullptr && id == Tile::jellyBlock->id)
+		{
+			// neoLegacy - a Jelly Block carries whatever stands on it or hugs its sides: widen the box a little each way
+			queryBox = AABB::newTemp(aabb->x0 - 0.1, aabb->y0 - 0.05, aabb->z0 - 0.1, aabb->x1 + 0.1, aabb->y1 + 0.1, aabb->z1 + 0.1);
+		}
 
 		vector<shared_ptr<Entity> > *entities = level->getEntities(nullptr, queryBox);
 		if (!entities->empty())
@@ -159,21 +167,34 @@ void PistonPieceEntity::moveCollidedEntities(float progress, float amount)
 
 void PistonPieceEntity::finalTick()
 {
-	if (progressO < 1 && level != nullptr)
+	// neoLegacy - Java PistonMovingBlockEntity.finalTick(): forcing a piece to finish early turns a SOURCE piece
+	// (the retracting piston base, or the extending piston head) into air instead of placing it.
+	if (level != nullptr && (progressO < 1 || level->isClientSide))
 	{
 		progressO = progress = 1;
 		level->removeTileEntity(x, y, z);
 		setRemoved();
 		if (level->getTile(x, y, z) == Tile::piston_extension_Id)
 		{
-			level->setTileAndData(x, y, z, id, data, Tile::UPDATE_ALL);
-			level->neighborChanged(x, y, z, id);
+			const bool toAir = _isSourcePiston || (extending && id == Tile::piston_head_Id);
+			if (toAir)
+			{
+				level->setTileAndData(x, y, z, 0, 0, Tile::UPDATE_ALL);
+				level->neighborChanged(x, y, z, 0);
+			}
+			else
+			{
+				level->setTileAndData(x, y, z, id, data, Tile::UPDATE_ALL);
+				level->neighborChanged(x, y, z, id);
+				if (id == Tile::observer_Id) ObserverTile::onMovedByPiston(level, x, y, z, data);
+			}
 		}
 	}
 }
 
 void PistonPieceEntity::tick()
 {
+	lastTicked = level->getGameTime();
 	progressO = progress;
 
 	if (progressO >= 1)
@@ -185,6 +206,7 @@ void PistonPieceEntity::tick()
 		{
 			level->setTileAndData(x, y, z, id, data, Tile::UPDATE_ALL);
 			level->neighborChanged(x, y, z, id);
+			if (id == Tile::observer_Id) ObserverTile::onMovedByPiston(level, x, y, z, data);
 		}
 		return;
 	}
@@ -236,5 +258,6 @@ shared_ptr<TileEntity> PistonPieceEntity::clone()
 	result->_isSourcePiston = _isSourcePiston;
 	result->progress = progress;
 	result->progressO = progressO;
+	result->lastTicked = lastTicked;
 	return result;
 }

@@ -4,6 +4,7 @@
 #include "../../../Minecraft.World/net.minecraft.world.level.tile.h"
 #include "../../../Minecraft.World/net.minecraft.stats.h"
 #include "../../LocalPlayer.h"
+#include "../../../Minecraft.World/ComplexCraftingMenu.h"
 #include "IUIScene_CraftingMenu.h"
 
 #include "UI.h"
@@ -28,7 +29,6 @@ Recipy::_eGroupType IUIScene_CraftingMenu::m_GroupTypeMapping9GridA[IUIScene_Cra
 	Recipy::eGroupType_Transport,
 	Recipy::eGroupType_Decoration,
 };
-
 
 LPCWSTR IUIScene_CraftingMenu::m_GroupIconNameA[m_iMaxGroup3x3]=
 {
@@ -110,6 +110,7 @@ IUIScene_CraftingMenu::IUIScene_CraftingMenu()
 	memset(CanBeMadeA,0,sizeof(CANBEMADE)*m_iMaxHSlotC);
 	m_iRecipeC=0;
 	m_iGroupIndex=0;
+	m_bComplexTable=false;	// neoLegacy
 
 	for(int i=0;i<m_iMaxDisplayedVSlotC;i++)
 	{
@@ -668,6 +669,14 @@ void IUIScene_CraftingMenu::CheckRecipesAvailable()
 				pRecipeIngredientsRequired[i].bCanMake[getPad()]=false;
 				continue;
 			}
+			// neoLegacy - Complex Table recipes are only listed at a Complex Table, and a
+			// Complex Table lists nothing else. Everything else just skips them.
+			if(Recipes::isComplexOnly(r) != m_bComplexTable)
+			{
+				itRecipe++;
+				pRecipeIngredientsRequired[i].bCanMake[getPad()]=false;
+				continue;
+			}
 			// if we are in the inventory menu, then we have 2x2 crafting available only
 			if((m_iContainerType==RECIPE_TYPE_2x2) && (pRecipeIngredientsRequired[i].iType==RECIPE_TYPE_3x3))
 			{
@@ -775,7 +784,7 @@ void IUIScene_CraftingMenu::CheckRecipesAvailable()
 				int iID=pTempItemInst->getItem()->id;
 				int iBaseType;
 
-				if(iID<256) // is it a tile?
+				if(Tile::isTileItemId(iID)) // is it a tile?
 				{
 					iBaseType=Tile::tiles[iID]->getBaseItemType();
 				}
@@ -1079,7 +1088,13 @@ void IUIScene_CraftingMenu::DisplayIngredients()
 		{
 			int id=pRecipeIngredientsRequired[iRecipe].iIngIDA[i];
 			int iAuxVal=pRecipeIngredientsRequired[iRecipe].iIngAuxValA[i];
-			Item *item = Item::items[id];
+			// neoLegacy - never build an ItemInstance from a missing item (a bad recipe ingredient used to crash here)
+			Item *item = (id > 0 && id < Item::ITEM_NUM_COUNT) ? Item::items[id] : nullptr;
+			if (item == nullptr)
+			{
+				app.DebugPrintf("Recipe %d has an ingredient with no item (id %d), skipping it\n", iRecipe, id);
+				continue;
+			}
 
 			shared_ptr<ItemInstance> itemInst= std::make_shared<ItemInstance>(item, pRecipeIngredientsRequired[iRecipe].iIngValA[i], iAuxVal);
 
@@ -1087,8 +1102,8 @@ void IUIScene_CraftingMenu::DisplayIngredients()
 			// and the same goes for the painting
 			int idescID;
 
-			if( ((pTempItemInst->id==Item::bed_Id)		&&(id==Tile::wool_Id)) ||
-				((pTempItemInst->id==Item::painting_Id)	&&(id==Tile::wool_Id)) )
+			// neoLegacy - beds are now crafted from three wool of one specific color, so only the painting still takes "any wool"
+			if( ((pTempItemInst->id==Item::painting_Id)	&&(id==Tile::wool_Id)) )
 			{
 				idescID=IDS_ANY_WOOL;
 			}
@@ -1248,7 +1263,7 @@ void IUIScene_CraftingMenu::UpdateDescriptionText(bool bCanBeMade)
 		int iAuxVal=pTempItemInst->getAuxValue();
 		int iBaseType;
 
-		if(iID<256) // is it a tile?
+		if(Tile::isTileItemId(iID)) // is it a tile?
 		{
 			iBaseType=Tile::tiles[iID]->getBaseItemType();
 

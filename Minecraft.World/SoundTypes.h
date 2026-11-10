@@ -283,6 +283,99 @@ enum eSOUND_TYPE
 	eSoundType_MOB_POLARBEAR_STEP,
 	eSoundType_MOB_POLARBEAR_WARNING,
 
+	// neoLegacy - goat (files: Windows64Media/Sound/Minecraft/mob/goat/*)
+	eSoundType_MOB_GOAT_AMBIENT,
+	eSoundType_MOB_GOAT_HURT,
+	eSoundType_MOB_GOAT_DEATH,
+	eSoundType_MOB_GOAT_JUMP,
+	eSoundType_MOB_GOAT_RAM_IMPACT,
+
+	// neoLegacy - camel (files: Windows64Media/Sound/Minecraft/mob/camel/*)
+	eSoundType_MOB_CAMEL_DASH,
+	eSoundType_MOB_CAMEL_DASH_READY,
+	eSoundType_MOB_CAMEL_AMBIENT,
+	eSoundType_MOB_CAMEL_HURT,
+	eSoundType_MOB_CAMEL_DEATH,
+	eSoundType_MOB_CAMEL_STEP,
+	eSoundType_MOB_CAMEL_STEP_SAND,
+	eSoundType_MOB_CAMEL_SIT,
+	eSoundType_MOB_CAMEL_STAND,
+	eSoundType_MOB_CAMEL_EAT,
+
+	// neoLegacy - drowned / husk (files under Windows64Media/Sound/Minecraft/mob/drowned and /husk)
+	eSoundType_MOB_DROWNED_IDLE,
+	eSoundType_MOB_DROWNED_HURT,
+	eSoundType_MOB_DROWNED_DEATH,
+	eSoundType_MOB_DROWNED_STEP,
+	eSoundType_MOB_DROWNED_CONVERT,
+	eSoundType_MOB_DROWNED_WATER_IDLE,
+	eSoundType_MOB_DROWNED_WATER_HURT,
+	eSoundType_MOB_DROWNED_WATER_DEATH,
+	eSoundType_MOB_HUSK_IDLE,
+	eSoundType_MOB_HUSK_HURT,
+	eSoundType_MOB_HUSK_DEATH,
+	eSoundType_MOB_HUSK_STEP,
+	eSoundType_MOB_HUSK_CONVERT,
+
+	// neoLegacy - frostbite (files under Windows64Media/Sound/Minecraft/mob/frostbite) and the Freezing sting (random/freezing.ogg)
+	eSoundType_MOB_FROSTBITE_IDLE,
+	eSoundType_MOB_FROSTBITE_HURT,
+	eSoundType_MOB_FROSTBITE_DEATH,
+	eSoundType_MOB_FROSTBITE_STEP,
+	eSoundType_MOB_FROSTBITE_CONVERT,
+	eSoundType_RANDOM_FREEZING,
+
+	// neoLegacy - illagers (files under Windows64Media/Sound/Minecraft/mob/vindicator, mob/evoker, mob/iceologer)
+	eSoundType_MOB_VINDICATOR_IDLE,
+	eSoundType_MOB_VINDICATOR_HURT,
+	eSoundType_MOB_VINDICATOR_DEATH,
+	eSoundType_MOB_VINDICATOR_CELEBRATE,
+	eSoundType_MOB_EVOKER_IDLE,
+	eSoundType_MOB_EVOKER_HURT,
+	eSoundType_MOB_EVOKER_DEATH,
+	eSoundType_MOB_EVOKER_CAST,
+	eSoundType_MOB_EVOKER_PREPARE_ATTACK,
+	eSoundType_MOB_EVOKER_PREPARE_SUMMON,
+	eSoundType_MOB_EVOKER_PREPARE_WOLOLO,
+	eSoundType_MOB_EVOKER_FANGS,
+	eSoundType_MOB_EVOKER_CELEBRATE,
+	eSoundType_MOB_ICEOLOGER_IDLE,
+	eSoundType_MOB_ICEOLOGER_HURT,
+	eSoundType_MOB_ICEOLOGER_DEATH,
+	eSoundType_MOB_ICEOLOGER_CAST,
+	eSoundType_MOB_ICEOLOGER_PREPARE,
+	eSoundType_MOB_ICEOLOGER_CUBE_AMBIENT,
+	eSoundType_MOB_ICEOLOGER_CUBE_HIT,
+
+	// neoLegacy - illusioner (files under Windows64Media/Sound/Minecraft/mob/illusioner)
+	eSoundType_MOB_ILLUSIONER_IDLE,
+	eSoundType_MOB_ILLUSIONER_HURT,
+	eSoundType_MOB_ILLUSIONER_DEATH,
+	eSoundType_MOB_ILLUSIONER_MIRROR_MOVE,
+	eSoundType_MOB_ILLUSIONER_PREPARE_MIRROR,
+	eSoundType_MOB_ILLUSIONER_PREPARE_BLIND,
+
+	// neoLegacy - vex (mob/vex) and crossbow (item/crossbow)
+	eSoundType_MOB_VEX_IDLE,
+	eSoundType_MOB_VEX_HURT,
+	eSoundType_MOB_VEX_DEATH,
+	eSoundType_MOB_VEX_CHARGE,
+	eSoundType_ITEM_CROSSBOW_LOADING_START,
+	eSoundType_ITEM_CROSSBOW_LOADING_MIDDLE,
+	eSoundType_ITEM_CROSSBOW_LOADING_END,
+	eSoundType_ITEM_CROSSBOW_SHOOT,
+
+	// neoLegacy - pillager (mob/pillager)
+	eSoundType_MOB_PILLAGER_IDLE,
+	eSoundType_MOB_PILLAGER_HURT,
+	eSoundType_MOB_PILLAGER_DEATH,
+	eSoundType_MOB_PILLAGER_CELEBRATE,
+
+	// neoLegacy - mace smash (files: Windows64Media/Sound/Minecraft/item/mace/*)
+	eSoundType_ITEM_MACE_SMASH_AIR,			// target was in the air: smash_air1-3
+	eSoundType_ITEM_MACE_SMASH_GROUND,		// target on the ground: smash_ground1-4
+	eSoundType_ITEM_MACE_SMASH_GROUND_HEAVY,	// ...after a fall of more than 5 blocks: smash_ground_heavy
+
 	eSoundType_MAX
 };
 

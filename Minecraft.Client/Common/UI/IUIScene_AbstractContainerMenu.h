@@ -126,6 +126,13 @@ protected:
 		eSectionClassicCraftingResult,
 		eSectionClassicCraftingGrid,
 		eSectionClassicCraftingMax,
+
+		eSectionGrindstoneUsing,
+		eSectionGrindstoneInventory,
+		eSectionGrindstoneItem1,
+		eSectionGrindstoneItem2,
+		eSectionGrindstoneResult,
+		eSectionGrindstoneMax,
 	};
 
 	AbstractContainerMenu* m_menu;

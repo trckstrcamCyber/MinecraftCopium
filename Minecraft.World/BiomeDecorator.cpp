@@ -7,6 +7,9 @@
 #include "TallGrass.h"
 #include "TallGrass2.h"
 #include "DoublePlantFeature.h"
+#include "LuckyBlockSpawnFeature.h"
+#include "AbandonedTentFeature.h"
+#include "MiniStructureFeatures.h"
 
 BiomeDecorator::BiomeDecorator(Biome *biome)
 {
@@ -79,6 +82,20 @@ void BiomeDecorator::_init()
     tulipPinkFeature     = new FlowerFeature(Tile::red_flower_Id, Rose::PINK_TULIP);
 
     doublePlantFeature = new DoublePlantFeature(false);
+
+    // New atmospheric worldgen layer - see LuckyStructureConfig.h for
+    // all rarity/biome tuning. Each feature internally decides whether
+    // to actually do anything (own chance roll + biome + safety checks),
+    // so it's safe to just call place() once per chunk from decorate().
+    luckyBlockSpawnFeature = new LuckyBlockSpawnFeature();
+    abandonedTentFeature = new AbandonedTentFeature();
+    brokenCartFeature = new BrokenCartFeature();
+    oreShrineFeature = new OreShrineFeature();
+    ruinedFenceFeature = new RuinedFenceFeature();
+    abandonedCampfireFeature = new AbandonedCampfireFeature();
+    rockPileFeature = new RockPileFeature();
+    hunterPostFeature = new HunterPostFeature();
+    miniCaveFeature = new MiniCaveFeature();
 
     doublePlantCount = 0;
     waterlilyCount = 0;
@@ -356,6 +373,10 @@ void BiomeDecorator::decorate()
         delete lavaSpringFeature;
     }
     PIXEndNamedEvent();
+
+    PIXBeginNamedEvent(0,"Decorate lucky structures");
+    decorateLuckyStructures();
+    PIXEndNamedEvent();
 }
 
 void BiomeDecorator::decorate(int count, Feature *feature)
@@ -402,4 +423,49 @@ void BiomeDecorator::decorateOres()
     decorateDepthSpan(10, andesiteOreFeature, 0, 80);
 
     level->setInstaTick(false);
+}
+
+void BiomeDecorator::decorateLuckyStructures()
+{
+    // Each feature below internally rolls its own chance (see
+    // LuckyStructureConfig.h) and bails out immediately in the common
+    // case, so this whole block is cheap on the vast majority of chunks
+    // where nothing ends up placed. One candidate column per feature per
+    // chunk, same idiom as the rest of this file.
+
+    int x = xo + random->nextInt(16) + 8;
+    int z = zo + random->nextInt(16) + 8;
+    luckyBlockSpawnFeature->place(level, random, x, 0, z);
+
+    x = xo + random->nextInt(16) + 8;
+    z = zo + random->nextInt(16) + 8;
+    abandonedTentFeature->place(level, random, x, 0, z);
+
+    x = xo + random->nextInt(16) + 8;
+    z = zo + random->nextInt(16) + 8;
+    brokenCartFeature->place(level, random, x, 0, z);
+
+    x = xo + random->nextInt(16) + 8;
+    z = zo + random->nextInt(16) + 8;
+    oreShrineFeature->place(level, random, x, 0, z);
+
+    x = xo + random->nextInt(16) + 8;
+    z = zo + random->nextInt(16) + 8;
+    ruinedFenceFeature->place(level, random, x, 0, z);
+
+    x = xo + random->nextInt(16) + 8;
+    z = zo + random->nextInt(16) + 8;
+    abandonedCampfireFeature->place(level, random, x, 0, z);
+
+    x = xo + random->nextInt(16) + 8;
+    z = zo + random->nextInt(16) + 8;
+    rockPileFeature->place(level, random, x, 0, z);
+
+    x = xo + random->nextInt(16) + 8;
+    z = zo + random->nextInt(16) + 8;
+    hunterPostFeature->place(level, random, x, 0, z);
+
+    x = xo + random->nextInt(16) + 8;
+    z = zo + random->nextInt(16) + 8;
+    miniCaveFeature->place(level, random, x, 0, z);
 }

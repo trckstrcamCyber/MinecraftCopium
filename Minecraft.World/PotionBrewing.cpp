@@ -83,6 +83,8 @@ const wstring PotionBrewing::MOD_GLOWSTONE = L"+5-6-7"; // glowstone increases a
 const wstring PotionBrewing::MOD_GUNPOWDER = L"+14";//&13-13"; // gunpowder makes them throwable! // gunpowder requires 13 and sets 14
 const wstring PotionBrewing::MOD_RABBITS_FOOT = L"+0+1-2+3&4-4+13";
 const wstring PotionBrewing::MOD_PUFFERFISH = L"+0+1+2+3&4-4+13";
+// neoLegacy - Ice Ball: sets effect pattern 1101 (the one free slot, 0x200D) which is the Potion of Freezing
+const wstring PotionBrewing::MOD_ICEBALL = L"+0-1+2+3&4-4+13";
 #else
 const wstring PotionBrewing::MOD_WATER = L"-1-3-5-7-9-11-13";
 const wstring PotionBrewing::MOD_SUGAR = L"+0";
@@ -118,6 +120,7 @@ void PotionBrewing::staticCtor()
 		potionEffectDuration.insert(intStringMap::value_type( MobEffect::invisibility->getId(), L"!0 & 1 & 2 & 3 & 2+6" ));
 		potionEffectDuration.insert(intStringMap::value_type( MobEffect::jump->getId(), L"0 & 1 & !2 & 3 & 0+6" ));
 		potionEffectDuration.insert(intStringMap::value_type( MobEffect::waterBreathing->getId(), L"0 & 1 & 2 & 3 & 0+6" ));
+		potionEffectDuration.insert(intStringMap::value_type( MobEffect::freezing->getId(), L"0 & !1 & 2 & 3 & 3+6" ));	// neoLegacy - Potion of Freezing
 
 		// glowstone increases amplification
 		potionEffectAmplifier.insert(intStringMap::value_type( MobEffect::movementSpeed->getId(), L"5" ));

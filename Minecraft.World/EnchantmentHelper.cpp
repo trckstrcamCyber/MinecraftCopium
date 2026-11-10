@@ -6,6 +6,8 @@
 #include "net.minecraft.world.damagesource.h"
 #include "WeighedRandom.h"
 #include "EnchantmentHelper.h"
+#include "MaceItem.h"
+#include "EnchantmentCategory.h"
 
 Random EnchantmentHelper::random;
 
@@ -249,6 +251,37 @@ int EnchantmentHelper::getArmorThorns(shared_ptr<LivingEntity> source)
 	return getEnchantmentLevel(Enchantment::thorns->id, source->getEquipmentSlots());
 }
 
+// neoLegacy custom enchantment helpers
+int EnchantmentHelper::getAdrenalineLevel(shared_ptr<LivingEntity> source)
+{
+	return getEnchantmentLevel(Enchantment::adrenaline->id, source->getEquipmentSlots());
+}
+
+int EnchantmentHelper::getBerserkLevel(shared_ptr<LivingEntity> source)
+{
+	return getEnchantmentLevel(Enchantment::berserk->id, source->getEquipmentSlots());
+}
+
+int EnchantmentHelper::getSonicLevel(shared_ptr<LivingEntity> source)
+{
+	return getEnchantmentLevel(Enchantment::sonic->id, source->getEquipmentSlots());
+}
+
+int EnchantmentHelper::getLifestealLevel(shared_ptr<LivingEntity> source)
+{
+	return getEnchantmentLevel(Enchantment::lifesteal->id, source->getCarriedItem());
+}
+
+int EnchantmentHelper::getVeinminerLevel(shared_ptr<ItemInstance> heldItem)
+{
+	return getEnchantmentLevel(Enchantment::veinminer->id, heldItem);
+}
+
+bool EnchantmentHelper::hasAutoSmelt(shared_ptr<LivingEntity> source)
+{
+	return getEnchantmentLevel(Enchantment::autoSmelt->id, source->getCarriedItem()) > 0;
+}
+
 shared_ptr<ItemInstance> EnchantmentHelper::getMendingItem(shared_ptr<LivingEntity> source)
 {
 	int mendId = Enchantment::mending->id;
@@ -481,8 +514,20 @@ unordered_map<int, EnchantmentInstance *> *EnchantmentHelper::getAvailableEnchan
 			continue;
 		}
 
+		// neoLegacy - curses are never rolled (enchanting table, loot)
+		if (e->isCurse())
+		{
+			continue;
+		}
+
 		// Only picks "normal" enchantments, no specialcases
-		if (!e->category->canEnchant(item) && !isBook)
+		// neoLegacy - Mace: Unbreaking fits it too, and the weapon set is cut down to Smite / Bane / Fire Aspect (see Enchantment::canEnchant)
+		const bool isMace = dynamic_cast<MaceItem *>(item) != nullptr;
+		if (isMace && !isBook)
+		{
+			if (!MaceItem::isEnchantmentAllowed(e)) continue;
+		}
+		else if (!e->category->canEnchant(item) && !isBook)
 		{
 			continue;
 		}

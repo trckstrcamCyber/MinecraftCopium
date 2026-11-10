@@ -7,7 +7,14 @@
 // the derived class itself (which should own the virtual GetType function)
 
 #include "stdafx.h"
+#include "CrossbowItem.h"
 #include "JavaMath.h"
+
+// neoLegacy custom enchantments
+#include "BerserkEnchantment.h"
+#include "LifestealEnchantment.h"
+#include "AirJumpEnchantment.h"
+#include "PullEnchantment.h"
 #include "net.minecraft.h"
 #include "net.minecraft.world.h"
 #include "net.minecraft.stats.h"
@@ -22,6 +29,7 @@
 #include "net.minecraft.world.entity.item.h"
 #include "net.minecraft.world.item.h"
 #include "net.minecraft.world.item.enchantment.h"
+#include "BedTileEntity.h"
 #include "net.minecraft.world.level.dimension.h"
 #include "net.minecraft.world.level.material.h"
 #include "net.minecraft.world.level.tile.h"
@@ -35,6 +43,9 @@
 #include "net.minecraft.world.food.h"
 #include "Inventory.h"
 #include "Player.h"
+#include "LevelEvent.h"
+#include "WeaponItem.h"
+#include "MaceItem.h"	// neoLegacy - Mace smash attack
 #include "ParticleTypes.h"
 
 #include "../Minecraft.Client/Textures.h"
@@ -84,6 +95,8 @@ void Player::_init()
 	m_uiDebugOptions=0L;
 
 	jumpTriggerTime = 0;
+	airJumpWasPressed = false;
+	airJumpsUsed = 0;
 	ticksElytraFlying = 0;
 	rotateElytraX = 0.2617994f;
 	rotateElytraY = 0.0f;
@@ -91,6 +104,8 @@ void Player::_init()
 	m_elytraImpactYd = 0.0f;
 	m_wasElytraFlying = false;
 	m_elytraFallProtectTicks = 0;
+	ignoreFallFromImpulse = false;
+	impulseImpactY = 0.0f;
 
 	takeXpDelay = 0;
 	experienceLevel = totalExperience = 0;
@@ -326,6 +341,37 @@ void Player::tick()
 	}
 
 	LivingEntity::tick();
+
+	// neoLegacy - Mace: the landing (which already used the flag) is over, so the impulse no longer matters
+	if (ignoreFallFromImpulse && (onGround || isInWater() || onLadder())) ignoreFallFromImpulse = false;
+
+	// neoLegacy - Zoro sword combo timers.  The short combo window lets
+	// consecutive attacks chain, while the cooldown prevents button-mashing
+	// from bypassing the deliberate sword rhythm.
+	// Hit-stop: while it runs the swing clock is frozen, so the blade visibly "bites" into the target.
+	zoroSwingJustStarted = false;
+	zoroHitShakeO = zoroHitShake;
+	zoroHitShake *= 0.60f;
+	if (zoroHitShake < 0.01f) zoroHitShake = 0.0f;
+
+	if (zoroSwordHitStopTicks > 0)
+		--zoroSwordHitStopTicks;
+	else if (zoroSwordAttackCooldown > 0)
+		--zoroSwordAttackCooldown;
+
+	// the window between two connecting hits ran out: the combo (and its Crit/Rage stacks) ends
+	if (zoroSwordComboTimer > 0)
+	{
+		--zoroSwordComboTimer;
+		if (zoroSwordComboTimer == 0)
+			zoroBreakCombo();
+	}
+	// a swing that never found a target is a miss
+	if (zoroMissCheck > 0)
+	{
+		if (--zoroMissCheck == 0)
+			zoroBreakCombo();
+	}
 
 	if (!level->isClientSide)
 	{
@@ -1009,6 +1055,7 @@ void Player::serverAiStep()
 {
 	LivingEntity::serverAiStep();
 	updateSwingTime();
+	updateSize();
 }
 
 
@@ -1024,6 +1071,27 @@ void Player::aiStep()
 	}
 	inventory->tick();
 	oBob = bob;
+
+	updateSize();
+
+	// neoLegacy Added - Air Jump. A fresh jump-button press while airborne
+	// consumes one configured mid-air jump. Holding the button does not
+	// repeatedly trigger jumps.
+	if (onGround)
+	{
+		airJumpsUsed = 0;
+	}
+	int airJumpLevel = EnchantmentHelper::getEnchantmentLevel(Enchantment::airJump->id, getEquipmentSlots());
+	if (!onGround && jumping && !airJumpWasPressed && airJumpLevel > 0 &&
+		!isElytraFlying() && !abilities.flying &&
+		airJumpsUsed < AirJumpEnchantment::getMaxAirJumps(airJumpLevel))
+	{
+		yd = AirJumpEnchantment::getJumpPower(airJumpLevel);
+		fallDistance = 0.0f;
+		hasImpulse = true;
+		airJumpsUsed++;
+	}
+	airJumpWasPressed = jumping;
 
 	if (jumping && !onGround && yd < 0.0 && !isElytraFlying() && !abilities.flying && jumpTriggerTime == 0)
 	{
@@ -1350,6 +1418,9 @@ void Player::readAdditionalSaveData(CompoundTag *entityTag)
 
 	// 4J Added
 	m_uiGamePrivileges = entityTag->getInt(L"GamePrivileges");
+
+	// neoLegacy - Arcade Machines progress (Cookie Miner state, Flappy Craft / Mine Snake high scores)
+	arcadeData.load(entityTag);
 }
 
 void Player::addAdditonalSaveData(CompoundTag *entityTag)
@@ -1382,6 +1453,8 @@ void Player::addAdditonalSaveData(CompoundTag *entityTag)
 	// 4J Added
 	entityTag->putInt(L"GamePrivileges",m_uiGamePrivileges);
 
+	// neoLegacy - Arcade Machines progress
+	arcadeData.save(entityTag);
 }
 
 bool Player::openContainer(shared_ptr<Container> container)
@@ -1414,9 +1487,25 @@ bool Player::startRepairing(int x, int y, int z)
 	return true;
 }
 
+bool Player::startGrindstoneRepairing(int x, int y, int z)
+{
+	return true;
+}
+
 bool Player::startCrafting(int x, int y, int z)
 {
 	return true;
+}
+
+bool Player::startComplexCrafting(int x, int y, int z)		// neoLegacy - Complex Table
+{
+	return true;
+}
+
+bool Player::startArcadeGame(int x, int y, int z, int gameType)
+{
+    // The server-side Player implementation has no local display/input session.
+    return true;
 }
 
 bool Player::openFireworks(int x, int y, int z)
@@ -1630,6 +1719,11 @@ shared_ptr<ItemInstance> Player::getSelectedItem()
 	return inventory->getSelected();
 }
 
+shared_ptr<ItemInstance> Player::getSelectedItem() const
+{
+	return inventory->getSelected();
+}
+
 void Player::removeSelectedItem()
 {
 	inventory->setItem(inventory->selected, nullptr);
@@ -1638,6 +1732,71 @@ void Player::removeSelectedItem()
 double Player::getRidingHeight()
 {
 	return heightOffset - 0.5f;
+}
+
+bool Player::canUseZoroSwordAttack()
+{
+	shared_ptr<ItemInstance> item = getSelectedItem();
+	if (item == nullptr || item->getItem() == nullptr)
+		return true;
+
+	WeaponItem *weapon = dynamic_cast<WeaponItem *>(item->getItem());
+	if (weapon == nullptr || !weapon->isZoroSword())
+		return true;
+
+	return zoroSwordAttackCooldown <= 0;
+}
+
+int Player::getZoroSwordComboStep() const
+{
+	return zoroSwordComboStep;
+}
+
+int Player::getZoroSwordHitStopTicks() const
+{
+	return zoroSwordHitStopTicks;
+}
+
+float Player::getZoroHitShake(float a) const
+{
+	return zoroHitShakeO + (zoroHitShake - zoroHitShakeO) * a;
+}
+
+bool Player::beginZoroSwing()
+{
+	shared_ptr<ItemInstance> item = getSelectedItem();
+	if (item == nullptr || item->getItem() == nullptr) return false;
+	WeaponItem *weapon = dynamic_cast<WeaponItem *>(item->getItem());
+	if (weapon == nullptr || !weapon->isZoroSword()) return false;
+	if (zoroSwordAttackCooldown > 0) return false;
+
+	chooseZoroAttackType();
+	zoroSwordAttackCooldown = weapon->getZoroAttackCooldown();
+	zoroSwingJustStarted = true;
+	return true;
+}
+
+float Player::getZoroSwordSwingProgress(float a) const
+{
+	shared_ptr<ItemInstance> item = getSelectedItem();
+	if (item == nullptr || item->getItem() == nullptr)
+		return 0.0f;
+
+	WeaponItem *weapon = dynamic_cast<WeaponItem *>(item->getItem());
+	if (weapon == nullptr || !weapon->isZoroSword())
+		return 0.0f;
+
+	const int duration = weapon->getZoroAttackCooldown();
+	if (duration <= 0 || zoroSwordAttackCooldown <= 0)
+		return 0.0f;
+
+	// frozen during hit-stop, otherwise advance with the partial tick for a smooth swing
+	if (zoroSwordHitStopTicks > 0) a = 0.0f;
+
+	float progress = (static_cast<float>(duration - zoroSwordAttackCooldown) + a) / static_cast<float>(duration);
+	if (progress < 0.0f) progress = 0.0f;
+	if (progress > 1.0f) progress = 1.0f;
+	return progress;
 }
 
 void Player::attack(shared_ptr<Entity> entity)
@@ -1652,7 +1811,91 @@ void Player::attack(shared_ptr<Entity> entity)
 		return;
 	}
 
+	shared_ptr<ItemInstance> heldItem = getSelectedItem();
+	WeaponItem *zoroWeapon = nullptr;
+	int zoroCombo = 0;
+
+	if (heldItem != nullptr && heldItem->getItem() != nullptr)
+	{
+		zoroWeapon = dynamic_cast<WeaponItem *>(heldItem->getItem());
+		if (zoroWeapon != nullptr && zoroWeapon->isZoroSword())
+		{
+			if (zoroSwingJustStarted)
+			{
+				// the client already chose this cut's attack type in beginZoroSwing()
+				zoroSwingJustStarted = false;
+			}
+			else
+			{
+				// The server tolerates the last few ticks of cooldown so client and server hit-stop can't desync and eat a click.
+				if (zoroSwordAttackCooldown > (level->isClientSide ? 0 : 3))
+					return;
+
+				chooseZoroAttackType();
+				zoroSwordAttackCooldown = zoroWeapon->getZoroAttackCooldown();
+			}
+
+			zoroMissCheck = 0;		// this swing found a target, so it is not a miss
+			zoroCombo = (zoroComboHits < 2) ? zoroComboHits : 2;	// how deep into the combo we are (only drives the knockback below)
+
+			// client: the server decides damage, but the hit-stop + camera kick must happen on the click itself
+			if (level->isClientSide && entity->instanceof(eTYPE_LIVINGENTITY))
+			{
+				shared_ptr<LivingEntity> victim = dynamic_pointer_cast<LivingEntity>(entity);
+				if (victim != nullptr && victim->invulnerableTime <= 10)
+				{
+					zoroSwordHitStopTicks = 2;
+					zoroHitShake = (zoroSwordComboStep == 2) ? 1.0f : ((zoroSwordComboStep == 3) ? 0.8f : 0.6f);
+					zoroRegisterHit();		// the client mirrors the combo so the next attack type is chosen correctly
+				}
+			}
+		}
+	}
+
 	float dmg = static_cast<float>(getAttribute(SharedMonsterAttributes::ATTACK_DAMAGE)->getValue());
+
+	// neoLegacy - Zoro combo enchantments: Crit Stacking and Rage Stacking (server side; the client only shows the particles)
+	bool zoroStackCrit = false;
+	float zoroNextCritChance = 0.0f;
+	int zoroCritLevel = 0, zoroRageLevel = 0;
+
+	if (zoroWeapon != nullptr && zoroWeapon->isZoroSword())
+	{
+		// The Zoro swords use diamond-sword damage. Combo stages only change
+		// the feel/animation and hit direction, not the damage value.
+		dmg *= zoroWeapon->getZoroDamageMultiplier(zoroCombo);
+
+		if (!level->isClientSide)
+		{
+			shared_ptr<ItemInstance> held = getSelectedItem();
+			zoroCritLevel = EnchantmentHelper::getEnchantmentLevel(Enchantment::critStacking->id, held);
+			zoroRageLevel = EnchantmentHelper::getEnchantmentLevel(Enchantment::rageStacking->id, held);
+			if (zoroCritLevel == 0) zoroCritChance = 0.0f;		// enchantment removed: forget old stacks
+			if (zoroRageLevel == 0) zoroRageBonus = 0.0f;
+
+			// Rage Stacking: this hit carries the bonus earned by the hits before it
+			if (zoroRageLevel > 0) dmg *= (1.0f + zoroRageBonus);
+
+			// Crit Stacking: this hit adds its share of chance, then rolls for a critical hit
+			if (zoroCritLevel > 0)
+			{
+				zoroNextCritChance = zoroCritChance + CritStackingEnchantment::chancePerHit(zoroCritLevel);
+				if (zoroNextCritChance > 1.0f) zoroNextCritChance = 1.0f;
+				zoroStackCrit = random->nextFloat() < zoroNextCritChance;
+			}
+		}
+	}
+
+	// neoLegacy - Mace smash attack: hitting a living thing while falling more than 1.5 blocks adds a big damage bonus.
+	// The fall distance is captured now because the smash resets it.
+	shared_ptr<ItemInstance> maceStack = MaceItem::isMace(heldItem) ? heldItem : nullptr;
+	const bool maceSmash = maceStack != nullptr && entity->instanceof(eTYPE_LIVINGENTITY)
+		&& MaceItem::canSmashAttack(dynamic_pointer_cast<LivingEntity>(shared_from_this()));
+	const float maceFallDistance = fallDistance;
+	if (maceSmash)
+	{
+		dmg += MaceItem::getSmashBonusDamage(maceFallDistance, maceStack);
+	}
 
 	int knockback = 0;
 	float magicBoost = 0;
@@ -1663,6 +1906,13 @@ void Player::attack(shared_ptr<Entity> entity)
 		shared_ptr<LivingEntity> mob = dynamic_pointer_cast<LivingEntity>(entity);
 		magicBoost = EnchantmentHelper::getDamageBonus(thisPlayer, mob);
 		knockback += EnchantmentHelper::getKnockbackBonus(thisPlayer, mob);
+
+		// neoLegacy Added - Berserk
+		int berserkLevel = EnchantmentHelper::getBerserkLevel(thisPlayer);
+		if (berserkLevel > 0)
+		{
+			magicBoost += BerserkEnchantment::getDamageBonus(thisPlayer, berserkLevel);
+		}
 	}
 	if (isSprinting())
 	{
@@ -1671,8 +1921,8 @@ void Player::attack(shared_ptr<Entity> entity)
 
 	if (dmg > 0 || magicBoost > 0)
 	{
-		bool bCrit = fallDistance > 0 && !onGround && !onLadder() && !isInWater() && !hasEffect(MobEffect::blindness) && (riding == nullptr) && entity->instanceof(eTYPE_LIVINGENTITY);
-		if (bCrit && dmg > 0)
+		bool bCrit = !maceSmash && fallDistance > 0 && !onGround && !onLadder() && !isInWater() && !hasEffect(MobEffect::blindness) && (riding == nullptr) && entity->instanceof(eTYPE_LIVINGENTITY);
+		if ((bCrit || zoroStackCrit) && dmg > 0)
 		{
 			dmg *= 1.5f;
 		}
@@ -1690,13 +1940,59 @@ void Player::attack(shared_ptr<Entity> entity)
 
 		DamageSource *damageSource = DamageSource::playerAttack(dynamic_pointer_cast<Player>(shared_from_this()));
 
-		if (bCrit) {
+		if (bCrit || zoroStackCrit) {
 			damageSource->setIsCritical();
 		}
 		bool wasHurt = entity->hurt(damageSource, dmg);
 		delete damageSource;
+
+		// neoLegacy - Mace smash: the attacker's fall stops dead and Wind Burst launches them. This runs on the client too, because the
+		// client owns the local player's movement; the server runs the same code on its copy so the two agree about fall damage.
+		if (maceSmash)
+		{
+			MaceItem::applySmashToAttacker(dynamic_pointer_cast<Player>(shared_from_this()), maceStack);
+		}
+
 		if (wasHurt)
 		{
+			// neoLegacy - Mace smash shockwave (server only: it pushes other entities)
+			if (maceSmash && !level->isClientSide)
+			{
+				MaceItem::doSmashEffects(dynamic_pointer_cast<Player>(shared_from_this()), dynamic_pointer_cast<LivingEntity>(entity), maceFallDistance);
+			}
+
+			if (zoroWeapon != nullptr && zoroWeapon->isZoroSword())
+			{
+				// Tiny hit-stop makes the contact readable without freezing the game.
+				zoroSwordHitStopTicks = 2;
+
+				// the hit connected: it extends the combo and feeds the enchantment stacks
+				if (!level->isClientSide)
+				{
+					zoroRegisterHit();
+					if (zoroRageLevel > 0)
+					{
+						zoroRageBonus += RageStackingEnchantment::bonusPerHit(zoroRageLevel);
+						if (zoroRageBonus > RageStackingEnchantment::MAX_BONUS) zoroRageBonus = RageStackingEnchantment::MAX_BONUS;
+						level->levelEvent(LevelEvent::PARTICLES_ZORO_RAGE_STACK, Mth::floor(x), Mth::floor(y), Mth::floor(z), static_cast<int>(zoroRageBonus * 100.0f + 0.5f));
+					}
+					if (zoroCritLevel > 0)
+					{
+						zoroCritChance = zoroStackCrit ? 0.0f : zoroNextCritChance;		// a crit starts the stacking over
+						level->levelEvent(LevelEvent::PARTICLES_ZORO_CRIT_STACK, Mth::floor(x), Mth::floor(y), Mth::floor(z),
+							static_cast<int>(zoroCritChance * 100.0f + 0.5f) | (zoroStackCrit ? 0x100 : 0));
+					}
+				}
+
+				float stagger = 0.18f + (zoroCombo * 0.06f) + (zoroCombo == 2 ? 0.14f : 0.0f);	// finisher shoves harder
+				if (zoroCombo == 2) crit(entity);													// and throws sparks (visual only, no extra damage)
+				if (zoroWeapon->getZoroSwordType() == WeaponItem::ZORO_ENMA)
+					stagger = 0.28f + (zoroCombo * 0.07f);
+				else if (zoroWeapon->getZoroSwordType() == WeaponItem::ZORO_SHUSUI)
+					stagger = 0.23f + (zoroCombo * 0.06f);
+				entity->push(-Mth::sin(yRot * PI / 180) * stagger, 0.03, Mth::cos(yRot * PI / 180) * stagger);
+			}
+
 			if (knockback > 0)
 			{
 				entity->push(-Mth::sin(yRot * PI / 180) * knockback * .5f, 0.1, Mth::cos(yRot * PI / 180) * knockback * .5f);
@@ -1705,7 +2001,7 @@ void Player::attack(shared_ptr<Entity> entity)
 				setSprinting(false);
 			}
 
-			if (bCrit)
+			if (bCrit || zoroStackCrit)
 			{
 				crit(entity);
 			}
@@ -1725,6 +2021,84 @@ void Player::attack(shared_ptr<Entity> entity)
 			{
 				shared_ptr<LivingEntity> mob = dynamic_pointer_cast<LivingEntity>(entity);
 				ThornsEnchantment::doThornsAfterAttack(shared_from_this(), mob, random);
+			}
+
+			// neoLegacy Added - Lifesteal
+			int lifestealLevel = EnchantmentHelper::getLifestealLevel(dynamic_pointer_cast<LivingEntity>(shared_from_this()));
+			if (lifestealLevel > 0)
+			{
+				LifestealEnchantment::applyLifesteal(dynamic_pointer_cast<LivingEntity>(shared_from_this()), dmg, lifestealLevel);
+			}
+
+			// neoLegacy Added - Pull. Treasure sword enchantment: on a real
+			// player kill, very rarely drop the killed mob's spawn egg.
+			if (!level->isClientSide && !entity->isAlive())
+			{
+				shared_ptr<ItemInstance> weapon = getSelectedItem();
+				int pullLevel = EnchantmentHelper::getEnchantmentLevel(Enchantment::pull->id, weapon);
+				if (pullLevel > 0 && PullEnchantment::shouldDrop(random))
+				{
+					int eggId = EntityIO::getId(entity);
+					if (EntityIO::idsSpawnableInCreative.find(eggId) != EntityIO::idsSpawnableInCreative.end())
+					{
+						drop(std::make_shared<ItemInstance>(Item::spawn_egg, 1, eggId));
+					}
+				}
+			}
+		}
+
+		// neoLegacy - Better Combat-inspired sword sweep.
+		// The selected target is handled by the normal Legacy attack code above;
+		// this adds a narrow, forward-facing hitbox for nearby living targets.
+		if (zoroWeapon != nullptr && zoroWeapon->isZoroSword() && !level->isClientSide)
+		{
+			const float range = zoroWeapon->getZoroAttackRange();
+			const float halfAngleRadians = zoroWeapon->getZoroAttackAngle() * 0.5f * PI / 180.0f;
+			const float minimumDot = Mth::cos(halfAngleRadians);
+			const float forwardX = -Mth::sin(yRot * PI / 180.0f);
+			const float forwardZ =  Mth::cos(yRot * PI / 180.0f);
+
+			AABB *attackBox = AABB::newTemp(x - range, y - 1.0, z - range,
+				x + range, y + 2.0, z + range);
+			vector<shared_ptr<Entity> > *targets = level->getEntities(shared_from_this(), attackBox);
+
+			if (targets != nullptr)
+			{
+				for (shared_ptr<Entity> sweepTarget : *targets)
+				{
+					if (sweepTarget == nullptr || sweepTarget.get() == entity.get())
+						continue;
+					if (!sweepTarget->isAttackable() || !sweepTarget->instanceof(eTYPE_LIVINGENTITY))
+						continue;
+
+					const double dx = sweepTarget->x - x;
+					const double dz = sweepTarget->z - z;
+					const double distanceSq = dx * dx + dz * dz;
+					if (distanceSq <= 0.0001 || distanceSq > range * range)
+						continue;
+
+					const double distance = sqrt(distanceSq);
+					const float dot = static_cast<float>((dx / distance) * forwardX + (dz / distance) * forwardZ);
+					if (dot < minimumDot)
+						continue;
+
+					// Sweeps are deliberately lighter than the primary diamond-sword
+					// hit. They add crowd-control without turning the Zoro swords
+					// into high-DPS weapons.
+					float sweepDamage = dmg * 0.35f;
+
+					DamageSource *sweepSource = DamageSource::playerAttack(dynamic_pointer_cast<Player>(shared_from_this()));
+					if (sweepTarget->hurt(sweepSource, sweepDamage))
+					{
+						float stagger = 0.16f + (zoroCombo * 0.04f);
+						if (zoroWeapon->getZoroSwordType() == WeaponItem::ZORO_ENMA)
+							stagger = 0.24f + (zoroCombo * 0.05f);
+						else if (zoroWeapon->getZoroSwordType() == WeaponItem::ZORO_SHUSUI)
+							stagger = 0.21f + (zoroCombo * 0.04f);
+						sweepTarget->push(forwardX * stagger, 0.04, forwardZ * stagger);
+					}
+					delete sweepSource;
+				}
 			}
 		}
 
@@ -1971,8 +2345,10 @@ void Player::stopSleepInBed(bool forcefulWakeUp, bool updateLevelList, bool save
 
 	Pos *pos = bedPosition;
 	Pos *standUp = bedPosition;
+	bool strawBed = false;	// neoLegacy - Fancy Beds
 	if (pos != nullptr && level->getTile(pos->x, pos->y, pos->z) == Tile::bed_Id)
 	{
+		strawBed = (BedTileEntity::getVariantAt(level, pos->x, pos->y, pos->z) == BedTileEntity::VARIANT_STRAW);
 		BedTile::setOccupied(level, pos->x, pos->y, pos->z, false);
 
 		standUp = BedTile::findStandUpPosition(level, pos->x, pos->y, pos->z, 0);
@@ -1996,9 +2372,17 @@ void Player::stopSleepInBed(bool forcefulWakeUp, bool updateLevelList, bool save
 	{
 		sleepCounter = SLEEP_DURATION;
 	}
-	if (saveRespawnPoint)
+	// neoLegacy - a straw bed never moves the respawn point (the real bed keeps it)
+	if (saveRespawnPoint && !strawBed)
 	{
 		setRespawnPosition(bedPosition, false);
+	}
+
+	// neoLegacy - a straw bed is single use: it falls apart (no drops) as soon as the player gets out of it, whether they slept the
+	// night away or left mid-sleep. Server only; the removal is replicated like any other block change.
+	if (strawBed && !level->isClientSide)
+	{
+		BedTile::removeBothHalves(level, pos->x, pos->y, pos->z);
 	}
 }
 
@@ -2269,6 +2653,37 @@ float Player::getSpeed()
 	return static_cast<float>(getAttribute(SharedMonsterAttributes::MOVEMENT_SPEED)->getValue());
 }
 
+
+bool Player::isSwimming()
+{
+	return isInWater() && isSprinting() && !abilities.flying && riding == nullptr && !isSleeping();
+}
+
+bool Player::shouldUseSwimmingPose()
+{
+	return isSwimming();
+}
+
+void Player::updateSize()
+{
+	if (shouldUseSwimmingPose())
+	{
+		setSize(0.6f, 0.85f);
+	}
+	else if (isSneaking())
+	{
+		setSize(0.6f, 1.4f);
+	}
+	else if (isSleeping())
+	{
+		setSize(0.2f, 0.2f);
+	}
+	else
+	{
+		setSize(0.6f, 1.8f);
+	}
+}
+
 void Player::checkMovementStatistiscs(double dx, double dy, double dz)
 {
 
@@ -2428,6 +2843,15 @@ void Player::causeFallDamage(float distance)
 {
 	if (abilities.mayfly) return;
 
+	// neoLegacy - Mace: after a smash attack / Wind Burst launch only the part of the fall BELOW the point of impact counts
+	if (ignoreFallFromImpulse)
+	{
+		float belowImpact = impulseImpactY - static_cast<float>(bb->y0);
+		if (belowImpact < 0.0f) belowImpact = 0.0f;
+		if (distance > belowImpact) distance = belowImpact;
+		ignoreFallFromImpulse = false;
+	}
+
 	if (distance >= 2)
 	{
 		distanceFall += static_cast<int>(Math::round(distance * 100.0));
@@ -2522,6 +2946,18 @@ Icon *Player::getItemInHandIcon(shared_ptr<ItemInstance> item, int layer)
 		if (ticksHeld > 0)
 		{
 			return Item::bow->getDrawnIcon(0);
+		}
+	}
+	else if (useItem != nullptr && item->id == Item::crossbow_Id)
+	{
+		// neoLegacy - the crossbow's string visibly pulls back while it is drawn (3 frames over the 25 tick draw time)
+		CrossbowItem *crossbow = dynamic_cast<CrossbowItem *>(item->getItem());
+		if (crossbow != nullptr)
+		{
+			int ticksHeld = (item->getUseDuration() - useItemDuration);
+			if (ticksHeld >= CrossbowItem::CHARGE_TICKS) return crossbow->getDrawnIcon(2);
+			if (ticksHeld > (CrossbowItem::CHARGE_TICKS * 2) / 3) return crossbow->getDrawnIcon(1);
+			if (ticksHeld > 0) return crossbow->getDrawnIcon(0);
 		}
 	}
 	return icon;
@@ -2709,6 +3145,9 @@ bool Player::shouldShowName()
 
 void Player::restoreFrom(shared_ptr<Player> oldPlayer, bool restoreAll)
 {
+	// neoLegacy - Arcade progress survives death, respawn and dimension changes whatever else is kept
+	arcadeData = oldPlayer->arcadeData;
+
 	if(restoreAll)
 	{
 		inventory->replaceWith(oldPlayer->inventory);
@@ -3087,6 +3526,12 @@ bool Player::isAllowedToUse(Tile *tile)
 			case Tile::lever_Id:
 			case Tile::fence_gate_Id:
 			case Tile::trapdoor_Id:
+			case Tile::spruce_trapdoor_Id:
+			case Tile::birch_trapdoor_Id:
+			case Tile::jungle_trapdoor_Id:
+			case Tile::acacia_trapdoor_Id:
+			case Tile::dark_oak_trapdoor_Id:
+			case Tile::bamboo_trapdoor_Id:
 				allowed = true;
 				break;
 			}
@@ -3120,6 +3565,12 @@ bool Player::isAllowedToUse(Tile *tile)
 			case Tile::lever_Id:
 			case Tile::fence_gate_Id:
 			case Tile::trapdoor_Id:
+			case Tile::spruce_trapdoor_Id:
+			case Tile::birch_trapdoor_Id:
+			case Tile::jungle_trapdoor_Id:
+			case Tile::acacia_trapdoor_Id:
+			case Tile::dark_oak_trapdoor_Id:
+			case Tile::bamboo_trapdoor_Id:
 			case Tile::chest_Id:
 			case Tile::furnace_Id:
 			case Tile::lit_furnace_Id:
@@ -3177,6 +3628,10 @@ bool Player::isAllowedToUse(shared_ptr<ItemInstance> item)
 		case Item::iron_sword_Id:
 		case Item::stone_sword_Id:
 		case Item::wooden_sword_Id:
+		case Item::wado_ichimonji_Id:
+		case Item::sandai_kitetsu_Id:
+		case Item::enma_Id:
+		case Item::shusui_Id:
 			allowed = true;
 			break;
 		}
@@ -3484,4 +3939,51 @@ void Player::SetPlayerNameValidState(bool bState)
 bool Player::isSpectator()
 {
     return false;
+}
+
+
+// ---------------------------------------------------------------------------------------------------------------------------
+// neoLegacy - Zoro combo
+// ---------------------------------------------------------------------------------------------------------------------------
+void Player::swing()
+{
+	LivingEntity::swing();
+
+	// a swing with a Zoro sword must find a target within a few ticks, otherwise it was a miss (see Player::tick)
+	shared_ptr<ItemInstance> item = getSelectedItem();
+	if (item != nullptr && item->getItem() != nullptr)
+	{
+		WeaponItem *w = dynamic_cast<WeaponItem *>(item->getItem());
+		if (w != nullptr && w->isZoroSword()) zoroMissCheck = 6;
+	}
+}
+
+// Picks the attack type for the next cut: the combo always opens with ZORO_OPENER_TYPE; while it is continuing (the last swing
+// connected and the window has not run out) the next type is random and never the same as the one just used.
+void Player::chooseZoroAttackType()
+{
+	const bool continuing = zoroSwordComboTimer > 0 && zoroComboHits > 0;
+	if (!continuing)
+	{
+		zoroSwordComboStep = ZORO_OPENER_TYPE;
+		return;
+	}
+	int pick = random->nextInt(ZORO_ATTACK_TYPES - 1);
+	if (pick >= zoroSwordComboStep) pick++;
+	zoroSwordComboStep = pick;
+}
+
+void Player::zoroRegisterHit()
+{
+	zoroComboHits++;
+	zoroSwordComboTimer = ZORO_COMBO_WINDOW;
+}
+
+void Player::zoroBreakCombo()
+{
+	zoroComboHits = 0;
+	zoroSwordComboTimer = 0;
+	zoroCritChance = 0.0f;
+	zoroRageBonus = 0.0f;
+	zoroMissCheck = 0;
 }

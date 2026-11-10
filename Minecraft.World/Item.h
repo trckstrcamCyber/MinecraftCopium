@@ -147,7 +147,10 @@ public:
 		eBaseItemType_stick,
 		eBaseItemType_fenceGate,
 		eBaseItemType_decoration,
-		eBaseItemType_bowl
+		eBaseItemType_bowl,
+		eBaseItemType_boat,	// neoLegacy - all boats share one crafting slot (scroll vertically between the wood types)
+		eBaseItemType_sign,	// neoLegacy - same for signs
+		eBaseItemType_bed	// neoLegacy - Fancy Beds: the 16 colored bed recipes + straw share one crafting slot (scroll vertically between them)
 	}
 	eBaseItemType;
 
@@ -165,6 +168,7 @@ public:
 		static const Tier *IRON; //
 		static const Tier *DIAMOND; //
 		static const Tier *GOLD;
+		static const Tier *ZORO;
 
 	private:
 		const int level;
@@ -220,6 +224,30 @@ public:
 	static Item *stone_axe;
 
 	static Item *diamond_sword;
+
+	// neoLegacy - Zoro swords
+	static Item *wado_ichimonji;
+	static Item *sandai_kitetsu;
+	static Item *enma;
+	static Item *shusui;
+	static Item *cursed_hilt;
+	// neoLegacy - MAC-10 firearm system
+	static Item *mac10;
+	static Item *bullet_9mm;
+	static Item *m16;				// neoLegacy - M16 rifle
+	static Item *bullet_556;		// neoLegacy - 5.56 ammunition
+	static Item *flintlock_copper;	// neoLegacy - Flintlock Pistol variants
+	static Item *flintlock_iron;
+	static Item *flintlock_gold;
+	static Item *enchantment_encyclopedia;	// neoLegacy - Enchantment Encyclopedia (reads like a signed book)
+	static Item *mace;				// neoLegacy - Mace (MaceItem)
+	static Item *jelly_ball;		// neoLegacy - Jelly Ball (food dropped by the Jelly Slime)
+	static Item *ice_ball;		// neoLegacy - Ice Ball (Frostbite drop, brews Potions of Freezing)
+	static Item *ice_wand;		// neoLegacy - Ice Wand (Iceologer drop)
+	static Item *crossbow;		// neoLegacy - Crossbow (empty)
+	static Item *crossbow_loaded;	// neoLegacy - Crossbow with an arrow drawn
+	static Item *bamboo;	// neoLegacy
+	static Item *bamboo_door;
 	static Item *diamond_shovel;
 	static Item *diamond_pickaxe;
 	static Item *diamond_axe;
@@ -413,6 +441,7 @@ public:
 	static EnchantedBookItem *enchanted_book;
 	static Item *tnt_minecart;
 	static Item *hopper_minecart;
+	static Item *diamond_minecart;	// neoLegacy
 
 	static Item *iron_horse_armor;
 	static Item *golden_horse_armor;
@@ -465,6 +494,27 @@ public:
 	static const int stone_pickaxe_Id		= 274;
 	static const int stone_axe_Id		= 275;
 	static const int diamond_sword_Id		= 276;
+
+	// neoLegacy - Zoro swords (451-454)
+	static const int wado_ichimonji_Id		= 451;
+	static const int sandai_kitetsu_Id		= 452;
+	static const int enma_Id				= 453;
+	static const int shusui_Id				= 454;
+	static const int cursed_hilt_Id			= 455;	// neoLegacy
+	static const int mac10_Id				= 465;	// neoLegacy - reserved custom item ID
+	static const int bullet_9mm_Id			= 466;	// neoLegacy - reserved custom item ID
+	static const int m16_Id					= 467;	// neoLegacy - M16 rifle
+	static const int bullet_556_Id			= 468;	// neoLegacy - 5.56 ammunition
+	static const int flintlock_copper_Id	= 469;	// neoLegacy - Flintlock Pistol (copper)
+	static const int flintlock_iron_Id		= 470;	// neoLegacy - Flintlock Pistol (iron)
+	static const int flintlock_gold_Id		= 471;	// neoLegacy - Flintlock Pistol (gold)
+	static const int mace_Id					= 601;	// neoLegacy - Mace
+	static const int jelly_ball_Id			= 602;	// neoLegacy - Jelly Ball
+	static const int ice_ball_Id			= 603;	// neoLegacy - Ice Ball
+	static const int ice_wand_Id			= 604;	// neoLegacy - Ice Wand
+	static const int crossbow_Id			= 605;	// neoLegacy - Crossbow
+	static const int crossbow_loaded_Id		= 606;	// neoLegacy - loaded Crossbow
+	static const int enchantment_encyclopedia_Id = 600;	// neoLegacy - Enchantment Encyclopedia (kept well clear of the 472+ block for new wood items)
 	static const int diamond_shovel_Id		= 277;
 	static const int diamond_pickaxe_Id		= 278;
 	static const int diamond_axe_Id		= 279;
@@ -518,6 +568,9 @@ public:
 	static const int painting_Id			= 321;
 	static const int golden_apple_Id			= 322;
 	static const int standing_sign_Id				= 323;
+	static const int bamboo_Id = 461;	// neoLegacy - Bamboo (463 and 464 reserved: bamboo sign, raft)
+	static const int bamboo_door_Id = 462;
+
 	static const int wooden_door_Id			= 324;
 	static const int bucket_Id		= 325;
 	static const int water_bucket_Id		= 326;
@@ -642,6 +695,7 @@ public:
 	static const int quartz_Id = 406;
 	static const int tnt_minecart_Id = 407;
 	static const int hopper_minecart_Id = 408;
+	static const int diamond_minecart_Id = 450;	// neoLegacy
 
 	static const int iron_horse_armor_Id = 417;
 	static const int golden_horse_armor_Id = 418;
@@ -738,6 +792,8 @@ public:
 	virtual shared_ptr<ItemInstance> use(shared_ptr<ItemInstance> itemInstance, Level *level, shared_ptr<Player> player);
 	virtual shared_ptr<ItemInstance> useTimeDepleted(shared_ptr<ItemInstance> itemInstance, Level *level, shared_ptr<Player> player);
 	virtual int getMaxStackSize() const;
+	// neoLegacy - per-stack limit: a few items (the bed: straw beds stack to 16, colored beds to 1) differ by aux value. Defaults to the item-wide limit.
+	virtual int getMaxStackSize(const ItemInstance *instance) const { return getMaxStackSize(); }
 	virtual int getLevelDataForAuxValue(int auxValue);
 	bool isStackedByData();
 

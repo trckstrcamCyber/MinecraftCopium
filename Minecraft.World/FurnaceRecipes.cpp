@@ -3,6 +3,7 @@
 #include "Tile.h"
 #include "FurnaceRecipes.h"
 #include "SmoothStoneBrickTile.h"
+#include "BlackStoneTile.h"
 
 FurnaceRecipes *FurnaceRecipes::instance = nullptr;
 
@@ -35,11 +36,17 @@ FurnaceRecipes::FurnaceRecipes()
 	addFurnaceRecipy(Item::clay_Id, new ItemInstance(Item::brick), .3f);
 	addFurnaceRecipy(Tile::clay_Id, new ItemInstance(Tile::clayHardened), .35f);
 	addFurnaceRecipy(Tile::cactus_Id, new ItemInstance(Item::dye, 1, DyePowderItem::GREEN), .2f);
+    addFurnaceRecipy(Item::rotten_flesh_Id, new ItemInstance(Item::leather), 1);
 	addFurnaceRecipy(Tile::log_Id, new ItemInstance(Item::coal, 1, CoalItem::CHAR_COAL), .15f);
 	addFurnaceRecipy(Tile::emerald_ore_Id, new ItemInstance(Item::emerald), 1);
 	addFurnaceRecipy(Item::potato_Id, new ItemInstance(Item::baked_potato), .35f);
 	addFurnaceRecipy(Tile::netherrack_Id, new ItemInstance(Item::netherbrick), .1f);
 	addFurnaceRecipy(new ItemInstance(Tile::sponge, 1, 1), new ItemInstance(Tile::sponge, 1, 0), .15f);
+
+    addFurnaceRecipy(
+        new ItemInstance(Tile::blackstone, 1, BlackStoneTile::POLISHED_BLACKSTONE_BRICKS),
+        new ItemInstance(Tile::blackstone, 1, BlackStoneTile::CRACKED_POLISHED_BLACKSTONE_BRICKS),
+        .1f);
 
 	// special silk touch related recipes:
 	addFurnaceRecipy(Tile::coal_ore_Id, new ItemInstance(Item::coal), .1f);
@@ -48,6 +55,10 @@ FurnaceRecipes::FurnaceRecipes()
 	addFurnaceRecipy(Tile::quartz_ore_Id, new ItemInstance(Item::nether_quartz), .2f);
 
 	addFurnaceRecipy(Tile::log2_Id, new ItemInstance(Item::coal, 1, CoalItem::CHAR_COAL), .15f);
+
+	// neoLegacy - stripped logs smelt into charcoal like the plain logs
+	addFurnaceRecipy(Tile::stripped_log_Id, new ItemInstance(Item::coal, 1, CoalItem::CHAR_COAL), .15f);
+	addFurnaceRecipy(Tile::stripped_log2_Id, new ItemInstance(Item::coal, 1, CoalItem::CHAR_COAL), .15f);
 }
 
 void FurnaceRecipes::addFurnaceRecipy(int itemId, ItemInstance *result, float value)

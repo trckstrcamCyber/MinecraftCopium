@@ -1,4 +1,11 @@
 #include "stdafx.h"
+#include "Random.h"
+#include "Inventory.h"
+#include "Abilities.h"
+#include "PathNavigation.h"
+#include "AttributeInstance.h"
+#include "ItemInstance.h"
+#include "Player.h"
 #include "net.minecraft.world.level.h"
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.world.h"
@@ -14,6 +21,7 @@
 #include "net.minecraft.world.entity.player.h"
 #include "AABB.h"
 #include "Zombie.h"
+#include "Drowned.h"
 #include "Chicken.h"
 #include "GenericStats.h"
 #include "../Minecraft.Client/Textures.h"
@@ -36,6 +44,7 @@ Zombie::Zombie(Level *level) : Monster( level )
 	setHealth(getMaxHealth());
 
 	villagerConversionTime = 0;
+	underWaterTicks = 0;
 
 	getNavigation()->setCanOpenDoors(true);
 	goalSelector.addGoal(0, new FloatGoal(this));
@@ -120,7 +129,7 @@ void Zombie::setVillager(bool villager)
 
 void Zombie::aiStep()
 {
-	if (level->isDay() && !level->isClientSide && !isBaby())
+	if (isSunSensitive() && level->isDay() && !level->isClientSide && !isBaby())
 	{
 		float br = getBrightness(1);
 		if (br > 0.5f && random->nextFloat() * 30 < (br - 0.4f) * 2 && level->canSeeSky(Mth::floor(x), static_cast<int>(floor(y + 0.5)), Mth::floor(z)))
@@ -197,8 +206,41 @@ bool Zombie::hurt(DamageSource *source, float dmg)
 	return false;
 }
 
+bool Zombie::isSunSensitive()
+{
+	return true;
+}
+
+void Zombie::convertToDrowned()
+{
+	// Same recipe as the vanilla conversion: new Drowned in the zombie's place, keeping its health
+	// fraction, age and gear.
+	shared_ptr<Drowned> drowned = std::make_shared<Drowned>(level);
+	drowned->copyPosition(shared_from_this());
+	drowned->setBaby(isBaby());
+	for (int slot = 0; slot < 5; slot++)
+	{
+		shared_ptr<ItemInstance> item = getCarried(slot);
+		if (item != nullptr) drowned->setEquippedSlot(slot, item->copy());
+	}
+	drowned->setHealth(getHealth() / getMaxHealth() * drowned->getMaxHealth());
+	level->addEntity(drowned);
+	playSound(eSoundType_MOB_DROWNED_CONVERT, 1.0f, 1.0f);
+	remove();
+}
+
 void Zombie::tick()
 {
+	// neoLegacy - underwater for 30 seconds -> drowned (plain zombies only; not villager zombies)
+	if (!level->isClientSide && GetType() == eTYPE_ZOMBIE && !isVillager() && !isConverting() && isUnderLiquid(Material::water))
+	{
+		if (++underWaterTicks >= 600) { convertToDrowned(); return; }
+	}
+	else
+	{
+		underWaterTicks = 0;
+	}
+
 	if (!level->isClientSide && isConverting())
 	{
 		int amount = getConversionProgress();
@@ -358,7 +400,7 @@ MobGroupData *Zombie::finalizeMobSpawn(MobGroupData *groupData, int extraData /*
 	{
 		ZombieGroupData *zombieData = static_cast<ZombieGroupData *>(groupData);
 
-		if (zombieData->isVillager)
+		if (zombieData->isVillager || extraData == 2)	// neoLegacy - extraData 2 = Zombie Villager spawn egg
 		{
 			setVillager(true);
 		}

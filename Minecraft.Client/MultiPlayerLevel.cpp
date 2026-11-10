@@ -864,7 +864,7 @@ void MultiPlayerLevel::removeAllPendingEntityRemovals()
 
 		if (e->riding != nullptr)
 		{
-			if (e->riding->removed || e->riding->rider.lock() != e)
+			if (e->riding->removed || (e->riding->rider.lock() != e && !e->riding->instanceof(eTYPE_CAMEL) && !e->riding->instanceof(eTYPE_BOAT)))	// neoLegacy: camels and boats carry two riders
 			{
 				e->riding->rider = weak_ptr<Entity>();
 				e->riding = nullptr;

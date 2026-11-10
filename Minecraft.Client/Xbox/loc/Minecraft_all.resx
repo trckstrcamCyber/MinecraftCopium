@@ -1654,6 +1654,8 @@ Can also be used for low-level lighting.</value>
   </data>
 <data name="strings.IDS_TILE_SPONGE"><value><!-- _locID_text="strings.IDS_TILE_SPONGE" _locComment="" -->Sponge</value>
   </data>
+<data name="strings.IDS_TILE_CALCITE"><value><!-- _locID_text="strings.IDS_TILE_CALCITE" _locComment="" -->Calcite</value>
+  </data>
 <data name="strings.IDS_TILE_GLASS"><value><!-- _locID_text="strings.IDS_TILE_GLASS" _locComment="" -->Glass</value>
   </data>
 <data name="strings.IDS_TILE_CLOTH"><value><!-- _locID_text="strings.IDS_TILE_CLOTH" _locComment="" -->Wool</value>

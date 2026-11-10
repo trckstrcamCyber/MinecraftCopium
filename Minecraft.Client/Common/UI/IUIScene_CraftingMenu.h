@@ -49,6 +49,7 @@ protected:
 	int m_iCurrentSlotVIndex;
 	int m_iRecipeC;
 	int m_iContainerType; // 2x2 or 3x3
+	bool m_bComplexTable; // neoLegacy - opened from a Complex Table: list only its recipes
 	shared_ptr<LocalPlayer> m_pPlayer;
 	int m_iGroupIndex;
 

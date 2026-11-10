@@ -18,6 +18,14 @@
 #include "net.minecraft.world.level.chunk.h"
 #include "net.minecraft.world.level.material.h"
 #include "net.minecraft.world.damagesource.h"
+
+// neoLegacy custom enchantments
+#include "AdrenalineEnchantment.h"
+#include "SonicEnchantment.h"
+#include "LavaWalkerEnchantment.h"
+#include "MaceEnchantments.h"	// neoLegacy - Breach
+#include "JellyBlockTile.h"	// neoLegacy - Jelly Block jump factor
+#include "ArmorItem.h"		// neoLegacy - leather armor stops Freezing
 #include "net.minecraft.world.effect.h"
 #include "net.minecraft.world.item.alchemy.h"
 #include "net.minecraft.world.item.enchantment.h"
@@ -40,6 +48,10 @@
 const double LivingEntity::MIN_MOVEMENT_DISTANCE = 0.005;
 
 AttributeModifier *LivingEntity::SPEED_MODIFIER_SPRINTING = (new AttributeModifier(eModifierId_MOB_SPRINTING, 0.3f, AttributeModifier::OPERATION_MULTIPLY_TOTAL))->setSerialize(false);
+
+// TU17 swimming support.
+static const float SPRINT_SWIM_SPEED = 0.045f;
+static const float SWIM_LOOK_SPEED = 0.04f;
 
 void LivingEntity::_init()
 {
@@ -121,6 +133,7 @@ LivingEntity::LivingEntity( Level* level) : Entity(level)
 	yHeadRot = yRot;
 
 	footSize = 0.5f;
+	freezeTicks = 0;	// neoLegacy
 }
 
 LivingEntity::~LivingEntity()
@@ -299,12 +312,44 @@ void LivingEntity::baseTick()
 
 	if (!level->isClientSide && isAlive())
 	{
+		// neoLegacy Added - Bright Vision. Keep a short night-vision effect
+		// active while the enchanted helmet is equipped.
+		int brightVisionLevel = EnchantmentHelper::getEnchantmentLevel(
+			Enchantment::brightVision->id, getEquipmentSlots());
+		if (brightVisionLevel > 0 && tickCount % 10 == 0)
+		{
+			MobEffectInstance *nightVision = getEffect(MobEffect::nightVision);
+			if (nightVision == nullptr || nightVision->getDuration() < 20)
+			{
+				addEffect(new MobEffectInstance(MobEffect::nightVision->id, 40, 0));
+			}
+		}
+
+		int lavaWalkerLevel = EnchantmentHelper::getEnchantmentLevel(
+			Enchantment::lavaWalker->id, getEquipmentSlots());
+		if (LavaWalkerEnchantment::isImmune(lavaWalkerLevel) && onGround)
+		{
+			int bx = Mth::floor(x);
+			int by = Mth::floor(y) - 1;
+			int bz = Mth::floor(z);
+			if (level->getTile(bx, by, bz) == Tile::flowing_lava_Id ||
+				level->getTile(bx, by, bz) == Tile::lava_Id)
+			{
+				level->setTileAndData(bx, by, bz, Tile::magma_Id, 0, Tile::UPDATE_ALL);
+			}
+		}
+
 		int frostWalkerLevel = EnchantmentHelper::getFrostWalker(dynamic_pointer_cast<LivingEntity>(shared_from_this()));
 		if (frostWalkerLevel > 0)
 		{
 			FrostWalkerEnchantment::freezeNearby(dynamic_pointer_cast<LivingEntity>(shared_from_this()), level,
 				Mth::floor(x), Mth::floor(y), Mth::floor(z), frostWalkerLevel);
 		}
+
+		// neoLegacy Added - Adrenaline / Sonic movement speed, re-evaluated every tick
+		shared_ptr<LivingEntity> self = dynamic_pointer_cast<LivingEntity>(shared_from_this());
+		AdrenalineEnchantment::tickSpeedModifier(self, EnchantmentHelper::getAdrenalineLevel(self));
+		SonicEnchantment::tickSpeedModifier(self, EnchantmentHelper::getSonicLevel(self));
 	}
 
 	yBodyRotO = yBodyRot;
@@ -753,6 +798,7 @@ void LivingEntity::removeEffect(int effectId)
 void LivingEntity::onEffectAdded(MobEffectInstance *effect)
 {
 	effectsDirty = true;
+	if (!level->isClientSide && effect->getId() == MobEffect::freezing->id) playSound(eSoundType_RANDOM_FREEZING, 1.0f, 1.0f);	// neoLegacy - plays once when the freeze starts
 	if (!level->isClientSide) MobEffect::effects[effect->getId()]->addAttributeModifiers(dynamic_pointer_cast<LivingEntity>(shared_from_this()), getAttributes(), effect->getAmplifier());
 }
 
@@ -1098,6 +1144,12 @@ bool LivingEntity::onLadder()
 	case Tile::vine_Id: // 4J-PB - TU9 - add climbable vines
 		return true;
 	case Tile::trapdoor_Id: // hexagonny - add climbable (opened) trapdoors
+	case Tile::spruce_trapdoor_Id:
+	case Tile::birch_trapdoor_Id:
+	case Tile::jungle_trapdoor_Id:
+	case Tile::acacia_trapdoor_Id:
+	case Tile::dark_oak_trapdoor_Id:
+	case Tile::bamboo_trapdoor_Id:
 	{
 		if ((level->getData(xt, yt, zt) & 0x4) != 0)
 		{
@@ -1194,7 +1246,19 @@ float LivingEntity::getDamageAfterArmorAbsorb(DamageSource *damageSource, float 
 {
 	if (!damageSource->isBypassArmor())
 	{
-		int absorb = 25 - getArmorValue();
+		float armorValue = static_cast<float>(getArmorValue());
+
+		// neoLegacy - Mace: Breach makes the attacker's weapon ignore 15% of this armor per level (up to 60%)
+		shared_ptr<Entity> attackerEntity = damageSource->getEntity();
+		if (attackerEntity != nullptr && attackerEntity == damageSource->getDirectEntity() && attackerEntity->instanceof(eTYPE_LIVINGENTITY))
+		{
+			shared_ptr<LivingEntity> attacker = dynamic_pointer_cast<LivingEntity>(attackerEntity);
+			shared_ptr<ItemInstance> weapon = attacker != nullptr ? attacker->getCarriedItem() : nullptr;
+			int breachLevel = weapon != nullptr ? EnchantmentHelper::getEnchantmentLevel(Enchantment::breach->id, weapon) : 0;
+			if (breachLevel > 0) armorValue *= BreachEnchantment::getArmorEffectiveness(breachLevel);
+		}
+
+		float absorb = 25.0f - armorValue;
 		float v = (damage) * absorb;
 		hurtArmor(damage);
 		damage = v / 25;
@@ -1229,6 +1293,13 @@ float LivingEntity::getDamageAfterMagicAbsorb(DamageSource *damageSource, float 
 		int absorb = 25 - enchantmentArmor;
 		float v = damage * absorb;
 		damage = v / 25;
+	}
+
+	// neoLegacy Added - Adrenaline damage reduction below 50% health
+	int adrenalineLevel = EnchantmentHelper::getAdrenalineLevel(dynamic_pointer_cast<LivingEntity>(shared_from_this()));
+	if (adrenalineLevel > 0)
+	{
+		damage = AdrenalineEnchantment::getDamageReduction(dynamic_pointer_cast<LivingEntity>(shared_from_this()), adrenalineLevel, damage);
 	}
 
 	return damage;
@@ -1500,9 +1571,64 @@ Icon *LivingEntity::getItemInHandIcon(shared_ptr<ItemInstance> item, int layer)
 	return item->getIcon();
 }
 
+// neoLegacy - who shrugs Freezing off: the whole zombie family (Frostbites, Husks, Drowned), skeletons, Withers, Ender Dragons,
+// Polar Bears, Snow Golems - and anyone wearing even ONE piece of leather armor.
+bool LivingEntity::isFreezeImmune()
+{
+	if (instanceof(eTYPE_ZOMBIE) || instanceof(eTYPE_SKELETON) || instanceof(eTYPE_WITHERBOSS) || instanceof(eTYPE_ENDERDRAGON) ||
+		instanceof(eTYPE_POLARBEAR) || instanceof(eTYPE_SNOWMAN))
+	{
+		return true;
+	}
+
+	for (int slot = 0; slot < 4; slot++)
+	{
+		shared_ptr<ItemInstance> armor = getArmor(slot);
+		if (armor != nullptr && armor->getItem() != nullptr)
+		{
+			ArmorItem *armorItem = dynamic_cast<ArmorItem *>(armor->getItem());
+			if (armorItem != nullptr && armorItem->getMaterial() == ArmorItem::ArmorMaterial::CLOTH) return true;
+		}
+	}
+	return false;
+}
+
+// neoLegacy - runs every tick on both sides (the effect itself is synced, so each side keeps its own counter):
+//  * while the Freezing effect is active the counter climbs to FREEZE_FULL_TICKS (140 ticks = 7 s) and slows you down,
+//  * once frozen solid you take 1.5 damage every 2 s (5x for Blazes and Magma Cubes, which hate the cold),
+//  * leather armor / immune mobs never build it up, fire or lava thaw you out at once, and it melts away twice as fast as it builds.
+void LivingEntity::updateFreezing()
+{
+	bool active = hasEffect(MobEffect::freezing) && !isFreezeImmune();
+
+	if (active && (isOnFire() || isInLava()))
+	{
+		if (!level->isClientSide) removeEffect(MobEffect::freezing->id);
+		freezeTicks = 0;
+		return;
+	}
+
+	if (active)
+	{
+		if (freezeTicks < FREEZE_FULL_TICKS) freezeTicks++;
+
+		if (!level->isClientSide && freezeTicks >= FREEZE_FULL_TICKS && (tickCount % (SharedConstants::TICKS_PER_SECOND * 2)) == 0)
+		{
+			float damage = 1.5f;
+			if (instanceof(eTYPE_BLAZE) || instanceof(eTYPE_LAVASLIME)) damage *= 5.0f;
+			hurt(DamageSource::freeze, damage);
+		}
+	}
+	else if (freezeTicks > 0)
+	{
+		freezeTicks -= 2;
+		if (freezeTicks < 0) freezeTicks = 0;
+	}
+}
+
 void LivingEntity::jumpFromGround()
 {
-	yd = 0.42f;
+	yd = 0.42f * JellyBlockTile::getJumpFactor(level, this);	// neoLegacy - half height off a Jelly Block
 	if (hasEffect(MobEffect::jump))
 	{
 		yd += (getEffect(MobEffect::jump)->getAmplifier() + 1) * .1f;
@@ -1514,11 +1640,21 @@ void LivingEntity::jumpFromGround()
 		xd -= Mth::sin(rr) * 0.2f;
 		zd += Mth::cos(rr) * 0.2f;
 	}
+	// neoLegacy - Freezing also takes the spring out of your jump (about 45% lower when frozen solid)
+	if (freezeTicks > 0) yd *= 1.0f - 0.25f * getFreezeProgress();
 	this->hasImpulse = true;
 }
 
 void LivingEntity::travel(float xa, float ya)
 {
+	// neoLegacy - Freezing slows you gradually: by the time you are frozen solid you move at half speed
+	if (freezeTicks > 0)
+	{
+		float freezeScale = 1.0f - 0.5f * getFreezeProgress();
+		xa *= freezeScale;
+		ya *= freezeScale;
+	}
+
 	// AP - dynamic_pointer_cast is a non-trivial call, use raw pointer instead
 	Player *thisPlayer = nullptr;
 	if (this->instanceof(eTYPE_PLAYER))
@@ -1537,6 +1673,11 @@ void LivingEntity::travel(float xa, float ya)
 		
 	    float waterFriction = 0.8f;
 	    float waterSpeed = useNewAi() ? 0.04f : 0.02f;
+
+	    if (isSprinting())
+	    {
+	        waterSpeed = SPRINT_SWIM_SPEED;
+	    }
 		
 	    if (!onGround)
 	    {
@@ -1555,7 +1696,16 @@ void LivingEntity::travel(float xa, float ya)
 	    xd *= waterFriction;
 	    yd *= 0.8;
 	    zd *= waterFriction;
-	    yd -= 0.02;
+
+	    if (thisPlayer != nullptr && isSprinting() && ya > 0.0f)
+	    {
+	        float dir = -Mth::sin(thisPlayer->xRot * Mth::RAD_TO_GRAD);
+	        yd += dir * SWIM_LOOK_SPEED;
+	    }
+	    else
+	    {
+	        yd -= 0.02;
+	    }
 
 		if (horizontalCollision && isFree(xd, yd + 0.6f - y + yo, zd))
 		{
@@ -1742,6 +1892,9 @@ bool LivingEntity::isSleeping()
 void LivingEntity::tick()
 {
 	Entity::tick();
+
+	// neoLegacy - Freezing build-up / thaw / damage
+	updateFreezing();
 
 	if (!level->isClientSide)
 	{

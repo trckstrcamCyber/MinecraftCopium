@@ -10,5 +10,6 @@ public:
 		friendlies.clear();
 		friendlies_chicken.clear();	// 4J added since chicken now separated from main friendlies
 		friendlies_wolf.clear();	// 4J added since wolf now separated from main friendlies
+		enemies.push_back(new MobSpawnerData(eTYPE_DROWNED, 30, 1, 2));	// neoLegacy
 	}
 };

@@ -1,4 +1,6 @@
 #include "stdafx.h"
+#include "IceWandItem.h"
+#include "CrossbowItem.h"
 
 #include "net.minecraft.locale.h"
 #include "net.minecraft.world.h"
@@ -7,6 +9,7 @@
 #include "net.minecraft.world.level.h"
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.world.item.h"
+#include "BambooItem.h"
 #include "net.minecraft.world.item.alchemy.h"
 #include "net.minecraft.world.food.h"
 #include "net.minecraft.world.effect.h"
@@ -18,6 +21,9 @@
 #include "HangingEntityItem.h"
 #include "HtmlString.h"
 #include "ElytraItem.h"
+#include "Mac10Item.h"
+#include "MaceItem.h"
+#include "EnchantmentEncyclopediaItem.h"
 
 typedef Item::Tier _Tier;
 
@@ -30,6 +36,7 @@ const _Tier *_Tier::STONE = new _Tier(1, 131, 4, 1, 5); //
 const _Tier *_Tier::IRON = new _Tier(2, 250, 6, 2, 14); //
 const _Tier *_Tier::DIAMOND = new _Tier(3, 1561, 8, 3, 10); //
 const _Tier *_Tier::GOLD = new _Tier(0, 32, 12, 0, 22);
+const _Tier *_Tier::ZORO = new _Tier(4, 2031, 9, 5, 18); // neoLegacy - Zoro sword tier
 
 Random *Item::random = new Random();
 
@@ -59,6 +66,29 @@ Item *Item::stone_pickaxe = nullptr;
 Item *Item::stone_axe = nullptr;
 
 Item *Item::diamond_sword = nullptr;
+
+// neoLegacy - Zoro swords
+Item *Item::wado_ichimonji = nullptr;
+Item *Item::sandai_kitetsu = nullptr;
+Item *Item::enma = nullptr;
+Item *Item::shusui = nullptr;
+Item *Item::cursed_hilt = nullptr;
+Item *Item::mac10 = nullptr;
+Item *Item::mace = nullptr;		// neoLegacy - Mace
+Item *Item::jelly_ball = nullptr;	// neoLegacy - Jelly Ball
+Item *Item::ice_ball = nullptr;	// neoLegacy - Ice Ball
+Item *Item::ice_wand = nullptr;	// neoLegacy - Ice Wand
+Item *Item::crossbow = nullptr;	// neoLegacy
+Item *Item::crossbow_loaded = nullptr;
+Item *Item::bullet_9mm = nullptr;
+Item *Item::m16 = nullptr;
+Item *Item::bullet_556 = nullptr;
+Item *Item::flintlock_copper = nullptr;
+Item *Item::flintlock_iron = nullptr;
+Item *Item::flintlock_gold = nullptr;
+Item *Item::enchantment_encyclopedia = nullptr;
+Item *Item::bamboo = nullptr;
+Item *Item::bamboo_door = nullptr;
 Item *Item::diamond_shovel = nullptr;
 Item *Item::diamond_pickaxe = nullptr;
 Item *Item::diamond_axe = nullptr;
@@ -247,6 +277,7 @@ Item *Item::netherbrick = nullptr;
 Item *Item::nether_quartz = nullptr;
 Item *Item::tnt_minecart = nullptr;
 Item *Item::hopper_minecart = nullptr;
+Item *Item::diamond_minecart = nullptr;
 
 Item *Item::iron_horse_armor = nullptr;
 Item *Item::golden_horse_armor = nullptr;
@@ -286,6 +317,84 @@ void Item::staticCtor()
 	Item::iron_sword		= ( new WeaponItem(11, _Tier::IRON) )		->setBaseItemTypeAndMaterial(eBaseItemType_sword,	eMaterial_iron)		->setIconName(L"swordIron")->setDescriptionId(IDS_ITEM_SWORD_IRON)->setUseDescriptionId(IDS_DESC_SWORD);
 	Item::diamond_sword		= ( new WeaponItem(20, _Tier::DIAMOND) )	->setBaseItemTypeAndMaterial(eBaseItemType_sword,	eMaterial_diamond)	->setIconName(L"swordDiamond")->setDescriptionId(IDS_ITEM_SWORD_DIAMOND)->setUseDescriptionId(IDS_DESC_SWORD);
 	Item::golden_sword		= ( new WeaponItem(27, _Tier::GOLD) )		->setBaseItemTypeAndMaterial(eBaseItemType_sword,	eMaterial_gold)		->setIconName(L"swordGold")->setDescriptionId(IDS_ITEM_SWORD_GOLD)->setUseDescriptionId(IDS_DESC_SWORD);
+
+	// neoLegacy - Zoro swords.  They use diamond-tier attack damage for balance;
+	// their custom combat feel comes from timing, reach, angle and animation.
+	Item::wado_ichimonji	= (new WeaponItem(wado_ichimonji_Id - 256, _Tier::DIAMOND, WeaponItem::ZORO_WADO_ICHIMONJI))
+		->setBaseItemTypeAndMaterial(eBaseItemType_sword, eMaterial_diamond)
+		->setIconName(L"swordWadoIchimonji")->setDescriptionId(IDS_ITEM_SWORD_WADO_ICHIMONJI)->setUseDescriptionId(IDS_DESC_SWORD)
+		->setMaxDamage(2031);
+	Item::sandai_kitetsu	= (new WeaponItem(sandai_kitetsu_Id - 256, _Tier::DIAMOND, WeaponItem::ZORO_SANDAI_KITETSU))
+		->setBaseItemTypeAndMaterial(eBaseItemType_sword, eMaterial_diamond)
+		->setIconName(L"swordSandaiKitetsu")->setDescriptionId(IDS_ITEM_SWORD_SANDAI_KITETSU)->setUseDescriptionId(IDS_DESC_SWORD)
+		->setMaxDamage(2031);
+	Item::enma	= (new WeaponItem(enma_Id - 256, _Tier::DIAMOND, WeaponItem::ZORO_ENMA))
+		->setBaseItemTypeAndMaterial(eBaseItemType_sword, eMaterial_diamond)
+		->setIconName(L"swordEmma")->setDescriptionId(IDS_ITEM_SWORD_EMMA)->setUseDescriptionId(IDS_DESC_SWORD)
+		->setMaxDamage(2200);
+	Item::shusui	= (new WeaponItem(shusui_Id - 256, _Tier::DIAMOND, WeaponItem::ZORO_SHUSUI))
+		->setBaseItemTypeAndMaterial(eBaseItemType_sword, eMaterial_diamond)
+		->setIconName(L"swordWadoShusui")->setDescriptionId(IDS_ITEM_SWORD_SHUSUI)->setUseDescriptionId(IDS_DESC_SWORD)
+		->setMaxDamage(2100);
+
+	// neoLegacy - Cursed Hilt: the shared core of every Zoro sword recipe (Complex Table only)
+	Item::cursed_hilt	= (new Item(cursed_hilt_Id - 256))
+		->setIconName(L"cursedHilt")->setDescriptionId(IDS_ITEM_CURSED_HILT)->setUseDescriptionId(IDS_DESC_CURSED_HILT);
+
+	// neoLegacy - firearms. Every gun is a Mac10Item with its own GunKind (numbers live in Mac10Item.cpp). The magazine is stored in ItemInstance NBT.
+	Item::mac10 = (new Mac10Item(mac10_Id - 256, GUN_MAC10))
+		->setIconName(L"mac10")->setDescriptionId(IDS_ITEM_MAC10)->setUseDescriptionId(IDS_DESC_MAC10)
+		->setMaxStackSize(1)->setMaxDamage(650);
+	Item::bullet_9mm = (new Item(bullet_9mm_Id - 256))
+		->setIconName(L"9mm_bullet")->setDescriptionId(IDS_ITEM_9MM_BULLET)->setUseDescriptionId(IDS_DESC_9MM_BULLET)
+		->setMaxStackSize(64);
+	Item::m16 = (new Mac10Item(m16_Id - 256, GUN_M16))
+		->setIconName(L"m16")->setDescriptionId(IDS_ITEM_M16)->setUseDescriptionId(IDS_DESC_M16)
+		->setMaxStackSize(1)->setMaxDamage(800);
+	Item::bullet_556 = (new Item(bullet_556_Id - 256))
+		->setIconName(L"556_bullet")->setDescriptionId(IDS_ITEM_556_BULLET)->setUseDescriptionId(IDS_DESC_556_BULLET)
+		->setMaxStackSize(64);
+	Item::flintlock_copper = (new Mac10Item(flintlock_copper_Id - 256, GUN_FLINTLOCK_COPPER))
+		->setIconName(L"flintlock_copper")->setDescriptionId(IDS_ITEM_FLINTLOCK_COPPER)->setUseDescriptionId(IDS_DESC_FLINTLOCK_COPPER)
+		->setMaxStackSize(1)->setMaxDamage(180);
+	Item::flintlock_iron = (new Mac10Item(flintlock_iron_Id - 256, GUN_FLINTLOCK_IRON))
+		->setIconName(L"flintlock_iron")->setDescriptionId(IDS_ITEM_FLINTLOCK_IRON)->setUseDescriptionId(IDS_DESC_FLINTLOCK_IRON)
+		->setMaxStackSize(1)->setMaxDamage(320);
+	Item::flintlock_gold = (new Mac10Item(flintlock_gold_Id - 256, GUN_FLINTLOCK_GOLD))
+		->setIconName(L"flintlock_gold")->setDescriptionId(IDS_ITEM_FLINTLOCK_GOLD)->setUseDescriptionId(IDS_DESC_FLINTLOCK_GOLD)
+		->setMaxStackSize(1)->setMaxDamage(90);
+
+	// neoLegacy - Enchantment Encyclopedia: a reference book that opens a read-only book generated from the enchantment registry
+	// (EnchantmentEncyclopedia.cpp). Icon is items.png row 31, col 10 (registered in PreStitchedTextureMap.cpp).
+	Item::enchantment_encyclopedia = (new EnchantmentEncyclopediaItem(enchantment_encyclopedia_Id - 256))
+		->setIconName(L"enchantment_encyclopedia")->setDescriptionId(IDS_ITEM_ENCHANTMENT_ENCYCLOPEDIA)->setUseDescriptionId(IDS_DESC_ENCHANTMENT_ENCYCLOPEDIA)
+		->setMaxStackSize(1);
+
+	// neoLegacy - Mace: 5 attack damage, 500 durability, smash attacks (see MaceItem.h). Icon: items.png row 31, col 11.
+	Item::mace = (new MaceItem(mace_Id - 256))
+		->setBaseItemTypeAndMaterial(eBaseItemType_sword, eMaterial_iron)	// listed with the swords in the Complex Table menu
+		->setIconName(L"mace")->setDescriptionId(IDS_ITEM_MACE)->setUseDescriptionId(IDS_DESC_MACE);
+
+	// neoLegacy - Jelly Ball: sticky snack dropped by the Jelly Slime. Fills you up like a cookie (2 hunger, poor saturation).
+	// Icon: items.png row 31, col 12.
+	Item::jelly_ball = (new FoodItem(jelly_ball_Id - 256, 2, FoodConstants::FOOD_SATURATION_POOR, false))
+		->setBaseItemTypeAndMaterial(eBaseItemType_treasure, eMaterial_slime)	// same crafting-menu column as the Slime Ball
+		->setIconName(L"jelly_ball")->setDescriptionId(IDS_ITEM_JELLY_BALL)->setUseDescriptionId(IDS_DESC_JELLY_BALL);
+
+	// neoLegacy - Ice Ball: dropped by Frostbites, crafted from Ice, and the ingredient that brews a Potion of Freezing.
+	// Icon: items.png row 31, col 13.
+	Item::ice_ball = (new SnowballItem(ice_ball_Id - 256, true))
+		->setIconName(L"ice_ball")->setDescriptionId(IDS_ITEM_ICE_BALL)->setUseDescriptionId(IDS_DESC_ICE_BALL)->setPotionBrewingFormula(PotionBrewing::MOD_ICEBALL);
+
+	// neoLegacy - Ice Wand (from the FrozenFiend mod): right-click a creature to drop an Ice Cube on it. Icon: items.png row 31, col 14.
+	Item::ice_wand = (new IceWandItem(ice_wand_Id - 256))->handEquipped()
+		->setIconName(L"ice_wand")->setMaxDamage(64)->setDescriptionId(IDS_ITEM_ICE_WAND)->setUseDescriptionId(IDS_DESC_ICE_WAND);
+
+	// neoLegacy - Crossbow: two ids, empty and loaded (the loaded one is only ever made by drawing the empty one). Icons: items.png (31,15) and (30,9).
+	Item::crossbow = (new CrossbowItem(crossbow_Id - 256, false))->handEquipped()
+		->setIconName(L"crossbow_standby")->setMaxDamage(326)->setDescriptionId(IDS_ITEM_CROSSBOW)->setUseDescriptionId(IDS_DESC_CROSSBOW);
+	Item::crossbow_loaded = (new CrossbowItem(crossbow_loaded_Id - 256, true))->handEquipped()
+		->setIconName(L"crossbow_arrow")->setMaxDamage(326)->setDescriptionId(IDS_ITEM_CROSSBOW)->setUseDescriptionId(IDS_DESC_CROSSBOW);
 
 	Item::wooden_shovel		= ( new ShovelItem(13, _Tier::WOOD) )		->setBaseItemTypeAndMaterial(eBaseItemType_shovel,	eMaterial_wood)		->setIconName(L"shovelWood")->setDescriptionId(IDS_ITEM_SHOVEL_WOOD)->setUseDescriptionId(IDS_DESC_SHOVEL);
 	Item::stone_shovel		= ( new ShovelItem(17, _Tier::STONE) )		->setBaseItemTypeAndMaterial(eBaseItemType_shovel,	eMaterial_stone)	->setIconName(L"shovelStone")->setDescriptionId(IDS_ITEM_SHOVEL_STONE)->setUseDescriptionId(IDS_DESC_SHOVEL);
@@ -385,6 +494,8 @@ void Item::staticCtor()
 																										->setBaseItemTypeAndMaterial(eBaseItemType_giltFruit,eMaterial_apple)->setIconName(L"appleGold")->setDescriptionId(IDS_ITEM_APPLE_GOLD);//->setUseDescriptionId(IDS_DESC_GOLDENAPPLE);
 
 	Item::sign = ( new SignItem(67) )															->setBaseItemTypeAndMaterial(eBaseItemType_HangingItem, eMaterial_wood)->setIconName(L"sign")->setDescriptionId(IDS_ITEM_SIGN)->setUseDescriptionId(IDS_DESC_SIGN);
+	Item::bamboo_door = (new DoorItem(462-256, Material::wood, L"doorBamboo"))->setBaseItemTypeAndMaterial(eBaseItemType_door, eMaterial_wood)->setIconName(L"bamboo_door")->setDescriptionId(IDS_ITEM_DOOR_BAMBOO)->setUseDescriptionId(IDS_DESC_DOOR_WOOD);
+	Item::bamboo = ( new BambooItem(461-256) )->setIconName(L"bamboo")->setDescriptionId(IDS_TILE_BAMBOO)->setUseDescriptionId(IDS_DESC_REEDS);
 
 
 
@@ -520,6 +631,8 @@ void Item::staticCtor()
 	Item::nether_quartz = (new Item(150))															->setIconName(L"netherquartz")->setDescriptionId(IDS_ITEM_NETHER_QUARTZ)->setUseDescriptionId(IDS_DESC_NETHER_QUARTZ);
 	Item::tnt_minecart = (new MinecartItem(151, Minecart::TYPE_TNT))								->setIconName(L"tnt_minecart")->setDescriptionId(IDS_ITEM_MINECART_TNT)->setUseDescriptionId(IDS_DESC_MINECART_TNT);
 	Item::hopper_minecart = (new MinecartItem(152, Minecart::TYPE_HOPPER))							->setIconName(L"hopper_minecart")->setDescriptionId(IDS_ITEM_MINECART_HOPPER)->setUseDescriptionId(IDS_DESC_MINECART_HOPPER);
+	// neoLegacy - Diamond Minecart: reuses the minecart icon, tinted diamond-cyan (MinecartItem::getColor)
+	Item::diamond_minecart = (new MinecartItem(diamond_minecart_Id - 256, Minecart::TYPE_DIAMOND))->setIconName(L"minecart")->setDescriptionId(IDS_ITEM_MINECART_DIAMOND)->setUseDescriptionId(IDS_DESC_MINECART_DIAMOND);
 
 	Item::iron_horse_armor = (new Item(161))															->setIconName(L"iron_horse_armor")->setMaxStackSize(1)->setDescriptionId(IDS_ITEM_IRON_HORSE_ARMOR)->setUseDescriptionId(IDS_DESC_IRON_HORSE_ARMOR);
 	Item::golden_horse_armor = (new Item(162))															->setIconName(L"golden_horse_armor")->setMaxStackSize(1)->setDescriptionId(IDS_ITEM_GOLD_HORSE_ARMOR)->setUseDescriptionId(IDS_DESC_GOLD_HORSE_ARMOR);
@@ -1149,6 +1262,8 @@ const int Item::cake_Id				;
 const int Item::bed_Id				;
 const int Item::repeater_Id				;
 const int Item::cookie_Id			;
+const int Item::mace_Id;		// neoLegacy
+const int Item::jelly_ball_Id;	// neoLegacy
 const int Item::map_Id				;
 const int Item::shears_Id			;
 const int Item::melon_block_Id				;

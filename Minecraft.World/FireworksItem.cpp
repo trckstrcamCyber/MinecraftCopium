@@ -19,8 +19,36 @@ FireworksItem::FireworksItem(int id) : Item(id)
 {
 }
 
+// neoLegacy - tooltip test: the "use" prompt shows up while gliding
+bool FireworksItem::TestUse(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player)
+{
+	return player != nullptr && player->isElytraFlying();
+}
+
+// neoLegacy - firework boosting. Runs on the client too (predicted item count) and on the server (spawns the rocket),
+// the same split every other throwable item uses.
+shared_ptr<ItemInstance> FireworksItem::use(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player)
+{
+	if (player == nullptr || !player->isElytraFlying()) return instance;	// only boosts while gliding; on the ground the rocket launches via useOn as before
+
+	if (!level->isClientSide)
+	{
+		shared_ptr<FireworksRocketEntity> rocket = std::make_shared<FireworksRocketEntity>(level, instance, player);
+		level->addEntity(rocket);
+	}
+
+	if (!player->abilities.instabuild)
+	{
+		instance->count--;
+	}
+	return instance;
+}
+
 bool FireworksItem::useOn(shared_ptr<ItemInstance> instance, shared_ptr<Player> player, Level *level, int x, int y, int z, int face, float clickX, float clickY, float clickZ, bool bTestUseOnOnly)
 {
+	// neoLegacy - while gliding the click is a boost, not a block launch: returning false lets the game fall through to use()
+	if (player != nullptr && player->isElytraFlying()) return false;
+
 	// 4J-JEV: Fix for xb1 #173493 - CU7: Content: UI: Missing tooltip for Firework Rocket.
 	if (bTestUseOnOnly) return true;
 

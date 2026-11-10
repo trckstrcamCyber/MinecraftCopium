@@ -2,6 +2,8 @@
 #include "../Minecraft.World/SmoothFloat.h"
 #include "../Minecraft.World/net.minecraft.world.entity.player.h"
 #include "../Minecraft.World/Pos.h"
+#include "ArcadeGameSession.h"
+#include "Mac10Client.h"
 class Level;
 class User;
 class CompoundTag;
@@ -26,6 +28,14 @@ public:
 	eINSTANCEOF GetType() { return eTYPE_LOCALPLAYER; }
 
 	Input *input;
+	ArcadeGameSession m_arcadeGame;
+	Mac10Client m_mac10;		// neoLegacy - MAC-10 input, aim/recoil state and first-person view model
+	Mac10Client &getMac10() { return m_mac10; }
+	int m_arcadeMachineX, m_arcadeMachineY, m_arcadeMachineZ;
+	bool m_arcadeSynced;		// the server has told us the saved Arcade progress; saving is blocked until then so defaults never overwrite it
+	int m_arcadeRequestTimer;
+	void applyArcadeSave(const ArcadeSaveData &data);	// called by ClientConnection when ARCADE_SYNC_PACKET arrives
+	void tickArcadeSave();									// asks the server for the saved progress, and sends save requests from the session
 protected:
 	Minecraft *minecraft;
 	int sprintTriggerTime;
@@ -119,6 +129,10 @@ public:
 	virtual bool openFireworks(int x, int y, int z);					// 4J added
 	virtual bool startEnchanting(int x, int y, int z, const wstring &name);					// 4J added bool return
 	virtual bool startRepairing(int x, int y, int z);
+	virtual bool startGrindstoneRepairing(int x, int y, int z);		// neoLegacy added
+	virtual bool startComplexCrafting(int x, int y, int z);			// neoLegacy - Complex Table
+	virtual bool startArcadeGame(int x, int y, int z, int gameType) override;
+	ArcadeGameSession &getArcadeGameSession() { return m_arcadeGame; }
 	virtual bool openFurnace(shared_ptr<FurnaceTileEntity> furnace); // 4J added bool return
 	virtual bool openBrewingStand(shared_ptr<BrewingStandTileEntity> brewing_stand); // 4J added bool return
 	virtual bool openBeacon(shared_ptr<BeaconTileEntity> beacon); // 4J added bool return

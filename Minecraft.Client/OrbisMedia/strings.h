@@ -1990,3 +1990,203 @@
 #define IDS_YOU_DIED 1988
 #define IDS_YOU_HAVE 1989
 #define IDS_ZOMBIE 1990
+#define IDS_TILE_CALCITE                                  1991
+#define IDS_TILE_CALCITE_STAIRS                           1992
+#define IDS_TILE_CALCITE_WALL                             1993
+#define IDS_TILE_CALCITE_SLAB                             1994
+
+// Blackstone metadata variants
+#define IDS_TILE_BLACKSTONE                               1995
+#define IDS_TILE_GILDED_BLACKSTONE                        1996
+#define IDS_TILE_POLISHED_BLACKSTONE                      1997
+#define IDS_TILE_POLISHED_BLACKSTONE_BRICKS               1998
+#define IDS_TILE_CHISELED_POLISHED_BLACKSTONE             1999
+#define IDS_TILE_CRACKED_POLISHED_BLACKSTONE_BRICKS       2000
+
+// Block names
+#define IDS_TILE_BLACKSTONE_STAIRS                        2001
+#define IDS_TILE_BLACKSTONE_WALL                          2002
+#define IDS_TILE_BLACKSTONE_SLAB                          2003
+
+#define IDS_TILE_LUCKY_BLOCK                              2004
+#define IDS_DESC_TILE_LUCKY_BLOCK                         2005
+
+#define IDS_TILE_GRINDSTONE                               2006
+#define IDS_DESC_TILE_GRINDSTONE                          2007
+
+// NOTE: this whole block was previously broken in three ways, which is
+// almost certainly why concrete has been misbehaving:
+//   1) Tile.cpp references IDS_TILE_CONCRETE / IDS_TILE_CONCRETE_POWDER,
+//      but only IDS_ANY_CONCRETE / IDS_ANY_CONCRETE_POWDER were ever
+//      defined -- those two identifiers plain did not exist.
+//   2) IDS_DESC_CONCRETE was #define'd twice with two different values
+//      (2011, then 2013) -- the second silently wins, so the block's
+//      tooltip and the powder's tooltip could point at the same text.
+//   3) WoolTileItem.cpp indexes CONCRETE_COLOR_DESCS[] /
+//      CONCRETE_POWDER_COLOR_DESCS[] with 16 x 2 = 32 IDS_TILE_CONCRETE*
+//      per-color identifiers (IDS_TILE_CONCRETE_BLACK ... _WHITE, and the
+//      _POWDER_ equivalents) that were never defined anywhere at all.
+// All of this compiles "successfully" with clang-cl in the sense that it
+// doesn't hard-error the way the missing IDS_TILE_GRINDSTONE did -- but an
+// undefined macro used as an integer constant elsewhere is still a build
+// break, so if you were seeing concrete-related identifier errors during
+// the actual build, this is why.
+//
+// The color ORDER below is generated from a single canonical list (see the
+// merge notes) and is identical, index-for-index, to DyePowderItem's own
+// BLACK=0..WHITE=15 constants and to the concrete_/concrete_powder_ ADD_ICON
+// rows already in PreStitchedTextureMap.cpp. Concrete Stairs and Concrete
+// Slab reuse this exact same order too, so all four (block, powder, stairs,
+// slab) are guaranteed to agree on what index N means.
+#define IDS_GRINDSTONE                                     2008
+#define IDS_TILE_OBSERVER                                  2009
+#define IDS_DESC_TILE_OBSERVER                             2010
+
+#define IDS_TILE_CONCRETE                                  2011
+#define IDS_DESC_CONCRETE                                  2012
+#define IDS_TILE_CONCRETE_POWDER                           2013
+#define IDS_DESC_CONCRETE_POWDER                           2014
+
+#define IDS_TILE_CONCRETE_BLACK                            2015
+#define IDS_TILE_CONCRETE_RED                              2016
+#define IDS_TILE_CONCRETE_GREEN                            2017
+#define IDS_TILE_CONCRETE_BROWN                            2018
+#define IDS_TILE_CONCRETE_BLUE                             2019
+#define IDS_TILE_CONCRETE_PURPLE                           2020
+#define IDS_TILE_CONCRETE_CYAN                             2021
+#define IDS_TILE_CONCRETE_SILVER                           2022
+#define IDS_TILE_CONCRETE_GRAY                             2023
+#define IDS_TILE_CONCRETE_PINK                             2024
+#define IDS_TILE_CONCRETE_LIME                             2025
+#define IDS_TILE_CONCRETE_YELLOW                           2026
+#define IDS_TILE_CONCRETE_LIGHT_BLUE                       2027
+#define IDS_TILE_CONCRETE_MAGENTA                          2028
+#define IDS_TILE_CONCRETE_ORANGE                           2029
+#define IDS_TILE_CONCRETE_WHITE                            2030
+
+#define IDS_TILE_CONCRETE_POWDER_BLACK                     2031
+#define IDS_TILE_CONCRETE_POWDER_RED                       2032
+#define IDS_TILE_CONCRETE_POWDER_GREEN                     2033
+#define IDS_TILE_CONCRETE_POWDER_BROWN                     2034
+#define IDS_TILE_CONCRETE_POWDER_BLUE                      2035
+#define IDS_TILE_CONCRETE_POWDER_PURPLE                    2036
+#define IDS_TILE_CONCRETE_POWDER_CYAN                      2037
+#define IDS_TILE_CONCRETE_POWDER_SILVER                    2038
+#define IDS_TILE_CONCRETE_POWDER_GRAY                      2039
+#define IDS_TILE_CONCRETE_POWDER_PINK                      2040
+#define IDS_TILE_CONCRETE_POWDER_LIME                      2041
+#define IDS_TILE_CONCRETE_POWDER_YELLOW                    2042
+#define IDS_TILE_CONCRETE_POWDER_LIGHT_BLUE                2043
+#define IDS_TILE_CONCRETE_POWDER_MAGENTA                   2044
+#define IDS_TILE_CONCRETE_POWDER_ORANGE                    2045
+#define IDS_TILE_CONCRETE_POWDER_WHITE                     2046
+
+#define IDS_TILE_CONCRETE_STAIRS_BLACK                     2047
+#define IDS_TILE_CONCRETE_STAIRS_RED                       2048
+#define IDS_TILE_CONCRETE_STAIRS_GREEN                     2049
+#define IDS_TILE_CONCRETE_STAIRS_BROWN                     2050
+#define IDS_TILE_CONCRETE_STAIRS_BLUE                      2051
+#define IDS_TILE_CONCRETE_STAIRS_PURPLE                    2052
+#define IDS_TILE_CONCRETE_STAIRS_CYAN                      2053
+#define IDS_TILE_CONCRETE_STAIRS_SILVER                    2054
+#define IDS_TILE_CONCRETE_STAIRS_GRAY                      2055
+#define IDS_TILE_CONCRETE_STAIRS_PINK                      2056
+#define IDS_TILE_CONCRETE_STAIRS_LIME                      2057
+#define IDS_TILE_CONCRETE_STAIRS_YELLOW                    2058
+#define IDS_TILE_CONCRETE_STAIRS_LIGHT_BLUE                2059
+#define IDS_TILE_CONCRETE_STAIRS_MAGENTA                   2060
+#define IDS_TILE_CONCRETE_STAIRS_ORANGE                    2061
+#define IDS_TILE_CONCRETE_STAIRS_WHITE                     2062
+
+#define IDS_TILE_CONCRETE_SLAB_BLACK                       2063
+#define IDS_TILE_CONCRETE_SLAB_RED                         2064
+#define IDS_TILE_CONCRETE_SLAB_GREEN                       2065
+#define IDS_TILE_CONCRETE_SLAB_BROWN                       2066
+#define IDS_TILE_CONCRETE_SLAB_BLUE                        2067
+#define IDS_TILE_CONCRETE_SLAB_PURPLE                      2068
+#define IDS_TILE_CONCRETE_SLAB_CYAN                        2069
+#define IDS_TILE_CONCRETE_SLAB_SILVER                      2070
+#define IDS_TILE_CONCRETE_SLAB_GRAY                        2071
+#define IDS_TILE_CONCRETE_SLAB_PINK                        2072
+#define IDS_TILE_CONCRETE_SLAB_LIME                        2073
+#define IDS_TILE_CONCRETE_SLAB_YELLOW                      2074
+#define IDS_TILE_CONCRETE_SLAB_LIGHT_BLUE                  2075
+#define IDS_TILE_CONCRETE_SLAB_MAGENTA                     2076
+#define IDS_TILE_CONCRETE_SLAB_ORANGE                      2077
+#define IDS_TILE_CONCRETE_SLAB_WHITE                       2078
+
+#define IDS_TILE_COMPLEX_TABLE                             2079
+#define IDS_DESC_COMPLEX_TABLE                             2080
+#define IDS_TILE_DRILL                                     2081
+#define IDS_DESC_TILE_DRILL                                2082
+#define IDS_TILE_CRUSHER                                   2083
+#define IDS_DESC_TILE_CRUSHER                              2084
+#define IDS_TILE_REFINER                                   2085
+#define IDS_DESC_TILE_REFINER                              2086
+#define IDS_GOAT                                           2087
+#define IDS_CAMEL                                          2088
+#define IDS_DROWNED                                        2089
+#define IDS_HUSK                                           2090
+#define IDS_WANDERING_TRADER                               2091
+#define IDS_ITEM_MINECART_DIAMOND                          2092
+#define IDS_DESC_MINECART_DIAMOND                          2093
+#define IDS_ITEM_SWORD_WADO_ICHIMONJI                      2094
+#define IDS_ITEM_SWORD_SANDAI_KITETSU                      2095
+#define IDS_ITEM_SWORD_EMMA                                2096
+#define IDS_ITEM_SWORD_SHUSUI                              2097
+#define IDS_ITEM_BOAT_SPRUCE                               2098
+#define IDS_ITEM_BOAT_BIRCH                                2099
+#define IDS_ITEM_BOAT_JUNGLE                               2100
+#define IDS_ITEM_BOAT_ACACIA                               2101
+#define IDS_ITEM_BOAT_DARK_OAK                             2102
+#define IDS_ITEM_CURSED_HILT                               2103
+#define IDS_DESC_CURSED_HILT                               2104
+#define IDS_TILE_TRAPDOOR_SPRUCE                           2105
+#define IDS_TILE_TRAPDOOR_BIRCH                            2106
+#define IDS_TILE_TRAPDOOR_JUNGLE                           2107
+#define IDS_TILE_TRAPDOOR_ACACIA                           2108
+#define IDS_TILE_TRAPDOOR_DARK_OAK                         2109
+#define IDS_ITEM_SIGN_SPRUCE                               2110
+#define IDS_ITEM_SIGN_BIRCH                                2111
+#define IDS_ITEM_SIGN_JUNGLE                               2112
+#define IDS_ITEM_SIGN_ACACIA                               2113
+#define IDS_ITEM_SIGN_DARK_OAK                             2114
+#define IDS_WITHER_SKELETON                                2115
+#define IDS_ZOMBIE_VILLAGER                                2116
+#define IDS_TILE_COOKIE_MINER                              2117
+#define IDS_DESC_TILE_COOKIE_MINER                         2118
+#define IDS_TILE_FLAPPY_CRAFT                              2119
+#define IDS_DESC_TILE_FLAPPY_CRAFT                         2120
+#define IDS_TILE_MINE_SNAKE                                2121
+#define IDS_DESC_TILE_MINE_SNAKE                           2122
+#define IDS_TILE_BAMBOO                                    2123
+#define IDS_TILE_BAMBOO_BLOCK                              2124
+#define IDS_TILE_STRIPPED_BAMBOO_BLOCK                     2125
+#define IDS_TILE_BAMBOO_PLANKS                             2126
+#define IDS_TILE_BAMBOO_MOSAIC                             2127
+#define IDS_TILE_STRIPPED_OAK_LOG                          2128
+#define IDS_TILE_STRIPPED_SPRUCE_LOG                       2129
+#define IDS_TILE_STRIPPED_BIRCH_LOG                        2130
+#define IDS_TILE_STRIPPED_JUNGLE_LOG                       2131
+#define IDS_TILE_STRIPPED_ACACIA_LOG                       2132
+#define IDS_TILE_STRIPPED_DARK_OAK_LOG                     2133
+#define IDS_TILE_STONESLAB_BAMBOO                          2134
+#define IDS_TILE_STONESLAB_BAMBOO_MOSAIC                   2135
+#define IDS_TILE_BAMBOO_FENCE                              2136
+#define IDS_TILE_BAMBOO_GATE                               2137
+#define IDS_TILE_TRAPDOOR_BAMBOO                           2138
+#define IDS_ITEM_DOOR_BAMBOO                               2139
+#define IDS_TILE_STAIRS_BAMBOO                             2140
+#define IDS_TILE_STAIRS_BAMBOO_MOSAIC                      2141
+#define IDS_ITEM_SIGN_BAMBOO                               2142
+#define IDS_ITEM_MAC10                                    2143
+#define IDS_DESC_MAC10                                    2144
+#define IDS_ITEM_9MM_BULLET                               2145
+#define IDS_DESC_9MM_BULLET                               2146
+#define IDS_ENCHANTMENT_AUTOFIRE                          2147
+#define IDS_ENCHANTMENT_EXTENDED_MAG                      2148
+#define IDS_ENCHANTMENT_RAPnID_RELOAD                      2149
+#define IDS_ENCHANTMENT_PRECISION_BARREL                  2150
+#define IDS_ENCHANTMENT_HOLLOW_POINT                      2151
+#define IDS_ENCHANTMENT_REINFORCED_PARTS                  2152
+#define IDS_ITEM_RAFT_BAMBOO                              2153

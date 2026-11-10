@@ -1,6 +1,8 @@
 #include "IUIScene_CreativeMenu.h"
 #include "stdafx.h"
 #include "IUIScene_CreativeMenu.h"
+#include "../../../Minecraft.World/BlackStoneTile.h"
+#include "../../../Minecraft.World/StrippedLogTile.h"
 
 #include "UI.h"
 #include "../../Minecraft.h"
@@ -12,7 +14,9 @@
 #include "../../../Minecraft.World/net.minecraft.world.item.enchantment.h"
 #include "../../../Minecraft.World/net.minecraft.world.entity.h"
 #include "../../../Minecraft.World/net.minecraft.world.entity.animal.h"
+#include "../../../Minecraft.World/net.minecraft.world.entity.monster.h"
 #include "../../../Minecraft.World/JavaMath.h"
+
 
 // 4J JEV - Images for each tab.
 IUIScene_CreativeMenu::TabSpec **IUIScene_CreativeMenu::specs = nullptr;
@@ -98,6 +102,15 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Tile::stone_Id, StoneTile::POLISHED_ANDESITE)
 		ITEM_AUX(Tile::stone_Id, StoneTile::DIORITE)
 		ITEM_AUX(Tile::stone_Id, StoneTile::POLISHED_DIORITE)
+        ITEM(Tile::calcite_block_Id)
+
+        ITEM(Tile::blackstone_block_Id)
+        ITEM_AUX(Tile::blackstone_block_Id, BlackStoneTile::GILDED_BLACKSTONE)
+        ITEM_AUX(Tile::blackstone_block_Id, BlackStoneTile::POLISHED_BLACKSTONE)
+        ITEM_AUX(Tile::blackstone_block_Id, BlackStoneTile::POLISHED_BLACKSTONE_BRICKS)
+        ITEM_AUX(Tile::blackstone_block_Id, BlackStoneTile::CHISELED_POLISHED_BLACKSTONE)
+        ITEM_AUX(Tile::blackstone_block_Id, BlackStoneTile::CRACKED_POLISHED_BLACKSTONE_BRICKS)
+
 		ITEM(Tile::coal_block_Id)
 		ITEM(Tile::gold_block_Id)
 		ITEM(Tile::iron_block_Id)
@@ -120,12 +133,25 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Tile::planks_Id,TreeTile::JUNGLE_TRUNK)
 		ITEM_AUX(Tile::planks_Id, TreeTile::ACACIA_TRUNK)
 		ITEM_AUX(Tile::planks_Id, TreeTile::DARK_TRUNK)
+		ITEM_AUX(Tile::planks_Id, 6)	// neoLegacy - bamboo planks
+		ITEM_AUX(Tile::planks_Id, 7)	// neoLegacy - bamboo mosaic
 		ITEM_AUX(Tile::log_Id, 0)
 		ITEM_AUX(Tile::log_Id, TreeTile::SPRUCE_TRUNK)
 		ITEM_AUX(Tile::log_Id, TreeTile::BIRCH_TRUNK)
 		ITEM_AUX(Tile::log_Id, TreeTile::JUNGLE_TRUNK)
 		ITEM_AUX(Tile::log2_Id, TreeTile2::ACACIA_TRUNK)
 		ITEM_AUX(Tile::log2_Id, TreeTile2::DARK_TRUNK)
+        ITEM(Tile::bamboo_block_Id)
+
+        
+		// neoLegacy - stripped logs (one shared tile per 4 woods, see StrippedLogTile)
+		ITEM_AUX(Tile::stripped_log_Id, StrippedLogTile::OAK)
+		ITEM_AUX(Tile::stripped_log_Id, StrippedLogTile::SPRUCE)
+		ITEM_AUX(Tile::stripped_log_Id, StrippedLogTile::BIRCH)
+		ITEM_AUX(Tile::stripped_log_Id, StrippedLogTile::JUNGLE)
+		ITEM_AUX(Tile::stripped_log2_Id, StrippedLogTile::ACACIA - 4)
+		ITEM_AUX(Tile::stripped_log2_Id, StrippedLogTile::DARK_OAK - 4)
+        ITEM_AUX(Tile::stripped_log2_Id, 2)	// stripped bamboo block (wood type 2 of the second stripped-log tile)
 		ITEM(Tile::gravel_Id)
 		ITEM(Tile::brick_block_Id)
 		ITEM(Tile::mossy_cobblestone_Id)
@@ -142,6 +168,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Tile::prismarine_Id,	PrismarineTile::TYPE_BRICKS)
 		ITEM_AUX(Tile::prismarine_Id,	PrismarineTile::TYPE_DARK)
 		ITEM(Tile::slime_Id)
+		ITEM(Tile::jelly_block_Id)	// neoLegacy - Jelly Block
 		ITEM(Tile::fence_Id)
 
 		// TU25
@@ -149,12 +176,15 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Tile::birch_fence_Id)
 		ITEM(Tile::jungle_fence_Id)
 		ITEM(Tile::acacia_fence_Id)
+		ITEM(Tile::bamboo_fence_Id)	// neoLegacy - Bamboo set
 		ITEM(Tile::dark_oak_fence_Id)
 
 		ITEM(Tile::nether_brick_fence_Id)
 		ITEM(Tile::iron_bars_Id)
 		ITEM_AUX(Tile::cobblestone_wall_Id, WallTile::TYPE_NORMAL)
 		ITEM_AUX(Tile::cobblestone_wall_Id, WallTile::TYPE_MOSSY)
+    	ITEM(Tile::calcite_wall_Id)
+        ITEM(Tile::blackstone_wall_Id)
 		ITEM_AUX(Tile::stonebrick_Id,SmoothStoneBrickTile::TYPE_DEFAULT)
 		ITEM_AUX(Tile::stonebrick_Id,SmoothStoneBrickTile::TYPE_MOSSY)
 		ITEM_AUX(Tile::stonebrick_Id,SmoothStoneBrickTile::TYPE_CRACKED)
@@ -176,7 +206,14 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Tile::quartz_block_Id,QuartzBlockTile::TYPE_CHISELED)
 		ITEM_AUX(Tile::quartz_block_Id,QuartzBlockTile::TYPE_LINES_Y)
 		ITEM(Tile::trapdoor_Id)
+		ITEM(Tile::spruce_trapdoor_Id)
+		ITEM(Tile::birch_trapdoor_Id)
+		ITEM(Tile::jungle_trapdoor_Id)
+		ITEM(Tile::acacia_trapdoor_Id)
+		ITEM(Tile::bamboo_trapdoor_Id)
+		ITEM(Tile::dark_oak_trapdoor_Id)
 		ITEM(Tile::iron_trapdoor_Id)
+
 
 		ITEM(Tile::fence_gate_Id)
 
@@ -185,6 +222,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Tile::birch_fence_gate_Id)
 		ITEM(Tile::jungle_fence_gate_Id)
 		ITEM(Tile::acacia_fence_gate_Id)
+		ITEM(Tile::bamboo_fence_gate_Id)
 		ITEM(Tile::dark_oak_fence_gate_Id)
 
 		ITEM(Item::wooden_door_Id)
@@ -195,6 +233,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::birch_door_Id)
 		ITEM(Item::jungle_door_Id)
 		ITEM(Item::acacia_door_Id)
+		ITEM(Item::bamboo_door_Id)
 		ITEM(Item::dark_oak_door_Id)
 
 		
@@ -211,18 +250,24 @@ void IUIScene_CreativeMenu::staticCtor()
 		// TU25 -- added acacia and dark oak
 		ITEM_AUX(Tile::wooden_slab_Id, TreeTile::ACACIA_TRUNK)
 		ITEM_AUX(Tile::wooden_slab_Id, TreeTile::DARK_TRUNK)
+		ITEM_AUX(Tile::wooden_slab_Id, 6)	// neoLegacy - bamboo slab
+		ITEM_AUX(Tile::wooden_slab_Id, 7)	// neoLegacy - bamboo mosaic slab
 
 		ITEM_AUX(Tile::stone_slab_Id,StoneSlabTile::COBBLESTONE_SLAB)
 		ITEM_AUX(Tile::stone_slab_Id,StoneSlabTile::BRICK_SLAB)
 		ITEM_AUX(Tile::stone_slab_Id,StoneSlabTile::SMOOTHBRICK_SLAB)
 		ITEM_AUX(Tile::stone_slab_Id,StoneSlabTile::NETHERBRICK_SLAB)
 		ITEM_AUX(Tile::stone_slab_Id,StoneSlabTile::QUARTZ_SLAB)
+        ITEM_AUX(Tile::stone_slab2_Id,StoneSlabTile2::CALCITE_SLAB)
+        ITEM_AUX(Tile::stone_slab2_Id,StoneSlabTile2::BLACKSTONE_SLAB)
 		ITEM_AUX(Tile::stone_slab2_Id ,StoneSlabTile2::RED_SANDSTONE_SLAB)
 		ITEM(Tile::oak_stairs_Id)
 		ITEM(Tile::birch_stairs_Id)
 		ITEM(Tile::spruce_stairs_Id)
 		ITEM(Tile::jungle_stairs_Id)
 		ITEM(Tile::acacia_stairs_Id)
+		ITEM(Tile::bamboo_stairs_Id)
+		ITEM(Tile::bamboo_mosaic_stairs_Id)
 		ITEM(Tile::dark_oak_stairs_Id)
 		ITEM(Tile::stone_stairs_Id)
 		ITEM(Tile::brick_stairs_Id)
@@ -231,6 +276,8 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Tile::sandstone_stairs_Id)
 		ITEM(Tile::stairs_red_sandstone)
 		ITEM(Tile::quartz_stairs_Id)
+        ITEM(Tile::stairs_calcite_block_Id)
+        ITEM(Tile::stairs_blackstone_block_Id)
 
 		ITEM(Tile::hardened_clay_Id)
 		ITEM_AUX(Tile::stained_hardened_clay_Id,14)	// Red
@@ -249,6 +296,76 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Tile::stained_hardened_clay_Id,15)	// Black
 		ITEM_AUX(Tile::stained_hardened_clay_Id,13)	// Green
 		ITEM_AUX(Tile::stained_hardened_clay_Id,12)	// Brown
+
+        ITEM_AUX(Tile::concrete_Id, 13) // Black
+        ITEM_AUX(Tile::concrete_Id, 2)  // Red
+        ITEM_AUX(Tile::concrete_Id, 8)  // Green
+        ITEM_AUX(Tile::concrete_Id, 11) // Brown
+        ITEM_AUX(Tile::concrete_Id, 12) // Blue
+        ITEM_AUX(Tile::concrete_Id, 3)  // Purple
+        ITEM_AUX(Tile::concrete_Id, 10) // Cyan
+        ITEM_AUX(Tile::concrete_Id, 15) // Silver
+        ITEM_AUX(Tile::concrete_Id, 9)  // Gray
+        ITEM_AUX(Tile::concrete_Id, 4)  // Pink
+        ITEM_AUX(Tile::concrete_Id, 7)  // Lime
+        ITEM_AUX(Tile::concrete_Id, 1)  // Yellow
+        ITEM_AUX(Tile::concrete_Id, 14) // Light Blue
+        ITEM_AUX(Tile::concrete_Id, 6)  // Magenta
+        ITEM_AUX(Tile::concrete_Id, 5)  // Orange
+        ITEM_AUX(Tile::concrete_Id, 0)  // White
+
+        // Concrete stairs / slabs: single tile ID each, color = item aux value
+        ITEM_AUX(Tile::concrete_stairs_Id, 13) // Black
+        ITEM_AUX(Tile::concrete_stairs_Id, 2) // Red
+        ITEM_AUX(Tile::concrete_stairs_Id, 8) // Green
+        ITEM_AUX(Tile::concrete_stairs_Id, 11) // Brown
+        ITEM_AUX(Tile::concrete_stairs_Id, 12) // Blue
+        ITEM_AUX(Tile::concrete_stairs_Id, 3) // Purple
+        ITEM_AUX(Tile::concrete_stairs_Id, 10) // Cyan
+        ITEM_AUX(Tile::concrete_stairs_Id, 15) // Silver
+        ITEM_AUX(Tile::concrete_stairs_Id, 9) // Gray
+        ITEM_AUX(Tile::concrete_stairs_Id, 4) // Pink
+        ITEM_AUX(Tile::concrete_stairs_Id, 7) // Lime
+        ITEM_AUX(Tile::concrete_stairs_Id, 1) // Yellow
+        ITEM_AUX(Tile::concrete_stairs_Id, 14) // Light Blue
+        ITEM_AUX(Tile::concrete_stairs_Id, 6) // Magenta
+        ITEM_AUX(Tile::concrete_stairs_Id, 5) // Orange
+        ITEM_AUX(Tile::concrete_stairs_Id, 0) // White
+
+        ITEM_AUX(Tile::concrete_slab_half_Id, 13) // Black
+        ITEM_AUX(Tile::concrete_slab_half_Id, 2) // Red
+        ITEM_AUX(Tile::concrete_slab_half_Id, 8) // Green
+        ITEM_AUX(Tile::concrete_slab_half_Id, 11) // Brown
+        ITEM_AUX(Tile::concrete_slab_half_Id, 12) // Blue
+        ITEM_AUX(Tile::concrete_slab_half_Id, 3) // Purple
+        ITEM_AUX(Tile::concrete_slab_half_Id, 10) // Cyan
+        ITEM_AUX(Tile::concrete_slab_half_Id, 15) // Silver
+        ITEM_AUX(Tile::concrete_slab_half_Id, 9) // Gray
+        ITEM_AUX(Tile::concrete_slab_half_Id, 4) // Pink
+        ITEM_AUX(Tile::concrete_slab_half_Id, 7) // Lime
+        ITEM_AUX(Tile::concrete_slab_half_Id, 1) // Yellow
+        ITEM_AUX(Tile::concrete_slab_half_Id, 14) // Light Blue
+        ITEM_AUX(Tile::concrete_slab_half_Id, 6) // Magenta
+        ITEM_AUX(Tile::concrete_slab_half_Id, 5) // Orange
+        ITEM_AUX(Tile::concrete_slab_half_Id, 0) // White
+
+        ITEM_AUX(Tile::concrete_powder_Id, 13) // Black
+        ITEM_AUX(Tile::concrete_powder_Id, 2)  // Red
+        ITEM_AUX(Tile::concrete_powder_Id, 8)  // Green
+        ITEM_AUX(Tile::concrete_powder_Id, 11) // Brown
+        ITEM_AUX(Tile::concrete_powder_Id, 12) // Blue
+        ITEM_AUX(Tile::concrete_powder_Id, 3)  // Purple
+        ITEM_AUX(Tile::concrete_powder_Id, 10) // Cyan
+        ITEM_AUX(Tile::concrete_powder_Id, 15) // Silver
+        ITEM_AUX(Tile::concrete_powder_Id, 9)  // Gray
+        ITEM_AUX(Tile::concrete_powder_Id, 4)  // Pink
+        ITEM_AUX(Tile::concrete_powder_Id, 7)  // Lime
+        ITEM_AUX(Tile::concrete_powder_Id, 1)  // Yellow
+        ITEM_AUX(Tile::concrete_powder_Id, 14) // Light Blue
+        ITEM_AUX(Tile::concrete_powder_Id, 6)  // Magenta
+        ITEM_AUX(Tile::concrete_powder_Id, 5)  // Orange
+        ITEM_AUX(Tile::concrete_powder_Id, 0)  // White
+
 
 	// Decoration
 	DEF(eCreativeInventory_Decoration)
@@ -307,7 +424,13 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Tile::glass_Id)
 		ITEM(Item::painting_Id)
 		ITEM(Item::item_frame_Id)
-		ITEM(Item::standing_sign_Id)
+		ITEM_AUX(Item::standing_sign_Id, 0)	// neoLegacy - one sign item, the aux value is the wood
+		ITEM_AUX(Item::standing_sign_Id, 1)
+		ITEM_AUX(Item::standing_sign_Id, 2)
+		ITEM_AUX(Item::standing_sign_Id, 3)
+		ITEM_AUX(Item::standing_sign_Id, 4)
+		ITEM_AUX(Item::standing_sign_Id, 5)
+		ITEM_AUX(Item::standing_sign_Id, 6)
 		ITEM(Tile::bookshelf_Id)
 		ITEM(Item::flower_pot_Id)
 		ITEM(Tile::hay_block_Id)
@@ -341,6 +464,9 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Tile::wool_Id,15)	// Black
 		ITEM_AUX(Tile::wool_Id,13)	// Green
 		ITEM_AUX(Tile::wool_Id,12)	// Brown
+
+
+
 
 		ITEM_AUX(Tile::carpet_Id,14)	// Red
 		ITEM_AUX(Tile::carpet_Id,1)	// Orange
@@ -419,10 +545,12 @@ void IUIScene_CreativeMenu::staticCtor()
 	// Redstone
 	DEF(eCreativeInventory_Redstone)
 		ITEM(Tile::dispenser_Id)
-		ITEM(Tile::noteblock_Id)
+        ITEM(Tile::dropper_Id)
 		ITEM(Tile::piston_Id)
 		ITEM(Tile::sticky_piston_Id)
+        ITEM(Tile::barrier_Id)	// neoLegacy - the Barrier block existed but could not be obtained
 		ITEM(Tile::tnt_Id)
+        ITEM(Tile::lucky_block_Id)
 		ITEM(Tile::lever_Id)
 		ITEM(Tile::stone_button_Id)
 		ITEM(Tile::wooden_button_Id)
@@ -432,15 +560,24 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Tile::redstone_block_Id)
 		ITEM(Tile::redstone_torch_Id)
 		ITEM(Item::repeater_Id)
+        ITEM(Tile::observer_Id)
+        ITEM(Tile::drill_Id)
+
+        ITEM(Tile::crusher_Id)
+        ITEM(Tile::refiner_Id)
 		ITEM(Tile::redstone_lamp_Id)
 		ITEM(Tile::tripwire_hook_Id)
 		ITEM(Tile::daylight_detector_Id)
-		ITEM(Tile::dropper_Id)
+        ITEM(Tile::noteblock_Id)
 		ITEM(Tile::hopper_Id)
+        ITEM(Tile::cookie_miner_Id)
+        ITEM(Tile::flappy_craft_Id)
+        ITEM(Tile::mine_snake_Id)
 		ITEM(Item::comparator_Id)
 		ITEM(Tile::chest_trap_Id)
 		ITEM(Tile::heavy_weighted_pressure_plate_Id)
 		ITEM(Tile::light_weighted_pressure_plate_Id)
+
 
 	// Transport
 	DEF(eCreativeInventory_Transport)
@@ -453,9 +590,16 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::chest_minecart_Id)
 		ITEM(Item::furnace_minecart_Id)
 		ITEM(Item::hopper_minecart_Id)
+		ITEM(Item::diamond_minecart_Id)
 		ITEM(Item::tnt_minecart_Id)
 		ITEM(Item::saddle_Id)
 		ITEM(Item::boat_Id)
+		ITEM_AUX(Item::boat_Id, 1)	// neoLegacy: spruce
+		ITEM_AUX(Item::boat_Id, 2)	// birch
+		ITEM_AUX(Item::boat_Id, 3)	// jungle
+		ITEM_AUX(Item::boat_Id, 4)	// acacia
+		ITEM_AUX(Item::boat_Id, 5)	// dark oak
+		ITEM_AUX(Item::boat_Id, 6)	// bamboo raft
 		ITEM(Item::elytra_Id)
 
 	// Miscellaneous
@@ -463,14 +607,33 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Tile::chest_Id)
 		ITEM(Tile::ender_chest_Id)
 		ITEM(Tile::crafting_table_Id)
+        ITEM(Tile::complex_table_Id)
 		ITEM(Tile::furnace_Id)
 		ITEM(Item::brewing_stand_Id)
 		ITEM(Tile::enchanting_table_Id)
+        ITEM(Tile::grindstone_Id)
 		ITEM(Tile::beacon_Id)
 		ITEM(Tile::end_portal_frame_Id)
 		ITEM(Tile::jukebox_Id)
 		ITEM(Tile::anvil_Id);
-		ITEM(Item::bed_Id)
+		// neoLegacy - Fancy Beds: one item id, aux = variant (16 colors in wool order, then straw)
+		ITEM_AUX(Item::bed_Id,0)	// White
+		ITEM_AUX(Item::bed_Id,1)	// Orange
+		ITEM_AUX(Item::bed_Id,2)	// Magenta
+		ITEM_AUX(Item::bed_Id,3)	// Light Blue
+		ITEM_AUX(Item::bed_Id,4)	// Yellow
+		ITEM_AUX(Item::bed_Id,5)	// Lime
+		ITEM_AUX(Item::bed_Id,6)	// Pink
+		ITEM_AUX(Item::bed_Id,7)	// Gray
+		ITEM_AUX(Item::bed_Id,8)	// Light Gray
+		ITEM_AUX(Item::bed_Id,9)	// Cyan
+		ITEM_AUX(Item::bed_Id,10)	// Purple
+		ITEM_AUX(Item::bed_Id,11)	// Blue
+		ITEM_AUX(Item::bed_Id,12)	// Brown
+		ITEM_AUX(Item::bed_Id,13)	// Green
+		ITEM_AUX(Item::bed_Id,14)	// Red
+		ITEM_AUX(Item::bed_Id,15)	// Black
+		ITEM_AUX(Item::bed_Id,16)	// Straw
 		ITEM(Item::bucket_Id)
 		ITEM(Item::lava_bucket_Id)
 		ITEM(Item::water_bucket_Id)
@@ -489,8 +652,10 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::nether_star_Id)
 		ITEM_AUX(Item::spawn_egg_Id, 50); // Creeper
 		ITEM_AUX(Item::spawn_egg_Id, 51); // Skeleton
+		ITEM_AUX(Item::spawn_egg_Id, 51 | ((Skeleton::TYPE_WITHER + 1) << 12)); // Wither Skeleton
 		ITEM_AUX(Item::spawn_egg_Id, 52); // Spider
 		ITEM_AUX(Item::spawn_egg_Id, 54); // Zombie
+		ITEM_AUX(Item::spawn_egg_Id, 54 | (2 << 12)); // Zombie Villager
 		ITEM_AUX(Item::spawn_egg_Id, 55); // Slime
 		ITEM_AUX(Item::spawn_egg_Id, 56); // Ghast
 		ITEM_AUX(Item::spawn_egg_Id, 57); // Zombie Pigman
@@ -517,9 +682,24 @@ void IUIScene_CreativeMenu::staticCtor()
 		
 		ITEM_AUX(Item::spawn_egg_Id, 100 | ((EntityHorse::TYPE_DONKEY + 1) << 12) ); // Donkey
 		ITEM_AUX(Item::spawn_egg_Id, 100 | ((EntityHorse::TYPE_MULE + 1) << 12)); // Mule
+		ITEM_AUX(Item::spawn_egg_Id, 100 | ((EntityHorse::TYPE_SKELETON + 1) << 12)); // Skeleton Horse
+		ITEM_AUX(Item::spawn_egg_Id, 100 | ((EntityHorse::TYPE_UNDEAD + 1) << 12)); // Zombie Horse
 		ITEM_AUX(Item::spawn_egg_Id, 120); // Villager
 		ITEM_AUX(Item::spawn_egg_Id, 101); // Rabbit Brown
 		ITEM_AUX(Item::spawn_egg_Id, 107); // Polar Bear
+		ITEM_AUX(Item::spawn_egg_Id, 109); // Goat
+		ITEM_AUX(Item::spawn_egg_Id, 114); // Jelly Slime
+		ITEM_AUX(Item::spawn_egg_Id, 110); // Camel
+		ITEM_AUX(Item::spawn_egg_Id, 111); // Drowned
+		ITEM_AUX(Item::spawn_egg_Id, 112); // Husk
+		ITEM_AUX(Item::spawn_egg_Id, 115); // Frostbite
+		ITEM_AUX(Item::spawn_egg_Id, 116); // Vindicator
+		ITEM_AUX(Item::spawn_egg_Id, 117); // Evoker
+		ITEM_AUX(Item::spawn_egg_Id, 118); // Vex
+		ITEM_AUX(Item::spawn_egg_Id, 119); // Iceologer
+		ITEM_AUX(Item::spawn_egg_Id, 123); // Illusioner
+		ITEM_AUX(Item::spawn_egg_Id, 124); // Pillager
+		ITEM_AUX(Item::spawn_egg_Id, 113); // Wandering Trader
 		ITEM(Item::record_13_Id)
 		ITEM(Item::record_cat_Id)
 		ITEM(Item::record_blocks_Id)
@@ -563,6 +743,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::bread_Id)
 		ITEM(Item::cake_Id)
 		ITEM(Item::cookie_Id)
+		ITEM(Item::jelly_ball_Id)	// neoLegacy - Jelly Ball
 		ITEM(Item::cooked_fish_Id)
 		ITEM(Item::fish_Id)
 
@@ -617,6 +798,12 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::stone_hoe_Id)
 
 		ITEM(Item::bow_Id)
+		ITEM(Item::crossbow_Id)	// neoLegacy - Crossbow
+		ITEM(Item::mac10_Id)		// neoLegacy - MAC-10
+		ITEM(Item::m16_Id)			// neoLegacy - M16
+		ITEM(Item::flintlock_copper_Id)	// neoLegacy - Flintlock Pistols
+		ITEM(Item::flintlock_iron_Id)
+		ITEM(Item::flintlock_gold_Id)
 		ITEM(Item::iron_helmet_Id)
 		ITEM(Item::iron_chestplate_Id)
 		ITEM(Item::iron_leggings_Id)
@@ -628,6 +815,8 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::iron_hoe_Id)
 
 		ITEM(Item::arrow_Id)
+		ITEM(Item::bullet_9mm_Id)	// neoLegacy - 9mm ammunition
+		ITEM(Item::bullet_556_Id)	// neoLegacy - 5.56 ammunition
 		ITEM(Item::golden_helmet_Id)
 		ITEM(Item::golden_chestplate_Id)
 		ITEM(Item::golden_leggings_Id)
@@ -637,17 +826,24 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::golden_pickaxe_Id)
 		ITEM(Item::golden_axe_Id)
 		ITEM(Item::golden_hoe_Id)
-
-		ITEM(Item::flint_and_steel_Id)
+    
 		ITEM(Item::diamond_helmet_Id)
 		ITEM(Item::diamond_chestplate_Id)
 		ITEM(Item::diamond_leggings_Id)
 		ITEM(Item::diamond_boots_Id)
 		ITEM(Item::diamond_sword_Id)
-		ITEM(Item::diamond_shovel_Id)
-		ITEM(Item::diamond_pickaxe_Id)
-		ITEM(Item::diamond_axe_Id)
-		ITEM(Item::diamond_hoe_Id)
+        ITEM(Item::diamond_shovel_Id)
+        ITEM(Item::diamond_pickaxe_Id)
+        ITEM(Item::diamond_axe_Id)
+        ITEM(Item::diamond_hoe_Id)
+		ITEM(Item::wado_ichimonji_Id)
+		ITEM(Item::sandai_kitetsu_Id)
+		ITEM(Item::enma_Id)
+		ITEM(Item::shusui_Id)
+		ITEM(Item::mace_Id)		// neoLegacy - Mace
+		ITEM(Item::cursed_hilt_Id)
+        ITEM(Item::flint_and_steel_Id)
+
 
 		ITEM(Item::fire_charge_Id)
 		ITEM(Item::clock_Id)
@@ -659,6 +855,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::golden_horse_armor_Id)
 		ITEM(Item::iron_horse_armor_Id)
 		ITEM(Item::armor_stand_Id)
+		ITEM(Item::enchantment_encyclopedia_Id)	// neoLegacy - Enchantment Encyclopedia
 
 
 
@@ -709,10 +906,13 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::pumpkin_seeds_Id)
 		ITEM(Item::beetroot_seeds_Id)
 		ITEM(Item::wheat_Id)
+        ITEM(Item::bamboo_Id)		// neoLegacy - Bamboo
 		ITEM(Item::reeds_Id)
 		ITEM(Item::egg_Id)
 		ITEM(Item::sugar_Id)
 		ITEM(Item::slime_ball_Id)
+		ITEM(Item::ice_ball_Id)	// neoLegacy - Ice Ball
+		ITEM(Item::ice_wand_Id)	// neoLegacy - Ice Wand
 		ITEM(Item::blaze_rod_Id)
 		ITEM(Item::gold_nugget_Id)
 		ITEM(Item::netherwart_seeds_Id)
@@ -762,6 +962,7 @@ void IUIScene_CreativeMenu::staticCtor()
 			// tu31 potions
 			ITEM_AUX(Item::potion_Id,MACRO_MAKEPOTION_AUXVAL(0, 0, MASK_WATERBREATHING))
 			ITEM_AUX(Item::potion_Id,MACRO_MAKEPOTION_AUXVAL(0, 0, MASK_JUMPBOOST))
+			ITEM_AUX(Item::potion_Id,MACRO_MAKEPOTION_AUXVAL(0, 0, MASK_FREEZING))	// neoLegacy
 			// end of tu31 potions
 			ITEM_AUX(Item::potion_Id,MACRO_MAKEPOTION_AUXVAL(MASK_SPLASH, 0, MASK_REGENERATION))
 			ITEM_AUX(Item::potion_Id,MACRO_MAKEPOTION_AUXVAL(MASK_SPLASH, 0, MASK_SPEED))
@@ -775,6 +976,7 @@ void IUIScene_CreativeMenu::staticCtor()
 			// tu31 potions
 			ITEM_AUX(Item::potion_Id,MACRO_MAKEPOTION_AUXVAL(MASK_SPLASH, 0, MASK_WATERBREATHING))
 			ITEM_AUX(Item::potion_Id,MACRO_MAKEPOTION_AUXVAL(MASK_SPLASH, 0, MASK_JUMPBOOST))
+			ITEM_AUX(Item::potion_Id,MACRO_MAKEPOTION_AUXVAL(MASK_SPLASH, 0, MASK_FREEZING))	// neoLegacy
 			// end of tu31 potions
 
 		DEF(eCreativeInventory_Potions_Level2)

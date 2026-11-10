@@ -1,0 +1,31 @@
+<!-- Add inside <root> in Windows64Media/loc/stringsGeneric.xml and each locale folder's stringsGeneric.xml -->
+	<data name="IDS_ITEM_M16">
+		<value>M16</value>
+	</data>
+	<data name="IDS_DESC_M16">
+		<value>Assault rifle. Fires 3-round bursts and hits hard at long range. Very accurate when aimed. Uses 5.56 rounds.</value>
+	</data>
+	<data name="IDS_ITEM_556_BULLET">
+		<value>5.56 Rounds</value>
+	</data>
+	<data name="IDS_DESC_556_BULLET">
+		<value>Ammunition for the M16.</value>
+	</data>
+	<data name="IDS_ITEM_FLINTLOCK_COPPER">
+		<value>Copper Flintlock Pistol</value>
+	</data>
+	<data name="IDS_DESC_FLINTLOCK_COPPER">
+		<value>Single-shot pistol. Loads from gunpowder. Heavy hitting and accurate when aimed.</value>
+	</data>
+	<data name="IDS_ITEM_FLINTLOCK_IRON">
+		<value>Iron Flintlock Pistol</value>
+	</data>
+	<data name="IDS_DESC_FLINTLOCK_IRON">
+		<value>Heavy single-shot pistol. Hits hardest and lasts longest, but is the slowest to reload. Loads from gunpowder.</value>
+	</data>
+	<data name="IDS_ITEM_FLINTLOCK_GOLD">
+		<value>Gold Flintlock Pistol</value>
+	</data>
+	<data name="IDS_DESC_FLINTLOCK_GOLD">
+		<value>Single-shot pistol. Reloads fastest and enchants easily, but wears out quickly. Loads from gunpowder.</value>
+	</data>

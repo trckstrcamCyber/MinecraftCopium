@@ -284,8 +284,7 @@ void IUIScene_AbstractContainerMenu::handleEnchantButton(int slot, int iPad) {
 
 		HtmlString title = HtmlString(
 			wstring(app.GetString(Enchantment::enchantments[player->enchantmentEntries[slot].id]->getDescriptionId())) +
-			L" " +
-			Enchantment::enchantments[player->enchantmentEntries[slot].id]->getLevelString(player->enchantmentEntries[slot].level) +
+			Enchantment::enchantments[player->enchantmentEntries[slot].id]->getLevelSuffix(player->enchantmentEntries[slot].level) +
 			L"...?",
 			eHTMLColor_White
 		);
@@ -1246,6 +1245,10 @@ void IUIScene_AbstractContainerMenu::onMouseTick()
 						case Item::stone_sword_Id:
 						case Item::iron_sword_Id:
 						case Item::diamond_sword_Id:
+						case Item::wado_ichimonji_Id:
+						case Item::sandai_kitetsu_Id:
+						case Item::enma_Id:
+						case Item::shusui_Id:
 							buttonY=eToolTipQuickMoveWeapon;
 							break;
 

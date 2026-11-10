@@ -16,6 +16,7 @@
 #include "net.minecraft.world.level.h"
 #include "../Minecraft.Client/Textures.h"
 #include "Villager.h"
+#include "CurseLoot.h"
 #include "AbstractContainerMenu.h"
 
 unordered_map<int, pair<int,int> > Villager::MIN_MAX_VALUES;
@@ -463,6 +464,20 @@ void Villager::addOffers(int addCount)
 		addItemForPurchase(newOffers, Item::chainmail_helmet_Id, random, getRecipeChance(.1f));
 		addItemForPurchase(newOffers, Item::chainmail_chestplate_Id, random, getRecipeChance(.1f));
 		addItemForPurchase(newOffers, Item::chainmail_leggings_Id, random, getRecipeChance(.1f));
+
+		// neoLegacy - cursed gear (armorer / toolsmith / weaponsmith stock): carries a curse, sometimes other enchantments too,
+		// and is cheaper than the clean version (1-4 emeralds)
+		{
+			const CurseLoot::Category categories[3] = { CurseLoot::ARMOR, CurseLoot::TOOL, CurseLoot::WEAPON };
+			for (int c = 0; c < 3; ++c)
+			{
+				if (random->nextFloat() < getRecipeChance(.12f))
+				{
+					shared_ptr<ItemInstance> cursed = CurseLoot::createCursedItem(random, categories[c], random->nextBoolean());
+					newOffers->push_back(new MerchantRecipe(std::make_shared<ItemInstance>(Item::emerald, 1 + random->nextInt(4)), cursed));
+				}
+			}
+		}
 		break;
 	case PROFESSION_LIBRARIAN:
 		addItemForTradeIn(newOffers, Item::paper_Id, random, getRecipeChance(.8f));
@@ -482,6 +497,14 @@ void Villager::addOffers(int addCount)
 			int cost = 2 + random->nextInt(5 + (level * 10)) + 3 * level;
 
 			newOffers->push_back(new MerchantRecipe(std::make_shared<ItemInstance>(Item::book), std::make_shared<ItemInstance>(Item::emerald, cost), book));
+		}
+
+		// neoLegacy - cursed books (a curse, and sometimes another enchantment as well), cheaper than the clean ones
+		if (random->nextFloat() < getRecipeChance(0.07f))
+		{
+			shared_ptr<ItemInstance> cursedBook = CurseLoot::createCursedBook(random, random->nextBoolean());
+			int cursedCost = 2 + random->nextInt(6);
+			newOffers->push_back(new MerchantRecipe(std::make_shared<ItemInstance>(Item::book), std::make_shared<ItemInstance>(Item::emerald, cursedCost), cursedBook));
 		}
 		break;
 	case PROFESSION_PRIEST:

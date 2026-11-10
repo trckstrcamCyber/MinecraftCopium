@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "CurseLoot.h"
 #include "net.minecraft.h"
 #include "net.minecraft.world.entity.monster.h"
 #include "net.minecraft.world.item.h"
@@ -589,7 +590,7 @@ bool ScatteredFeaturePieces::JunglePyramidPiece::postProcess(Level *level, Rando
 	placeBlock(level, Tile::vine_Id, 0xf, 8, -2, 3, chunkBB);
 	if (!placedMainChest)
 	{
-		placedMainChest = createChest(level, chunkBB, random, 8, -3, 3, WeighedTreasure::addToTreasure(WeighedTreasureArray(treasureItems,TREASURE_ITEMS_COUNT), Item::enchanted_book->createForRandomTreasure(random)), 2 + random->nextInt(5));
+		placedMainChest = createChest(level, chunkBB, random, 8, -3, 3, WeighedTreasure::addToTreasure(WeighedTreasure::addToTreasure(WeighedTreasureArray(treasureItems,TREASURE_ITEMS_COUNT), Item::enchanted_book->createForRandomTreasure(random)), CurseLoot::createTreasure(random, 1, 1, 2)), 2 + random->nextInt(5));
 	}
 	placeBlock(level, Tile::mossy_cobblestone_Id, 0, 9, -3, 2, chunkBB);
 	placeBlock(level, Tile::mossy_cobblestone_Id, 0, 8, -3, 1, chunkBB);
@@ -622,7 +623,7 @@ bool ScatteredFeaturePieces::JunglePyramidPiece::postProcess(Level *level, Rando
 	placeBlock(level, Tile::unpowered_repeater_Id, getOrientationData(Tile::unpowered_repeater_Id, Direction::NORTH), 10, -2, 10, chunkBB);
 	if (!placedHiddenChest)
 	{
-		placedHiddenChest = createChest(level, chunkBB, random, 9, -3, 10, WeighedTreasure::addToTreasure(WeighedTreasureArray(treasureItems,TREASURE_ITEMS_COUNT), Item::enchanted_book->createForRandomTreasure(random)), 2 + random->nextInt(5));
+		placedHiddenChest = createChest(level, chunkBB, random, 9, -3, 10, WeighedTreasure::addToTreasure(WeighedTreasure::addToTreasure(WeighedTreasureArray(treasureItems,TREASURE_ITEMS_COUNT), Item::enchanted_book->createForRandomTreasure(random)), CurseLoot::createTreasure(random, 1, 1, 2)), 2 + random->nextInt(5));
 	}
 
 	return true;

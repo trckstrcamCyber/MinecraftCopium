@@ -12,10 +12,12 @@ const unsigned int WoodTile::WOOD_NAMES[WOOD_NAMES_LENGTH] = {	IDS_TILE_OAKWOOD_
 	IDS_TILE_BIRCHWOOD_PLANKS,
 	IDS_TILE_JUNGLE_PLANKS,
 	IDS_TILE_ACACIA_PLANKS,
-	IDS_TILE_DARK_OAK_PLANKS
+	IDS_TILE_DARK_OAK_PLANKS,
+	IDS_TILE_BAMBOO_PLANKS,
+	IDS_TILE_BAMBOO_MOSAIC
 };
 
-const wstring WoodTile::TEXTURE_NAMES[] = { L"oak", L"spruce", L"birch", L"jungle", L"acacia", L"dark" };
+const wstring WoodTile::TEXTURE_NAMES[] = { L"oak", L"spruce", L"birch", L"jungle", L"acacia", L"dark", L"bamboo", L"mosaic" };
 
 // 	public static final String[] WOOD_NAMES = {
 // 		"oak", "spruce", "birch", "jungle"

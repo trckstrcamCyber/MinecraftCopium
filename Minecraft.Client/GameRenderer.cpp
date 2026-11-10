@@ -425,6 +425,10 @@ float GameRenderer::getFov(float a, bool applyEffects)
 	{
 		fov += mc->options->fov * 40;
 		fov *= oFov[playerIdx] + (this->fov[playerIdx] - oFov[playerIdx]) * a;
+		// neoLegacy - MAC-10 aim down sights zooms the world (the hand uses applyEffects = false, so the gun itself keeps its size)
+		if (player != nullptr) fov *= player->getMac10().getFovFactor(a);
+		// neoLegacy - Freezing narrows your field of view (up to 20% when frozen solid)
+		if (player != nullptr) fov *= 1.0f - 0.2f * player->getFreezeProgress();
 	}
 	if (player->getHealth() <= 0)
 	{
@@ -445,6 +449,19 @@ void GameRenderer::bobHurt(float a)
 	shared_ptr<LivingEntity> player = mc->cameraTargetPlayer;
 
 	float hurt = player->hurtTime - a;
+
+	// neoLegacy - small camera kick when a Zoro cut connects
+	if (player->instanceof(eTYPE_PLAYER))
+	{
+		shared_ptr<Player> shaker = dynamic_pointer_cast<Player>(player);
+		float shake = shaker != nullptr ? shaker->getZoroHitShake(a) : 0.0f;
+		if (shake > 0.0f)
+		{
+			float tt = shaker->tickCount + a;
+			glRotatef(shake * 1.6f * Mth::sin(tt * 2.6f), 0, 0, 1);
+			glRotatef(shake * 1.0f * Mth::sin(tt * 3.3f + 1.0f), 1, 0, 0);
+		}
+	}
 
 	if (player->getHealth() <= 0)
 	{

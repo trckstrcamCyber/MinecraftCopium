@@ -261,6 +261,9 @@ bool UILayer::NavigateToScene(int iPad, EUIScene scene, void *initData)
 	case eUIScene_AnvilMenu:
 		newScene = new UIScene_AnvilMenu(iPad, initData, this);
 		break;
+	case eUIScene_GrindstoneMenu:
+		newScene = new UIScene_GrindstoneMenu(iPad, initData, this);
+		break;
 	case eUIScene_HopperMenu:
 		newScene = new UIScene_HopperMenu(iPad, initData, this);
 		break;
@@ -768,6 +771,7 @@ bool UILayer::updateFocusState(bool allowedFocus /* = false */)
 		case eUIScene_FireworksMenu:
 		case eUIScene_BeaconMenu:
 		case eUIScene_AnvilMenu:
+		case eUIScene_GrindstoneMenu:
 			m_bContainerMenuDisplayed=true;
 
 			// Intentional fall-through

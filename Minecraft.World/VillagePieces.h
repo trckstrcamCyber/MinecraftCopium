@@ -28,7 +28,21 @@ public:
 		EPieceClass_DoubleFarmland,
 		EPieceClass_Farmland,
 		EPieceClass_Smithy,
-		EPieceClass_TwoRoomHouse
+		EPieceClass_TwoRoomHouse,
+		EPieceClass_BlacksmithHouse,
+		EPieceClass_ModernHouse
+	};
+
+	// Which material/biome palette a village instance uses. Plains is the
+	// original default look; Desert is the original sandstone reskin.
+	// Savanna/Taiga/Snowy are new - see VillagePiece::biomeBlock/biomeData.
+	enum EVillageStyle
+	{
+		EVillageStyle_Plains = 0,
+		EVillageStyle_Desert = 1,
+		EVillageStyle_Savanna = 2,
+		EVillageStyle_Taiga = 3,
+		EVillageStyle_Snowy = 4
 	};
 
 	static void loadStatic();
@@ -59,7 +73,7 @@ private:
 
 
 	/**
-	* 
+	*
 	*
 	*/
 private:
@@ -69,7 +83,7 @@ private:
 		int heightPosition;
 	private:
 		int spawnedVillagerCount;
-		bool isDesertVillage;
+		int villageStyle;	// one of EVillageStyle - was a plain "isDesertVillage" bool
 	protected:
 		StartPiece *startPiece;
 
@@ -83,15 +97,27 @@ private:
 		static bool isOkBox(BoundingBox *box, StartPiece *startRoom); // 4J added startRoom param
 		void spawnVillagers(Level *level, BoundingBox *chunkBB, int x, int y, int z, int count);
 		virtual int getVillagerProfession(int villagerNumber);
+		int getVillageStyle() const { return villageStyle; }	// neoLegacy
 		virtual int biomeBlock(int tile, int data);
 		virtual int biomeData(int tile, int data);
 		virtual void placeBlock(Level *level, int block, int data, int x, int y, int z, BoundingBox *chunkBB);
 		virtual void generateBox(Level *level, BoundingBox *chunkBB, int x0, int y0, int z0, int x1, int y1, int z1, int edgeTile, int fillTile, bool skipAir);
 		virtual void fillColumnDown(Level *level, int block, int data, int x, int startY, int z, BoundingBox *chunkBB);
+
+		// Places a two-block bed (foot + head) so villages have somewhere to
+		// sleep, like modern Minecraft. x/y/z is the foot position, in this
+		// piece's own local (unrotated, Direction::NORTH-reference) coordinate
+		// frame - same convention as every other directional block placed in
+		// this file (see the door/stairs/ladder calls). localDirection is a
+		// Direction:: value (SOUTH/WEST/NORTH/EAST) telling the helper which
+		// way the head lies relative to the foot in that same local frame;
+		// getOrientationData() rotates it to match however this piece
+		// instance actually landed in the world.
+		void placeBed(Level *level, BoundingBox *chunkBB, int x, int y, int z, int localDirection);
 	};
 
 	/**
-	* 
+	*
 	*
 	*/
 public:
@@ -112,6 +138,13 @@ public:
 		Well(StartPiece *startPiece, int genDepth, Random *random, BoundingBox *stairsBox, int direction);
 		virtual void addChildren(StructurePiece *startPiece, list<StructurePiece *> *pieces, Random *random);
 		virtual bool postProcess(Level *level, Random *random, BoundingBox *chunkBB);
+
+	private:
+		bool camelSpawned;	// neoLegacy - desert villages get exactly one camel, placed by the well
+
+	protected:
+		virtual void addAdditonalSaveData(CompoundTag *tag);
+		virtual void readAdditonalSaveData(CompoundTag *tag);
 	};
 
 public:
@@ -123,7 +156,7 @@ public:
 	public:
 		// these fields are only used in generation step and aren't serialized :{
 		BiomeSource *biomeSource;
-		bool isDesertVillage;
+		int villageStyle;	// one of EVillageStyle - was a plain "isDesertVillage" bool
 
 		int villageSize;
 		bool isLibraryAdded;
@@ -152,7 +185,7 @@ public:
 	};
 
 	/**
-	* 
+	*
 	*
 	*/
 public:
@@ -180,7 +213,7 @@ public:
 	};
 
 	/**
-	* 
+	*
 	*
 	*/
 public:
@@ -444,6 +477,72 @@ public:
 		LightPost();
 		LightPost(StartPiece *startPiece, int genDepth, Random *random, BoundingBox *box, int direction);
 		static BoundingBox *findPieceBox(StartPiece *startPiece, list<StructurePiece *> *pieces, Random *random, int footX, int footY, int footZ, int direction);
+		virtual bool postProcess(Level *level, Random *random, BoundingBox *chunkBB);
+	};
+
+	/**
+	* A blacksmith building matching modern Java's actual weaponsmith layout:
+	* an enclosed room (chest + door) beside an open porch forge (lava,
+	* furnaces, grindstone) - no anvil, that's not part of the real building.
+	* Cobblestone/log/planks, same as Smithy - this reskins by village style
+	* exactly like every other piece (see biomeBlock/biomeData on the base
+	* VillagePiece class).
+	*/
+public:
+	class BlacksmithHouse : public VillagePiece
+	{
+	public:
+		static StructurePiece *Create() { return new BlacksmithHouse(); }
+		virtual EStructurePiece GetType() { return eStructurePiece_BlacksmithHouse; }
+
+	private:
+		static const int width = 10;
+		static const int height = 9;
+		static const int depth = 7;
+
+		bool hasPlacedChest;
+
+		static WeighedTreasureArray treasureItems;
+
+	public:
+		static void staticCtor();
+
+		BlacksmithHouse();
+		BlacksmithHouse(StartPiece *startPiece, int genDepth, Random *random, BoundingBox *stairsBox, int direction);
+		static BlacksmithHouse *createPiece(StartPiece *startPiece, list<StructurePiece *> *pieces, Random *random, int footX, int footY, int footZ, int direction, int genDepth);
+
+	protected:
+		void addAdditonalSaveData(CompoundTag *tag);
+		void readAdditonalSaveData(CompoundTag *tag);
+
+	public:
+		virtual bool postProcess(Level *level, Random *random, BoundingBox *chunkBB);
+		virtual int getVillagerProfession(int villagerNumber);
+	};
+
+	/**
+	* A larger dwelling in the style of a modern (post-Village & Pillage)
+	* Java plains house - same log/plank/cobblestone palette as every other
+	* house (reskins by village style normally), just a roomier layout with
+	* more windows and a hay-bale-and-fence-gate yard, approximating the
+	* newer house look with the older block set this fork actually has.
+	*/
+public:
+	class ModernHouse : public VillagePiece
+	{
+	public:
+		static StructurePiece *Create() { return new ModernHouse(); }
+		virtual EStructurePiece GetType() { return eStructurePiece_ModernHouse; }
+
+	private:
+		static const int width = 9;
+		static const int height = 7;
+		static const int depth = 12;
+
+	public:
+		ModernHouse();
+		ModernHouse(StartPiece *startPiece, int genDepth, Random *random, BoundingBox *stairsBox, int direction);
+		static ModernHouse *createPiece(StartPiece *startPiece, list<StructurePiece *> *pieces, Random *random, int footX, int footY, int footZ, int direction, int genDepth);
 		virtual bool postProcess(Level *level, Random *random, BoundingBox *chunkBB);
 	};
 };

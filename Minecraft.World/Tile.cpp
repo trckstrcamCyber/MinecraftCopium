@@ -17,11 +17,28 @@
 #include "net.minecraft.h"
 #include "Tile.h"
 
+#include "BlackStoneTile.h"
+#include "CalciteTile.h"
+#include "StrippedLogTile.h"
+#include "BambooBlockTile.h"
+#include "BambooTile.h"
+#include "BambooShootTile.h"
+#include "LuckyBlockTile.h"
+#include "GrindstoneTile.h"
+#include "ConcreteTile.h"
+#include "ConcretePowderTile.h"
+#include "ObserverTile.h"
+#include "DrillTile.h"
+#include "ArcadeMachineTile.h"
+#include "ProcessorTile.h"
+#include "ConcreteSlabTile.h"
+#include "ConcreteStairTile.h"
+#include "ConcreteTileItems.h"
+#include "CalciteWallTile.h"
+#include "ComplexTableTile.h"	// neoLegacy - Complex Table
+#include "JellyBlockTile.h"	// neoLegacy - Jelly Block
+#include "BlackStoneWallTile.h"
 #include "Facing.h"
-
-
-
-
 
 bool g_suppressExpDrops = false;
 
@@ -236,6 +253,11 @@ Tile *Tile::coalBlock = nullptr;
 Tile* Tile::woodStairsAcacia = nullptr;
 Tile* Tile::woodStairsDark = nullptr;
 Tile* Tile::iron_trapdoor = nullptr;
+Tile *Tile::spruce_trapdoor = nullptr;
+Tile *Tile::birch_trapdoor = nullptr;
+Tile *Tile::jungle_trapdoor = nullptr;
+Tile *Tile::acacia_trapdoor = nullptr;
+Tile *Tile::dark_oak_trapdoor = nullptr;
 
 Tile* Tile::spruce_door = nullptr;
 Tile* Tile::birch_door = nullptr;
@@ -274,11 +296,50 @@ MagmaTile* Tile::magma = nullptr;
 Tile* Tile::nether_wart_block = nullptr;
 Tile* Tile::red_nether_brick = nullptr;
 BoneBlockTile* Tile::bone_block = nullptr;
+Tile* Tile::calcite = nullptr; // my new block
+Tile *Tile::stairs_calcite = nullptr;
+Tile *Tile::calciteWall = nullptr;
+Tile *Tile::bamboo = nullptr;
+Tile *Tile::bambooShoot = nullptr;
+Tile *Tile::bambooFence = nullptr;
+Tile *Tile::bambooGate = nullptr;
+Tile *Tile::bambooTrapdoor = nullptr;
+Tile *Tile::bambooDoor = nullptr;
+Tile *Tile::bambooStairs = nullptr;
+Tile *Tile::bambooMosaicStairs = nullptr;
+Tile *Tile::bambooBlock = nullptr;		// neoLegacy - Bamboo
+Tile *Tile::strippedLog = nullptr;
+Tile *Tile::strippedLog2 = nullptr;
+Tile *Tile::blackstone = nullptr;
+Tile *Tile::stairs_blackstone = nullptr;
+Tile *Tile::blackstoneWall = nullptr;
+Tile *Tile::lucky_block = nullptr;
+GrindstoneTile *Tile::grindstone = nullptr;
+Tile *Tile::concrete_powder = nullptr;
+Tile *Tile::concrete = nullptr;
+ObserverTile *Tile::observer = nullptr;
+DrillTile *Tile::drill = nullptr;	// neoLegacy - Drill
+ArcadeMachineTile *Tile::cookieMiner = nullptr;
+ArcadeMachineTile *Tile::flappyCraft = nullptr;
+ArcadeMachineTile *Tile::mineSnake = nullptr;
+ArcadeMachineTile *Tile::cookieMinerPowered = nullptr;
+ArcadeMachineTile *Tile::flappyCraftPowered = nullptr;
+ArcadeMachineTile *Tile::mineSnakePowered = nullptr;
+ProcessorTile *Tile::crusher = nullptr;	// neoLegacy - Crusher
+ProcessorTile *Tile::refiner = nullptr;	// neoLegacy - Refiner
+Tile *Tile::concrete_stairs = nullptr;
+HalfSlabTile *Tile::concrete_slab_half = nullptr;
+HalfSlabTile *Tile::concrete_slab_full = nullptr;
+Tile *Tile::complexTable = nullptr;	// neoLegacy - Complex Table
+Tile *Tile::jellyBlock = nullptr;	// neoLegacy - Jelly Block
+
 
 Tile* Tile::barrier = nullptr;
 TallGrass2* Tile::double_plant = nullptr;
 BannerTile* Tile::standing_banner = nullptr;
 BannerTile* Tile::wall_banner = nullptr;
+
+
 
 DWORD Tile::tlsIdxShape = TlsAlloc();
 
@@ -431,7 +492,7 @@ void Tile::staticCtor()
 
 	Tile::goldBlock = (new MetalTile(41))														->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_gold)->setDestroyTime(3.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"gold_block")->setDescriptionId(IDS_TILE_BLOCK_GOLD)->setUseDescriptionId(IDS_DESC_BLOCK_GOLD);
 	Tile::ironBlock = (new MetalTile(42))														->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_iron)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"iron_block")->setDescriptionId(IDS_TILE_BLOCK_IRON)->setUseDescriptionId(IDS_DESC_BLOCK_IRON);
-	Tile::stoneSlab = static_cast<HalfSlabTile *>((new FullStoneSlabTile(Tile::double_stone_slab_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_slab, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_STONE)->setIconName(L"stoneSlab")->setDescriptionId(IDS_TILE_STONESLAB)->setUseDescriptionId(IDS_DESC_SLAB));	
+	Tile::stoneSlab = static_cast<HalfSlabTile *>((new FullStoneSlabTile(Tile::double_stone_slab_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_slab, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_STONE)->setIconName(L"stoneSlab")->setDescriptionId(IDS_TILE_STONESLAB)->setUseDescriptionId(IDS_DESC_SLAB));
 	Tile::stoneSlabHalf = static_cast<HalfSlabTile *>((new HalfStoneSlabTile(Tile::stone_slab_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_halfslab, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_STONE)->setIconName(L"stoneSlab")->setDescriptionId(IDS_TILE_STONESLAB)->setUseDescriptionId(IDS_DESC_HALFSLAB));
 	Tile::redBrick = (new Tile(45, Material::stone))											->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock,	Item::eMaterial_brick)->setDestroyTime(2.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_STONE)->setIconName(L"brick")->setDescriptionId(IDS_TILE_BRICK)->setUseDescriptionId(IDS_DESC_BRICK);
 	Tile::tnt = (new TntTile(46))																->setDestroyTime(0.0f)->setSoundType(Tile::SOUND_GRASS)->setIconName(L"tnt")->setDescriptionId(IDS_TILE_TNT)->setUseDescriptionId(IDS_DESC_TNT);
@@ -502,7 +563,7 @@ void Tile::staticCtor()
 
 	Tile::iron_bars = (new ThinFenceTile(101, L"iron_bars", L"iron_bars", Material::metal, true))	->setBaseItemTypeAndMaterial(Item::eBaseItemType_fence,		Item::eMaterial_iron)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(SOUND_METAL)->setDescriptionId(IDS_TILE_IRON_FENCE)->setUseDescriptionId(IDS_DESC_IRON_FENCE);
 	Tile::glass_pane = (new ThinFenceTile(102, L"glass", L"glass_pane_top", Material::glass, false))
-    ->setBaseItemTypeAndMaterial(Item::eBaseItemType_glass, Item::eMaterial_glass) 
+    ->setBaseItemTypeAndMaterial(Item::eBaseItemType_glass, Item::eMaterial_glass)
     ->setDestroyTime(0.3f)
     ->setSoundType(SOUND_GLASS)
     ->setDescriptionId(IDS_TILE_THIN_GLASS)
@@ -576,9 +637,14 @@ void Tile::staticCtor()
 	Tile::log2 = (new TreeTile2(162))->setDestroyTime(2.0f)->setSoundType(Tile::SOUND_WOOD)->setIconName(L"log")->setDescriptionId(IDS_TILE_LOG)->sendTileData()->setUseDescriptionId(IDS_DESC_LOG);
 	Tile::woodStairsAcacia = (new StairTile(163, Tile::wood, TreeTile::ACACIA_TRUNK))->setBaseItemTypeAndMaterial(Item::eBaseItemType_stairs, Item::eMaterial_acaciawood)->setIconName(L"stairsWoodAcacia")->setDescriptionId(IDS_TILE_STAIRS_ACACIAWOOD)->sendTileData()->setUseDescriptionId(IDS_DESC_STAIRS);
 	Tile::woodStairsDark = (new StairTile(164, Tile::wood, TreeTile::DARK_TRUNK))->setBaseItemTypeAndMaterial(Item::eBaseItemType_stairs, Item::eMaterial_darkwood)->setIconName(L"stairsWoodDark")->setDescriptionId(IDS_TILE_STAIRS_DARKWOOD)->sendTileData()->setUseDescriptionId(IDS_DESC_STAIRS);
-	Tile::slimeBlock = (new SlimeTile(165))->setSoundType(SOUND_SLIME)->setIconName(L"slime")->setDescriptionId(IDS_TILE_SLIME_BLOCK)->setUseDescriptionId(IDS_DESC_SLIME_BLOCK)->disableMipmap();
+	Tile::slimeBlock = (new SlimeTile(165))->setBaseItemTypeAndMaterial(Item::eBaseItemType_block, Item::eMaterial_slime)->setSoundType(SOUND_SLIME)->setIconName(L"slime")->setDescriptionId(IDS_TILE_SLIME_BLOCK)->setUseDescriptionId(IDS_DESC_SLIME_BLOCK)->disableMipmap();
 	Tile::barrier = (new BarrierTile(166, Material::stone, false))	->setIndestructible()->setExplodeable(6000000)->setSoundType(Tile::SOUND_STONE)->setIconName(L"barrier")->setDescriptionId(IDS_TILE_BARRIER)->setNotCollectStatistics()->setUseDescriptionId(IDS_DESC_BARRIER);
 	Tile::iron_trapdoor = (new TrapDoorTile(167, Material::metal))->setBaseItemTypeAndMaterial(Item::eBaseItemType_door, Item::eMaterial_trap)->setDestroyTime(5.0f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"iron_trapdoor")->setDescriptionId(IDS_TILE_IRON_TRAPDOOR)->setNotCollectStatistics()->sendTileData()->setUseDescriptionId(IDS_DESC_TRAPDOOR);
+	Tile::spruce_trapdoor = (new TrapDoorTile(232, Material::wood))			->setBaseItemTypeAndMaterial(Item::eBaseItemType_door,	Item::eMaterial_trap)->setDestroyTime(3.0f)->setSoundType(Tile::SOUND_WOOD)->setIconName(L"spruce_trapdoor")->setDescriptionId(IDS_TILE_TRAPDOOR_SPRUCE)->setNotCollectStatistics()->sendTileData()->setUseDescriptionId(IDS_DESC_TRAPDOOR);
+	Tile::birch_trapdoor = (new TrapDoorTile(233, Material::wood))			->setBaseItemTypeAndMaterial(Item::eBaseItemType_door,	Item::eMaterial_trap)->setDestroyTime(3.0f)->setSoundType(Tile::SOUND_WOOD)->setIconName(L"birch_trapdoor")->setDescriptionId(IDS_TILE_TRAPDOOR_BIRCH)->setNotCollectStatistics()->sendTileData()->setUseDescriptionId(IDS_DESC_TRAPDOOR);
+	Tile::jungle_trapdoor = (new TrapDoorTile(234, Material::wood))			->setBaseItemTypeAndMaterial(Item::eBaseItemType_door,	Item::eMaterial_trap)->setDestroyTime(3.0f)->setSoundType(Tile::SOUND_WOOD)->setIconName(L"jungle_trapdoor")->setDescriptionId(IDS_TILE_TRAPDOOR_JUNGLE)->setNotCollectStatistics()->sendTileData()->setUseDescriptionId(IDS_DESC_TRAPDOOR);
+	Tile::acacia_trapdoor = (new TrapDoorTile(235, Material::wood))			->setBaseItemTypeAndMaterial(Item::eBaseItemType_door,	Item::eMaterial_trap)->setDestroyTime(3.0f)->setSoundType(Tile::SOUND_WOOD)->setIconName(L"acacia_trapdoor")->setDescriptionId(IDS_TILE_TRAPDOOR_ACACIA)->setNotCollectStatistics()->sendTileData()->setUseDescriptionId(IDS_DESC_TRAPDOOR);
+	Tile::dark_oak_trapdoor = (new TrapDoorTile(236, Material::wood))			->setBaseItemTypeAndMaterial(Item::eBaseItemType_door,	Item::eMaterial_trap)->setDestroyTime(3.0f)->setSoundType(Tile::SOUND_WOOD)->setIconName(L"dark_oak_trapdoor")->setDescriptionId(IDS_TILE_TRAPDOOR_DARK_OAK)->setNotCollectStatistics()->sendTileData()->setUseDescriptionId(IDS_DESC_TRAPDOOR);
 
 	Tile::hayBlock = (new HayBlockTile(170))						->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_wheat)->setDestroyTime(0.5f)->setSoundType(SOUND_GRASS)->setIconName(L"hay_block")->setDescriptionId(IDS_TILE_HAY)->setUseDescriptionId(IDS_DESC_HAY);
 	Tile::woolCarpet =		(new WoolCarpetTile(171))				->setBaseItemTypeAndMaterial(Item::eBaseItemType_carpet,	Item::eMaterial_cloth)->setDestroyTime(0.1f)->setSoundType(SOUND_CLOTH)->setIconName(L"woolCarpet")->setLightBlock(0)->setDescriptionId(IDS_TILE_CARPET)->setUseDescriptionId(IDS_DESC_CARPET);
@@ -597,13 +663,14 @@ void Tile::staticCtor()
 	Tile::red_nether_brick = (new Tile(red_nether_brick_Id, Material::stone))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(6)->setSoundType(SOUND_STONE)->setIconName(L"red_nether_brick")->setDescriptionId(IDS_TILE_RED_NETHER_BRICK)->setUseDescriptionId(IDS_DESC_STONE);
 	Tile::bone_block = static_cast<BoneBlockTile*>((new BoneBlockTile(bone_block_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(1.5f)->setExplodeable(10)->setSoundType(SOUND_STONE)->setIconName(L"bone_block_side")->setDescriptionId(IDS_TILE_BONE_BLOCK)->setUseDescriptionId(IDS_DESC_STONE)->sendTileData());
 
+
 	Tile::daylight_detector_inverted = static_cast<DaylightDetectorTile*>((new DaylightDetectorTile(178, true))->setDestroyTime(0.2f)->setSoundType(SOUND_WOOD)->setIconName(L"daylight_detector")->setDescriptionId(IDS_TILE_DAYLIGHT_DETECTOR)->setUseDescriptionId(IDS_DESC_DAYLIGHT_DETECTOR));
 	Tile::red_sandstone = (new RedSandStoneTile(red_sandstone_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_sand)->setSoundType(Tile::SOUND_STONE)->setDestroyTime(0.8f)->sendTileData()->setIconName(L"red_sandstone")->setDescriptionId(IDS_TILE_RED_SANDSTONE)->setUseDescriptionId(IDS_DESC_RED_SANDSTONE)->sendTileData();
 	Tile::stairs_red_sandstone = (new StairTile(red_sandstone_stairs_Id, Tile::red_sandstone, 0))->setBaseItemTypeAndMaterial(Item::eBaseItemType_stairs, Item::eMaterial_sand)->setIconName(L"stairsRedSandstone")->setDescriptionId(IDS_TILE_STAIRS_RED_SANDSTONE)->sendTileData()->setUseDescriptionId(IDS_DESC_STAIRS);
 	Tile::stoneSlab2 = static_cast<HalfSlabTile *>((new FullStoneSlabTile2(double_stone_slab2_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_slab, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_STONE)->sendTileData()->setIconName(L"red_sandstone")->setDescriptionId(IDS_TILE_RED_SANDSTONE)->setUseDescriptionId(IDS_DESC_SLAB));
 
 	Tile::stoneSlab2Half = static_cast<HalfSlabTile *>((new HalfStoneSlabTile2(stone_slab2_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_halfslab, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_STONE)->sendTileData()->setIconName(L"red_sandstone")->setDescriptionId(IDS_TILE_RED_SANDSTONE)->setUseDescriptionId(IDS_DESC_HALFSLAB));
-	
+
 	Tile::spruceGate = (new FenceGateTile(183))->setBaseItemTypeAndMaterial(Item::eBaseItemType_fenceGate, Item::eMaterial_sprucewood)->setDestroyTime(2.0f)->setExplodeable(5)->setSoundType(SOUND_WOOD)->setIconName(L"planks_spruce")->setDescriptionId(IDS_TILE_SPRUCE_GATE)->sendTileData()->setUseDescriptionId(IDS_DESC_FENCE_GATE);
 	Tile::birchGate = (new FenceGateTile(184))->setBaseItemTypeAndMaterial(Item::eBaseItemType_fenceGate, Item::eMaterial_birchwood)->setDestroyTime(2.0f)->setExplodeable(5)->setSoundType(SOUND_WOOD)->setIconName(L"planks_birch")->setDescriptionId(IDS_TILE_BIRCH_GATE)->sendTileData()->setUseDescriptionId(IDS_DESC_FENCE_GATE);
 	Tile::jungleGate = (new FenceGateTile(185))->setBaseItemTypeAndMaterial(Item::eBaseItemType_fenceGate, Item::eMaterial_junglewood)->setDestroyTime(2.0f)->setExplodeable(5)->setSoundType(SOUND_WOOD)->setIconName(L"planks_jungle")->setDescriptionId(IDS_TILE_JUNGLE_GATE)->sendTileData()->setUseDescriptionId(IDS_DESC_FENCE_GATE);
@@ -615,7 +682,7 @@ void Tile::staticCtor()
 	Tile::jungleFence = (new FenceTile(190, L"planks_jungle", Material::wood))->setBaseItemTypeAndMaterial(Item::eBaseItemType_fence, Item::eMaterial_junglewood)->setDestroyTime(2.0f)->setExplodeable(5)->setSoundType(Tile::SOUND_WOOD)->setDescriptionId(IDS_TILE_JUNGLE_FENCE)->setUseDescriptionId(IDS_DESC_FENCE);
 	Tile::darkFence = (new FenceTile(191, L"planks_dark", Material::wood))->setBaseItemTypeAndMaterial(Item::eBaseItemType_fence, Item::eMaterial_darkwood)->setDestroyTime(2.0f)->setExplodeable(5)->setSoundType(Tile::SOUND_WOOD)->setDescriptionId(IDS_TILE_DARK_FENCE)->setUseDescriptionId(IDS_DESC_FENCE);
 	Tile::acaciaFence = (new FenceTile(192, L"planks_acacia", Material::wood))->setBaseItemTypeAndMaterial(Item::eBaseItemType_fence, Item::eMaterial_acaciawood)->setDestroyTime(2.0f)->setExplodeable(5)->setSoundType(Tile::SOUND_WOOD)->setDescriptionId(IDS_TILE_ACACIA_FENCE)->setUseDescriptionId(IDS_DESC_FENCE);
-	
+
 	Tile::seaLantern = (new SeaLanternTile(169, Material::glass))->setBaseItemTypeAndMaterial(Item::eBaseItemType_torch, Item::eMaterial_glowstone)->setDestroyTime(0.3f)->setSoundType(Tile::SOUND_GLASS)->setLightEmission(1.0f)->setIconName(L"glowstone")->setDescriptionId(IDS_TILE_SEA_LANTERN)->setUseDescriptionId(IDS_DESC_SEA_LANTERN);
 	Tile::prismarine = (new PrismarineTile(168))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(1.5f)->setExplodeable(10)->setSoundType(SOUND_STONE)->setIconName(L"prismarine")->setDescriptionId(IDS_TILE_PRISMARINE)->setUseDescriptionId(IDS_DESC_PRISMARINE);
 
@@ -623,6 +690,256 @@ void Tile::staticCtor()
 
 	Tile::standing_banner = static_cast<BannerTile*>((new BannerTile(176, true))->setDestroyTime(1.0f)->setSoundType(Tile::SOUND_WOOD)->setIconName(L"planks_oak")->setNotCollectStatistics()->sendTileData()->setUseDescriptionId(IDS_DESC_SIGN));
 	Tile::wall_banner    = static_cast<BannerTile*>((new BannerTile(177, false))->setDestroyTime(1.0f)->setSoundType(Tile::SOUND_WOOD)->setIconName(L"planks_oak")->setNotCollectStatistics()->sendTileData()->setUseDescriptionId(IDS_DESC_SIGN));
+
+    // the new calcite by me
+    // the new calcite by me
+    Tile::calcite = (new CalciteTile(217))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(1.75f)->setExplodeable(6.0f)->setSoundType(Tile::SOUND_STONE)->setDescriptionId(IDS_TILE_CALCITE)->sendTileData()->setUseDescriptionId(IDS_DESC_STONE);
+    Tile::stairs_calcite = (new StairTile(218, Tile::calcite, 0))->setBaseItemTypeAndMaterial(Item::eBaseItemType_stairs, Item::eMaterial_stone)->setDestroyTime(1.75f)->setExplodeable(6.0f)->setSoundType(Tile::SOUND_STONE)->setDescriptionId(IDS_TILE_CALCITE_STAIRS)->sendTileData();
+    Tile::calciteWall = (new CalciteWallTile(219, Tile::calcite))->setBaseItemTypeAndMaterial(Item::eBaseItemType_fence, Item::eMaterial_stone)->setDescriptionId(IDS_TILE_CALCITE_WALL)->setUseDescriptionId(IDS_DESC_COBBLESTONE_WALL);
+    // neoLegacy - Bamboo cube blocks (same material/hardness/sound as the wooden equivalents)
+    Tile::bamboo = (new BambooTile(bamboo_Id))->setDestroyTime(1.0f)->setExplodeable(1)->setSoundType(Tile::SOUND_WOOD)->setDescriptionId(IDS_TILE_BAMBOO)->setNotCollectStatistics()->sendTileData()->disableMipmap();
+    Tile::bambooShoot = (new BambooShootTile(bamboo_shoot_Id))->setDestroyTime(0.0f)->setSoundType(Tile::SOUND_GRASS)->setDescriptionId(IDS_TILE_BAMBOO)->setNotCollectStatistics()->disableMipmap();
+    Tile::bambooBlock = (new BambooBlockTile(bamboo_block_Id, L"bamboo_block", L"bamboo_block_top"))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structwoodstuff, Item::eMaterial_wood)->setDestroyTime(2.0f)->setExplodeable(5)->setSoundType(Tile::SOUND_WOOD)->setDescriptionId(IDS_TILE_BAMBOO_BLOCK)->sendTileData()->setUseDescriptionId(IDS_DESC_LOG);
+    // neoLegacy - the rest of the Bamboo wood set. They all use the Bamboo Planks look (planks data 6) / the supplied bamboo textures.
+    Tile::bambooFence = (new FenceTile(bamboo_fence_Id, L"planks_bamboo", Material::wood))->setBaseItemTypeAndMaterial(Item::eBaseItemType_fence, Item::eMaterial_wood)->setDestroyTime(2.0f)->setExplodeable(5)->setSoundType(Tile::SOUND_WOOD)->setDescriptionId(IDS_TILE_BAMBOO_FENCE)->setUseDescriptionId(IDS_DESC_FENCE);
+    Tile::bambooGate = (new FenceGateTile(bamboo_fence_gate_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_fenceGate, Item::eMaterial_wood)->setDestroyTime(2.0f)->setExplodeable(5)->setSoundType(SOUND_WOOD)->setIconName(L"planks_bamboo")->setDescriptionId(IDS_TILE_BAMBOO_GATE)->sendTileData()->setUseDescriptionId(IDS_DESC_FENCE_GATE);
+    Tile::bambooTrapdoor = (new TrapDoorTile(bamboo_trapdoor_Id, Material::wood))->setBaseItemTypeAndMaterial(Item::eBaseItemType_door, Item::eMaterial_trap)->setDestroyTime(3.0f)->setSoundType(Tile::SOUND_WOOD)->setIconName(L"bamboo_trapdoor")->setDescriptionId(IDS_TILE_TRAPDOOR_BAMBOO)->setNotCollectStatistics()->sendTileData()->setUseDescriptionId(IDS_DESC_TRAPDOOR);
+    Tile::bambooDoor = (new DoorTile(bamboo_door_Id, Material::wood, L"doorBamboo"))->setDestroyTime(3.0f)->setSoundType(Tile::SOUND_WOOD)->setIconName(L"bamboo_door")->setDescriptionId(IDS_ITEM_DOOR_BAMBOO)->setNotCollectStatistics()->sendTileData()->setUseDescriptionId(IDS_DESC_DOOR_WOOD);
+    Tile::bambooStairs = (new StairTile(bamboo_stairs_Id, Tile::wood, WoodTile::BAMBOO_PLANKS))->setBaseItemTypeAndMaterial(Item::eBaseItemType_stairs, Item::eMaterial_wood)->setIconName(L"stairsWoodBamboo")->setDescriptionId(IDS_TILE_STAIRS_BAMBOO)->sendTileData()->setUseDescriptionId(IDS_DESC_STAIRS);
+    Tile::bambooMosaicStairs = (new StairTile(bamboo_mosaic_stairs_Id, Tile::wood, WoodTile::BAMBOO_MOSAIC))->setBaseItemTypeAndMaterial(Item::eBaseItemType_stairs, Item::eMaterial_wood)->setIconName(L"stairsWoodBambooMosaic")->setDescriptionId(IDS_TILE_STAIRS_BAMBOO_MOSAIC)->sendTileData()->setUseDescriptionId(IDS_DESC_STAIRS);
+
+    Tile::strippedLog = (new StrippedLogTile(stripped_log_Id, 0))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structwoodstuff, Item::eMaterial_wood)->setDestroyTime(2.0f)->setExplodeable(5)->setSoundType(Tile::SOUND_WOOD)->setDescriptionId(IDS_TILE_STRIPPED_OAK_LOG)->sendTileData()->setUseDescriptionId(IDS_DESC_LOG);
+    Tile::strippedLog2 = (new StrippedLogTile(stripped_log2_Id, 4))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structwoodstuff, Item::eMaterial_wood)->setDestroyTime(2.0f)->setExplodeable(5)->setSoundType(Tile::SOUND_WOOD)->setDescriptionId(IDS_TILE_STRIPPED_ACACIA_LOG)->sendTileData()->setUseDescriptionId(IDS_DESC_LOG);
+    Tile::blackstone = (new BlackStoneTile(blackstone_block_Id))
+    ->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)
+    ->setDestroyTime(1.85f)
+    ->setExplodeable(6.5f)
+    ->setSoundType(Tile::SOUND_STONE)
+    ->setDescriptionId(IDS_TILE_BLACKSTONE)
+    ->sendTileData()
+    ->setUseDescriptionId(IDS_DESC_STONE);
+    Tile::stairs_blackstone = (new StairTile(221, Tile::blackstone, 0))->setBaseItemTypeAndMaterial(Item::eBaseItemType_stairs, Item::eMaterial_stone)->setDestroyTime(1.85f)->setExplodeable(6.5f)->setSoundType(Tile::SOUND_STONE)->setDescriptionId(IDS_TILE_BLACKSTONE_STAIRS)->sendTileData();
+    Tile::blackstoneWall = (new BlackStoneWallTile(222, Tile::blackstone))->setBaseItemTypeAndMaterial(Item::eBaseItemType_fence, Item::eMaterial_stone)->setDescriptionId(IDS_TILE_BLACKSTONE_WALL)->setUseDescriptionId(IDS_DESC_COBBLESTONE_WALL);
+
+    // Lucky Block
+    Tile::lucky_block = (new LuckyBlockTile(lucky_block_Id))
+    ->setBaseItemTypeAndMaterial(Item::eBaseItemType_redstoneContainer, Item::eMaterial_undefined)
+    ->setDestroyTime(0.85f)
+    ->setExplodeable(6.0f)
+    ->setSoundType(Tile::SOUND_METAL)
+    ->setDescriptionId(IDS_TILE_LUCKY_BLOCK)
+    ->sendTileData()
+    ->setUseDescriptionId(IDS_DESC_TILE_LUCKY_BLOCK);
+
+    // GRINDSTONE_RENDERER: custom five-cuboid JSON model.
+    Tile::grindstone = new GrindstoneTile(grindstone_Id);
+    Tile::grindstone
+        ->setBaseItemTypeAndMaterial(
+            Item::eBaseItemType_device,
+            Item::eMaterial_stone)
+        ->setDestroyTime(2.0f)
+        ->setExplodeable(6.0f)
+        ->setSoundType(Tile::SOUND_STONE)
+        ->setDescriptionId(IDS_TILE_GRINDSTONE)
+        ->sendTileData()
+        ->setUseDescriptionId(IDS_DESC_STONE);
+
+    // ID 225 is intentionally reserved for the upcoming observer.
+    // Concrete powder = 226, concrete = 227.
+
+    Tile::concrete_powder = (new ConcretePowderTile(concrete_powder_Id))
+        ->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_sand)
+        ->setDestroyTime(0.5f)
+        ->setExplodeable(2.5f)
+        ->setSoundType(Tile::SOUND_SAND)
+        ->setIconName(L"concrete_powder")
+        ->setDescriptionId(IDS_TILE_CONCRETE_POWDER)
+        ->sendTileData()
+        ->setUseDescriptionId(IDS_DESC_CONCRETE_POWDER);
+
+    Tile::concrete = (new ConcreteTile(concrete_Id))
+        ->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)
+        ->setDestroyTime(1.8f)
+        ->setExplodeable(1.8f)
+        ->setSoundType(Tile::SOUND_STONE)
+        ->setIconName(L"concrete")
+        ->setDescriptionId(IDS_TILE_CONCRETE)
+        ->sendTileData()
+        ->setUseDescriptionId(IDS_DESC_CONCRETE);
+
+    // Register metadata-aware item forms so the 16 colors stack independently.
+    Item::items[concrete_powder_Id] =
+        (new WoolTileItem(concrete_powder_Id - 256))
+        ->setDescriptionId(IDS_TILE_CONCRETE_POWDER)
+        ->setUseDescriptionId(IDS_DESC_CONCRETE_POWDER);
+
+    Item::items[concrete_Id] =
+        (new WoolTileItem(concrete_Id - 256))
+        ->setDescriptionId(IDS_TILE_CONCRETE)
+        ->setUseDescriptionId(IDS_DESC_CONCRETE);
+
+    // neoLegacy - Complex Table: Workbench clone, blue-tinted via getColor()
+    // override (same icons as crafting_table, no new texture needed), opens
+    // its own ComplexCraftingMenu with an exclusive concrete-powder recipe set.
+    Tile::complexTable = (new ComplexTableTile(complex_table_Id))
+        ->setBaseItemTypeAndMaterial(Item::eBaseItemType_device, Item::eMaterial_wood)
+        ->setDestroyTime(2.5f)
+        ->setSoundType(Tile::SOUND_WOOD)
+        ->setIconName(L"crafting_table")
+        ->setDescriptionId(IDS_TILE_COMPLEX_TABLE)
+        ->sendTileData()
+        ->setUseDescriptionId(IDS_DESC_COMPLEX_TABLE);
+
+    // neoLegacy - Jelly Block: terrain.png row 31, col 15 (registered in PreStitchedTextureMap.cpp)
+    // The base item type decides which crafting-menu column a recipe's result lands in (types left "undefined" are not listed at all):
+    // storage blocks share the "block" column, so the Jelly Block sits in the same column as the Slime Block.
+    Tile::jellyBlock = (new JellyBlockTile(jelly_block_Id))
+        ->setBaseItemTypeAndMaterial(Item::eBaseItemType_block, Item::eMaterial_slime)
+        ->setSoundType(Tile::SOUND_SLIME)
+        ->setIconName(L"jelly_block")
+        ->setDescriptionId(IDS_TILE_JELLY_BLOCK)
+        ->setUseDescriptionId(IDS_DESC_JELLY_BLOCK);
+
+    // Observer: full cube, 6-way facing, poll-based change detection.
+    // Icon names match the 5 slots already reserved in
+    // PreStitchedTextureMap.cpp (row 27, cols 4-8) -- nothing to add there.
+    Tile::observer = new ObserverTile(observer_Id);
+    Tile::observer
+        ->setBaseItemTypeAndMaterial(
+            Item::eBaseItemType_redstoneContainer,
+            Item::eMaterial_stone)
+        ->setDestroyTime(3.5f)
+        ->setExplodeable(6.0f)
+        ->setSoundType(Tile::SOUND_STONE)
+        ->setDescriptionId(IDS_TILE_OBSERVER)
+        ->sendTileData()
+        ->setUseDescriptionId(IDS_DESC_TILE_OBSERVER);
+
+    // neoLegacy - Drill: full cube, 6-way facing like the Observer. Mines the block in front
+    // of its face while powered (see DrillTileEntity). Uses the Observer's textures except the
+    // front, which is "drill_face" (already registered in PreStitchedTextureMap, row 27 col 9).
+    Tile::drill = new DrillTile(drill_Id);
+    Tile::drill
+        ->setBaseItemTypeAndMaterial(
+            Item::eBaseItemType_redstoneContainer,
+            Item::eMaterial_stone)
+        ->setDestroyTime(3.5f)
+        ->setExplodeable(6.0f)
+        ->setSoundType(Tile::SOUND_STONE)
+        ->setDescriptionId(IDS_TILE_DRILL)
+        ->sendTileData()
+        ->setUseDescriptionId(IDS_DESC_TILE_DRILL);
+
+    // neoLegacy - Arcade Machines: the unpowered IDs are the only craftable/inventory forms.
+    // The three powered variants glow at light level 3/15 and use their game-specific screen.
+    Tile::cookieMiner = new ArcadeMachineTile(cookie_miner_Id, ARCADE_GAME_COOKIE_MINER, cookie_miner_Id, cookie_miner_powered_Id, false);
+    Tile::cookieMiner->setBaseItemTypeAndMaterial(Item::eBaseItemType_redstoneContainer, Item::eMaterial_stone)
+        ->setDestroyTime(3.5f)->setExplodeable(6.0f)->setSoundType(Tile::SOUND_STONE)
+        ->setDescriptionId(IDS_TILE_COOKIE_MINER)->sendTileData()->setUseDescriptionId(IDS_DESC_TILE_COOKIE_MINER);
+
+    Tile::flappyCraft = new ArcadeMachineTile(flappy_craft_Id, ARCADE_GAME_FLAPPY_CRAFT, flappy_craft_Id, flappy_craft_powered_Id, false);
+    Tile::flappyCraft->setBaseItemTypeAndMaterial(Item::eBaseItemType_redstoneContainer, Item::eMaterial_stone)
+        ->setDestroyTime(3.5f)->setExplodeable(6.0f)->setSoundType(Tile::SOUND_STONE)
+        ->setDescriptionId(IDS_TILE_FLAPPY_CRAFT)->sendTileData()->setUseDescriptionId(IDS_DESC_TILE_FLAPPY_CRAFT);
+
+    Tile::mineSnake = new ArcadeMachineTile(mine_snake_Id, ARCADE_GAME_MINE_SNAKE, mine_snake_Id, mine_snake_powered_Id, false);
+    Tile::mineSnake->setBaseItemTypeAndMaterial(Item::eBaseItemType_redstoneContainer, Item::eMaterial_stone)
+        ->setDestroyTime(3.5f)->setExplodeable(6.0f)->setSoundType(Tile::SOUND_STONE)
+        ->setDescriptionId(IDS_TILE_MINE_SNAKE)->sendTileData()->setUseDescriptionId(IDS_DESC_TILE_MINE_SNAKE);
+
+    Tile::cookieMinerPowered = new ArcadeMachineTile(cookie_miner_powered_Id, ARCADE_GAME_COOKIE_MINER, cookie_miner_Id, cookie_miner_powered_Id, true);
+    Tile::cookieMinerPowered->setBaseItemTypeAndMaterial(Item::eBaseItemType_redstoneContainer, Item::eMaterial_stone)
+        ->setDestroyTime(3.5f)->setExplodeable(6.0f)->setSoundType(Tile::SOUND_STONE)
+        ->setLightEmission(0.20f)->setDescriptionId(IDS_TILE_COOKIE_MINER)->sendTileData()->setUseDescriptionId(IDS_DESC_TILE_COOKIE_MINER);
+
+    Tile::flappyCraftPowered = new ArcadeMachineTile(flappy_craft_powered_Id, ARCADE_GAME_FLAPPY_CRAFT, flappy_craft_Id, flappy_craft_powered_Id, true);
+    Tile::flappyCraftPowered->setBaseItemTypeAndMaterial(Item::eBaseItemType_redstoneContainer, Item::eMaterial_stone)
+        ->setDestroyTime(3.5f)->setExplodeable(6.0f)->setSoundType(Tile::SOUND_STONE)
+        ->setLightEmission(0.20f)->setDescriptionId(IDS_TILE_FLAPPY_CRAFT)->sendTileData()->setUseDescriptionId(IDS_DESC_TILE_FLAPPY_CRAFT);
+
+    Tile::mineSnakePowered = new ArcadeMachineTile(mine_snake_powered_Id, ARCADE_GAME_MINE_SNAKE, mine_snake_Id, mine_snake_powered_Id, true);
+    Tile::mineSnakePowered->setBaseItemTypeAndMaterial(Item::eBaseItemType_redstoneContainer, Item::eMaterial_stone)
+        ->setDestroyTime(3.5f)->setExplodeable(6.0f)->setSoundType(Tile::SOUND_STONE)
+        ->setLightEmission(0.20f)->setDescriptionId(IDS_TILE_MINE_SNAKE)->sendTileData()->setUseDescriptionId(IDS_DESC_TILE_MINE_SNAKE);
+
+    // neoLegacy - Crusher and Refiner: one block class (ProcessorTile) registered twice. Top and
+    // bottom use crusher_top / crusher_bottom, the sides use observer_side; the Refiner is the same
+    // block with a gold tint. See ProcessorTileEntity for what they do.
+    Tile::crusher = new ProcessorTile(crusher_Id, false);
+    Tile::crusher
+        ->setBaseItemTypeAndMaterial(
+            Item::eBaseItemType_redstoneContainer,
+            Item::eMaterial_stone)
+        ->setDestroyTime(3.5f)
+        ->setExplodeable(6.0f)
+        ->setSoundType(Tile::SOUND_STONE)
+        ->setDescriptionId(IDS_TILE_CRUSHER)
+        ->sendTileData()
+        ->setUseDescriptionId(IDS_DESC_TILE_CRUSHER);
+
+    Tile::refiner = new ProcessorTile(refiner_Id, true);
+    Tile::refiner
+        ->setBaseItemTypeAndMaterial(
+            Item::eBaseItemType_redstoneContainer,
+            Item::eMaterial_stone)
+        ->setDestroyTime(3.5f)
+        ->setExplodeable(6.0f)
+        ->setSoundType(Tile::SOUND_STONE)
+        ->setDescriptionId(IDS_TILE_REFINER)
+        ->sendTileData()
+        ->setUseDescriptionId(IDS_DESC_TILE_REFINER);
+
+    // Concrete Stairs: ONE tile ID for all 16 colors. Orientation lives in the normal
+    // stair data bits; the color lives in a ConcreteColorTileEntity (see
+    // ConcreteStairTile.h). The item carries the color as its aux value.
+    Tile::concrete_stairs = (new ConcreteStairTile(concrete_stairs_Id))
+        ->setBaseItemTypeAndMaterial(Item::eBaseItemType_stairs, Item::eMaterial_stone)
+        ->setDestroyTime(1.8f)
+        ->setExplodeable(1.8f)
+        ->setSoundType(Tile::SOUND_STONE)
+        ->setDescriptionId(IDS_TILE_CONCRETE_STAIRS_BLACK)
+        ->sendTileData()
+        ->setUseDescriptionId(IDS_DESC_STAIRS);
+
+    Item::items[concrete_stairs_Id] =
+        (new ConcreteStairTileItem(concrete_stairs_Id - 256))
+        ->setUseDescriptionId(IDS_DESC_STAIRS);
+
+    // Concrete Slab: ONE half-slab ID + ONE full-slab ID for all 16 colors (color in a
+    // ConcreteColorTileEntity, see ConcreteSlabTile.h). resourceTileId is always the HALF
+    // id so breaking either the half or the full slab drops the half-slab item.
+    Tile::concrete_slab_half = new HalfConcreteSlabTile(concrete_slab_half_Id, concrete_slab_half_Id);
+    Tile::concrete_slab_full = new FullConcreteSlabTile(concrete_slab_full_Id, concrete_slab_half_Id);
+
+    // Base item types match the vanilla slabs (half = halfslab, full = slab) so the crafting
+    // menu puts the craftable half slab in its OWN column instead of sharing the
+    // structblock column with concrete powder.
+    Tile::concrete_slab_half
+        ->setBaseItemTypeAndMaterial(Item::eBaseItemType_halfslab, Item::eMaterial_stone)
+        ->setDestroyTime(2.0f)
+        ->setExplodeable(2.0f)
+        ->setSoundType(Tile::SOUND_STONE)
+        ->sendTileData()
+        ->setUseDescriptionId(IDS_DESC_HALFSLAB);
+
+    Tile::concrete_slab_full
+        ->setBaseItemTypeAndMaterial(Item::eBaseItemType_slab, Item::eMaterial_stone)
+        ->setDestroyTime(2.0f)
+        ->setExplodeable(2.0f)
+        ->setSoundType(Tile::SOUND_STONE)
+        ->sendTileData()
+        ->setUseDescriptionId(IDS_DESC_SLAB);
+
+    Item::items[Tile::concrete_slab_half->id] =
+        (new ConcreteSlabTileItem(Tile::concrete_slab_half->id - 256,
+            Tile::concrete_slab_half, Tile::concrete_slab_full, false))
+        ->setUseDescriptionId(IDS_DESC_HALFSLAB);
+
+    Item::items[Tile::concrete_slab_full->id] =
+        (new ConcreteSlabTileItem(Tile::concrete_slab_full->id - 256,
+            Tile::concrete_slab_half, Tile::concrete_slab_full, true))
+        ->setUseDescriptionId(IDS_DESC_SLAB);
+
 
 	Item::items[standing_banner_Id] = (new BannerItem(standing_banner_Id - 256))->setIconName(L"sign")->setDescriptionId(IDS_TILE_BANNER)->setUseDescriptionId(IDS_DESC_SIGN);
 
@@ -633,7 +950,14 @@ void Tile::staticCtor()
 	Item::items[stained_glass_pane_Id]	= ( new WoolTileItem(Tile::stained_glass_pane_Id - 256))->setIconName(L"stainedGlassPane")->setDescriptionId(IDS_TILE_STAINED_GLASS_PANE)->setUseDescriptionId(IDS_DESC_STAINED_GLASS_PANE);
 	Item::items[carpet_Id]			= ( new WoolTileItem(Tile::carpet_Id - 256))->setIconName(L"woolCarpet")->setDescriptionId(IDS_TILE_CARPET)->setUseDescriptionId(IDS_DESC_CARPET);
 	Item::items[log_Id] = (new MultiTextureTileItem(Tile::log_Id - 256, treeTrunk, (int*)TreeTile::TREE_NAMES, 6))->setIconName(L"log")->setDescriptionId(IDS_TILE_LOG)->setUseDescriptionId(IDS_DESC_LOG);
-	Item::items[planks_Id] = (new MultiTextureTileItem(Tile::planks_Id - 256, Tile::wood, (int*)WoodTile::WOOD_NAMES, 6, IDS_TILE_PLANKS))->setIconName(L"wood")->setDescriptionId(IDS_TILE_OAKWOOD_PLANKS)->setUseDescriptionId(IDS_DESC_LOG); //  <- TODO
+	Item::items[planks_Id] = (new MultiTextureTileItem(Tile::planks_Id - 256, Tile::wood, (int*)WoodTile::WOOD_NAMES, WoodTile::WOOD_NAMES_LENGTH, IDS_TILE_PLANKS))->setIconName(L"wood")->setDescriptionId(IDS_TILE_OAKWOOD_PLANKS)->setUseDescriptionId(IDS_DESC_LOG); //  <- TODO
+	// neoLegacy - the stripped log family: 4 woods per tile, the item carries the wood in its aux value
+	{
+		static int strippedNamesA[4] = { IDS_TILE_STRIPPED_OAK_LOG, IDS_TILE_STRIPPED_SPRUCE_LOG, IDS_TILE_STRIPPED_BIRCH_LOG, IDS_TILE_STRIPPED_JUNGLE_LOG };
+		static int strippedNamesB[3] = { IDS_TILE_STRIPPED_ACACIA_LOG, IDS_TILE_STRIPPED_DARK_OAK_LOG, IDS_TILE_STRIPPED_BAMBOO_BLOCK };
+		Item::items[stripped_log_Id] = (new MultiTextureTileItem(Tile::stripped_log_Id - 256, Tile::strippedLog, strippedNamesA, 4))->setDescriptionId(IDS_TILE_STRIPPED_OAK_LOG)->setUseDescriptionId(IDS_DESC_LOG);
+		Item::items[stripped_log2_Id] = (new MultiTextureTileItem(Tile::stripped_log2_Id - 256, Tile::strippedLog2, strippedNamesB, 3))->setDescriptionId(IDS_TILE_STRIPPED_ACACIA_LOG)->setUseDescriptionId(IDS_DESC_LOG);
+	}
 	Item::items[monster_egg_Id]		= ( new MultiTextureTileItem(Tile::monster_egg_Id - 256, monster_egg, (int *)StoneMonsterTile::STONE_MONSTER_NAMES, 3))->setIconName(L"monster_egg")->setDescriptionId(IDS_TILE_STONE_SILVERFISH)->setUseDescriptionId(IDS_DESC_STONE_SILVERFISH); // 4J - Brought forward from post-1.2 to fix stacking problem
 	Item::items[stone_Id]			= ( new MultiTextureTileItem(Tile::stone_Id - 256,Tile::stone,(int*)StoneTile::STONE_NAMES, StoneTile::STONE_NAMES_LENGTH))->setIconName(L"stone")->setDescriptionId(IDS_TILE_STONE);
 	Item::items[stonebrick_Id]			= ( new MultiTextureTileItem(Tile::stonebrick_Id - 256, stoneBrick,(int *)SmoothStoneBrickTile::SMOOTH_STONE_BRICK_NAMES, 4))->setIconName(L"stonebricksmooth")->setDescriptionId(IDS_TILE_STONE_BRICK_SMOOTH);
@@ -655,10 +979,11 @@ void Tile::staticCtor()
 	Item::items[waterlily_Id]			= ( new WaterLilyTileItem(Tile::waterlily_Id - 256));
 	Item::items[piston_Id]			= ( new PistonTileItem(Tile::piston_Id - 256) )->setDescriptionId(IDS_TILE_PISTON_BASE)->setUseDescriptionId(IDS_DESC_PISTON);
 	Item::items[sticky_piston_Id]	= ( new PistonTileItem(Tile::sticky_piston_Id - 256) )->setDescriptionId(IDS_TILE_PISTON_STICK_BASE)->setUseDescriptionId(IDS_DESC_STICKY_PISTON);
-	Item::items[cobblestone_wall_Id]			= ( new MultiTextureTileItem(cobblestone_wall_Id - 256, cobbleWall, (int *)WallTile::COBBLE_NAMES, 2) )->setDescriptionId(IDS_TILE_COBBLESTONE_WALL)->setUseDescriptionId(IDS_DESC_COBBLESTONE_WALL);
+	Item::items[cobblestone_wall_Id]			= ( new MultiTextureTileItem(cobblestone_wall_Id - 256, cobbleWall, (int *)WallTile::COBBLE_NAMES, 2) )->setDescriptionId(IDS_TILE_CALCITE_WALL)->setUseDescriptionId(IDS_DESC_COBBLESTONE_WALL);
 	Item::items[anvil_Id]				= ( new AnvilTileItem(anvil) )->setDescriptionId(IDS_TILE_ANVIL)->setUseDescriptionId(IDS_DESC_ANVIL);
 	Item::items[dirt_Id] = (new MultiTextureTileItem(Tile::dirt_Id - 256, dirt, (int*)DirtTile::DIRT_NAMES, 3))->setIconName(L"dirt")->setDescriptionId(IDS_TILE_DIRT)->setUseDescriptionId(IDS_DESC_DIRT);
-		
+
+    Item::items[calcite_wall_Id] = (new TileItem(calcite_wall_Id - 256))->setDescriptionId(IDS_TILE_CALCITE_WALL)->setUseDescriptionId(IDS_DESC_COBBLESTONE_WALL);
 	Item::items[red_flower_Id] = (new MultiTextureTileItem(Tile::red_flower_Id - 256, rose, (int*)Rose::FLOWER_NAMES, Rose::FLOWER_NAMES_LENGTH))->setIconName(L"flower_rose")->setDescriptionId(IDS_TILE_ROSE)->setUseDescriptionId(IDS_DESC_FLOWER);
 	Item::items[sand_Id] = (new MultiTextureTileItem(Tile::sand_Id - 256, sand, (int*)SandTile::SAND_NAMES, SandTile::SAND_NAMES_LENGTH))->setIconName(L"sand")->setDescriptionId(IDS_TILE_SAND)->setUseDescriptionId(IDS_DESC_SAND);
 	Item::items[red_sandstone_Id] = (new MultiTextureTileItem(Tile::red_sandstone_Id - 256, red_sandstone, (int*)RedSandStoneTile::SANDSTONE_NAMES, RedSandStoneTile::SANDSTONE_BLOCK_NAMES))->setIconName(L"red_sandstone")->setDescriptionId(IDS_TILE_RED_SANDSTONE)->setUseDescriptionId(IDS_DESC_SANDSTONE);
@@ -666,6 +991,15 @@ void Tile::staticCtor()
 	Item::items[double_stone_slab2_Id] = (new StoneSlabTileItem(Tile::double_stone_slab2_Id - 256, Tile::stoneSlab2Half, Tile::stoneSlab2, true))->setIconName(L"red_sandstone")->setDescriptionId(IDS_TILE_RED_SANDSTONE)->setUseDescriptionId(IDS_DESC_SLAB);
 	Item::items[log2_Id] = (new MultiTextureTileItem(Tile::log2_Id - 256, log2, (int*)TreeTile2::TREE_NAMES, TreeTile2::TREE_NAMES_LENGTH))->setIconName(L"log")->setDescriptionId(IDS_TILE_LOG)->setUseDescriptionId(IDS_DESC_LOG);
 	Item::items[sponge_Id] = (new MultiTextureTileItem(Tile::sponge_Id - 256, sponge, (int*)Sponge::SPONGE_NAMES, Sponge::SPONGE_NAMES_LENGTH))->setIconName(L"sponge")->setDescriptionId(IDS_TILE_SPONGE)->setUseDescriptionId(IDS_DESC_SPONGE);
+    Item::items[blackstone_block_Id] =
+    (new MultiTextureTileItem(
+        Tile::blackstone_block_Id - 256,
+        Tile::blackstone,
+        (int*)BlackStoneTile::BLACKSTONE_NAMES,
+        BlackStoneTile::BLACKSTONE_NAMES_LENGTH))
+    ->setIconName(L"blackstone")
+    ->setDescriptionId(IDS_TILE_BLACKSTONE);
+
 
 	int double_plantIdsData[TallGrass2::VARIANT_COUNT] = {
 		IDS_TILE_SUNFLOWER,			  // 0 - Sunflower, not implemented yet
@@ -678,13 +1012,16 @@ void Tile::staticCtor()
 	intArray double_plantIds = intArray(double_plantIdsData, 6);
 	Item::items[double_plant_Id] = static_cast<double_plantTileItem*>((new double_plantTileItem(Tile::double_plant_Id - 256))->setDescriptionId(IDS_TILE_DOUBLE_TALL_GRASS)->setUseDescriptionId(IDS_DESC_TALL_GRASS))->setDescriptionPostfixes(double_plantIds);
 
-	for (int i = 0; i < 256; i++)
+	for (int i = 0; i < TILE_NUM_COUNT; i++)	// neoLegacy - was 256: extended tile ids (>= EXT_TILE_ID_FIRST) get their item too
 	{
 		if ( Tile::tiles[i] != nullptr )
 		{
 			if( Item::items[i] == nullptr)
 			{
-				Item::items[i] = new TileItem(i - 256);
+                if (i != cookie_miner_powered_Id && i != flappy_craft_powered_Id && i != mine_snake_powered_Id && i != bamboo_Id && i != bamboo_shoot_Id)
+                {
+                    Item::items[i] = new TileItem(i - 256);
+                }
 				Tile::tiles[i]->init();
 			}
 
@@ -1103,6 +1440,12 @@ int Tile::getResource(int data, Random *random, int playerBonusLevel)
 	return id;
 }
 
+// neoLegacy Added - Auto Smelt (base: nothing to smelt by default)
+int Tile::getSmeltedResource(int data)
+{
+	return -1;
+}
+
 float Tile::getDestroyProgress(shared_ptr<Player> player, Level *level, int x, int y, int z)
 {
 	float destroySpeed = getDestroySpeed(level, x, y, z);
@@ -1454,6 +1797,16 @@ void Tile::playerDestroy(Level *level, shared_ptr<Player> player, int x, int y, 
 		{
 			popResource(level, x, y, z, item);
 		}
+	}
+	// neoLegacy Added - Auto Smelt (checked after Silk Touch, since Silk
+	// Touch already claims "give me the raw block" and takes priority -
+	// the two are also marked incompatible in AutoSmeltEnchantment so a
+	// single tool shouldn't normally have both anyway)
+	else if (getSmeltedResource(data) >= 0 && EnchantmentHelper::hasAutoSmelt(player))
+	{
+		shared_ptr<ItemInstance> item = std::make_shared<ItemInstance>(getSmeltedResource(data), 1, 0);
+		popResource(level, x, y, z, item);
+		popExperience(level, x, y, z, 1); // matches typical furnace smelting XP yield
 	}
 	else
 	{
@@ -1928,6 +2281,17 @@ const int Tile::quartz_block_Id;
 const int Tile::quartz_stairs_Id;
 const int Tile::carpet_Id;
 const int Tile::acacia_stairs_Id;
+const int Tile::bamboo_Id;
+const int Tile::bamboo_shoot_Id;
+const int Tile::bamboo_block_Id;
+const int Tile::stripped_log_Id;
+const int Tile::stripped_log2_Id;
+const int Tile::bamboo_fence_Id;
+const int Tile::bamboo_fence_gate_Id;
+const int Tile::bamboo_trapdoor_Id;
+const int Tile::bamboo_door_Id;
+const int Tile::bamboo_stairs_Id;
+const int Tile::bamboo_mosaic_stairs_Id;
 const int Tile::dark_oak_stairs_Id;
 const int Tile::slime_Id;
 const int Tile::beetroots_Id;
@@ -1937,4 +2301,11 @@ const int Tile::magma_Id;
 const int Tile::nether_wart_block_Id;
 const int Tile::red_nether_brick_Id;
 const int Tile::bone_block_Id;
+const int Tile::stairs_calcite;
+const int Tile::calciteWall;
+const int Tile::blackstone_block_Id;
+const int Tile::stairs_blackstone_block_Id;
+const int Tile::blackstone_wall_Id;
+const int Tile::lucky_block_Id;
+const int Tile::jelly_block_Id;	// neoLegacy
 #endif

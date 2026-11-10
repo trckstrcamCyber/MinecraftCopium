@@ -5,12 +5,23 @@ using namespace std;
 
 class WeaponItem : public Item
 {
+public:
+	enum ZoroSwordType
+	{
+		ZORO_NONE = 0,
+		ZORO_WADO_ICHIMONJI,
+		ZORO_SANDAI_KITETSU,
+		ZORO_ENMA,
+		ZORO_SHUSUI
+	};
+
 private:
 	float damage;
 	const Tier *tier;
+	ZoroSwordType zoroType;
 
 public:
-	WeaponItem(int id, const Tier *tier);
+	WeaponItem(int id, const Tier *tier, ZoroSwordType zoroType = ZORO_NONE);
 	virtual float getTierDamage();
 	virtual float getDestroySpeed(shared_ptr<ItemInstance> itemInstance, Tile *tile);
 	virtual bool hurtEnemy(shared_ptr<ItemInstance> itemInstance, shared_ptr<LivingEntity> mob, shared_ptr<LivingEntity> attacker);
@@ -25,4 +36,11 @@ public:
 	const Tier *getTier();
 	bool isValidRepairItem(shared_ptr<ItemInstance> source, shared_ptr<ItemInstance> repairItem);
 	attrAttrModMap *getDefaultAttributeModifiers();
+
+	bool isZoroSword() const;
+	ZoroSwordType getZoroSwordType() const;
+	float getZoroDamageMultiplier(int comboStep) const;
+	float getZoroAttackRange() const;
+	float getZoroAttackAngle() const;
+	int getZoroAttackCooldown() const;
 };

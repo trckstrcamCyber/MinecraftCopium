@@ -16,6 +16,7 @@
 #include "BeaconRenderer.h"
 #include "BannerRenderer.h"
 #include "BannerModel.h"
+#include "BedRenderer.h"
 
 TileEntityRenderDispatcher *TileEntityRenderDispatcher::instance = nullptr;
 double TileEntityRenderDispatcher::xOff = 0;
@@ -50,6 +51,7 @@ TileEntityRenderDispatcher::TileEntityRenderDispatcher()
 	renderers[eTYPE_FURNACETILEENTITY] = nullptr;
 	renderers[eTYPE_BEACONTILEENTITY] = new BeaconRenderer();
 	renderers[eTYPE_BANNERTILEENTITY] = new BannerRenderer();
+	renderers[eTYPE_BEDTILEENTITY] = new BedRenderer();	// neoLegacy - Fancy Beds
 	glDisable(GL_LIGHTING);
 
 	for(auto& renderer : renderers)

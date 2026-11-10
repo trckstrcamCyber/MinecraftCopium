@@ -32,6 +32,8 @@ void Input::tick(LocalPlayer *player)
 
 	Minecraft *pMinecraft=Minecraft::GetInstance();
 	int iPad=player->GetXboxPad();
+    ArcadeGameSession &arcadeGame = player->getArcadeGameSession();
+    const bool arcadeActive = arcadeGame.isActive();
 
 	float controllerXA = 0.0f;
 	float controllerYA = 0.0f;
@@ -136,9 +138,9 @@ void Input::tick(LocalPlayer *player)
 	float tx = 0.0f;
 	float ty = 0.0f;
 
-	if( pMinecraft->localgameModes[iPad]->isInputAllowed(MINECRAFT_ACTION_LOOK_LEFT) || pMinecraft->localgameModes[iPad]->isInputAllowed(MINECRAFT_ACTION_LOOK_RIGHT) )
+	if (!arcadeActive && (pMinecraft->localgameModes[iPad]->isInputAllowed(MINECRAFT_ACTION_LOOK_LEFT) || pMinecraft->localgameModes[iPad]->isInputAllowed(MINECRAFT_ACTION_LOOK_RIGHT)))
 		tx = InputManager.GetJoypadStick_RX(iPad)*(static_cast<float>(app.GetGameSettings(iPad, eGameSetting_Sensitivity_InGame))/100.0f); // apply sensitivity to look
-	if( pMinecraft->localgameModes[iPad]->isInputAllowed(MINECRAFT_ACTION_LOOK_UP) || pMinecraft->localgameModes[iPad]->isInputAllowed(MINECRAFT_ACTION_LOOK_DOWN) )
+	if (!arcadeActive && (pMinecraft->localgameModes[iPad]->isInputAllowed(MINECRAFT_ACTION_LOOK_UP) || pMinecraft->localgameModes[iPad]->isInputAllowed(MINECRAFT_ACTION_LOOK_DOWN)))
 		ty = InputManager.GetJoypadStick_RY(iPad)*(static_cast<float>(app.GetGameSettings(iPad, eGameSetting_Sensitivity_InGame))/100.0f); // apply sensitivity to look
 
 #ifndef _CONTENT_PACKAGE
@@ -171,13 +173,26 @@ void Input::tick(LocalPlayer *player)
 		float mx = g_KBMInput.GetLookX(mouseSensitivity * mouseLookScale);
 		float my = g_KBMInput.GetLookY(mouseSensitivity * mouseLookScale);
 
-		if ( app.GetGameSettings(iPad,eGameSetting_ControlInvertLook) )
-		{
-			my = -my;
-		}
-
-		turnX += mx;
-		turnY += my;
+        if (arcadeActive)
+        {
+            // GetLookX/Y are scaled relative mouse deltas. Undo the sensitivity scale
+            // so the cursor moves in screen pixels instead of rotating the world camera.
+            float scale = mouseSensitivity * mouseLookScale;
+            if (scale < 0.001f) scale = 1.0f;
+            extern int g_rScreenWidth;
+            extern int g_rScreenHeight;
+            arcadeGame.moveCursorByPixels(mx / scale, -my / scale,
+                static_cast<float>(g_rScreenWidth), static_cast<float>(g_rScreenHeight));
+        }
+        else
+        {
+            if ( app.GetGameSettings(iPad,eGameSetting_ControlInvertLook) )
+            {
+                my = -my;
+            }
+            turnX += mx;
+            turnY += my;
+        }
 	}
 #endif
 
@@ -202,7 +217,15 @@ void Input::tick(LocalPlayer *player)
 #ifdef _WINDOWS64
 	if (iPad == 0 && g_KBMInput.IsKeyPressed(VK_ESCAPE) && g_KBMInput.IsMouseGrabbed())
 	{
-		g_KBMInput.SetMouseGrabbed(false);
+        if (arcadeActive)
+        {
+            // Escape exits the mini-game without unlocking the mouse into world-look mode.
+            arcadeGame.stop();
+        }
+        else
+        {
+            g_KBMInput.SetMouseGrabbed(false);
+        }
 	}
 #endif
 

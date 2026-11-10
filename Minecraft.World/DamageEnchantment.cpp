@@ -51,6 +51,8 @@ int DamageEnchantment::getDescriptionId()
 
 bool DamageEnchantment::isCompatibleWith(Enchantment *other) const
 {
+	// neoLegacy - Sharpness / Smite / Bane exclude Density and Breach too (Java's exclusive set)
+	if (other == Enchantment::density || other == Enchantment::breach) return false;
 	return dynamic_cast<DamageEnchantment *>(other) == nullptr;
 }
 

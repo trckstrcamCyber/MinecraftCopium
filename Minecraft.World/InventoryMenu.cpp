@@ -96,6 +96,13 @@ shared_ptr<ItemInstance> InventoryMenu::quickMoveStack(shared_ptr<Player> player
 	shared_ptr<ItemInstance> clicked = nullptr;
 	Slot *slot = slots.at(slotIndex);
 	
+	// neoLegacy - Curse of Binding: shift-clicking a bound item out of an armor slot does nothing
+	if (slotIndex >= ARMOR_SLOT_START && slotIndex < ARMOR_SLOT_END)
+	{
+		Slot *armorSlot = slots.at(slotIndex);
+		if (armorSlot != nullptr && armorSlot->hasItem() && !armorSlot->mayPickup(player)) return nullptr;
+	}
+
 	Slot *HelmetSlot = slots.at(ARMOR_SLOT_START);
 	Slot *ChestplateSlot = slots.at(ARMOR_SLOT_START+1);
 	Slot *LeggingsSlot = slots.at(ARMOR_SLOT_START+2);

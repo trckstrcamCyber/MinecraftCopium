@@ -355,6 +355,7 @@ unsigned int PotionItem::getUseDescriptionId(shared_ptr<ItemInstance> instance)
 	else if( MACRO_POTION_IS_INSTANTDAMAGE(brew)) return IDS_POTION_DESC_HARM;
 	else if( MACRO_POTION_IS_WATERBREATHING(brew)) return IDS_POTION_DESC_WATERBREATHING;
 	else if( MACRO_POTION_IS_JUMPBOOST(brew)) return IDS_POTION_DESC_JUMPBOOST;
+	else if( MACRO_POTION_IS_FREEZING(brew)) return IDS_POTION_DESC_FREEZING;	// neoLegacy
 	return IDS_POTION_DESC_EMPTY;
 }
 

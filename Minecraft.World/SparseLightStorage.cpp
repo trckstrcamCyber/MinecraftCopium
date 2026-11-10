@@ -87,9 +87,30 @@ SparseLightStorage::~SparseLightStorage()
 SparseLightStorage::SparseLightStorage(SparseLightStorage *copyFrom)
 {
 	// Extra details of source storage
-	int64_t sourceDataAndCount = copyFrom->dataAndCount;
+	int64_t sourceDataAndCount = (copyFrom != nullptr) ? copyFrom->dataAndCount : 0;
 	unsigned char *sourceIndicesAndData = (unsigned char *)(sourceDataAndCount & 0x0000ffffffffffff);
 	int sourceCount = (sourceDataAndCount >> 48 ) & 0xffff;
+
+	// neoLegacy - split-screen crash fix. The host's client chunk copies lighting straight out of the server's chunk while the server
+	// thread is still running, and a crash log showed this copy reading from a "data pointer" of 0x1 (memcpy source = 1, 128 bytes)
+	// when the server chunk had been freed underneath it. Never dereference something that cannot be a valid storage block;
+	// fall back to an empty (all 0) storage instead. The client gets the real lighting from the server shortly after anyway.
+	if( ( copyFrom == nullptr ) || ( reinterpret_cast<uintptr_t>(sourceIndicesAndData) < 0x10000 ) || ( sourceCount > 127 ) )
+	{
+		app.DebugPrintf("[SparseLightStorage] copy ctor given an invalid source (copyFrom=%p dataAndCount=0x%llx) - using empty lighting\n", copyFrom, (long long)sourceDataAndCount);
+		unsigned char *emptyIndices = static_cast<unsigned char *>(malloc(128));
+		for( int i = 0; i < 128; i++ )
+		{
+			emptyIndices[i] = ALL_0_INDEX;
+		}
+#pragma warning ( disable : 4826 )
+		dataAndCount = ( ( (int64_t) emptyIndices ) & 0x0000ffffffffffffL );
+#pragma warning ( default : 4826 )
+#ifdef LIGHT_COMPRESSION_STATS
+		count = 0;
+#endif
+		return;
+	}
 
 	// Allocate & copy indices ( 128 bytes ) and any allocated planes (128 * count)
 	unsigned char *destIndicesAndData = static_cast<unsigned char *>(malloc(sourceCount * 128 + 128));

@@ -23,6 +23,8 @@ public:
 	// neoLegacy-defined custom packets
 	static const wstring UPDATE_RECIPE_REGISTRY;
 	static const wstring UPDATE_CREATIVE_REGISTRY;
+	static const wstring ARCADE_SAVE_PACKET;	// client->server: the player's Arcade Machine progress (see ArcadeSaveData)
+	static const wstring ARCADE_SYNC_PACKET;	// server->client: the saved Arcade Machine progress, sent once after joining/respawning
 
 	// Security: stream cipher handshake channels
 	static const wstring CIPHER_KEY_CHANNEL;   // server->client: carries 32-byte key (16 AES key + 16 IV)

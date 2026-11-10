@@ -65,6 +65,7 @@ void MinecraftWorld_RunStaticCtors()
 			MineShaftPieces::staticCtor();
 			StrongholdFeature::staticCtor();
 			VillagePieces::Smithy::staticCtor();
+			VillagePieces::BlacksmithHouse::staticCtor();
 			VillageFeature::staticCtor();
 			RandomScatteredLargeFeature::staticCtor();
 		}

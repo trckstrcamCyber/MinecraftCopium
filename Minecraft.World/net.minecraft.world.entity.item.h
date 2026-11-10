@@ -9,6 +9,7 @@
 #include "MinecartHopper.h"
 #include "MinecartFurnace.h"
 #include "MinecartRideable.h"
+#include "MinecartDiamond.h"
 #include "MinecartSpawner.h"
 #include "MinecartTNT.h"
 #include "PrimedTnt.h"

@@ -12,5 +12,7 @@ enum EGameCommand
 	eGameCommand_Time,
 	eGameCommand_ToggleDownfall,
 	eGameCommand_Teleport,
+	eGameCommand_Clear,
+	eGameCommand_Locate,	// neoLegacy - /locate structure lookup
 	eGameCommand_COUNT
 };

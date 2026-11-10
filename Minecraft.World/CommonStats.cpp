@@ -77,13 +77,10 @@ Stat *CommonStats::get_totalBlocksMined() { return Stats::totalBlocksMined; }
 Stat* CommonStats::get_timePlayed() { return Stats::timePlayed; }
 
 Stat* CommonStats::get_blocksPlaced(int blockId)
-{ 
-#if (defined _EXTENDED_ACHIEVEMENTS) && (!defined _XBOX_ONE)
+{
+	// neoLegacy - the table holds 1000 entries, but extended tile ids go up to 4095: no stat for those (callers accept nullptr)
+	if (blockId < 0 || Stats::blocksPlaced.data == nullptr || static_cast<unsigned int>(blockId) >= Stats::blocksPlaced.length) return nullptr;
 	return Stats::blocksPlaced[blockId];
-#else
-	return Stats::blocksPlaced[blockId];
-	//return nullptr;
-#endif
 }
 
 Stat *CommonStats::get_blocksMined(int blockId) { return Stats::blocksMined[blockId]; }

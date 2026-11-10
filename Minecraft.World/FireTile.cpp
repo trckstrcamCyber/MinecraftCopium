@@ -21,11 +21,12 @@ const wstring FireTile::TEXTURE_SECOND = L"fire_1";
 
 FireTile::FireTile(int id) : Tile(id, Material::fire,isSolidRender())
 {
-	flameOdds = new int[256];
-	memset( flameOdds,0,sizeof(int)*256);
+	// neoLegacy - one entry per possible tile id (was 256, which the extended ids >= 2304 wrote far past the end of)
+	flameOdds = new int[Tile::TILE_NUM_COUNT];
+	memset( flameOdds,0,sizeof(int)*Tile::TILE_NUM_COUNT);
 
-	burnOdds = new int[256];
-	memset( burnOdds,0,sizeof(int)*256);
+	burnOdds = new int[Tile::TILE_NUM_COUNT];
+	memset( burnOdds,0,sizeof(int)*Tile::TILE_NUM_COUNT);
 
 	icons = nullptr;
 
@@ -76,6 +77,11 @@ Tile::BlockState FireTile::getBlockState(LevelSource *level, int x, int y, int z
 void FireTile::init()
 {
 	setFlammable(Tile::planks_Id, FLAME_HARD, BURN_MEDIUM);
+	setFlammable(Tile::bamboo_Id, FLAME_EASY, BURN_MEDIUM);	// plant: burns easily
+	setFlammable(Tile::bamboo_shoot_Id, FLAME_EASY, BURN_MEDIUM);
+	setFlammable(Tile::bamboo_block_Id, FLAME_HARD, BURN_MEDIUM);	// neoLegacy - Bamboo
+	setFlammable(Tile::stripped_log_Id, FLAME_HARD, BURN_MEDIUM);
+	setFlammable(Tile::stripped_log2_Id, FLAME_HARD, BURN_MEDIUM);
 	setFlammable(Tile::double_wooden_slab_Id, FLAME_HARD, BURN_MEDIUM);
 	setFlammable(Tile::wooden_slab_Id, FLAME_HARD, BURN_MEDIUM);
 	setFlammable(Tile::fence_Id, FLAME_HARD, BURN_MEDIUM);
@@ -84,6 +90,10 @@ void FireTile::init()
 	setFlammable(Tile::spruce_stairs_Id, FLAME_HARD, BURN_MEDIUM);
 	setFlammable(Tile::jungle_stairs_Id, FLAME_HARD, BURN_MEDIUM);
 	setFlammable(Tile::acacia_stairs_Id, FLAME_HARD, BURN_MEDIUM);
+	setFlammable(Tile::bamboo_stairs_Id, FLAME_HARD, BURN_MEDIUM);	// neoLegacy - Bamboo set
+	setFlammable(Tile::bamboo_mosaic_stairs_Id, FLAME_HARD, BURN_MEDIUM);
+	setFlammable(Tile::bamboo_fence_Id, FLAME_HARD, BURN_MEDIUM);
+	setFlammable(Tile::bamboo_fence_gate_Id, FLAME_HARD, BURN_MEDIUM);
 	setFlammable(Tile::dark_oak_stairs_Id, FLAME_HARD, BURN_MEDIUM);
 	setFlammable(Tile::log_Id, FLAME_HARD, BURN_HARD);
 	setFlammable(Tile::leaves_Id, FLAME_EASY, BURN_EASY);
@@ -98,6 +108,7 @@ void FireTile::init()
 
 void FireTile::setFlammable(int id, int flame, int burn)
 {
+	if (id < 0 || id >= Tile::TILE_NUM_COUNT) return;
 	flameOdds[id] = flame;
 	burnOdds[id] = burn;
 }

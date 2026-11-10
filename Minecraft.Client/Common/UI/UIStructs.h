@@ -111,6 +111,7 @@ typedef struct _CraftingPanelScreenInput
 	int						x;
 	int						y;
 	int						z;
+	bool					bComplexTable;	// neoLegacy - true when opened from a Complex Table
 } 
 CraftingPanelScreenInput;
 
@@ -149,6 +150,19 @@ typedef struct _AnvilScreenInput
 	bool bSplitscreen;
 }
 AnvilScreenInput;
+
+// Grindstone
+typedef struct _GrindstoneScreenInput
+{
+	shared_ptr<Inventory> inventory;
+	Level *level;
+	int x;
+	int y;
+	int z;
+	int iPad;
+	bool bSplitscreen;
+}
+GrindstoneScreenInput;
 
 // Hopper
 typedef struct _HopperScreenInput

@@ -6,6 +6,7 @@
 #include "../Minecraft.World/net.minecraft.world.level.tile.h"
 
 ResourceLocation MinecartRenderer::MINECART_LOCATION(TN_ITEM_CART);
+static ResourceLocation DIAMOND_MINECART_LOCATION(TN_ITEM_CART_DIAMOND);
 
 MinecartRenderer::MinecartRenderer()
 {
@@ -138,6 +139,8 @@ void MinecartRenderer::render(shared_ptr<Entity> _cart, double x, double y, doub
 
 ResourceLocation *MinecartRenderer::getTextureLocation(shared_ptr<Entity> mob)
 {
+	shared_ptr<Minecart> cart = dynamic_pointer_cast<Minecart>(mob);
+	if (cart != nullptr && cart->getType() == Minecart::TYPE_DIAMOND) return &DIAMOND_MINECART_LOCATION;
 	return &MINECART_LOCATION;
 }
 

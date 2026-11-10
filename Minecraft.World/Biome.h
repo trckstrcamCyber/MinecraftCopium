@@ -77,6 +77,8 @@ public:
     static Biome *taigaM;
     static Biome *swamplandM;
     static Biome *iceSpikes;
+    static Biome *bambooJungle;		// neoLegacy - 168
+    static Biome *bambooJungleHills;	// neoLegacy - 169
     static Biome *jungleM;
     static Biome *jungleEdgeM;
     static Biome *birchForestM ;

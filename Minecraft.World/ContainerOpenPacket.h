@@ -24,6 +24,8 @@ public:
 	static const int ENDER_CHEST = 15; // 4J Added
 	static const int MINECART_CHEST = 16; // 4J Added
 	static const int MINECART_HOPPER = 17; // 4J Added
+	static const int GRINDSTONE = 18; // neoLegacy Added
+	static const int COMPLEX_WORKBENCH = 19; // neoLegacy Added - Complex Table (client must know, or it opens a plain crafting UI)
 
 	int containerId;
 	int type;

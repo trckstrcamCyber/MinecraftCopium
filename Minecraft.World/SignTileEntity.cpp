@@ -28,6 +28,7 @@ SignTileEntity::SignTileEntity() : TileEntity()
 	m_bCensored=false;
 
 	m_iSelectedLine = -1;
+	m_woodType = 0;
 
 	_isEditable = true;
 
@@ -49,6 +50,7 @@ void SignTileEntity::save(CompoundTag *tag)
 	tag->putString(L"Text2", m_wsmessages[1] );
 	tag->putString(L"Text3", m_wsmessages[2] );
 	tag->putString(L"Text4", m_wsmessages[3] );
+	tag->putInt(L"WoodType", m_woodType);
 #ifndef _CONTENT_PACKAGE
 	app.DebugPrintf("[SIGN] Saving sign at (%d, %d, %d):\n", x, y, z);
 	for(int i=0;i<4;i++)
@@ -62,6 +64,7 @@ void SignTileEntity::load(CompoundTag *tag)
 {
 	_isEditable = false;
 	TileEntity::load(tag);
+	setWoodType(tag->contains(L"WoodType") ? tag->getInt(L"WoodType") : 0);	// signs saved before this existed are oak
 	for (int i = 0; i < MAX_SIGN_LINES; i++) 
 	{
 		wchar_t buf[16];
@@ -92,7 +95,7 @@ shared_ptr<Packet> SignTileEntity::getUpdatePacket()
 	{
 		copy[i] = m_wsmessages[i];
 	}
-	return std::make_shared<SignUpdatePacket>(x, y, z, m_bVerified, m_bCensored, copy);
+	return std::make_shared<SignUpdatePacket>(x, y, z, m_bVerified, m_bCensored, copy, m_woodType);
 }
 
 bool SignTileEntity::isEditable() 
@@ -215,5 +218,6 @@ shared_ptr<TileEntity> SignTileEntity::clone()
 	result->m_wsmessages[3] = m_wsmessages[3];
 	result->m_bVerified = m_bVerified;
 	result->m_bCensored = m_bCensored;
+	result->m_woodType = m_woodType;
 	return result;
 }

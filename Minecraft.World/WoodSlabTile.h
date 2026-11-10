@@ -7,7 +7,7 @@ class WoodSlabTile : public HalfSlabTile
 {
     friend class Tile;
 public:
-    static const int SLAB_NAMES_LENGTH = 6;
+    static const int SLAB_NAMES_LENGTH = 8;	// neoLegacy: + bamboo (6) and bamboo mosaic (7), matching planks data 6 and 7
     static const unsigned int SLAB_NAMES[SLAB_NAMES_LENGTH];
 
 public:

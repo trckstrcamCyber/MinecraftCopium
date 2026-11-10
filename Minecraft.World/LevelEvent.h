@@ -36,6 +36,11 @@ public:
 	static const int PARTICLES_MOBTILE_SPAWN = 2004;
 	static const int PARTICLES_PLANT_GROWTH = 2005;
 
+	// neoLegacy - Zoro sword combo enchantment cues (position = the player's feet block)
+	static const int PARTICLES_ZORO_CRIT_STACK = 2100;	// data: bits 0-7 = current crit chance in %, bit 8 = a critical hit just landed
+	static const int PARTICLES_ZORO_RAGE_STACK = 2101;	// data: current damage bonus in % (0-200)
+	static const int PARTICLES_MACE_SMASH = 2102;		// x,y,z = block the target stood on; data: see MaceEffectParticle::FLAG_*
+
 	//static const int ENDERDRAGON_KILLED = 9000; // 4J Added to signal the the enderdragon was killed
 	static const int ENDERDRAGON_FIREBALL_SPLASH = 9001;
 	static const int END_EGG_TELEPORT = 9002;

@@ -6,8 +6,19 @@
 #include "../Minecraft.World/net.minecraft.world.level.tile.h"
 #include "../Minecraft.World/Entity.h"
 #include "../Minecraft.World/Level.h"
+#include "../Minecraft.World/SignTile.h"
 
 ResourceLocation SignRenderer::SIGN_LOCATION = ResourceLocation(TN_ITEM_SIGN);
+ResourceLocation SignRenderer::SIGN_WOOD_LOCATIONS[7] =
+{
+	ResourceLocation(TN_ITEM_SIGN),
+	ResourceLocation(TN_ITEM_SIGN_SPRUCE),
+	ResourceLocation(TN_ITEM_SIGN_BIRCH),
+	ResourceLocation(TN_ITEM_SIGN_JUNGLE),
+	ResourceLocation(TN_ITEM_SIGN_ACACIA),
+	ResourceLocation(TN_ITEM_SIGN_DARK_OAK),
+	ResourceLocation(TN_ITEM_SIGN_BAMBOO)
+};
 
 SignRenderer::SignRenderer()
 {
@@ -20,10 +31,17 @@ void SignRenderer::render(shared_ptr<TileEntity> _sign, double x, double y, doub
 	shared_ptr<SignTileEntity> sign = dynamic_pointer_cast<SignTileEntity>(_sign);
 
     Tile *tile = sign->getTile();
+    // neoLegacy - every wood has its own sign tile; pick the texture and the standing/wall layout from it
+    const bool standingSign = tile != nullptr && Tile::isStandingSignId(tile->id);
+    SignTile *signTile = dynamic_cast<SignTile *>(tile);
+    // neoLegacy - the wood is stored in the tile entity (all woods share the standing / wall sign tiles); the old per-wood tiles carry it themselves
+    int woodType = sign->getWoodType();
+    if (woodType == 0 && signTile != nullptr) woodType = signTile->getWoodType();
+    if (woodType < 0 || woodType > 6) woodType = 0;
 
     glPushMatrix();
     float size = 16 / 24.0f;
-    if (tile == Tile::sign)
+    if (standingSign)
 	{
         glTranslatef(static_cast<float>(x) + 0.5f, static_cast<float>(y) + 0.75f * size, static_cast<float>(z) + 0.5f);
         float rot = sign->getData() * 360 / 16.0f;
@@ -46,7 +64,7 @@ void SignRenderer::render(shared_ptr<TileEntity> _sign, double x, double y, doub
         signModel->cube2->visible = false;
     }
 
-    bindTexture(&SIGN_LOCATION);	// 4J was L"/item/sign.png"
+    bindTexture(&SIGN_WOOD_LOCATIONS[woodType]);	// 4J was L"/item/sign.png"
 
     glPushMatrix();
     glScalef(size, -size, -size);

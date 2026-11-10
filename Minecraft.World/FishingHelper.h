@@ -7,6 +7,8 @@ using namespace std;
 #include <memory>
 
 
+class Biome;
+
 enum CatchType {
   FISH,
   TREASURE,
@@ -47,9 +49,10 @@ class FishingHelper
 
 		WeighedRandomItemArray fishingFishArray;
 		WeighedRandomItemArray fishingJunkArray;
+		WeighedRandomItemArray fishingJungleJunkArray;	// neoLegacy - the junk table plus Bamboo, used only when fishing in a jungle biome
 		WeighedRandomItemArray fishingTreasuresArray;
 
-		CatchWeighedItem* getRandCatch(CatchType catchType, Random* random);
+		CatchWeighedItem* getRandCatch(CatchType catchType, Random* random, bool inJungle);
 		std::shared_ptr<ItemInstance> handleCatch(CatchWeighedItem* weighedCatch, CatchType catchType, Random* random);
 		CatchType getRandCatchType(int luckLevel, int lureLevel, Random* random);
 	public:
@@ -58,5 +61,6 @@ class FishingHelper
 		FishingHelper& operator=(const FishingHelper&) = delete;
 		static FishingHelper* getInstance();
 
-		std::shared_ptr<ItemInstance> getCatch(int luckLevel, int lureLevel, Random* random);
+		std::shared_ptr<ItemInstance> getCatch(int luckLevel, int lureLevel, Random* random, bool inJungle = false);
+		static bool isJungleBiome(Biome *biome);
 };

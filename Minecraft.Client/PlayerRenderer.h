@@ -52,6 +52,10 @@ protected:
     virtual void scale(shared_ptr<LivingEntity> _player, float a);
 public:
 	void renderHand();
+	// neoLegacy - draws one arm (and its sleeve) of the current skin with the shoulder pivot at the origin, hanging straight down.
+	// The MAC-10 view model positions it with its own animated transform. left = false -> right arm.
+	// target == nullptr -> the local player (first-person view model); otherwise that player (third-person rig; their skin is bound here).
+	void renderViewArm(bool left, shared_ptr<Player> target = nullptr);
 
 protected:
 	virtual void setupPosition(shared_ptr<LivingEntity> _mob, double x, double y, double z);

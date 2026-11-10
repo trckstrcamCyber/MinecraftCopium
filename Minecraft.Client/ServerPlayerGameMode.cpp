@@ -1,4 +1,6 @@
 #include "stdafx.h"
+#include <vector>
+#include <unordered_set>
 #include "ServerPlayerGameMode.h"
 #include "ServerLevel.h"
 #include "ServerPlayer.h"
@@ -16,6 +18,17 @@
 #include "../Minecraft.World/ExperienceOrb.h"
 #include "../Minecraft.Server/FourKitBridge.h"
 #endif
+
+// neoLegacy Added - Veinminer
+// These are needed unconditionally (not just under the _WINDOWS64/SERVER_BUILD
+// guard above), since the chain-break logic below runs on every build.
+#include "../Minecraft.World/EnchantmentHelper.h"
+#include "../Minecraft.World/VeinminerEnchantment.h"
+#include "../Minecraft.World/TreeCapitatorEnchantment.h"
+#include "../Minecraft.World/MiningPlusEnchantment.h"
+#include "../Minecraft.World/TilePos.h"
+#include "../Minecraft.World/PickaxeItem.h"
+#include "../Minecraft.World/HatchetItem.h"
 
 #include "MultiPlayerLevel.h"
 #include "LevelRenderer.h"
@@ -66,7 +79,7 @@ bool ServerPlayerGameMode::isSurvival()
 }
 
 bool ServerPlayerGameMode::isCreative() {
-    if (!this || !gameModeForPlayer) return false; 
+    if (!this || !gameModeForPlayer) return false;
     return gameModeForPlayer->isCreative();
 }
 void ServerPlayerGameMode::updateGameMode(GameType *gameType)
@@ -336,7 +349,7 @@ bool ServerPlayerGameMode::destroyBlock(int x, int y, int z)
 		}
 		player->connection->send( tup );
 	}
-	else 
+	else
 	{
 		shared_ptr<ItemInstance> item = player->getSelectedItem();
 		bool canDestroy = player->canDestroy(Tile::tiles[t]);
@@ -368,6 +381,229 @@ bool ServerPlayerGameMode::destroyBlock(int x, int y, int z)
 				}
 			}
 #endif
+
+			// neoLegacy Added - Veinminer
+			// The chain-break loop lives here (Minecraft.Server), not inside
+			// VeinminerEnchantment (Minecraft.World), because it needs to call
+			// this->destroyBlock() recursively and World cannot depend on Server.
+			if (VeinminerEnchantment::isVeinmineable(t))
+			{
+				shared_ptr<ItemInstance> heldItem = player->getSelectedItem();
+
+				// neoLegacy Added - defense-in-depth: the enchant TABLE'S actual
+				// roll (EnchantmentHelper::getAvailableEnchantmentResults) checks
+				// category->canEnchant(item), which only tests "is this a
+				// DiggerItem" for the digger category and can't distinguish
+				// pickaxe from shovel/axe/hoe - there's no dedicated pickaxe-only
+				// category in this codebase. In practice a shovel/axe/hoe can't
+				// harvest ore at all (canDestroy gates on tool class before this
+				// function's caller ever gets here), so this check rarely matters,
+				// but it's cheap and makes the pickaxe-only intent authoritative
+				// regardless of how the enchant ended up on the item (anvil, book,
+				// command, creative NBT editing, etc).
+				bool isPickaxe = (heldItem != nullptr) && (dynamic_cast<PickaxeItem *>(heldItem->getItem()) != nullptr);
+
+				int veinminerLevel = (isPickaxe) ? EnchantmentHelper::getEnchantmentLevel(Enchantment::veinminer->id, heldItem) : 0;
+
+				if (veinminerLevel > 0)
+				{
+					// Re-entrancy guard: destroyBlock() is called recursively for each
+					// chained block below, and that call re-enters this same branch.
+					// Without the guard, every chained block would try to start its
+					// own chain. Function-local static is shared across all players'
+					// game modes - fine for a single-threaded server tick, but note
+					// it if you ever make block breaking concurrent.
+					static bool inVeinmine = false;
+
+					if (!inVeinmine)
+					{
+						int maxChain = VeinminerEnchantment::getMaxChainSize(veinminerLevel);
+
+						vector<TilePos> toVisit;
+						unordered_set<TilePos, TilePosKeyHash, TilePosKeyEq> visited;
+						TilePos origin(x, y, z);
+						toVisit.push_back(origin);
+						visited.insert(origin);
+
+						static const int dx[] = { 1, -1, 0, 0, 0, 0 };
+						static const int dy[] = { 0, 0, 1, -1, 0, 0 };
+						static const int dz[] = { 0, 0, 0, 0, 1, -1 };
+
+						int broken = 0;
+						inVeinmine = true;
+
+						for (size_t i = 0; i < toVisit.size() && broken < maxChain; ++i)
+						{
+							TilePos pos = toVisit[i];
+
+							for (int dir = 0; dir < 6 && broken < maxChain; ++dir)
+							{
+								TilePos next(pos.x + dx[dir], pos.y + dy[dir], pos.z + dz[dir]);
+								if (visited.find(next) != visited.end()) continue;
+								visited.insert(next);
+
+								int nTile = level->getTile(next.x, next.y, next.z);
+								int nData = level->getData(next.x, next.y, next.z);
+								if (nTile != t || nData != data) continue;
+
+								toVisit.push_back(next);
+
+								// Route back through this same function so tool durability,
+								// Fortune, Silk Touch, and XP all happen exactly as they
+								// would for a manually mined block.
+								if (destroyBlock(next.x, next.y, next.z))
+								{
+									++broken;
+								}
+							}
+						}
+
+						inVeinmine = false;
+					}
+				}
+			}
+
+			// neoLegacy Added - Treecapitator (same shape as Veinminer above,
+			// but 26-connected since branches sit diagonally, and matched by
+			// species bits only since a trunk and its branches legitimately
+			// differ in axis orientation within the same data byte)
+			if (TreeCapitatorEnchantment::isTreeLog(t))
+			{
+				shared_ptr<ItemInstance> heldItem = player->getSelectedItem();
+
+				// Same defense-in-depth reasoning as the Veinminer pickaxe
+				// check above - the enchant table's category check can't tell
+				// axe apart from pickaxe/shovel/hoe, so this makes the
+				// axe-only intent authoritative regardless of how the enchant
+				// got onto the item.
+				bool isAxe = (heldItem != nullptr) && (dynamic_cast<HatchetItem *>(heldItem->getItem()) != nullptr);
+
+				int treeCapLevel = (isAxe) ? EnchantmentHelper::getEnchantmentLevel(Enchantment::treeCapitator->id, heldItem) : 0;
+
+				if (treeCapLevel > 0)
+				{
+					// Separate guard from Veinminer's - both could otherwise
+					// interfere if a single destroyBlock() call could ever
+					// match both whitelists (it can't today, but keeping them
+					// independent avoids a subtle cross-enchant bug later).
+					static bool inTreeCapitator = false;
+
+					if (!inTreeCapitator)
+					{
+						int maxChain = TreeCapitatorEnchantment::getMaxChainSize(treeCapLevel);
+
+						vector<TilePos> toVisit;
+						unordered_set<TilePos, TilePosKeyHash, TilePosKeyEq> visited;
+						TilePos origin(x, y, z);
+						toVisit.push_back(origin);
+						visited.insert(origin);
+
+						int broken = 0;
+						inTreeCapitator = true;
+
+						for (size_t i = 0; i < toVisit.size() && broken < maxChain; ++i)
+						{
+							TilePos pos = toVisit[i];
+
+							// 26-connected (full 3x3x3 minus center), not just
+							// 6-face-adjacent - tree branches commonly sit
+							// diagonally to the trunk.
+							for (int ddx = -1; ddx <= 1 && broken < maxChain; ++ddx)
+							{
+								for (int ddy = -1; ddy <= 1 && broken < maxChain; ++ddy)
+								{
+									for (int ddz = -1; ddz <= 1 && broken < maxChain; ++ddz)
+									{
+										if (ddx == 0 && ddy == 0 && ddz == 0) continue;
+
+										TilePos next(pos.x + ddx, pos.y + ddy, pos.z + ddz);
+										if (visited.find(next) != visited.end()) continue;
+										visited.insert(next);
+
+										int nTile = level->getTile(next.x, next.y, next.z);
+										int nData = level->getData(next.x, next.y, next.z);
+										if (nTile != t || !TreeCapitatorEnchantment::isSameSpecies(nData, data)) continue;
+
+										toVisit.push_back(next);
+
+										// Route back through this same function so tool
+										// durability, Fortune, Silk Touch, and XP all happen
+										// exactly as they would for a manually chopped log.
+										if (destroyBlock(next.x, next.y, next.z))
+										{
+											++broken;
+										}
+									}
+								}
+							}
+						}
+
+						inTreeCapitator = false;
+					}
+				}
+			}
+		}
+	}
+
+	// neoLegacy Added - Mining+. Break a 3x3 plane oriented to the player's
+	// view. The plane is vertical while looking mostly horizontally and
+	// horizontal while looking mostly up/down.
+	if (changed)
+	{
+		shared_ptr<ItemInstance> miningPlusItem = player->getSelectedItem();
+		int miningPlusLevel = EnchantmentHelper::getEnchantmentLevel(
+			Enchantment::miningPlus->id, miningPlusItem);
+		bool isPickaxe = miningPlusItem != nullptr &&
+			dynamic_cast<PickaxeItem *>(miningPlusItem->getItem()) != nullptr;
+
+		static bool inMiningPlus = false;
+		if (!inMiningPlus && isPickaxe && miningPlusLevel > 0)
+		{
+			inMiningPlus = true;
+
+			int radius = MiningPlusEnchantment::getRadius(miningPlusLevel);
+		    bool lookingMostlyVertical =
+                Mth::abs(Mth::cos(player->xRot * PI / 180.0f)) < 0.7071f;
+			// xRot is pitch: near +/-90 degrees means the player is looking
+			// up/down, so mine a horizontal 3x3. Otherwise mine a vertical
+			// 3x3 plane facing the player's horizontal direction.
+			for (int a = -radius; a <= radius; ++a)
+			{
+				for (int b = -radius; b <= radius; ++b)
+				{
+					if (a == 0 && b == 0) continue;
+
+					int bx = x;
+					int by = y;
+					int bz = z;
+
+					if (lookingMostlyVertical)
+					{
+						bx += a;
+						bz += b;
+					}
+					else
+					{
+					    float yawRad = player->yRot * PI / 180.0f;
+						float sx = Mth::abs(Mth::cos(yawRad));
+						float sz = Mth::abs(Mth::sin(yawRad));
+
+						// Snap the width axis to the block grid so diagonal
+						// looking still produces a clean 3x3.
+						if (sx >= sz)
+							bz += a;
+						else
+							bx += a;
+						by += b;
+					}
+
+					if (bx == x && by == y && bz == z) continue;
+					if (level->getTile(bx, by, bz) != 0)
+						destroyBlock(bx, by, bz);
+				}
+			}
+
+			inMiningPlus = false;
 		}
 	}
 	return changed;

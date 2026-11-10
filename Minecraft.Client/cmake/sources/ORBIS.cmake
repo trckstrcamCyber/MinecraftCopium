@@ -261,6 +261,8 @@ set(_MINECRAFT_CLIENT_ORBIS_COMMON_UI_SCENES_INGAME_MENU_SCREENS_CONTAINERS
   "${CMAKE_CURRENT_SOURCE_DIR}/Common/UI/UIScene_AbstractContainerMenu.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Common/UI/UIScene_AnvilMenu.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Common/UI/UIScene_AnvilMenu.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Common/UI/UIScene_GrindstoneMenu.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Common/UI/UIScene_GrindstoneMenu.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Common/UI/UIScene_BeaconMenu.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Common/UI/UIScene_BeaconMenu.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Common/UI/UIScene_BrewingStandMenu.cpp"

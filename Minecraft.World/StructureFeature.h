@@ -49,7 +49,28 @@ public:
 	TilePos *getNearestGeneratedFeature(Level *level, int cellX, int cellY, int cellZ);
 
 protected:
-	vector<TilePos> *getGuesstimatedFeaturePositions();
+	// neoLegacy fix - this was missing `virtual`, so StrongholdFeature's own override of
+	// this (a real, already-written fallback to its precomputed stronghold positions) was
+	// silently never called: getNearestGeneratedFeature() below calls this from inside a
+	// StructureFeature member function, so without `virtual` the compiler always resolved
+	// it to this base implementation (return nullptr) at compile time, regardless of the
+	// object's actual runtime type. This is why /locate stronghold could never fall back
+	// to a guessed position and just kept reporting "not found".
+	virtual vector<TilePos> *getGuesstimatedFeaturePositions();
+
+	// neoLegacy - /locate. getNearestGeneratedFeature() below only looks at chunks that
+	// have actually been decorated during real gameplay (plus one speculative check at
+	// the query position's own chunk) -- for anything spaced further out than whatever
+	// area has already been explored, it always reports "not found", which for something
+	// like a Village (16-32 chunk spacing) is very easy to hit. isFeatureChunk() is a
+	// pure function of the level seed and chunk x/z -- it doesn't need the chunk to
+	// actually be generated -- so it's safe to call it speculatively for chunks the
+	// player has never been near, same as real Minecraft's own /locate. This spirals
+	// outward chunk by chunk (each one cached by addFeature() the first time it's
+	// checked, so repeat searches don't redo the work) until it finds a match or gives
+	// up at searchRadiusChunks.
+public:
+	TilePos *searchForGeneratedFeature(Level *level, int cellX, int cellY, int cellZ, int searchRadiusChunks);
 
 private:
 	virtual void restoreSavedData(Level *level);

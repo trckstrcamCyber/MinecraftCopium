@@ -88,6 +88,9 @@ shared_ptr<Minecart> Minecart::createMinecart(Level *level, double x, double y, 
 	case TYPE_HOPPER:
 		minecart = std::make_shared<MinecartHopper>(level, x, y, z);
 		break;
+	case TYPE_DIAMOND:
+		minecart = std::make_shared<MinecartDiamond>(level, x, y, z);
+		break;
 	default:
 		minecart = std::make_shared<MinecartRideable>(level, x, y, z);
 		break;
@@ -348,7 +351,7 @@ void Minecart::tick()
 			yt--;
 		}
 
-		double max = 0.4;
+		double max = getMaxSpeed();
 
 		double slideSpeed = 1 / 128.0;
 		int tile = level->getTile(xt, yt, zt);

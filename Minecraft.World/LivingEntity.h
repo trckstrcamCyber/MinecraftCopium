@@ -99,6 +99,16 @@ protected:
 	bool fourKitDeathExpSet;
 
 public:
+	// neoLegacy - read-only access to the jump key state (a ridden camel dashes on a fresh jump press)
+	bool isJumping() const { return jumping; }
+
+	// neoLegacy - Freezing (the Frostbite's effect, Java powder-snow style): builds up while the effect is active, then fully frozen = damage.
+	static const int FREEZE_FULL_TICKS = 140;	// 7 seconds to freeze solid
+	int freezeTicks;
+	bool isFreezeImmune();
+	void updateFreezing();
+	bool isFullyFrozen() const { return freezeTicks >= FREEZE_FULL_TICKS; }
+	float getFreezeProgress() const { return freezeTicks >= FREEZE_FULL_TICKS ? 1.0f : static_cast<float>(freezeTicks) / FREEZE_FULL_TICKS; }
 	float xxa;
 	float yya;
 

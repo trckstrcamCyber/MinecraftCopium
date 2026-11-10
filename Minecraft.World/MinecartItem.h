@@ -24,5 +24,8 @@ public:
 
 	MinecartItem(int id, int type);
 
+	// neoLegacy - the diamond minecart is the minecart icon tinted cyan
+	virtual int getColor(shared_ptr<ItemInstance> item, int spriteLayer);
+
 	virtual bool useOn(shared_ptr<ItemInstance> instance, shared_ptr<Player> player, Level *level, int x, int y, int z, int face, float clickX, float clickY, float clickZ, bool bTestUseOnOnly=false);
 };

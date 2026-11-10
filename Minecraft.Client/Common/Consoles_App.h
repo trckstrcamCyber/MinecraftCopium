@@ -145,10 +145,11 @@ public:
 	bool			LoadContainerMenu(int iPad,shared_ptr<Container> inventory, shared_ptr<Container> container);
 	bool			LoadTrapMenu(int iPad,shared_ptr<Container> inventory, shared_ptr<DispenserTileEntity> trap);
 	bool			LoadCrafting2x2Menu(int iPad,shared_ptr<LocalPlayer> player);
-	bool			LoadCrafting3x3Menu(int iPad,shared_ptr<LocalPlayer> player, int x, int y, int z);
+	bool			LoadCrafting3x3Menu(int iPad,shared_ptr<LocalPlayer> player, int x, int y, int z, bool bComplexTable = false);	// neoLegacy: bComplexTable
 	bool			LoadFireworksMenu(int iPad,shared_ptr<LocalPlayer> player, int x, int y, int z);
 	bool			LoadSignEntryMenu(int iPad,shared_ptr<SignTileEntity> sign);
 	bool			LoadRepairingMenu(int iPad,shared_ptr<Inventory> inventory, Level *level, int x, int y, int z);
+	bool			LoadGrindstoneMenu(int iPad,shared_ptr<Inventory> inventory, Level *level, int x, int y, int z);
 	bool			LoadTradingMenu(int iPad, shared_ptr<Inventory> inventory, shared_ptr<Merchant> trader, Level *level, const wstring &name);
 
 	bool			LoadCommandBlockMenu(int iPad, shared_ptr<CommandBlockEntity> commandBlock) { return false; }

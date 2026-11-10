@@ -255,6 +255,7 @@ shared_ptr<ItemInstance> BoatDispenseBehavior::execute(BlockSource *source, shar
 	outcome = ACTIVATED_ITEM;
 
 	shared_ptr<Boat> boat = std::make_shared<Boat>(world, spawnX, spawnY + yOffset, spawnZ);
+	boat->setWoodType(dispensed->getAuxValue());	// neoLegacy: keep the wood type of the dispensed boat
 	world->addEntity(boat);
 
 	dispensed->remove(1);

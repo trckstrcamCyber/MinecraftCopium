@@ -54,4 +54,3 @@ public:
 
 	virtual void writeToStream(DataOutputStream* dos) = 0;
 };
-

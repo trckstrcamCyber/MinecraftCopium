@@ -141,6 +141,8 @@ enum EUIScene
 	eUIScene_DebugSetCamera,
 #endif
 
+	eUIScene_GrindstoneMenu,
+
 	eUIScene_COUNT,
 };
 

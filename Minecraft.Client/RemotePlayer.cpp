@@ -142,6 +142,15 @@ void RemotePlayer::animateRespawn()
 
 float RemotePlayer::getHeadHeight()
 {
+
+	if (isSwimming())
+	{
+		return 0.62f;
+	}
+	if (isSneaking())
+	{
+		return 1.42f;
+	}
 	return 1.82f;
 }
 

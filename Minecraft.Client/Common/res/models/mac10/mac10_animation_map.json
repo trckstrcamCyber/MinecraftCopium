@@ -1,0 +1,26 @@
+{
+  "model": "mac-10.gltf",
+  "clipNames": {
+    "draw": "animation.mac10.draw",
+    "put_away": "animation.mac10.put_away",
+    "idle_boltout": "animation.mac10.idle_boltout",
+    "idle_empty": "animation.mac10.idle_empty",
+    "reload_empty": "animation.mac10.reload_empty",
+    "reload": "animation.mac10.reload",
+    "inspect": "animation.mac10.inspect",
+    "fire": "animation.mac10.fire",
+    "autofire": "animation.mac10.auto_fire"
+  },
+  "runtimeEvents": {
+    "equip": "draw",
+    "switchAway": "put_away",
+    "emptyIdle": "idle_empty",
+    "postEmptyReload": "idle_boltout",
+    "emptyReload": ["reload_empty", "idle_boltout"],
+    "reloadWithRounds": "reload",
+    "manualInspect": "inspect",
+    "semiAutoShot": "fire",
+    "heldAutoFireLoop": "autofire"
+  },
+  "rendererStatus": "The C++ weapon writes Mac10.Animation/AnimationEndTick tags to ItemInstance NBT. The legacy renderer still requires a GLTF animation player to consume these events."
+}

@@ -3,6 +3,7 @@
 #include "../../Minecraft.h"
 #include "../../MultiPlayerLocalPlayer.h"
 #include "../../../Minecraft.World/net.minecraft.world.inventory.h"
+#include "../../../Minecraft.World/ComplexCraftingMenu.h"	// neoLegacy - Complex Table
 #include "UIScene_CraftingMenu.h"
 #ifdef _WINDOWS64
 #include "../../Windows64/Iggy/gdraw/gdraw_d3d11.h"
@@ -24,6 +25,7 @@ UIScene_CraftingMenu::UIScene_CraftingMenu(int iPad, void *_initData, UILayer *p
 
 	CraftingPanelScreenInput* initData = static_cast<CraftingPanelScreenInput *>(_initData);
 	m_iContainerType=initData->iContainerType;
+	m_bComplexTable=initData->bComplexTable;	// neoLegacy - Complex Table
 	m_pPlayer=initData->player;
 	m_bSplitscreen=initData->bSplitscreen;
 
@@ -45,7 +47,10 @@ UIScene_CraftingMenu::UIScene_CraftingMenu(int iPad, void *_initData, UILayer *p
 	}
 	else
 	{
-		CraftingMenu *menu = new CraftingMenu(m_pPlayer->inventory, m_pPlayer->level, initData->x, initData->y, initData->z);
+		// neoLegacy - a Complex Table needs its own menu so recipe matching uses the Complex Table recipes
+		CraftingMenu *menu = m_bComplexTable
+			? new ComplexCraftingMenu(m_pPlayer->inventory, m_pPlayer->level, initData->x, initData->y, initData->z)
+			: new CraftingMenu(m_pPlayer->inventory, m_pPlayer->level, initData->x, initData->y, initData->z);
 		Minecraft::GetInstance()->localplayers[m_iPad]->containerMenu = menu;
 
 		m_menu = menu;
@@ -69,7 +74,7 @@ UIScene_CraftingMenu::UIScene_CraftingMenu(int iPad, void *_initData, UILayer *p
 	if(m_iContainerType==RECIPE_TYPE_3x3)
 	{
 		m_iIngredientsMaxSlotC = m_iIngredients3x3SlotC;
-		m_pGroupA=(Recipy::_eGroupType *)&m_GroupTypeMapping9GridA;
+		m_pGroupA = m_GroupTypeMapping9GridA;
 		m_pGroupTabA=(_eGroupTab *)&m_GroupTabBkgMapping3x3A;
 		m_iCraftablesMaxHSlotC=m_iMaxHSlot3x3C;
 	}

@@ -21,6 +21,11 @@ void Boat::_init()
 	doLerp = true;
 	acceleration = MIN_ACCELERATION;
 
+	rowingTime = rowingTimeO = 0.0f;
+	paddleBlend = paddleBlendO = 0.0f;
+	paddleLastX = paddleLastZ = 0.0;
+	paddleInit = false;
+
 	lSteps = 0;
 	lx = ly = lz = lyr = lxr = 0.0;
 	lxd = lyd = lzd = 0.0;
@@ -53,6 +58,69 @@ void Boat::defineSynchedData()
 	entityData->define(DATA_ID_HURT, 0);
 	entityData->define(DATA_ID_HURTDIR, 1);
 	entityData->define(DATA_ID_DAMAGE, 0.0f);
+	entityData->define(DATA_ID_WOOD, 0);
+	entityData->define(DATA_ID_DRIVER, -1);
+}
+
+// ---- seats (neoLegacy) -----------------------------------------------------------------------------
+
+// Every player whose "riding" is this boat (same answer on the server and on the clients).
+void Boat::collectRiders(vector<shared_ptr<Entity> > &out)
+{
+	for (size_t i = 0; i < level->players.size(); i++)
+	{
+		shared_ptr<Player> p = level->players[i];
+		if (p != nullptr && !p->removed && p->riding.get() == this) out.push_back(p);
+	}
+}
+
+int Boat::countRiders()
+{
+	vector<shared_ptr<Entity> > riders;
+	collectRiders(riders);
+	return static_cast<int>(riders.size());
+}
+
+shared_ptr<Entity> Boat::getDriver()
+{
+	int id = entityData->getInteger(DATA_ID_DRIVER);
+	if (id < 0) return nullptr;
+	vector<shared_ptr<Entity> > riders;
+	collectRiders(riders);
+	for (size_t i = 0; i < riders.size(); i++)
+	{
+		if (riders[i]->entityId == id) return riders[i];
+	}
+	return nullptr;
+}
+
+// Server only: keep the driver seat filled. If the driver got off, whoever is left takes the oars.
+void Boat::updateDriverSeat()
+{
+	vector<shared_ptr<Entity> > riders;
+	collectRiders(riders);
+	int driverId = entityData->getInteger(DATA_ID_DRIVER);
+	bool driverStillAboard = false;
+	for (size_t i = 0; i < riders.size(); i++)
+	{
+		if (riders[i]->entityId == driverId) driverStillAboard = true;
+	}
+	if (!driverStillAboard)
+	{
+		entityData->set(DATA_ID_DRIVER, riders.empty() ? -1 : riders[0]->entityId);
+	}
+}
+
+int Boat::getWoodType()
+{
+	int t = entityData->getInteger(DATA_ID_WOOD);
+	return (t < 0 || t > 6) ? 0 : t;
+}
+
+void Boat::setWoodType(int woodType)
+{
+	if (woodType < 0 || woodType > 6) woodType = 0;
+	entityData->set(DATA_ID_WOOD, woodType);
 }
 
 
@@ -113,7 +181,7 @@ bool Boat::hurt(DamageSource *source, float hurtDamage)
 	// 4J Stu - If someone is riding in this, then it can tick multiple times which causes the damage to
 	// decrease too quickly. So just make the damage a bit higher to start with for similar behaviour
 	// to an unridden one. Only do this change if the riding player is attacking it.
-	if( rider.lock() != nullptr && rider.lock() == source->getEntity() ) hurtDamage += 1;
+	if( source->getEntity() != nullptr && source->getEntity()->riding.get() == this ) hurtDamage += 1;
 
 	setDamage(getDamage() + hurtDamage * 10);
 	markHurt();
@@ -124,8 +192,13 @@ bool Boat::hurt(DamageSource *source, float hurtDamage)
 
 	if (creativePlayer || getDamage() > 20 * 2)
 	{
-		if (rider.lock() != nullptr) rider.lock()->ride( shared_from_this() );
-		if (!creativePlayer) spawnAtLocation(Item::boat_Id, 1, 0);
+		{
+			// neoLegacy - both passengers get out, not just the one the engine remembers
+			vector<shared_ptr<Entity> > riders;
+			collectRiders(riders);
+			for (size_t i = 0; i < riders.size(); i++) riders[i]->ride(nullptr);
+		}
+		if (!creativePlayer) spawnAtLocation(Item::boat_Id, 1, getWoodType());	// neoLegacy: drops the same wood it was made from
 		remove();
 	}
 	return true;
@@ -198,6 +271,22 @@ void Boat::tick()
 	yo = y;
 	zo = z;
 
+	// neoLegacy - drive the paddle animation from how far the boat actually moved last tick
+	{
+		double mdx = x - paddleLastX;
+		double mdz = z - paddleLastZ;
+		if (!paddleInit) { mdx = mdz = 0.0; paddleInit = true; }
+		paddleLastX = x;
+		paddleLastZ = z;
+		float moved = static_cast<float>(sqrt(mdx * mdx + mdz * mdz));
+		bool paddling = countRiders() > 0 && moved > 0.02f;
+
+		rowingTimeO = rowingTime;
+		paddleBlendO = paddleBlend;
+		if (paddling) rowingTime += 0.25f + moved * 1.6f;
+		paddleBlend += ((paddling ? 1.0f : 0.0f) - paddleBlend) * 0.35f;
+	}
+
 	// Check how much of the boat is in water
 	int steps = 5;
 	double waterPercentage = 0;
@@ -261,6 +350,9 @@ void Boat::tick()
 		return;
 	}
 
+	// neoLegacy - the driver is whoever the synched driver id points at (server decides, clients just follow)
+	if (!level->isClientSide) updateDriverSeat();
+
 	// Bob in water & gravity
 	if (waterPercentage < 1.0)
 	{
@@ -277,9 +369,10 @@ void Boat::tick()
 	}
 
 	// Rider controls
-	if ( rider.lock() != nullptr && rider.lock()->instanceof(eTYPE_LIVINGENTITY) )
+	shared_ptr<Entity> driver = getDriver();
+	if ( driver != nullptr && driver->instanceof(eTYPE_LIVINGENTITY) )
 	{
-		shared_ptr<LivingEntity> livingRider = dynamic_pointer_cast<LivingEntity>(rider.lock());
+		shared_ptr<LivingEntity> livingRider = dynamic_pointer_cast<LivingEntity>(driver);
 		double forward = livingRider->yya;
 
 		if (forward != 0)
@@ -327,7 +420,7 @@ void Boat::tick()
 	move(xd, yd, zd);
 
 	// Break boat on high speed collision
-	float breakThreshold = (rider.lock() != nullptr) ? 0.35f : 0.20f;
+	float breakThreshold = (countRiders() > 0) ? 0.35f : 0.20f;
 	if ((horizontalCollision && lastSpeed > 0.20))
 	{
 		if (!level->isClientSide && !removed)
@@ -377,10 +470,9 @@ void Boat::tick()
 	vector<shared_ptr<Entity> > *entities = level->getEntities(shared_from_this(), bb->grow(0.2f, 0, 0.2f));
 	if (entities && !entities->empty())
 	{
-		auto riderPtr = rider.lock();
 		for ( auto& e : *entities )
 		{
-			if (e != riderPtr && e->isPushable() && e->GetType() ==  eTYPE_BOAT)
+			if (e->isPushable() && e->GetType() ==  eTYPE_BOAT)
 			{
 				e->push(shared_from_this());
 			}
@@ -407,11 +499,6 @@ void Boat::tick()
 			}
 		}
 
-	}
-
-	if (rider.lock() != nullptr)
-	{
-		if (rider.lock()->removed) rider = weak_ptr<Entity>();
 	}
 }
 
@@ -441,21 +528,34 @@ void Boat::createSplash(double particleStrengh) {
 
 void Boat::positionRider()
 {
-	if (rider.lock() == nullptr) return;
+	// neoLegacy - two seats. (cos yRot, sin yRot) points to the STERN of the boat (yRot is worked out from the direction
+	// the boat came from), so a positive offset sits further back. A lone rider keeps the old spot (0.4 back); with two
+	// aboard they take the Java Edition seats: the driver 0.2 forward of centre and the passenger 0.6 back.
+	vector<shared_ptr<Entity> > riders;
+	collectRiders(riders);
+	if (riders.empty()) return;
 
-	double xa = cos(yRot * PI / 180) * 0.4;
-	double za = sin(yRot * PI / 180) * 0.4;
-	// We minus 0.4 to ensure that the player is not hovering above the boat.
-	rider.lock()->setPos(x + xa, y + getRideHeight() + rider.lock()->getRidingHeight()-0.4, z + za);
+	shared_ptr<Entity> driver = getDriver();
+	double ca = cos(yRot * PI / 180);
+	double sa = sin(yRot * PI / 180);
+	for (size_t i = 0; i < riders.size(); i++)
+	{
+		double off = 0.4;
+		if (riders.size() >= 2) off = (riders[i] == driver) ? -0.2 : 0.6;
+		// We minus 0.4 to ensure that the player is not hovering above the boat.
+		riders[i]->setPos(x + ca * off, y + getRideHeight() + riders[i]->getRidingHeight() - 0.4, z + sa * off);
+	}
 }
 
 
 void Boat::addAdditonalSaveData(CompoundTag *base)
 {
+	base->putInt(L"WoodType", getWoodType());
 }
 
 void Boat::readAdditionalSaveData(CompoundTag *base)
 {
+	setWoodType(base->getInt(L"WoodType"));	// old saves have no tag -> 0 = oak
 }
 
 
@@ -471,22 +571,30 @@ wstring Boat::getName()
 
 bool Boat::interact(shared_ptr<Player> player)
 {
-	if ( (rider.lock() != nullptr) && rider.lock()->instanceof(eTYPE_PLAYER) && (rider.lock() != player) ) return true;
 	if (!level->isClientSide)
 	{
-        bool isRiding = (rider.lock() == player);
+		// neoLegacy - "am I aboard" is asked of the player, not of the boat's single remembered rider
+		bool isRiding = (player->riding.get() == this);
 
-        if (isRiding)
-        {
-           
-            player->xd = 0;
-            player->yd = 0;
-            player->zd = 0;
-        }
-		// 4J HEG - Fixed issue with player not being able to dismount boat (issue #4446)
-        player->ride(isRiding ? nullptr : shared_from_this());
-    }
-    return true;
+		if (isRiding)
+		{
+			player->xd = 0;
+			player->yd = 0;
+			player->zd = 0;
+			// 4J HEG - Fixed issue with player not being able to dismount boat (issue #4446)
+			player->ride(nullptr);
+		}
+		else
+		{
+			// neoLegacy - two seats; a third player has to wait
+			if (countRiders() >= MAX_RIDERS) return true;
+
+			bool first = (countRiders() == 0);
+			player->ride(shared_from_this());
+			if (first || getDriver() == nullptr) entityData->set(DATA_ID_DRIVER, player->entityId);
+		}
+	}
+	return true;
 }
 
 void Boat::setDamage(float damage)

@@ -22,6 +22,12 @@ void ItemSpriteRenderer::render(shared_ptr<Entity> e, double x, double y, double
 {
 	// the icon is already cached in the item object, so there should not be any performance impact by not caching it here
 	Icon *icon = sourceItem->getIcon(sourceItemAuxValue);
+	// neoLegacy - a thrown Ice Ball is a flagged snowball: draw the Ice Ball icon instead
+	if (e->instanceof(eTYPE_SNOWBALL) && Item::ice_ball != nullptr)
+	{
+		shared_ptr<Snowball> thrown = dynamic_pointer_cast<Snowball>(e);
+		if (thrown != nullptr && thrown->isIce()) icon = Item::ice_ball->getIcon(0);
+	}
 	if (icon == nullptr)
 	{
 		return;

@@ -245,6 +245,8 @@ set(_MINECRAFT_CLIENT_WINDOWS_COMMON_UI_SCENES_INGAME_MENU_SCREENS_CONTAINERS
   "${CMAKE_CURRENT_SOURCE_DIR}/Common/UI/UIScene_AbstractContainerMenu.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Common/UI/UIScene_AnvilMenu.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Common/UI/UIScene_AnvilMenu.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Common/UI/UIScene_GrindstoneMenu.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Common/UI/UIScene_GrindstoneMenu.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Common/UI/UIScene_BeaconMenu.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Common/UI/UIScene_BeaconMenu.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Common/UI/UIScene_BookAndQuillMenu.cpp"
@@ -345,6 +347,7 @@ source_group("PS3/PS3Extras" FILES ${_MINECRAFT_CLIENT_WINDOWS_PS3_PS3EXTRAS})
 
 set(_MINECRAFT_CLIENT_WINDOWS_SOURCE_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/Extrax64Stubs.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/CrashDiagnostics.cpp"
 )
 source_group("Source Files" FILES ${_MINECRAFT_CLIENT_WINDOWS_SOURCE_FILES})
 

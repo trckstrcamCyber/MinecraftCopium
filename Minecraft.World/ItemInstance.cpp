@@ -347,7 +347,7 @@ void ItemInstance::load(CompoundTag *compoundTag)
 
 int ItemInstance::getMaxStackSize() const
 {
-	return getItem()->getMaxStackSize();
+	return getItem()->getMaxStackSize(this);	// neoLegacy - the item may answer per aux value (straw beds)
 }
 
 bool ItemInstance::isStackable()

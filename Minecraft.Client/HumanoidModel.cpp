@@ -318,6 +318,7 @@ void HumanoidModel::_init(float g, float yOffset, int texWidth, int texHeight, b
 	holdingRightHand=0;
 	sneaking=false;
 	idle=false;
+	swimming=false;
 	bowAndArrow=false;
 	elytraFlying = false;
 	elytraCrouching = false;
@@ -1200,7 +1201,7 @@ void HumanoidModel::setupAnim(float time, float r, float bob, float yRot, float 
 				leg1->xRot = -HALF_PI * 0.4f;
 			}
 		}
-		else if(idle && !sneaking )
+		else if(idle && !sneaking && !swimming)
 		{
 			leg0->xRot = -HALF_PI;
 			leg1->xRot = -HALF_PI;
@@ -1284,6 +1285,29 @@ void HumanoidModel::setupAnim(float time, float r, float bob, float yRot, float 
 			arm0->xRot -= iss * 1.2f;
 		}
 
+		if (swimming)
+		{
+			body->xRot = HALF_PI;
+			leg0->xRot = HALF_PI + (Mth::cos(time * 0.6662f) * 1.4f) * r;
+			leg1->xRot = HALF_PI + (Mth::cos(time * 0.6662f + PI) * 1.4f) * r;
+			head->yRot = (Mth::cos(time * 0.6662f) * 0.7f) * r;
+			arm0->xRot = -HALF_PI + (Mth::cos(time * 0.6662f) * 2.0f) * r * 0.5f;
+			arm1->xRot = -HALF_PI + (Mth::cos(time * 0.6662f + PI) * 2.0f) * r * 0.5f;
+			arm0->zRot = 0.0f;
+			arm1->zRot = 0.0f;
+			leg0->y = 0.0f;
+			leg1->y = 0.0f;
+			leg0->z = 12.0f;
+			leg1->z = 12.0f;
+			body->y = 0.0f;
+			arm0->y = 0.0f;
+			arm1->y = 0.0f;
+			arm0->z = 0.0f;
+			arm1->z = 0.0f;
+			arm0->x = -5.0f;
+			arm1->x = 5.0f;
+		}
+
 		if (sneaking)
 		{
 			if(uiBitmaskOverrideAnim&(1<<eAnim_SmallModel))
@@ -1326,7 +1350,7 @@ void HumanoidModel::setupAnim(float time, float r, float bob, float yRot, float 
 				cloak->y = 0.0f;
 			}
 		}
-		else
+		else if (!swimming)
 		{
 			body->xRot = 0.0f;
 			leg0->z = 0.1f;

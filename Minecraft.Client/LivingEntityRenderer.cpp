@@ -96,6 +96,8 @@ void LivingEntityRenderer::render(shared_ptr<Entity> _mob, double x, double y, d
 		setupPosition(mob, x, y, z);
 
 		float bob = getBob(mob, a);
+		// neoLegacy - anything frozen solid visibly shakes (Java: cos(tickCount * 3.25) * PI * 0.4 degrees, a bit stronger here)
+		if (mob->isFullyFrozen()) bodyRot += static_cast<float>(cos(mob->tickCount * 3.25) * PI * 0.8);
 		setupRotations(mob, bob, bodyRot, a);
 
 		float fScale = 1 / 16.0f;

@@ -30,6 +30,7 @@ MultiplayerLocalPlayer::MultiplayerLocalPlayer(Minecraft *minecraft, Level *leve
     lastSneaked = false;
 	lastIdle = false;
 	lastSprinting = false;
+	lastElytraFlying = false;
     positionReminder = 0;
 
     this->connection = connection;
@@ -100,6 +101,18 @@ void MultiplayerLocalPlayer::sendPosition()
 		else connection->send(std::make_shared<PlayerCommandPacket>(shared_from_this(), PlayerCommandPacket::STOP_SPRINTING));
 
 		lastSprinting = sprinting;
+	}
+
+	// neoLegacy - gliding is decided on this client (jump in mid-air with an elytra) and nothing ever told the server, so the
+	// server's copy of the player never knew it was flying: no elytra wear, other players never saw the glide pose and
+	// anything that asks the server "is this player gliding?" (firework boosting) said no. Send changes like sprinting.
+	bool elytraFlying = isElytraFlying();
+	if (elytraFlying != lastElytraFlying)
+	{
+		if (elytraFlying) connection->send(std::make_shared<PlayerCommandPacket>(shared_from_this(), PlayerCommandPacket::START_FALL_FLYING));
+		else connection->send(std::make_shared<PlayerCommandPacket>(shared_from_this(), PlayerCommandPacket::STOP_FALL_FLYING));
+
+		lastElytraFlying = elytraFlying;
 	}
 
     bool sneaking = isSneaking();

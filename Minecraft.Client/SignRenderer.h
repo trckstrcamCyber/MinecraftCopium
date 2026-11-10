@@ -6,6 +6,7 @@ class SignRenderer : public TileEntityRenderer
 {
 private:
 	static ResourceLocation SIGN_LOCATION;
+	static ResourceLocation SIGN_WOOD_LOCATIONS[7];	// neoLegacy - oak, spruce, birch, jungle, acacia, dark oak
 	SignModel *signModel;
 public:
 	SignRenderer();	// 4J - added

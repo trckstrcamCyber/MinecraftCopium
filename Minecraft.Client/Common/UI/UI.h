@@ -104,6 +104,7 @@
 #include "UIScene_CreativeMenu.h"
 #include "UIScene_TradingMenu.h"
 #include "UIScene_AnvilMenu.h"
+#include "UIScene_GrindstoneMenu.h"
 #include "UIScene_HorseInventoryMenu.h"
 #include "UIScene_HopperMenu.h"
 #include "UIScene_BeaconMenu.h"

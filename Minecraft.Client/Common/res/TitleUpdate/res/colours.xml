@@ -229,6 +229,7 @@ if __name__=="__main__": notecolors()
   <colour name="Effect_Weakness" value="484d48"/>
   <colour name="Effect_Poison" value="4e9331"/>
   <colour name="Effect_Wither" value="352a27"/>
+  <colour name="Effect_Freezing" value="A5E8F2"/>
   <colour name="Effect_HealthBoost" value="f87d23"/>
   <colour name="Effect_Absorption" value="2552a5"/>
   <colour name="Effect_Saturation" value="f82423"/>
@@ -293,6 +294,36 @@ if __name__=="__main__": notecolors()
    <colour name="Mob_ElderGuardian_Colour2" value="747693"/>
    <colour name="Mob_PolarBear_Colour1" value="F8F8F8"/>
    <colour name="Mob_PolarBear_Colour2" value="8F9494"/>
+   <colour name="Mob_Goat_Colour1" value="E7E2D8"/>
+   <colour name="Mob_Goat_Colour2" value="8A7B66"/>
+   <colour name="Mob_JellySlime_Colour1" value="E889B5"/>
+   <colour name="Mob_JellySlime_Colour2" value="9E2B5C"/>
+   <colour name="Mob_Camel_Colour1" value="E2C07B"/>
+   <colour name="Mob_Camel_Colour2" value="8C6A3A"/>
+   <colour name="Mob_Drowned_Colour1" value="8FF1D7"/>
+   <colour name="Mob_Drowned_Colour2" value="799C65"/>
+   <colour name="Mob_Husk_Colour1" value="797061"/>
+   <colour name="Mob_Husk_Colour2" value="E6CC94"/>
+   <colour name="Mob_Frostbite_Colour1" value="A9E1EC"/>
+   <colour name="Mob_Frostbite_Colour2" value="1F5F7D"/>
+   <colour name="Mob_Vindicator_Colour1" value="959B9B"/>
+   <colour name="Mob_Vindicator_Colour2" value="275E5D"/>
+   <colour name="Mob_Evoker_Colour1" value="959B9B"/>
+   <colour name="Mob_Evoker_Colour2" value="1E1C1A"/>
+   <colour name="Mob_Vex_Colour1" value="7A90A4"/>
+   <colour name="Mob_Vex_Colour2" value="E8EDF1"/>
+   <colour name="Mob_Iceologer_Colour1" value="000080"/>
+   <colour name="Mob_Iceologer_Colour2" value="D6D0BF"/>
+   <colour name="Mob_Illusioner_Colour1" value="133C4E"/>
+   <colour name="Mob_Illusioner_Colour2" value="9C9C9C"/>
+   <colour name="Mob_Pillager_Colour1" value="532F36"/>
+   <colour name="Mob_Pillager_Colour2" value="959B9B"/>
+   <colour name="Mob_WanderingTrader_Colour1" value="456E92"/>
+   <colour name="Mob_WanderingTrader_Colour2" value="E5B34A"/>
+   <colour name="Mob_WitherSkeleton_Colour1" value="141414"/>
+   <colour name="Mob_WitherSkeleton_Colour2" value="474D4D"/>
+   <colour name="Mob_ZombieVillager_Colour1" value="3C6B50"/>
+   <colour name="Mob_ZombieVillager_Colour2" value="A68B6D"/>
 
   <colour name="Armour_Default_Leather_Colour" value="A06540"/>
 

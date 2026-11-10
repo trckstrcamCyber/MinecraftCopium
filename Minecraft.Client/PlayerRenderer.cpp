@@ -1,6 +1,9 @@
 #include "stdafx.h"
+#include "CrossbowHold.h"
 #include "PlayerRenderer.h"
 #include "SkullTileRenderer.h"
+#include "../Minecraft.World/Mac10Item.h"
+#include "Mac10Client.h"
 #include "../Minecraft.World/SkullTileEntity.h"
 #include "HumanoidMobRenderer.h"
 #include "HumanoidModel.h"
@@ -245,6 +248,13 @@ void PlayerRenderer::render(shared_ptr<Entity> _mob, double x, double y, double 
 
 	armorParts1->holdingRightHand = armorParts2->holdingRightHand = resModel->holdingRightHand = item != nullptr ? 1 : 0;
 
+	// neoLegacy - MAC-10: hold it in the vanilla two-handed aim pose (both arms follow the head); the gun itself is attached to the right hand
+	// in additionalRendering. If the glTF model is missing the normal one-handed item pose is kept.
+	if (item != nullptr && Mac10Item::isMac10(item) && Mac10Client::isModelAvailable(item))
+	{
+		armorParts1->bowAndArrow = armorParts2->bowAndArrow = resModel->bowAndArrow = true;
+	}
+
 	if (item != nullptr)
 	{
 		if (mob->getUseItemDuration() > 0)
@@ -284,6 +294,8 @@ void PlayerRenderer::render(shared_ptr<Entity> _mob, double x, double y, double 
 	bool elytraCrouch = elytraFlying && mob->isSneaking();
 	armorParts1->elytraFlying = armorParts2->elytraFlying = resModel->elytraFlying = elytraFlying;
 	armorParts1->elytraCrouching = armorParts2->elytraCrouching = resModel->elytraCrouching = elytraCrouch;
+
+	armorParts1->swimming = armorParts2->swimming = armorParts3->swimming = resModel->swimming = mob->isSwimming();
 
 	double yp = y - mob->heightOffset;
 	if (mob->isSneaking() && !mob->instanceof(eTYPE_LOCALPLAYER))
@@ -368,6 +380,7 @@ void PlayerRenderer::render(shared_ptr<Entity> _mob, double x, double y, double 
 	armorParts1->sneaking = armorParts2->sneaking = resModel->sneaking = false;
 	armorParts1->elytraFlying = armorParts2->elytraFlying = resModel->elytraFlying = false;
 	armorParts1->elytraCrouching = armorParts2->elytraCrouching = resModel->elytraCrouching = false;
+	armorParts1->swimming = armorParts2->swimming = armorParts3->swimming = resModel->swimming = false;
 	armorParts1->holdingRightHand = armorParts2->holdingRightHand = resModel->holdingRightHand = 0;
 }
 
@@ -393,7 +406,7 @@ void PlayerRenderer::additionalRendering(shared_ptr<LivingEntity> _mob, float a)
 			glPushMatrix();
 			resModel->head->translateTo(1 / 16.0f);
 
-			if (headGear->getItem()->id < 256)
+			if (Tile::isTileItemId(headGear->getItem()->id))
 			{
 				if (TileRenderer::canRender(Tile::tiles[headGear->id]->getRenderShape()))
 				{
@@ -561,7 +574,18 @@ void PlayerRenderer::additionalRendering(shared_ptr<LivingEntity> _mob, float a)
 
 		shared_ptr<ItemInstance> item = mob->inventory->getSelected();
 
-		if (item != nullptr)
+		// neoLegacy - MAC-10: the gun is attached to the right hand (same anchor the vanilla held item uses). Falls back to the vanilla item if the model is missing.
+		bool gunRigDrawn = false;
+		if (item != nullptr && Mac10Item::isMac10(item))
+		{
+			glPushMatrix();
+			resModel->arm0->translateTo(1 / 16.0f);
+			glTranslatef(-1 / 16.0f, 7 / 16.0f, 1 / 16.0f);
+			gunRigDrawn = Mac10Client::renderGunInHand(mob, a);
+			glPopMatrix();
+		}
+
+		if (item != nullptr && !gunRigDrawn)
 		{
 			glPushMatrix();
 			resModel->arm0->translateTo(1 / 16.0f);
@@ -578,7 +602,7 @@ void PlayerRenderer::additionalRendering(shared_ptr<LivingEntity> _mob, float a)
 				anim = item->getUseAnimation();
 			}
 
-			if (item->id < 256 && TileRenderer::canRender(Tile::tiles[item->id]->getRenderShape()) && item->id != Tile::barrier_Id)
+			if (Tile::isTileItemId(item->id) && TileRenderer::canRender(Tile::tiles[item->id]->getRenderShape()) && item->id != Tile::barrier_Id)
 			{
 				float s = 8 / 16.0f;
 				glTranslatef(-0 / 16.0f, 3 / 16.0f, -5 / 16.0f);
@@ -596,7 +620,17 @@ void PlayerRenderer::additionalRendering(shared_ptr<LivingEntity> _mob, float a)
 				glRotatef(-100, 1, 0, 0);
 				glRotatef(45, 0, 1, 0);
 			}
-			else if (Item::items[item->id]->isHandEquipped())
+			else if (item->id == Item::crossbow_Id || item->id == Item::crossbow_loaded_Id)
+		{
+			// neoLegacy - a crossbow is held on its side with the muzzle pointing forward, not like a sword
+			float s = 10 / 16.0f;
+			glTranslatef(0, 3 / 16.0f, 0);
+			glScalef(s, -s, s);
+			glRotatef(-100, 1, 0, 0);
+			glRotatef(45, 0, 1, 0);
+			glRotatef(CROSSBOW_ROLL_DEGREES, 1, 1, 0);		// roll about its own long axis, see CrossbowHold.h
+		}
+		else if (Item::items[item->id]->isHandEquipped())
 			{
 				float s = 10 / 16.0f;
 				if (Item::items[item->id]->isMirroredArt())
@@ -777,6 +811,42 @@ void PlayerRenderer::renderHand()
 	}
 }
 
+
+// neoLegacy - one arm of the first-person rig used by the MAC-10 view model. The caller has already bound the player's skin and set up
+// the matrix; the arm is drawn with its pivot at the origin and without the walking-animation rotation so the animation decides the pose.
+void PlayerRenderer::renderViewArm(bool left, shared_ptr<Player> target)
+{
+	shared_ptr<Player> player = target != nullptr ? target : dynamic_pointer_cast<Player>(Minecraft::GetInstance()->player);
+	if (player == nullptr) return;
+	setModelType(player);
+	if (target != nullptr) bindTexture(player->customTextureUrl, player->getTexture());	// third person: this player's skin
+
+	resModel->m_uiAnimOverrideBitmask = player->getAnimOverrideBitmask();
+	armorParts1->eating = armorParts2->eating = resModel->eating = resModel->idle = false;
+	resModel->attackTime = 0;
+	resModel->setupAnim(0, 0, 0, 0, 0, 1 / 16.0f, player);
+
+	ModelPart *arm = left ? resModel->arm1 : resModel->arm0;
+	ModelPart *sleeve = left ? resModel->sleeve1 : resModel->sleeve0;
+	const int armOff = left ? HumanoidModel::eAnim_DisableRenderArm1 : HumanoidModel::eAnim_DisableRenderArm0;
+	const int sleeveOff = left ? HumanoidModel::eAnim_DisableRenderSleeve1 : HumanoidModel::eAnim_DisableRenderSleeve0;
+
+	ModelPart *parts[2] = { arm, sleeve };
+	const bool disabled[2] = { (resModel->m_uiAnimOverrideBitmask & (1 << armOff)) != 0, (resModel->m_uiAnimOverrideBitmask & (1 << sleeveOff)) != 0 };
+	for (int i = 0; i < 2; ++i)
+	{
+		ModelPart *part = parts[i];
+		if (part == nullptr || disabled[i]) continue;
+		float sx = part->x, sy = part->y, sz = part->z, rx = part->xRot, ry = part->yRot, rz = part->zRot;
+		bool wasVisible = part->visible;		// the third-person path hides the vanilla arms while the rig draws its own
+		part->x = part->y = part->z = 0.0f;
+		part->xRot = part->yRot = part->zRot = 0.0f;
+		part->visible = true;
+		part->render(1 / 16.0f, true);
+		part->visible = wasVisible;
+		part->x = sx; part->y = sy; part->z = sz; part->xRot = rx; part->yRot = ry; part->zRot = rz;
+	}
+}
 void PlayerRenderer::setupPosition(shared_ptr<LivingEntity> _mob, double x, double y, double z)
 {
 	// 4J - dynamic cast required because we aren't using templates/generics in our version

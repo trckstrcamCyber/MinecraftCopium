@@ -5,6 +5,8 @@
 #include "Cow.h"
 #include "Pig.h"
 #include "Sheep.h"
+#include "Goat.h"
+#include "Camel.h"
 #include "Squid.h"
 #include "WaterAnimal.h"
 #include "Wolf.h"

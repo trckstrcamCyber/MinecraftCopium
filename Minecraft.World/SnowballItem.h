@@ -5,8 +5,10 @@ using namespace std;
 
 class SnowballItem : public Item
 {
+private:
+	bool ice;	// neoLegacy - this item throws Ice Balls
 public:
-	SnowballItem(int id);
+	SnowballItem(int id, bool ice = false);
 
 	virtual shared_ptr<ItemInstance> use(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player);
 };

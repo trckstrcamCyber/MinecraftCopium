@@ -29,4 +29,7 @@
 #include "PlayerEnderChestContainer.h"
 #include "AnvilMenu.h"
 #include "RepairContainer.h"
+#include "GrindstoneContainer.h"
+#include "GrindstoneResultSlot.h"
+#include "GrindstoneMenu.h"
 #include "RepairResultSlot.h"

@@ -5,8 +5,9 @@
 #include "SignTileEntity.h"
 #include "SignTile.h"
 
-SignTile::SignTile(int id, eINSTANCEOF clas, bool onGround) : BaseEntityTile(id, Material::wood, isSolidRender())
+SignTile::SignTile(int id, eINSTANCEOF clas, bool onGround, int woodType) : BaseEntityTile(id, Material::wood, isSolidRender())
 {
+	this->woodType = woodType;
 	this->onGround = onGround;
 	this->clas = clas;
 	updateDefaultShape();
@@ -14,7 +15,7 @@ SignTile::SignTile(int id, eINSTANCEOF clas, bool onGround) : BaseEntityTile(id,
 
 Icon *SignTile::getTexture(int face, int data)
 {
-	return Tile::wood->getTexture(face);
+	return Tile::wood->getTexture(face, woodType);
 }
 
 void SignTile::updateDefaultShape()
@@ -87,9 +88,44 @@ shared_ptr<TileEntity> SignTile::newTileEntity(Level *level)
 	//}
 }
 
+// neoLegacy - all woods share ONE sign item (Item::standing_sign_Id, the wood is its aux value) and ONE standing and ONE wall tile
+// (Tile::standing_sign_Id / wall_standing_sign_Id, the wood lives in the SignTileEntity). The old per-wood tiles still exist so existing
+// worlds keep working, and breaking one of them gives the shared item with the right wood.
+static int s_removedSignWood = -1;	// the wood of the sign that is being removed (the tile entity is already gone when the drop happens)
+
+static int currentSignWood(SignTile *tile, Level *level, int x, int y, int z)
+{
+	if (tile->getWoodType() > 0) return tile->getWoodType();	// legacy per-wood tile
+	if (level->getTile(x, y, z) == tile->id)
+	{
+		shared_ptr<SignTileEntity> ste = dynamic_pointer_cast<SignTileEntity>(level->getTileEntity(x, y, z));
+		if (ste != nullptr) return ste->getWoodType();
+	}
+	return -1;
+}
+
+void SignTile::onRemove(Level *level, int x, int y, int z, int id, int data)
+{
+	s_removedSignWood = currentSignWood(this, level, x, y, z);
+	BaseEntityTile::onRemove(level, x, y, z, id, data);
+}
+
+void SignTile::spawnResources(Level *level, int x, int y, int z, int data, float odds, int playerBonusLevel)
+{
+	if (level->isClientSide) return;
+	int wood = currentSignWood(this, level, x, y, z);
+	if (wood < 0)
+	{
+		wood = s_removedSignWood;
+	}
+	s_removedSignWood = -1;
+	if (wood < 0) wood = 0;
+	popResource(level, x, y, z, std::make_shared<ItemInstance>(Item::standing_sign_Id, 1, wood));
+}
+
 int SignTile::getResource(int data, Random *random, int playerBonusLevel)
 {
-	return Item::sign->id;
+	return Item::standing_sign_Id;
 }
 
 void SignTile::neighborChanged(Level *level, int x, int y, int z, int type)

@@ -149,6 +149,11 @@ vector<Biome::MobSpawnerData *> *FlatLevelSource::getMobsAt(MobCategory *mobCate
 
 TilePos *FlatLevelSource::findNearestMapFeature(Level *level, const wstring& featureName, int x, int y, int z)
 {
+	// neoLegacy - /locate village support
+	if (LargeFeature::VILLAGE == featureName && villageFeature != nullptr)
+	{
+		return villageFeature->searchForGeneratedFeature(level, x, y, z, LargeFeature::LOCATE_SEARCH_RADIUS_CHUNKS);
+	}
 	return nullptr;
 }
 

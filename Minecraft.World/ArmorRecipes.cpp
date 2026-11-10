@@ -9,6 +9,7 @@
 #include "Recipes.h"
 #include "ArmorRecipes.h"
 
+
 // 4J-PB - adding "" on the end of these so we can detect it
 wstring ArmorRecipes::shapes[][4] = 
 {
@@ -44,31 +45,31 @@ void ArmorRecipes::_init()
 
 	// 4J-PB - removing the chain armour, since we show all possible recipes in the xbox game, and it's not one you can make
 	ADD_OBJECT(map[0],Item::leather);
-//	ADD_OBJECT(map[0],Tile::fire);
+	ADD_OBJECT(map[0],Item::redstone);
 	ADD_OBJECT(map[0],Item::iron_ingot);
 	ADD_OBJECT(map[0],Item::diamond);
 	ADD_OBJECT(map[0],Item::gold_ingot);
 
 	ADD_OBJECT(map[1],Item::leather_helmet);
-//	ADD_OBJECT(map[1],Item::chainmail_helmet);
+	ADD_OBJECT(map[1],Item::chainmail_helmet);
 	ADD_OBJECT(map[1],Item::iron_helmet);
 	ADD_OBJECT(map[1],Item::diamond_helmet);
 	ADD_OBJECT(map[1],Item::golden_helmet);
 
 	ADD_OBJECT(map[2],Item::leather_chestplate);
-//	ADD_OBJECT(map[2],Item::chainmail_chestplate);
+	ADD_OBJECT(map[2],Item::chainmail_chestplate);
 	ADD_OBJECT(map[2],Item::iron_chestplate);
 	ADD_OBJECT(map[2],Item::diamond_chestplate);
 	ADD_OBJECT(map[2],Item::golden_chestplate);
 
 	ADD_OBJECT(map[3],Item::leather_leggings);
-//	ADD_OBJECT(map[3],Item::chainmail_leggings);
+	ADD_OBJECT(map[3],Item::chainmail_leggings);
 	ADD_OBJECT(map[3],Item::iron_leggings);
 	ADD_OBJECT(map[3],Item::diamond_leggings);
 	ADD_OBJECT(map[3],Item::golden_leggings);
 
 	ADD_OBJECT(map[4],Item::leather_boots);
-//	ADD_OBJECT(map[4],Item::chainmail_boots);
+	ADD_OBJECT(map[4],Item::chainmail_boots);
 	ADD_OBJECT(map[4],Item::iron_boots);
 	ADD_OBJECT(map[4],Item::diamond_boots);
 	ADD_OBJECT(map[4],Item::golden_boots);

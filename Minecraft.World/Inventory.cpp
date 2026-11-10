@@ -2,6 +2,7 @@
 #include "com.mojang.nbt.h"
 #include "net.minecraft.world.entity.player.h"
 #include "net.minecraft.world.item.h"
+#include "net.minecraft.world.item.enchantment.h"
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.stats.h"
 #include "Material.h"
@@ -660,11 +661,13 @@ void Inventory::hurtArmor(float dmg)
 
 void Inventory::dropAll()
 {
+	// neoLegacy - Curse of Vanishing: these are destroyed instead of dropping
+	const int vanishing = Enchantment::vanishingCurse->id;
 	for (unsigned int i = 0; i < items.length; i++)
 	{
 		if (items[i] != nullptr)
 		{
-			player->drop(items[i], true);
+			if (EnchantmentHelper::getEnchantmentLevel(vanishing, items[i]) <= 0) player->drop(items[i], true);
 			items[i] = nullptr;
 		}
 	}
@@ -672,7 +675,7 @@ void Inventory::dropAll()
 	{
 		if (armor[i] != nullptr)
 		{
-			player->drop(armor[i], true);
+			if (EnchantmentHelper::getEnchantmentLevel(vanishing, armor[i]) <= 0) player->drop(armor[i], true);
 			armor[i] = nullptr;
 		}
 	}

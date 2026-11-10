@@ -241,6 +241,41 @@ vector<TilePos> *StructureFeature::getGuesstimatedFeaturePositions()
 	return nullptr;
 }
 
+// neoLegacy - /locate. See the comment on the declaration in StructureFeature.h.
+TilePos *StructureFeature::searchForGeneratedFeature(Level *level, int cellX, int cellY, int cellZ, int searchRadiusChunks)
+{
+	TilePos *found = getNearestGeneratedFeature(level, cellX, cellY, cellZ);
+	if (found != nullptr) return found;
+
+	int centerChunkX = cellX >> 4;
+	int centerChunkZ = cellZ >> 4;
+
+	for (int ring = 1; ring <= searchRadiusChunks; ring++)
+	{
+		int x0 = centerChunkX - ring;
+		int x1 = centerChunkX + ring;
+		int z0 = centerChunkZ - ring;
+		int z1 = centerChunkZ + ring;
+
+		for (int x = x0; x <= x1; x++)
+		{
+			for (int z = z0; z <= z1; z++)
+			{
+				// only the outer edge of this ring -- everything inside it was
+				// already checked (and cached) by a smaller previous ring
+				if (x != x0 && x != x1 && z != z0 && z != z1) continue;
+
+				addFeature(level, x, z, 0, 0, byteArray());
+			}
+		}
+
+		found = getNearestGeneratedFeature(level, cellX, cellY, cellZ);
+		if (found != nullptr) return found;
+	}
+
+	return nullptr;
+}
+
 void StructureFeature::restoreSavedData(Level *level)
 {
 #ifdef ENABLE_STRUCTURE_SAVING

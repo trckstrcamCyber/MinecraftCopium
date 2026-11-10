@@ -18,6 +18,9 @@
 #include "../Minecraft.Client/GameRenderer.h"
 #include "ItemEntity.h"
 #include "Minecart.h"
+#include <mutex>
+#include <unordered_map>
+#include <atomic>
 
 #ifdef __PS3__
 #include "C4JSpursJob.h"
@@ -49,8 +52,17 @@ void LevelChunk::staticCtor()
 	InitializeCriticalSection(&m_csTileEntities);
 }
 
+// neoLegacy - side table for tile ids >= 256, keyed by chunk-local position
+struct LevelChunk::ExtTileTable
+{
+	std::mutex lock;
+	std::unordered_map<int, int> tiles;
+};
+static inline int extKey(int x, int y, int z) { return (y << 8) | (z << 4) | x; }
+
 void LevelChunk::init(Level *level, int x, int z)
 {
+	extTiles = std::make_shared<ExtTileTable>();
 	biomes = byteArray(16 * 16);
 	for(int i = 0; i < 16 * 16; i++ )
 	{
@@ -222,6 +234,7 @@ LevelChunk::LevelChunk(Level *level, int x, int z, LevelChunk *lc)
 
 #ifdef SHARING_ENABLED
 	lowerBlocks = lc->lowerBlocks;
+	std::atomic_store(&extTiles, std::atomic_load(&lc->extTiles));	// neoLegacy - share the extended tile table too
 	lowerData = lc->lowerData;
 	lowerSkyLight = new SparseLightStorage( lc->lowerSkyLight );
 	lowerBlockLight = new SparseLightStorage( lc->lowerBlockLight );
@@ -285,6 +298,18 @@ void LevelChunk::stopSharingTilesAndData()
 
 	// Changed to used compressed storage - these CTORs make deep copies of the storage passed as a parameter
 	lowerBlocks = new CompressedTileStorage( lowerBlocks );
+
+	// neoLegacy - unsharing makes a private copy of the extended tile table as well
+	{
+		std::shared_ptr<ExtTileTable> cur = std::atomic_load(&extTiles);
+		std::shared_ptr<ExtTileTable> copy = std::make_shared<ExtTileTable>();
+		if (cur != nullptr)
+		{
+			std::lock_guard<std::mutex> g(cur->lock);
+			copy->tiles = cur->tiles;
+		}
+		std::atomic_store(&extTiles, copy);
+	}
 
 	// Changed to use new sparse data storage - this CTOR makes a deep copy of the storage passed as a parameter
 	lowerData = new SparseDataStorage(lowerData);
@@ -406,6 +431,7 @@ void LevelChunk::startSharingTilesAndData(int forceMs)
 	// delete it when it is safe to do so instead.
 	GameRenderer::AddForDelete(lowerBlocks);
 	lowerBlocks = lc->lowerBlocks;
+	std::atomic_store(&extTiles, std::atomic_load(&lc->extTiles));	// neoLegacy
 	GameRenderer::FinishedReassigning();
 
 	GameRenderer::AddForDelete(lowerData);
@@ -525,7 +551,7 @@ void LevelChunk::recalcHeightmapOnly()
 			}
 #else
 			CompressedTileStorage *blocks = (y-1) >= Level::COMPRESSED_CHUNK_SECTION_HEIGHT?upperBlocks : lowerBlocks;
-			while (y > 0 && Tile::lightBlock[blocks->get(x,(y - 1) % Level::COMPRESSED_CHUNK_SECTION_HEIGHT,z) & 0xff] == 0)		// 4J - was blocks->get() was blocks[p + y - 1]
+			while (y > 0 && Tile::lightBlock[getTileForLight(blocks, x, y - 1, z)] == 0)		// 4J - was blocks->get() was blocks[p + y - 1]
 			{
 				y--;
 				blocks = (y-1) >= Level::COMPRESSED_CHUNK_SECTION_HEIGHT?upperBlocks : lowerBlocks;
@@ -582,7 +608,7 @@ void LevelChunk::recalcHeightmap()
 			}
 #else
 			CompressedTileStorage *blocks = (y-1) >= Level::COMPRESSED_CHUNK_SECTION_HEIGHT?upperBlocks : lowerBlocks;
-			while (y > 0 && Tile::lightBlock[blocks->get(x,(y-1) % Level::COMPRESSED_CHUNK_SECTION_HEIGHT,z) & 0xff] == 0)			// 4J - was blocks->get() was blocks[p + y - 1]
+			while (y > 0 && Tile::lightBlock[getTileForLight(blocks, x, y - 1, z)] == 0)			// 4J - was blocks->get() was blocks[p + y - 1]
 			{
 				y--;
 				blocks = (y-1) >= Level::COMPRESSED_CHUNK_SECTION_HEIGHT?upperBlocks : lowerBlocks;
@@ -630,7 +656,7 @@ void LevelChunk::recalcHeightmap()
 				SparseLightStorage *skyLight = yy >= Level::COMPRESSED_CHUNK_SECTION_HEIGHT? upperSkyLight : lowerSkyLight;
 				do
 				{
-					br -= Tile::lightBlock[blocks->get(x,(yy % Level::COMPRESSED_CHUNK_SECTION_HEIGHT),z) & 0xff];					// 4J - blocks->get() was blocks[p + yy]
+					br -= Tile::lightBlock[getTileForLight(blocks, x, yy, z)];					// 4J - blocks->get() was blocks[p + yy]
 					if (br > 0)
 					{
 						skyLight->set(x, (yy % Level::COMPRESSED_CHUNK_SECTION_HEIGHT), z, br);
@@ -673,7 +699,7 @@ void LevelChunk::lightLava()
 			for (int y = 0; y < Level::COMPRESSED_CHUNK_SECTION_HEIGHT; y++)
 			{
 				CompressedTileStorage *blocks = lowerBlocks;
-				int emit = Tile::lightEmission[blocks->get(x,y,z)];	// 4J - blocks->get() was blocks[p + y]
+				int emit = Tile::lightEmission[getTileForLight(blocks, x, y, z)];	// 4J - blocks->get() was blocks[p + y]
 				if( emit > 0 )
 				{
 					//					printf("(%d,%d,%d)",this->x * 16 + x, y, this->z * 16 + z);
@@ -803,7 +829,7 @@ void LevelChunk::recalcHeight(int x, int yStart, int z)
 	//    int p = x << level->depthBitsPlusFour | z << level->depthBits;		// 4J - removed
 
 	CompressedTileStorage *blocks = (y-1) >= Level::COMPRESSED_CHUNK_SECTION_HEIGHT?upperBlocks : lowerBlocks;
-	while (y > 0 && Tile::lightBlock[blocks->get(x,(y-1) % Level::COMPRESSED_CHUNK_SECTION_HEIGHT,z) & 0xff] == 0)		// 4J - blocks->get() was blocks[p + y - 1]
+	while (y > 0 && Tile::lightBlock[getTileForLight(blocks, x, y - 1, z)] == 0)		// 4J - blocks->get() was blocks[p + y - 1]
 	{
 		y--;
 		blocks = (y-1) >= Level::COMPRESSED_CHUNK_SECTION_HEIGHT?upperBlocks : lowerBlocks;
@@ -915,12 +941,16 @@ int LevelChunk::getTileLightBlock(int x, int y, int z)
 int LevelChunk::getTile(int x, int y, int z)
 {
 	CompressedTileStorage *blocks = y >= Level::COMPRESSED_CHUNK_SECTION_HEIGHT ? upperBlocks : lowerBlocks;
-	return blocks->get(x,y % Level::COMPRESSED_CHUNK_SECTION_HEIGHT,z);
+	int t = blocks->get(x,y % Level::COMPRESSED_CHUNK_SECTION_HEIGHT,z);
+	if (t == Tile::EXT_TILE_PLACEHOLDER) t = resolveExtTile(t, x, y, z);	// neoLegacy - tile ids >= 256
+	return t;
 }
 
 bool LevelChunk::setTileAndData(int x, int y, int z, int _tile, int _data)
 {
-	byte tile = static_cast<byte>(_tile);
+	// neoLegacy - the chunk storage is 8 bit: ids >= 256 are stored as a placeholder and their real id goes in the side table
+	const int tile = _tile;
+	const int lowTile = (_tile >= 256) ? Tile::EXT_TILE_PLACEHOLDER : _tile;
 
 	// Optimisation brought forward from 1.8.2, change from int to unsigned char & this special value changed from -999 to 255
 	int slot = z << 4 | x;
@@ -935,6 +965,7 @@ bool LevelChunk::setTileAndData(int x, int y, int z, int _tile, int _data)
 	CompressedTileStorage *blocks = y >= Level::COMPRESSED_CHUNK_SECTION_HEIGHT ? upperBlocks : lowerBlocks;
 	SparseDataStorage *data = y >= Level::COMPRESSED_CHUNK_SECTION_HEIGHT ? upperData : lowerData;
 	int old = blocks->get(x,y % Level::COMPRESSED_CHUNK_SECTION_HEIGHT,z);
+	if (old == Tile::EXT_TILE_PLACEHOLDER) old = resolveExtTile(old, x, y, z);
 	int oldData = data->get(x, y % Level::COMPRESSED_CHUNK_SECTION_HEIGHT, z);
 	if (old == _tile && oldData == _data)
 	{
@@ -957,7 +988,9 @@ bool LevelChunk::setTileAndData(int x, int y, int z, int _tile, int _data)
 		oldTile->onRemoving(level, xOffs, y, zOffs, oldData);
 	}
 	PIXBeginNamedEvent(0,"Chunk setting tile");
-	blocks->set(x,y % Level::COMPRESSED_CHUNK_SECTION_HEIGHT,z,tile);
+	if (_tile >= 256) setExtTile(x, y, z, _tile);			// side table first, so a reader that sees the placeholder finds the id
+	blocks->set(x,y % Level::COMPRESSED_CHUNK_SECTION_HEIGHT,z,lowTile);
+	if (_tile < 256 && old >= 256) setExtTile(x, y, z, _tile);	// drop the stale entry
 	PIXEndNamedEvent();
 	if (old != 0)
 	{
@@ -975,7 +1008,7 @@ bool LevelChunk::setTileAndData(int x, int y, int z, int _tile, int _data)
 	PIXEndNamedEvent();
 
 	// 4J added - flag if something emissive is being added. This is used during level creation to determine what chunks need extra lighting processing
-	if( Tile::lightEmission[tile & 0xff] > 0 )
+	if( Tile::lightEmission[tile & Tile::TILE_NUM_MASK] > 0 )
 	{
 		emissiveAdded = true;
 	}
@@ -983,11 +1016,11 @@ bool LevelChunk::setTileAndData(int x, int y, int z, int _tile, int _data)
 	PIXBeginNamedEvent(0,"Updating lighting");
 	// 4J - There isn't any point in recalculating heights or updating sky lighting if this tile has
 	// the same light-blocking capabilities as the one it is replacing
-	if( Tile::lightBlock[tile & 0xff] != Tile::lightBlock[old & 0xff] )
+	if( Tile::lightBlock[tile & Tile::TILE_NUM_MASK] != Tile::lightBlock[old & Tile::TILE_NUM_MASK] )
 	{
 		if (!level->dimension->hasCeiling)
 		{
-			if (Tile::lightBlock[tile & 0xff] != 0)
+			if (Tile::lightBlock[tile & Tile::TILE_NUM_MASK] != 0)
 			{
 				if (y >= oldHeight)
 				{
@@ -1401,8 +1434,15 @@ void LevelChunk::setTileEntity(int x, int y, int z, shared_ptr<TileEntity> tileE
 		app.DebugPrintf("Attempted to place a tile entity where there was no entity tile!\n");
 		return;
 	}
-    auto it = tileEntities.find(pos);
-    if(it != tileEntities.end()) it->second->setRemoved();
+	// neoLegacy - this lookup used to run without m_csTileEntities while other threads were inserting/erasing
+	shared_ptr<TileEntity> replaced = nullptr;
+	EnterCriticalSection(&m_csTileEntities);
+	{
+		auto it = tileEntities.find(pos);
+		if(it != tileEntities.end()) replaced = it->second;
+	}
+	LeaveCriticalSection(&m_csTileEntities);
+	if(replaced != nullptr) replaced->setRemoved();
 
 	tileEntity->clearRemoved();
 
@@ -1582,14 +1622,23 @@ void LevelChunk::unload(bool unloadTileEntities)	// 4J - added parameter
 			PIXBeginNamedEvent(0,"Saving tile entities");
 			ListTag<CompoundTag> *tileEntityTags = new ListTag<CompoundTag>();
 
+			// neoLegacy - take the tile entities out of the map under the lock, then save them without holding it
+			// (save() can call into other code; holding the shared lock across that risks a deadlock)
+			vector< shared_ptr<TileEntity> > toSave;
+			EnterCriticalSection(&m_csTileEntities);
 			for(auto& it : tileEntities)
 			{
-				CompoundTag *teTag = new CompoundTag();
-				it.second->save(teTag);
-				tileEntityTags->add(teTag);
+				toSave.push_back(it.second);
 			}
 			// Clear out the tileEntities list
 			tileEntities.clear();
+			LeaveCriticalSection(&m_csTileEntities);
+			for(auto& te : toSave)
+			{
+				CompoundTag *teTag = new CompoundTag();
+				te->save(teTag);
+				tileEntityTags->add(teTag);
+			}
 
 			m_unloadedEntitiesTag->put(L"TileEntities", tileEntityTags);
 			PIXEndNamedEvent();
@@ -1937,9 +1986,19 @@ int LevelChunk::setBlocksAndData(byteArray data, int x0, int y0, int z0, int x1,
 	}
 	*/
 
-	for(auto& it : tileEntities)
 	{
-		it.second->clearCache();
+		// neoLegacy - copy under the lock, then touch the tile entities outside it
+		vector< shared_ptr<TileEntity> > cacheClear;
+		EnterCriticalSection(&m_csTileEntities);
+		for(auto& it : tileEntities)
+		{
+			cacheClear.push_back(it.second);
+		}
+		LeaveCriticalSection(&m_csTileEntities);
+		for(auto& te : cacheClear)
+		{
+			te->clearCache();
+		}
 	}
 	//        recalcHeightmap();
 
@@ -2392,6 +2451,7 @@ bool LevelChunk::isRenderChunkEmpty(int y)
 // Set block data to that passed in in the input array of size 32768
 void LevelChunk::setBlockData(byteArray data)
 {
+	clearExtTiles();	// neoLegacy - the extended ids are applied afterwards (OldChunkStorage / BlockRegionUpdatePacket)
 	lowerBlocks->setData(data,0);
 	if(data.length > Level::COMPRESSED_CHUNK_SECTION_TILES) upperBlocks->setData(data,Level::COMPRESSED_CHUNK_SECTION_TILES);
 }
@@ -2565,4 +2625,117 @@ void LevelChunk::reorderBlocksAndDataToXZY(int y0, int xs, int ys, int zs, byteA
 	//	delete buffer.data;
 	//	buffer.data = newBuffer.data;
 	//}
+}
+
+
+// ============================================================================================================================
+// neoLegacy - extended tile ids (>= 256).  See Tile::EXT_TILE_PLACEHOLDER.
+// ============================================================================================================================
+int LevelChunk::resolveExtTile(int lowValue, int x, int y, int z)
+{
+	if (lowValue != Tile::EXT_TILE_PLACEHOLDER) return lowValue;
+	std::shared_ptr<ExtTileTable> t = std::atomic_load(&extTiles);
+	if (t == nullptr) return 0;
+	std::lock_guard<std::mutex> g(t->lock);
+	std::unordered_map<int, int>::iterator it = t->tiles.find(extKey(x, y, z));
+	return it != t->tiles.end() ? it->second : 0;	// placeholder without an entry (not received yet) reads as air, never as the null tile 255
+}
+
+void LevelChunk::setExtTile(int x, int y, int z, int tile)
+{
+	std::shared_ptr<ExtTileTable> t = std::atomic_load(&extTiles);
+	if (t == nullptr) return;
+	std::lock_guard<std::mutex> g(t->lock);
+	if (tile >= 256) t->tiles[extKey(x, y, z)] = tile;
+	else t->tiles.erase(extKey(x, y, z));
+}
+
+bool LevelChunk::hasExtTiles()
+{
+	std::shared_ptr<ExtTileTable> t = std::atomic_load(&extTiles);
+	if (t == nullptr) return false;
+	std::lock_guard<std::mutex> g(t->lock);
+	return !t->tiles.empty();
+}
+
+void LevelChunk::clearExtTiles()
+{
+	std::atomic_store(&extTiles, std::make_shared<ExtTileTable>());
+}
+
+void LevelChunk::collectExtTiles(int minX, int minY, int minZ, int maxX, int maxY, int maxZ, std::vector<ExtTileEntry> &out)
+{
+	std::shared_ptr<ExtTileTable> t = std::atomic_load(&extTiles);
+	if (t == nullptr) return;
+
+	// neoLegacy - copy the entries first and release the table lock BEFORE reading the tile storage. The storage has its own critical
+	// section, and other threads take that one and then ask for this table (resolveExtTile): holding both here in the opposite order
+	// deadlocked the game as soon as the first extended tile existed.
+	std::vector< std::pair<int, int> > snapshot;
+	{
+		std::lock_guard<std::mutex> g(t->lock);
+		snapshot.reserve(t->tiles.size());
+		for (std::unordered_map<int, int>::iterator it = t->tiles.begin(); it != t->tiles.end(); ++it)
+		{
+			snapshot.push_back(std::make_pair(it->first, it->second));
+		}
+	}
+
+	for (size_t i = 0; i < snapshot.size(); ++i)
+	{
+		int x = snapshot[i].first & 15;
+		int z = (snapshot[i].first >> 4) & 15;
+		int y = snapshot[i].first >> 8;
+		if (x < minX || x >= maxX || y < minY || y >= maxY || z < minZ || z >= maxZ) continue;
+		// ignore stale entries (a client chunk can keep one after a region update replaced the placeholder)
+		CompressedTileStorage *blocks = y >= Level::COMPRESSED_CHUNK_SECTION_HEIGHT ? upperBlocks : lowerBlocks;
+		if (blocks == nullptr || blocks->get(x, y % Level::COMPRESSED_CHUNK_SECTION_HEIGHT, z) != Tile::EXT_TILE_PLACEHOLDER) continue;
+		ExtTileEntry e = { x, y, z, snapshot[i].second };
+		out.push_back(e);
+	}
+}
+
+int LevelChunk::getTileForLight(CompressedTileStorage *blocks, int x, int worldY, int z)
+{
+	int t = blocks->get(x, worldY % Level::COMPRESSED_CHUNK_SECTION_HEIGHT, z);
+	if (t == Tile::EXT_TILE_PLACEHOLDER) t = resolveExtTile(t, x, worldY, z);
+	return t & Tile::TILE_NUM_MASK;
+}
+
+// Fills out[] (16*16*maxBuildHeight entries, same order as getBlockData) with the REAL tile ids.
+void LevelChunk::getTileIds16(unsigned short *out)
+{
+	const int total = 16 * 16 * Level::maxBuildHeight;
+
+	// The 8-bit data goes into the second half of the output buffer and is widened in place, front to back: the write cursor
+	// (2 bytes per entry) never reaches an unread source byte, so no temporary buffer is needed.
+	unsigned char *bytes = reinterpret_cast<unsigned char *>(out) + total;
+	byteArray tmp(bytes, total);
+	getBlockData(tmp);
+	for (int i = 0; i < total; i++)
+	{
+		out[i] = bytes[i];
+	}
+
+	std::shared_ptr<ExtTileTable> t = std::atomic_load(&extTiles);
+	if (t == nullptr) return;
+	std::lock_guard<std::mutex> g(t->lock);
+	for (std::unordered_map<int, int>::iterator it = t->tiles.begin(); it != t->tiles.end(); ++it)
+	{
+		int x = it->first & 15;
+		int z = (it->first >> 4) & 15;
+		int y = it->first >> 8;
+		int offset = 0;
+		int indexY = y;
+		if (indexY >= Level::COMPRESSED_CHUNK_SECTION_HEIGHT)
+		{
+			indexY -= Level::COMPRESSED_CHUNK_SECTION_HEIGHT;
+			offset = Level::COMPRESSED_CHUNK_SECTION_TILES;
+		}
+		int idx = offset + ((x << 11) | (z << 7) | indexY);
+		if (idx >= 0 && idx < total && out[idx] == Tile::EXT_TILE_PLACEHOLDER)	// only where the placeholder really is
+		{
+			out[idx] = static_cast<unsigned short>(it->second);
+		}
+	}
 }

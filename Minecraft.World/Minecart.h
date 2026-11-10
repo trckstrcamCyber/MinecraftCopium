@@ -18,6 +18,7 @@ public:
 	static const int TYPE_TNT = 3;
 	static const int TYPE_SPAWNER = 4;
 	static const int TYPE_HOPPER = 5;
+	static const int TYPE_DIAMOND = 6;	// neoLegacy
 
 public:
 	static const int serialVersionUID = 0;
@@ -70,6 +71,7 @@ private:
 
 public:
 	virtual void tick();
+	virtual double getMaxSpeed() { return 0.4; }	// neoLegacy - per-type rail speed cap
 	virtual void activateMinecart(int xt, int yt, int zt, bool state);
 
 protected:

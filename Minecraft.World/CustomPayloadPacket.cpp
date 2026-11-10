@@ -14,6 +14,8 @@ const wstring CustomPayloadPacket::TRADER_SELECTION_PACKET = CreateVanillaPayloa
 // neoLegacy-defined custom packets
 const wstring CustomPayloadPacket::UPDATE_RECIPE_REGISTRY = CreatePayloadKey(L"neo", L"UpdRReg");
 const wstring CustomPayloadPacket::UPDATE_CREATIVE_REGISTRY = CreatePayloadKey(L"neo", L"UpdCReg");
+const wstring CustomPayloadPacket::ARCADE_SAVE_PACKET = CreatePayloadKey(L"neo", L"ArcSave");
+const wstring CustomPayloadPacket::ARCADE_SYNC_PACKET = CreatePayloadKey(L"neo", L"ArcSync");
 
 //todo: figure out if we should replace the packets in the comment section with a custom payload identifier
 //comment section start

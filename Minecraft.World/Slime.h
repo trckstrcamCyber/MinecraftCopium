@@ -19,9 +19,10 @@ public:
 	float squish;
 	float oSquish;
 
-private:
-	int jumpDelay;
+protected:
+	int jumpDelay;	// neoLegacy - protected so the Jelly Slime can reuse the hop timer
 
+private:
 	void _init();
 
 public:

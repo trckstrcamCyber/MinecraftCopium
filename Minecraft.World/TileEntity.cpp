@@ -5,6 +5,11 @@
 #include "net.minecraft.world.level.tile.entity.h"
 #include "TileEntity.h"
 #include "PistonPieceEntity.h"
+#include "ObserverTileEntity.h"
+#include "ConcreteColorTileEntity.h"
+#include "BedTileEntity.h"
+#include "DrillTileEntity.h"
+#include "ProcessorTileEntity.h"
 
 
 
@@ -33,6 +38,11 @@ void TileEntity::staticCtor()
 	TileEntity::setId(HopperTileEntity::create, eTYPE_HOPPERTILEENTITY, L"Hopper");
 	TileEntity::setId(ComparatorTileEntity::create, eTYPE_COMPARATORTILEENTITY, L"Comparator");
 	TileEntity::setId(BannerTileEntity::create, eTYPE_BANNERTILEENTITY, L"Banner");
+	TileEntity::setId(ObserverTileEntity::create, eTYPE_OBSERVERTILEENTITY, L"Observer");
+	TileEntity::setId(ConcreteColorTileEntity::create, eTYPE_CONCRETECOLORTILEENTITY, L"ConcreteColor");
+	TileEntity::setId(DrillTileEntity::create, eTYPE_DRILLTILEENTITY, L"Drill");
+	TileEntity::setId(ProcessorTileEntity::create, eTYPE_PROCESSORTILEENTITY, L"CrusherRefiner");
+	TileEntity::setId(BedTileEntity::create, eTYPE_BEDTILEENTITY, L"Bed");	// neoLegacy - Fancy Beds
 }
 
 void TileEntity::setId(tileEntityCreateFn createFn, eINSTANCEOF clas, wstring id)

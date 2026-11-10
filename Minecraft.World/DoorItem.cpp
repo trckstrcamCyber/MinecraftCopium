@@ -33,6 +33,7 @@ bool DoorItem::useOn(shared_ptr<ItemInstance> instance, shared_ptr<Player> playe
 	else if (doorType == L"doorJungle")    tile = Tile::jungle_door;
 	else if (doorType == L"doorAcacia")    tile = Tile::acacia_door;
 	else if (doorType == L"doorDark")    tile = Tile::dark_oak_door;
+	else if (doorType == L"doorBamboo")  tile = Tile::bambooDoor;
 
 	if (!player->mayUseItemAt(x, y, z, face, instance) || !player->mayUseItemAt(x, y + 1, z, face, instance)) return false;
 	if (!tile->mayPlace(level, x, y, z)) return false;

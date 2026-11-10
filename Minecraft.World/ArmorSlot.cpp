@@ -4,6 +4,8 @@
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.world.inventory.h"
 #include "net.minecraft.world.item.crafting.h"
+#include "net.minecraft.world.entity.player.h"
+#include "net.minecraft.world.item.enchantment.h"
 #include "ArmorSlot.h"
 
 ArmorSlot::ArmorSlot(int slotNum, shared_ptr<Container> container, int id, int x, int y)
@@ -37,6 +39,18 @@ bool ArmorSlot::mayPlace(shared_ptr<ItemInstance> item)
 	}
 
 	return false;
+}
+
+// neoLegacy - Curse of Binding: in Survival a bound piece can't be taken out of its armor slot (click, shift-click, drop)
+bool ArmorSlot::mayPickup(shared_ptr<Player> player)
+{
+	shared_ptr<ItemInstance> item = getItem();
+	if (item != nullptr && player != nullptr && !player->abilities.instabuild &&
+		EnchantmentHelper::getEnchantmentLevel(Enchantment::bindingCurse->id, item) > 0)
+	{
+		return false;
+	}
+	return Slot::mayPickup(player);
 }
 
 Icon *ArmorSlot::getNoItemIcon()

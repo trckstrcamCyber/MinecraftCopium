@@ -2238,6 +2238,7 @@ bool UIController::NavigateToScene(int iPad, EUIScene scene, void *initData, EUI
 		case eUIScene_EnchantingMenu:
 		case eUIScene_BrewingStandMenu:
 		case eUIScene_AnvilMenu:
+		case eUIScene_GrindstoneMenu:
 		case eUIScene_TradingMenu:
 		case eUIScene_BeaconMenu:
 		case eUIScene_HorseMenu:

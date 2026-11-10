@@ -27,6 +27,13 @@ private:
 #ifdef _LARGE_WORLDS
 	deque<LevelChunk *> m_toDrop;
 	LevelChunk **m_unloadedCache;
+
+	// neoLegacy - a chunk that gets replaced in m_unloadedCache is not deleted straight away: the host's client chunk cache
+	// (MultiPlayerChunkCache::create) may have just been handed that pointer by getChunkLoadedOrUnloaded() and be copying from it on
+	// the main thread. See retireChunk() in ServerChunkCache.cpp.
+	struct RetiredChunk { LevelChunk *chunk; int ticksLeft; };
+	vector<RetiredChunk> m_retiredChunks;
+	void retireChunk(LevelChunk *chunk);
 #endif
 
 	// 4J - added for multithreaded support

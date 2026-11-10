@@ -1521,6 +1521,7 @@ void Minecraft::run_middle()
 								ui.IsSceneInStack(i, eUIScene_BrewingStandMenu) ||
 								ui.IsSceneInStack(i, eUIScene_TradingMenu) ||
 								ui.IsSceneInStack(i, eUIScene_AnvilMenu) ||
+								ui.IsSceneInStack(i, eUIScene_GrindstoneMenu) ||
 								ui.IsSceneInStack(i, eUIScene_HopperMenu) ||
 								ui.IsSceneInStack(i, eUIScene_BeaconMenu) ||
 								ui.IsSceneInStack(i, eUIScene_InventoryMenu) ||
@@ -2634,6 +2635,10 @@ void Minecraft::tick(bool bFirst, bool bUpdateTextures)
 				case Item::iron_sword_Id:
 				case Item::diamond_sword_Id:
 				case Item::golden_sword_Id:
+				case Item::wado_ichimonji_Id:
+				case Item::sandai_kitetsu_Id:
+				case Item::enma_Id:
+				case Item::shusui_Id:
 					*piUse=IDS_TOOLTIPS_BLOCK;
 					break;
 
@@ -2822,6 +2827,12 @@ void Minecraft::tick(bool bFirst, bool bUpdateTextures)
 						case Tile::stone_button_Id:
 						case Tile::wooden_button_Id:
 						case Tile::trapdoor_Id:
+						case Tile::spruce_trapdoor_Id:
+						case Tile::birch_trapdoor_Id:
+						case Tile::jungle_trapdoor_Id:
+						case Tile::acacia_trapdoor_Id:
+						case Tile::dark_oak_trapdoor_Id:
+						case Tile::bamboo_trapdoor_Id:
 						case Tile::fence_gate_Id:
 						case Tile::beacon_Id:
 							*piAction=IDS_TOOLTIPS_MINE;
@@ -2922,7 +2933,7 @@ void Minecraft::tick(bool bFirst, bool bUpdateTextures)
 							if ( !bUseItemOn && (itemInstance != nullptr) && (iData == 0) )
 							{
 								int iID = itemInstance->getItem()->id;
-								if (iID<256) // is it a tile?
+								if (Tile::isTileItemId(iID)) // is it a tile?
 								{
 									switch(iID)
 									{
@@ -3122,6 +3133,7 @@ void Minecraft::tick(bool bFirst, bool bUpdateTextures)
 						*piUse=IDS_TOOLTIPS_SAIL;
 						break;
 
+					case eTYPE_MINECART_DIAMOND:
 					case eTYPE_MINECART_RIDEABLE:
 						*piAction = IDS_TOOLTIPS_MINE;
 						*piUse = IDS_TOOLTIPS_RIDE; // are we in the minecart already? - 4J-JEV: Doesn't matter anymore.

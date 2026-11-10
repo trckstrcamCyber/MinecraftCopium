@@ -138,7 +138,8 @@ intArray BiomeInitLayer::getArea(int xo, int yo, int w, int h)
                         else
                         {
                             
-                            result[x + y * w] = Biome::jungle->id;
+                            // neoLegacy - 1 jungle area in 10 is a Bamboo Jungle (like Java)
+                            result[x + y * w] = (nextRandom(10) == 0) ? Biome::bambooJungle->id : Biome::jungle->id;
                         }
                     }
                     

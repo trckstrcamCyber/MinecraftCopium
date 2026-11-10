@@ -107,6 +107,37 @@ void FallingTile::tick()
 		int xt = Mth::floor(x);
 		int yt = Mth::floor(y);
 		int zt = Mth::floor(z);
+
+        // Catch the falling-entity case: if powder itself reaches/touches
+        // water, make the entity concrete while preserving its color data.
+        if (tile == Tile::concrete_powder_Id)
+        {
+            bool touchingWater =
+                level->getMaterial(xt, yt, zt) == Material::water;
+
+            if (!touchingWater)
+            {
+                static const int OFFSETS[6][3] =
+                {
+                    { 0, -1, 0 }, { 0, 1, 0 },
+                    { 0, 0, -1 }, { 0, 0, 1 },
+                    {-1, 0, 0 }, { 1, 0, 0 }
+                };
+
+                for (int i = 0; i < 6 && !touchingWater; ++i)
+                {
+                    touchingWater =
+                        level->getMaterial(
+                            xt + OFFSETS[i][0],
+                            yt + OFFSETS[i][1],
+                            zt + OFFSETS[i][2]) == Material::water;
+                }
+            }
+
+            if (touchingWater)
+                tile = Tile::concrete_Id;
+        }
+
 		if(time == 1)
 		{
 			if (level->getTile(xt, yt, zt) == tile)

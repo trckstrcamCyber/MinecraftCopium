@@ -15,6 +15,8 @@
 #include "../Minecraft.World/net.minecraft.network.packet.h"
 #include "../Minecraft.World/net.minecraft.world.damagesource.h"
 #include "../Minecraft.World/net.minecraft.world.inventory.h"
+#include "../Minecraft.World/GrindstoneMenu.h"
+#include "../Minecraft.World/ComplexCraftingMenu.h"	// neoLegacy - Complex Table
 #include "../Minecraft.World/net.minecraft.world.level.h"
 #include "../Minecraft.World/net.minecraft.world.level.storage.h"
 #include "../Minecraft.World/net.minecraft.world.level.dimension.h"
@@ -83,6 +85,8 @@ static std::wstring FormatDeathMessage(const shared_ptr<ChatPacket>& packet)
 		message = app.GetString(IDS_DEATH_MAGIC); replacePlayer = true; break;
 	case ChatPacket::e_ChatDeathWither:
 		message = app.GetString(IDS_DEATH_WITHER); replacePlayer = true; break;
+	case ChatPacket::e_ChatDeathFreeze:
+		message = app.GetString(IDS_DEATH_FREEZE); replacePlayer = true; break;
 	case ChatPacket::e_ChatDeathDragonBreath:
 		message = app.GetString(IDS_DEATH_DRAGON_BREATH); replacePlayer = true; break;
 	case ChatPacket::e_ChatDeathAnvil:
@@ -382,6 +386,15 @@ void ServerPlayer::setDefaultHeadHeight()
 
 float ServerPlayer::getHeadHeight()
 {
+
+	if (isSwimming())
+	{
+		return 0.42f;
+	}
+	if (isSneaking())
+	{
+		return 1.22f;
+	}
 	return 1.62f;
 }
 
@@ -1234,6 +1247,38 @@ bool ServerPlayer::startCrafting(int x, int y, int z)
 	return true;
 }
 
+// neoLegacy - Complex Table: identical shape to startCrafting above, but opens
+// ComplexCraftingMenu (its own exclusive recipe set) instead of CraftingMenu.
+// Sends its own ContainerOpenPacket::COMPLEX_WORKBENCH type: ClientConnection
+// opens the crafting UI from the packet type alone (it ignores the table's
+// position), so a plain WORKBENCH packet made the client open a normal
+// crafting screen with the normal recipe list.
+bool ServerPlayer::startComplexCrafting(int x, int y, int z)
+{
+	if(containerMenu == inventoryMenu)
+	{
+		nextContainerCounter();
+		containerMenu = new ComplexCraftingMenu(inventory, level, x, y, z);
+		containerMenu->containerId = containerCounter;
+		containerMenu->addSlotListener(this);
+#if defined(_WINDOWS64) && defined(MINECRAFT_SERVER_BUILD)
+		if (FourKitBridge::FireInventoryOpen(entityId, ContainerOpenPacket::WORKBENCH, L"", 9))
+		{
+			doCloseContainer();
+			return true;
+		}
+#endif
+		connection->send(std::make_shared<ContainerOpenPacket>(containerCounter, ContainerOpenPacket::COMPLEX_WORKBENCH, L"", 9, false));
+		refreshContainer(containerMenu);
+	}
+	else
+	{
+		app.DebugPrintf("ServerPlayer tried to open crafting container when one was already open\n");
+	}
+
+	return true;
+}
+
 bool ServerPlayer::openFireworks(int x, int y, int z)
 {
 	if(containerMenu == inventoryMenu)
@@ -1325,6 +1370,33 @@ bool ServerPlayer::startRepairing(int x, int y, int z)
 	else
 	{
 		app.DebugPrintf("ServerPlayer tried to open enchanting container when one was already open\n");
+	}
+
+	return true;
+}
+
+bool ServerPlayer::startGrindstoneRepairing(int x, int y, int z)
+{
+	if(containerMenu == inventoryMenu)
+	{
+		nextContainerCounter();
+		containerMenu = new GrindstoneMenu(inventory, level, x, y, z, dynamic_pointer_cast<Player>(shared_from_this()));
+		containerMenu->containerId = containerCounter;
+		containerMenu->addSlotListener(this);
+
+		// startRepairing() also calls FourKitBridge::FireInventoryOpen() here for
+		// dedicated-server plugins. That is deliberately not done for the
+		// grindstone: FourKit's container-type handling wasn't part of the file
+		// set this was written against, so ContainerOpenPacket::GRINDSTONE (18)
+		// isn't known to be safe there. Add the hook once FourKit knows the type.
+
+		app.DebugPrintf("[GRINDSTONE DIAG] 2/6 ServerPlayer::startGrindstoneRepairing -- sending ContainerOpenPacket::GRINDSTONE\n");
+		connection->send(std::make_shared<ContainerOpenPacket>(containerCounter, ContainerOpenPacket::GRINDSTONE, L"", 9, false));
+		refreshContainer(containerMenu);
+	}
+	else
+	{
+		app.DebugPrintf("ServerPlayer tried to open grindstone container when one was already open\n");
 	}
 
 	return true;

@@ -33,6 +33,10 @@ enum eMODIFIER_ID
 	eModifierId_POTION_MOVESLOWDOWN,
 	eModifierId_POTION_WEAKNESS,
 
+	// neoLegacy custom enchantment modifiers - must stay at the end, never reorder (serialized to disk)
+	eModifierId_ENCHANT_ADRENALINE_SPEED,
+	eModifierId_ENCHANT_SONIC_SPEED,
+
 	eModifierId_COUNT,
 };
 

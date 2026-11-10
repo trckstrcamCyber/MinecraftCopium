@@ -15,6 +15,7 @@
 #include "../Minecraft.World/InputOutputStream.h"
 
 ResourceLocation ParticleEngine::PARTICLES_LOCATION = ResourceLocation(TN_PARTICLES);
+ResourceLocation ParticleEngine::MACE_EFFECTS_LOCATION = ResourceLocation(TN_PARTICLE_MACE_EFFECTS);	// neoLegacy
 
 ParticleEngine::ParticleEngine(Level *level, Textures *textures)
 {
@@ -139,6 +140,7 @@ void ParticleEngine::render(shared_ptr<Entity> player, float a, int list)
 			if (tt == MISC_TEXTURE || tt == DRAGON_BREATH_TEXTURE) textures->bindTexture(&PARTICLES_LOCATION);
 			if (tt == TERRAIN_TEXTURE)  textures->bindTexture(&TextureAtlas::LOCATION_BLOCKS);
 			if (tt == ITEM_TEXTURE) textures->bindTexture(&TextureAtlas::LOCATION_ITEMS);
+			if (tt == MACE_TEXTURE) textures->bindTexture(&MACE_EFFECTS_LOCATION);	// neoLegacy
 			MemSect(0);
 			Tesselator *t = Tesselator::getInstance();
 			glColor4f(1.0f, 1.0f, 1.0f, 1);

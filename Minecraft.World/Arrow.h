@@ -44,6 +44,9 @@ private:
 
 	int knockback;
 
+	// neoLegacy Added - Explosive enchantment level (0 = not explosive)
+	int explosiveLevel;
+
 private:
 	int life;
 	int flightTime;
@@ -81,4 +84,8 @@ public:
 	virtual bool isAttackable();
 	void setCritArrow(bool critArrow);
 	bool isCritArrow();
+
+	// neoLegacy Added
+	void setExplosiveLevel(int level);
+	int getExplosiveLevel();
 };

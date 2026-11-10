@@ -118,7 +118,9 @@ void FishingHook::getEnchantLevels() {
 	if (this->owner == nullptr) return;
 	std::shared_ptr<ItemInstance> fishing_rod = owner->getSelectedItem();
 	// TODO; Account for luck effect once implemented.
-	this->luckLevel = EnchantmentHelper::getEnchantmentLevel(65, fishing_rod); // Luck of the sea
+	// Luck of the Sea raises luck; Hook of Muddy Waters is its mirror image and lowers it (negative luck = less treasure, more junk).
+	// (they can't be on the same rod, so at most one of the two is non-zero)
+	this->luckLevel = EnchantmentHelper::getEnchantmentLevel(65, fishing_rod) - EnchantmentHelper::getEnchantmentLevel(Enchantment::hookOfMuddyWaters->id, fishing_rod);
 	this->lureLevel = EnchantmentHelper::getEnchantmentLevel(64, fishing_rod); // Lure
 }
 
@@ -621,7 +623,7 @@ int FishingHook::retrieve()
 	else if (nibble > 0)
 	{
 		FishingHelper* helper = FishingHelper::getInstance();
-		std::shared_ptr<ItemInstance> fishingItemInstance = helper->getCatch(luckLevel, lureLevel, random);
+		std::shared_ptr<ItemInstance> fishingItemInstance = helper->getCatch(luckLevel, lureLevel, random, FishingHelper::isJungleBiome(level->getBiome(Mth::floor(x), Mth::floor(z))));
 		std::shared_ptr<ItemEntity> ie = std::make_shared<ItemEntity>(this->Entity::level, x, y, z, fishingItemInstance);
 		double xa = owner->x - x;
 		double ya = owner->y - y;

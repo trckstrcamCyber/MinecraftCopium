@@ -9,6 +9,8 @@ PlainsBiome::PlainsBiome(int id,bool plains) : Biome(id)
     _plains = plains;
 	friendlies.push_back(new MobSpawnerData(eTYPE_HORSE, 5, 2, 6));
 	friendlies.push_back(new MobSpawnerData(eTYPE_RABBIT, 4, 2, 3));
+	// neoLegacy - rare Jelly Slimes (by day, on the surface: JellySlime::canSpawn)
+	enemies.push_back(new MobSpawnerData(eTYPE_JELLYSLIME, 1, 1, 1));
 
 	decorator->treeCount = -999;
 	decorator->flowerCount = 4;

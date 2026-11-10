@@ -89,7 +89,7 @@ void TextEditScreen::render(int xm, int ym, float a)
 
     Tile *tile = sign->getTile();
 
-    if (tile == Tile::sign)
+    if (tile != nullptr && Tile::isStandingSignId(tile->id))
 	{
         float rot = sign->getData() * 360 / 16.0f;
         glRotatef(rot, 0, 1, 0);

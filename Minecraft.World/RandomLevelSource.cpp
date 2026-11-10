@@ -864,7 +864,27 @@ TilePos *RandomLevelSource::findNearestMapFeature(Level *level, const wstring& f
 {
 	if (LargeFeature::STRONGHOLD == featureName && strongholdFeature != nullptr)
 	{
-		return strongholdFeature->getNearestGeneratedFeature(level, x, y, z);
+		return strongholdFeature->searchForGeneratedFeature(level, x, y, z, LargeFeature::LOCATE_SEARCH_RADIUS_CHUNKS);
+	}
+	// neoLegacy - /locate village support
+	if (LargeFeature::VILLAGE == featureName && villageFeature != nullptr)
+	{
+		return villageFeature->searchForGeneratedFeature(level, x, y, z, LargeFeature::LOCATE_SEARCH_RADIUS_CHUNKS);
+	}
+	// neoLegacy - /locate: extra structure types, mostly so it's easy to tell the
+	// command itself is working (these all have working getNearestGeneratedFeature
+	// support already -- they just weren't wired to a player-facing command before)
+	if (LargeFeature::MINESHAFT == featureName && mineShaftFeature != nullptr)
+	{
+		return mineShaftFeature->searchForGeneratedFeature(level, x, y, z, LargeFeature::LOCATE_SEARCH_RADIUS_CHUNKS);
+	}
+	if (LargeFeature::MONUMENT == featureName && oceanMonument != nullptr)
+	{
+		return oceanMonument->searchForGeneratedFeature(level, x, y, z, LargeFeature::LOCATE_SEARCH_RADIUS_CHUNKS);
+	}
+	if (LargeFeature::TEMPLE == featureName && scatteredFeature != nullptr)
+	{
+		return scatteredFeature->searchForGeneratedFeature(level, x, y, z, LargeFeature::LOCATE_SEARCH_RADIUS_CHUNKS);
 	}
 	return nullptr;
 }

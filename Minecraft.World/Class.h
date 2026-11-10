@@ -124,6 +124,7 @@ enum eINSTANCEOF
 					eTYPE_AGABLE_MOB	= eTYPE_PATHFINDER_MOB | BIT_AGABLE_MOB,
 
 						eTYPE_VILLAGER	= eTYPE_AGABLE_MOB | 0x1, //0x12000,
+						eTYPE_WANDERING_TRADER = eTYPE_AGABLE_MOB | 0x2,	// neoLegacy
 
 						// 4J Stu - When adding new categories, please also update ConsoleSchematicFile::generateSchematicFile so these can be saved out to schematics
 						eTYPE_ANIMAL	= eTYPE_AGABLE_MOB | BIT_ANIMAL,
@@ -139,6 +140,8 @@ enum eINSTANCEOF
 							eTYPE_CHICKEN			= eTYPE_ANIMAL                                   | 0x4,
 							eTYPE_RABBIT    = eTYPE_ANIMAL | eTYPE_ANIMALS_SPAWN_LIMIT_CHECK | 0x5,
 						eTYPE_POLARBEAR = eTYPE_ANIMAL | eTYPE_ANIMALS_SPAWN_LIMIT_CHECK | 0x6,
+						eTYPE_GOAT      = eTYPE_ANIMAL | eTYPE_ANIMALS_SPAWN_LIMIT_CHECK | 0x7,
+						eTYPE_CAMEL     = eTYPE_ANIMAL | eTYPE_ANIMALS_SPAWN_LIMIT_CHECK | 0x8,
 
 							eTYPE_COW				= eTYPE_ANIMAL | eTYPE_ANIMALS_SPAWN_LIMIT_CHECK | BIT_COW,
 								eTYPE_MUSHROOMCOW	= eTYPE_COW | 0x1,
@@ -161,6 +164,17 @@ enum eINSTANCEOF
 
 						eTYPE_ZOMBIE			= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | BIT_ZOMBIE,
 							eTYPE_PIGZOMBIE		= eTYPE_ZOMBIE | 0x1,
+							eTYPE_HUSK			= eTYPE_ZOMBIE | 0x2,	// neoLegacy
+							eTYPE_DROWNED		= eTYPE_ZOMBIE | 0x3,	// neoLegacy
+							eTYPE_FROSTBITE	= eTYPE_ZOMBIE | 0x4,	// neoLegacy
+							eTYPE_VINDICATOR		= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x12,	// neoLegacy
+							eTYPE_EVOKER			= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x13,	// neoLegacy
+							eTYPE_VEX				= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x14,	// neoLegacy
+							eTYPE_ICEOLOGER		= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x15,	// neoLegacy
+							eTYPE_ILLUSIONER	= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x16,	// neoLegacy
+							eTYPE_PILLAGER		= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x17,	// neoLegacy
+							eTYPE_EVOKER_FANGS	= eTYPE_MOB | 0x6,	// neoLegacy - harmless mob-based entities (see EvokerFangs / IceCube)
+							eTYPE_ICE_CUBE		= eTYPE_MOB | 0x7,	// neoLegacy
 
 						eTYPE_CREEPER		= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x1,
 						eTYPE_GIANT			= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x2,
@@ -185,6 +199,7 @@ enum eINSTANCEOF
 
 				eTYPE_SLIME				= eTYPE_MOB | eTYPE_VALID_IN_SPAWNER_FLAG | eTYPE_ENEMY | BIT_SLIME,
 					eTYPE_LAVASLIME		= eTYPE_SLIME | 0x1,
+					eTYPE_JELLYSLIME	= eTYPE_SLIME | 0x2,	// neoLegacy
 
 				eTYPE_ENDERDRAGON	= eTYPE_MOB | 0x5,
 	
@@ -202,6 +217,7 @@ enum eINSTANCEOF
 			
 			eTYPE_MINECART_RIDEABLE     = eTYPE_MINECART | 0x1,
 			eTYPE_MINECART_SPAWNER      = eTYPE_MINECART | 0x6,
+			eTYPE_MINECART_DIAMOND      = eTYPE_MINECART | 0x7,
 			eTYPE_MINECART_FURNACE      = eTYPE_MINECART | 0x3,
 			eTYPE_MINECART_TNT			= eTYPE_MINECART | 0x4,
 
@@ -298,6 +314,9 @@ enum eINSTANCEOF
 	//TU 31
 	eType_WAKEPARTICLE,
 
+	//neoLegacy
+	eType_MACEEFFECTPARTICLE,
+
 	// === Tile Entities === //
 	
 	eTYPE_TILEENTITY						= BIT_TILE_ENTITY,
@@ -320,6 +339,11 @@ enum eINSTANCEOF
 		eTYPE_DAYLIGHTDETECTORTILEENTITY	= eTYPE_TILEENTITY | 0x10,
 		eTYPE_HOPPERTILEENTITY				= eTYPE_TILEENTITY | 0x11,
 		eTYPE_BANNERTILEENTITY				= eTYPE_TILEENTITY | 0x12,
+		eTYPE_OBSERVERTILEENTITY			= eTYPE_TILEENTITY | 0x13,
+		eTYPE_CONCRETECOLORTILEENTITY		= eTYPE_TILEENTITY | 0x14,
+		eTYPE_DRILLTILEENTITY				= eTYPE_TILEENTITY | 0x15,
+		eTYPE_PROCESSORTILEENTITY			= eTYPE_TILEENTITY | 0x16,
+		eTYPE_BEDTILEENTITY					= eTYPE_TILEENTITY | 0x17,
 		
 		eTYPE_DISPENSERTILEENTITY			= eTYPE_TILEENTITY | BIT_DISPENSERTILEENTITY,
 			eTYPE_DROPPERTILEENTITY			= eTYPE_DISPENSERTILEENTITY | 0x1,
@@ -415,6 +439,7 @@ public:
 		classes->push_back( SUBCLASS(eTYPE_PATHFINDER_MOB)->addParent(eTYPE_MOB) );
 		classes->push_back( SUBCLASS(eTYPE_AGABLE_MOB)->addParent(eTYPE_PATHFINDER_MOB) );
 		classes->push_back( SUBCLASS(eTYPE_VILLAGER)->addParent(eTYPE_AGABLE_MOB) );
+		classes->push_back( SUBCLASS(eTYPE_WANDERING_TRADER)->addParent(eTYPE_AGABLE_MOB) );
 		classes->push_back( SUBCLASS(eTYPE_ANIMAL)->addParent(eTYPE_AGABLE_MOB) );
 		classes->push_back( SUBCLASS(eTYPE_TAMABLE_ANIMAL	)->addParent( eTYPE_ANIMAL ) );
 		classes->push_back( SUBCLASS(eTYPE_OCELOT		)->addParent( eTYPE_TAMABLE_ANIMAL)->addParent(eTYPE_ANIMALS_SPAWN_LIMIT_CHECK ) );
@@ -423,6 +448,8 @@ public:
 		classes->push_back( SUBCLASS(eTYPE_SHEEP				)->addParent( eTYPE_ANIMAL)->addParent(eTYPE_ANIMALS_SPAWN_LIMIT_CHECK ) );
 		classes->push_back( SUBCLASS(eTYPE_PIG				)->addParent( eTYPE_ANIMAL)->addParent(eTYPE_ANIMALS_SPAWN_LIMIT_CHECK  ) );
 		classes->push_back( SUBCLASS(eTYPE_CHICKEN			)->addParent( eTYPE_ANIMAL  ) );
+		classes->push_back( SUBCLASS(eTYPE_GOAT				)->addParent( eTYPE_ANIMAL)->addParent(eTYPE_ANIMALS_SPAWN_LIMIT_CHECK ) );
+		classes->push_back( SUBCLASS(eTYPE_CAMEL				)->addParent( eTYPE_ANIMAL)->addParent(eTYPE_ANIMALS_SPAWN_LIMIT_CHECK ) );
 
 		classes->push_back( SUBCLASS(eTYPE_COW				)->addParent( eTYPE_ANIMAL)->addParent(eTYPE_ANIMALS_SPAWN_LIMIT_CHECK ) );
 		classes->push_back( SUBCLASS(eTYPE_MUSHROOMCOW	)->addParent( eTYPE_COW ) );
@@ -436,6 +463,17 @@ public:
 		classes->push_back( SUBCLASS(eTYPE_CAVESPIDER	)->addParent( eTYPE_SPIDER  ) );
 		classes->push_back( SUBCLASS(eTYPE_ZOMBIE			)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
 		classes->push_back( SUBCLASS(eTYPE_PIGZOMBIE		)->addParent( eTYPE_ZOMBIE ) );
+		classes->push_back( SUBCLASS(eTYPE_HUSK			)->addParent( eTYPE_ZOMBIE ) );
+		classes->push_back( SUBCLASS(eTYPE_DROWNED		)->addParent( eTYPE_ZOMBIE ) );
+		classes->push_back( SUBCLASS(eTYPE_FROSTBITE		)->addParent( eTYPE_ZOMBIE ) );
+		classes->push_back( SUBCLASS(eTYPE_VINDICATOR	)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
+		classes->push_back( SUBCLASS(eTYPE_EVOKER		)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
+		classes->push_back( SUBCLASS(eTYPE_VEX			)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
+		classes->push_back( SUBCLASS(eTYPE_ICEOLOGER	)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
+		classes->push_back( SUBCLASS(eTYPE_ILLUSIONER	)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
+		classes->push_back( SUBCLASS(eTYPE_PILLAGER	)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
+		classes->push_back( SUBCLASS(eTYPE_EVOKER_FANGS	)->addParent( eTYPE_MOB ) );
+		classes->push_back( SUBCLASS(eTYPE_ICE_CUBE		)->addParent( eTYPE_MOB ) );
 		classes->push_back( SUBCLASS(eTYPE_CREEPER		)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
 		classes->push_back( SUBCLASS(eTYPE_GIANT			)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
 		classes->push_back( SUBCLASS(eTYPE_SKELETON		)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
@@ -450,6 +488,7 @@ public:
 		classes->push_back( SUBCLASS(eTYPE_GHAST		)->addParent( eTYPE_FLYING_MOB )->addParent(eTYPE_VALID_IN_SPAWNER_FLAG)->addParent(eTYPE_ENEMY ) );
 		classes->push_back( SUBCLASS(eTYPE_SLIME				)->addParent( eTYPE_MOB )->addParent(eTYPE_VALID_IN_SPAWNER_FLAG)->addParent(eTYPE_ENEMY ) );
 		classes->push_back( SUBCLASS(eTYPE_LAVASLIME		)->addParent( eTYPE_SLIME ) );
+		classes->push_back( SUBCLASS(eTYPE_JELLYSLIME		)->addParent( eTYPE_SLIME ) );	// neoLegacy
 		classes->push_back( SUBCLASS(eTYPE_ENDERDRAGON	)->addParent( eTYPE_MOB ) );
 		classes->push_back( SUBCLASS(eTYPE_PLAYER			)->addParent( eTYPE_LIVINGENTITY ) );
 		classes->push_back( SUBCLASS(eTYPE_SERVERPLAYER	)->addParent( eTYPE_PLAYER ) );
@@ -459,6 +498,7 @@ public:
 		classes->push_back( SUBCLASS(eTYPE_MINECART					)->addParent( eTYPE_ENTITY ) );
 		classes->push_back( SUBCLASS(eTYPE_MINECART_RIDEABLE     )->addParent( eTYPE_MINECART ) );
 		classes->push_back( SUBCLASS(eTYPE_MINECART_SPAWNER      )->addParent( eTYPE_MINECART ) );
+		classes->push_back( SUBCLASS(eTYPE_MINECART_DIAMOND      )->addParent( eTYPE_MINECART ) );
 		classes->push_back( SUBCLASS(eTYPE_MINECART_FURNACE      )->addParent( eTYPE_MINECART ) );
 		classes->push_back( SUBCLASS(eTYPE_MINECART_TNT			)->addParent( eTYPE_MINECART ) );
 		classes->push_back( SUBCLASS(eTYPE_MINECART_CONTAINER	)->addParent( eTYPE_MINECART ) );
@@ -511,6 +551,7 @@ public:
 		classes->push_back( SUBCLASS(eType_SNOWSHOVELPARTICLE)->addParent(eTYPE_ENTITY) );
 		classes->push_back( SUBCLASS(eType_SPLASHPARTICLE)->addParent(eTYPE_ENTITY) );
 		classes->push_back( SUBCLASS(eType_WAKEPARTICLE)->addParent(eTYPE_ENTITY) );
+		classes->push_back( SUBCLASS(eType_MACEEFFECTPARTICLE)->addParent(eTYPE_ENTITY) );
 		classes->push_back( SUBCLASS(eType_TAKEANIMATIONPARTICLE)->addParent(eTYPE_ENTITY) );
 		classes->push_back( SUBCLASS(eType_TERRAINPARTICLE)->addParent(eTYPE_ENTITY) );
 		classes->push_back( SUBCLASS(eType_WATERDROPPARTICLE)->addParent(eTYPE_ENTITY) );
@@ -548,6 +589,11 @@ public:
 		classes->push_back( SUBCLASS(eTYPE_DAYLIGHTDETECTORTILEENTITY	)->addParent( eTYPE_TILEENTITY			) );
 		classes->push_back( SUBCLASS(eTYPE_HOPPERTILEENTITY				)->addParent( eTYPE_TILEENTITY			) );
 		classes->push_back( SUBCLASS(eTYPE_BANNERTILEENTITY				)->addParent( eTYPE_TILEENTITY			) );
+		classes->push_back( SUBCLASS(eTYPE_OBSERVERTILEENTITY				)->addParent( eTYPE_TILEENTITY			) );
+		classes->push_back( SUBCLASS(eTYPE_CONCRETECOLORTILEENTITY			)->addParent( eTYPE_TILEENTITY			) );
+		classes->push_back( SUBCLASS(eTYPE_DRILLTILEENTITY					)->addParent( eTYPE_TILEENTITY			) );
+		classes->push_back( SUBCLASS(eTYPE_PROCESSORTILEENTITY				)->addParent( eTYPE_TILEENTITY			) );
+		classes->push_back( SUBCLASS(eTYPE_BEDTILEENTITY					)->addParent( eTYPE_TILEENTITY			) );
 		classes->push_back( SUBCLASS(eTYPE_DISPENSERTILEENTITY			)->addParent( eTYPE_TILEENTITY			) );
 		classes->push_back( SUBCLASS(eTYPE_DROPPERTILEENTITY			)->addParent( eTYPE_DISPENSERTILEENTITY ) );
 		

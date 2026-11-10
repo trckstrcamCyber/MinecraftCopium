@@ -6,6 +6,7 @@ using namespace std;
 
 #include "miniaudio.h"
 #include <chrono>
+#include <mutex>
 
 constexpr float SFX_3D_MIN_DISTANCE = 1.0f;
 constexpr float SFX_3D_MAX_DISTANCE = 16.0f;
@@ -185,6 +186,11 @@ private:
 
 	AUDIO_LISTENER m_ListenerA[MAX_LOCAL_PLAYERS];
 	int m_validListenerCount;
+
+	// neoLegacy - guards every public entry point (and the active-sound list). SoundEngine is called from more than one thread:
+	// ServerPlayer::changeDimension() plays the portal sound from the server thread while the main thread is iterating
+	// m_activeSounds in updateMiniAudio(). Recursive so tick() can call the other entry points while holding it.
+	std::recursive_mutex m_mutex;
 
 
 	Random *random;

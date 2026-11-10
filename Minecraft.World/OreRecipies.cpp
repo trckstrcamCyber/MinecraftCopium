@@ -31,9 +31,6 @@ void OreRecipies::_init()
 
 	ADD_OBJECT(map[7],Tile::hayBlock);
 	ADD_OBJECT(map[7],new ItemInstance(Item::wheat, 9));
-
-	ADD_OBJECT(map[8],Tile::slimeBlock);
-	ADD_OBJECT(map[8],new ItemInstance(Item::slime_ball, 9));
 }
 void OreRecipies::addRecipes(Recipes *r) 
 {
@@ -56,7 +53,23 @@ void OreRecipies::addRecipes(Recipes *r)
 
 			L'#', from,
 			L'D');
-	}		
+	}
+
+	// neoLegacy - Slime Block: 4 Slime Balls in a 2x2 square (same as the Jelly Block) and 1 block back into 4 balls
+	r->addShapedRecipy(new ItemInstance(Tile::slimeBlock), //
+		L"sscig",
+		L"##", //
+		L"##", //
+
+		L'#', Item::slime_ball,
+		L'D');
+
+	r->addShapedRecipy(new ItemInstance(Item::slime_ball, 4), //
+		L"sctg",
+		L"#", //
+
+		L'#', Tile::slimeBlock,
+		L'D');
 }
 
 

@@ -32,7 +32,7 @@ ChunkTilesUpdatePacket::ChunkTilesUpdatePacket(int xc, int zc, shortArray positi
 	this->count = count;
 	this->positions = shortArray(count);
 
-	this->blocks = byteArray(count);
+	this->blocks = shortArray(count);
 	this->data = byteArray(count);
 	LevelChunk *levelChunk = level->getChunk(xc, zc);
 	for (int i = 0; i < count; i++) 
@@ -42,7 +42,7 @@ ChunkTilesUpdatePacket::ChunkTilesUpdatePacket(int xc, int zc, shortArray positi
 		int y = (positions[i]) & 255;
 
 		this->positions[i] = positions[i];
-		blocks[i] = static_cast<byte>(levelChunk->getTile(x, y, z));
+		blocks[i] = static_cast<short>(levelChunk->getTile(x, y, z));
 		data[i] = static_cast<byte>(levelChunk->getData(x, y, z));
 	}
 	levelIdx = ( ( level->dimension->id == 0 ) ? 0 : ( (level->dimension->id == -1) ? 1 : 2 ) );
@@ -69,7 +69,7 @@ void ChunkTilesUpdatePacket::read(DataInputStream *dis) //throws IOException
 	count = countAndFlags & 0x1f;
 
 	positions = shortArray(count);
-	blocks = byteArray(count);
+	blocks = shortArray(count);
 	data = byteArray(count);
 
 	int currentBlockType = -1;
@@ -80,9 +80,9 @@ void ChunkTilesUpdatePacket::read(DataInputStream *dis) //throws IOException
 		positions[i] = (xzAndFlag & 0xff00) | (y & 0xff);
 		if( ( xzAndFlag & 0x0080 ) == 0x0080 )
 		{
-			currentBlockType = dis->read();
+			currentBlockType = dis->readShort() & 0xffff;
 		}
-		blocks[i] = currentBlockType;
+		blocks[i] = static_cast<short>(currentBlockType);
 		if( !dataAllZero)
 		{
 			data[i] = dis->read();
@@ -122,13 +122,13 @@ void ChunkTilesUpdatePacket::write(DataOutputStream *dos) //throws IOException
 	{
 		int xzAndFlag = positions[i] &0xff00;
 		int y = positions[i] & 0xff;
-		int thisBlockType = blocks[i];
+		int thisBlockType = blocks[i] & 0xffff;
 		if( thisBlockType != lastBlockType )
 		{
 			xzAndFlag |= 0x0080;	// Use top bit of y as a flag, we only need 7 bits for that
 			dos->writeShort(xzAndFlag);
 			dos->write(y);
-			dos->write(thisBlockType);
+			dos->writeShort(thisBlockType);
 			lastBlockType = thisBlockType;
 		}
 		else
@@ -156,14 +156,14 @@ int ChunkTilesUpdatePacket::getEstimatedSize()
 	for( int i = 0; i < count; i++ )
 	{
 		if( data[i] ) dataAllZero = false;
-		int thisBlockType = blocks[i];
+		int thisBlockType = blocks[i] & 0xffff;
 		if( thisBlockType != lastBlockType )
 		{
 			blockTypeChanges++;
 			lastBlockType = thisBlockType;
 		}
 	}
-	int byteCount = 3 + 2 * count + blockTypeChanges;
+	int byteCount = 3 + 2 * count + 2 * blockTypeChanges;
 	if( !dataAllZero )
 	{
 		byteCount += count;

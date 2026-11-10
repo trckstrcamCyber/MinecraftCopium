@@ -13,6 +13,7 @@ private:
 	bool _isSourcePiston;
 
 	float progress, progressO;
+	int64_t lastTicked;		// neoLegacy - game time of the last tick() (Java PistonMovingBlockEntity.lastTicked)
 
 public:
 	PistonPieceEntity();
@@ -23,6 +24,7 @@ public:
 	int getFacing();
 	bool isSourcePiston();
 	float getProgress(float a);
+	int64_t getLastTicked() { return lastTicked; }
 	float getXOff(float a);
 	float getYOff(float a);
 	float getZOff(float a);

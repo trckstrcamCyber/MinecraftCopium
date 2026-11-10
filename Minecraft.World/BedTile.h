@@ -1,14 +1,18 @@
 #pragma once
 #include "DirectionalTile.h"
+#include "EntityTile.h"
 
+class TileEntity;
 class Pos;
 class Player;
 class Random;
 class Level;
 
-class BedTile : public DirectionalTile
+class BedTile : public DirectionalTile, public EntityTile
 {
 private:
+	int m_dropVariant;	// neoLegacy - which bed to drop; captured before the tile entity is removed (see BedTileEntity.h)
+
 	static const int PART_FOOT = 0;
 	static const int PART_HEAD = 1;
 
@@ -23,6 +27,13 @@ public:
 	static int HEAD_DIRECTION_OFFSETS[4][2];
 
 	BedTile(int id);
+
+	// neoLegacy - Fancy Beds: EntityTile (the bed variant lives in a BedTileEntity on both halves)
+	virtual shared_ptr<TileEntity> newTileEntity(Level *level);
+	virtual void onRemove(Level *level, int x, int y, int z, int id, int data);
+	virtual int cloneTileData(Level *level, int x, int y, int z);
+	// Removes both halves without dropping anything (straw beds breaking, waking up, Nether/End use)
+	static void removeBothHalves(Level *level, int x, int y, int z);
 	virtual void createBlockStateDefinition() override;
 	virtual int defaultBlockState() override;
 	virtual int convertBlockStateToLegacyData(BlockState *state) override;

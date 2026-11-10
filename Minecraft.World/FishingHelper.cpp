@@ -4,6 +4,8 @@
 #include "../Minecraft.World/FishingHelper.h"
 #include "../Minecraft.World/ItemInstance.h"
 #include "../Minecraft.World/EnchantmentHelper.h"
+#include "../Minecraft.World/Enchantment.h"
+#include "../Minecraft.World/CurseLoot.h"
 #include "net.minecraft.world.item.h"
 #include <memory>
 
@@ -13,7 +15,7 @@ FishingHelper* FishingHelper::getInstance()
 	return &instance;
 }
 
-FishingHelper::FishingHelper() : fishingFishArray(4), fishingJunkArray(11), fishingTreasuresArray(6)
+FishingHelper::FishingHelper() : fishingFishArray(4), fishingJunkArray(11), fishingJungleJunkArray(12), fishingTreasuresArray(6)
 {
 	fishingTreasuresArray[0] = new CatchWeighedItem(Item::bow_Id, 1, 0, 1);
 	fishingTreasuresArray[1] = new CatchWeighedItem(Item::book_Id, 1, 0, 1);
@@ -38,6 +40,17 @@ FishingHelper::FishingHelper() : fishingFishArray(4), fishingJunkArray(11), fish
 	fishingJunkArray[8] = new CatchWeighedItem(Item::string_Id, 1, 0, 5);
 	fishingJunkArray[9] = new CatchWeighedItem(Item::fishing_rod_Id, 1, 0, 2);
 	fishingJunkArray[10] = new CatchWeighedItem(Item::dye_Id, 10, 0, 1); // 10 ink sacs
+
+	// neoLegacy - jungle junk table: the normal junk plus Bamboo. Weight 5 out of 88 means about 0.57% of casts (junk is 10% of casts).
+	for (int i = 0; i < 11; ++i) fishingJungleJunkArray[i] = fishingJunkArray[i];
+	fishingJungleJunkArray[11] = new CatchWeighedItem(Item::bamboo_Id, 1, 0, 5);
+}
+
+bool FishingHelper::isJungleBiome(Biome *biome)
+{
+	if (biome == nullptr) return false;
+	return biome == Biome::jungle || biome == Biome::jungleHills || biome == Biome::jungleEdge ||
+		biome == Biome::jungleM || biome == Biome::jungleEdgeM || biome == Biome::bambooJungle || biome == Biome::bambooJungleHills;
 }
 
 CatchType FishingHelper::getRandCatchType(int luckLevel, int lureLevel, Random* random)
@@ -67,7 +80,7 @@ CatchType FishingHelper::getRandCatchType(int luckLevel, int lureLevel, Random* 
 	}
 }
 
-CatchWeighedItem* FishingHelper::getRandCatch(CatchType catchType, Random* random)
+CatchWeighedItem* FishingHelper::getRandCatch(CatchType catchType, Random* random, bool inJungle)
 {
 	switch (catchType) {
 		case CatchType::FISH:
@@ -75,7 +88,7 @@ CatchWeighedItem* FishingHelper::getRandCatch(CatchType catchType, Random* rando
 		case CatchType::TREASURE:
 			return static_cast<CatchWeighedItem *>(WeighedRandom::getRandomItem(random, fishingTreasuresArray));
 		case CatchType::JUNK:
-			return static_cast<CatchWeighedItem *>(WeighedRandom::getRandomItem(random, fishingJunkArray));
+			return static_cast<CatchWeighedItem *>(WeighedRandom::getRandomItem(random, inJungle ? fishingJungleJunkArray : fishingJunkArray));
 	}
 }
 
@@ -100,12 +113,28 @@ std::shared_ptr<ItemInstance> FishingHelper::handleCatch(CatchWeighedItem* weigh
 		EnchantmentHelper::enchantItem(random, itemInstance, 30);
 	}
 
+	// neoLegacy - curses while fishing
+	//  * an old junk fishing rod is often cursed with Hook of Muddy Waters
+	//  * treasure books, rods and bows sometimes carry a random curse that suits them
+	if (itemInstance->id == Item::fishing_rod_Id && catchType == CatchType::JUNK)
+	{
+		if (random->nextInt(2) == 0)
+		{
+			itemInstance->enchant(Enchantment::hookOfMuddyWaters, 1 + random->nextInt(Enchantment::hookOfMuddyWaters->getMaxLevel()));
+		}
+	}
+	else if (catchType == CatchType::TREASURE &&
+		(itemInstance->id == Item::fishing_rod_Id || itemInstance->id == Item::bow_Id || itemInstance->id == Item::enchanted_book_Id))
+	{
+		if (random->nextInt(5) == 0) CurseLoot::addRandomCurse(itemInstance, random);
+	}
+
 	return itemInstance;
 }
 
-std::shared_ptr<ItemInstance> FishingHelper::getCatch(int luckLevel, int lureLevel, Random* random)
+std::shared_ptr<ItemInstance> FishingHelper::getCatch(int luckLevel, int lureLevel, Random* random, bool inJungle)
 {
 	CatchType catchType = getRandCatchType(luckLevel, lureLevel, random);
-	CatchWeighedItem* catchWeighedItem = getRandCatch(catchType, random);
+	CatchWeighedItem* catchWeighedItem = getRandCatch(catchType, random, inJungle);
 	return handleCatch(catchWeighedItem, catchType, random);
 }

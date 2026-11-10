@@ -15,6 +15,8 @@ public:
 	static const int STOP_IDLEANIM;
 	static const int RIDING_JUMP;
 	static const int OPEN_INVENTORY;
+	static const int START_FALL_FLYING;	// neoLegacy - elytra glide started on the client
+	static const int STOP_FALL_FLYING;		// neoLegacy - elytra glide ended on the client
 
 	// 4J Added
 	// 4J-PB - Making this host only setting

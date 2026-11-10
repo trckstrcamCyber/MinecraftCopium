@@ -2,6 +2,7 @@
 using namespace std;
 
 #include "Packet.h"
+#include <vector>
 
 class Level;
 
@@ -13,6 +14,7 @@ public:
     byteArray buffer;
 	int levelIdx;
 	bool bIsFullChunk; // 4J Added
+	std::vector<int> extTiles;	// neoLegacy - tiles with ids >= 256 in this region, as region-relative (x, y, z, tile) quads
 
 private:
 	int size;

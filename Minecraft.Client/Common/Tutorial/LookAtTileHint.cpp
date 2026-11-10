@@ -23,7 +23,7 @@ LookAtTileHint::LookAtTileHint(eTutorial_Hint id, Tutorial *tutorial, int tiles[
 
 bool LookAtTileHint::onLookAt(int id,int iData)
 {
-	if(id > 0 && id < 256 && (m_iData == -1 || m_iData == iData) )
+	if(Tile::isTileItemId(id) && (m_iData == -1 || m_iData == iData) )
 	{
 		bool itemFound = false;
 		for(unsigned int i=0;i<m_iTilesCount;i++)

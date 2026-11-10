@@ -12,6 +12,7 @@
 #include "../Minecraft.Client/PlayerConnection.h"
 #include "com.mojang.nbt.h"
 #include "Arrow.h"
+#include "ExplosiveEnchantment.h"
 
 // 4J : WESTY : Added for other award, kill creeper with arrow.
 #include "net.minecraft.world.entity.monster.h"
@@ -45,6 +46,7 @@ void Arrow::_init()
 
 	baseDamage = ARROW_BASE_DAMAGE;
 	knockback = 0;
+	explosiveLevel = 0; // neoLegacy Added
 }
 
 
@@ -360,6 +362,12 @@ void Arrow::tick()
 
 				playSound( eSoundType_RANDOM_BOW_HIT, 1.0f, 1.2f / (random->nextFloat() * 0.2f + 0.9f));
 				if (res->entity->GetType() != eTYPE_ENDERDRAGON) remove();
+
+				// neoLegacy Added - Explosive
+				if (getExplosiveLevel() > 0)
+				{
+					ExplosiveEnchantment::triggerExplosion(level, owner, x, y, z, getExplosiveLevel());
+				}
 			}			
 			else
 			{
@@ -396,6 +404,12 @@ void Arrow::tick()
 			inGround = true;
 			shakeTime = 7;
 			setCritArrow(false);
+
+			// neoLegacy Added - Explosive
+			if (getExplosiveLevel() > 0)
+			{
+				ExplosiveEnchantment::triggerExplosion(level, owner, res->pos->x, res->pos->y, res->pos->z, getExplosiveLevel());
+			}
 
 			if (lastTile != 0)
 			{
@@ -564,4 +578,15 @@ bool Arrow::isCritArrow()
 {
 	byte flags = entityData->getByte(ID_FLAGS);
 	return (flags & FLAG_CRIT) != 0;
+}
+
+// neoLegacy Added
+void Arrow::setExplosiveLevel(int level)
+{
+	explosiveLevel = level;
+}
+
+int Arrow::getExplosiveLevel()
+{
+	return explosiveLevel;
 }

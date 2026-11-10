@@ -124,7 +124,7 @@ void ItemRenderer::render(shared_ptr<Entity> _itemEntity, double x, double y, do
 
         glScalef(s, s, s);
 		
-		bool bSlimeItem = (tile != nullptr && tile->id == Tile::slimeBlock->id);
+		bool bSlimeItem = (tile != nullptr && (tile->id == Tile::slimeBlock->id || (Tile::jellyBlock != nullptr && tile->id == Tile::jellyBlock->id)));	// neoLegacy - the Jelly Block is drawn like the Slime Block
 		if (bSlimeItem)
 		{
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

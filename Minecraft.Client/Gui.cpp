@@ -1,9 +1,14 @@
 #include "stdafx.h"
 #include "Gui.h"
 #include "ItemRenderer.h"
+#include "ChickenModel.h"
 #include "GameRenderer.h"
 #include "Options.h"
 #include "MultiPlayerLocalPlayer.h"
+#include "LocalPlayer.h"
+#include "ArcadeGameSession.h"
+#include <algorithm>
+#include <vector>
 #include "Textures.h"
 #include "TextureAtlas.h"
 #include "GameMode.h"
@@ -31,6 +36,7 @@
 #include "../Minecraft.World/HitResult.h"
 #include <Common/UI/UI.h>
 #include "../Minecraft.World/Tile.h"
+#include "../Minecraft.World/DyePowderItem.h"
 #include "../Minecraft.World/BlockStateDecoderRegistry.h"
 #include "../Minecraft.World/BlockStateDecoder.h"
 #include <map>
@@ -38,6 +44,7 @@
 #include <cwctype>
 
 ResourceLocation Gui::PUMPKIN_BLUR_LOCATION = ResourceLocation(TN__BLUR__MISC_PUMPKINBLUR);
+ResourceLocation Gui::FREEZE_OVERLAY_LOCATION = ResourceLocation(TN_MISC_FREEZE_OVERLAY);	// neoLegacy
 
 #define RENDER_HUD 0
 //#ifndef _XBOX
@@ -197,8 +204,12 @@ void Gui::render(float a, bool mouseFree, int xMouse, int yMouse)
 
 	}
 
-	// 4J-PB - turn off the slot display if a xui menu is up, or if we're autosaving
-	bool bDisplayGui=!ui.GetMenuDisplayed(iPad) && !(app.GetXuiAction(iPad)==eAppAction_AutosaveSaveGameCapturedThumbnail);
+	// Copium Arcade replaces the normal HUD while a player is inside a cabinet.
+    // Gate this per LocalPlayer so split-screen players who are not playing keep their HUD.
+    shared_ptr<LocalPlayer> arcadeHudPlayer = dynamic_pointer_cast<LocalPlayer>(minecraft->player);
+    bool bArcadeSessionActive = arcadeHudPlayer != nullptr && arcadeHudPlayer->getArcadeGameSession().isActive();
+	// 4J-PB - turn off the slot display if a xui menu is up, if we're autosaving, or in Copium Arcade.
+	bool bDisplayGui=!bArcadeSessionActive && !ui.GetMenuDisplayed(iPad) && !(app.GetXuiAction(iPad)==eAppAction_AutosaveSaveGameCapturedThumbnail);
 
 	// if tooltips are off, set the y offset to zero
 	if(app.GetGameSettings(iPad,eGameSetting_Tooltips)==0 && bDisplayGui)
@@ -256,6 +267,9 @@ void Gui::render(float a, bool mouseFree, int xMouse, int yMouse)
 	// 4J-PB - changing this to be per player
 	//if (!minecraft->options->thirdPersonView && headGear != NULL && headGear->id == Tile::pumpkin_Id) renderPumpkin(screenWidth, screenHeight);
 	if ((minecraft->player->ThirdPersonView()==0) && headGear != NULL && headGear->id == Tile::pumpkin_Id) renderPumpkin(screenWidth, screenHeight);
+
+	// neoLegacy - Freezing: frost creeps in from the screen edges as the effect builds up
+	if ((minecraft->player->ThirdPersonView() == 0) && minecraft->player->freezeTicks > 0) renderFreeze(minecraft->player->getFreezeProgress(), screenWidth, screenHeight);
 	if (!minecraft->player->hasEffect(MobEffect::confusion))
 	{
 		float pt = minecraft->player->oPortalTime + (minecraft->player->portalTime - minecraft->player->oPortalTime) * a;
@@ -664,6 +678,67 @@ void Gui::render(float a, bool mouseFree, int xMouse, int yMouse)
 			glDisable(GL_RESCALE_NORMAL);
 		}
 #endif // RENDER_HUD
+
+		// neoLegacy - MAC-10 HUD. The stock HUD is drawn by the Iggy scene (RENDER_HUD is 0), so the gun's own readouts are drawn here:
+		// a hit marker around the crosshair and an ammo counter in the bottom right corner.
+		if (bDisplayGui)
+		{
+			Mac10Client &gun = minecraft->player->getMac10();
+			bool markerHead = false;
+			float marker = gun.getHitMarker(a, markerHead);
+			int gMag = 0, gCap = 0, gReserve = 0;
+			bool gReloading = false;
+			bool gunHud = gun.getHud(gMag, gCap, gReserve, gReloading);
+			if (marker > 0.01f || gunHud)
+			{
+				glColor4f(1, 1, 1, 1);
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				if (marker > 0.01f)
+				{
+					int cx = bTwoPlayerSplitscreen ? (iWidthOffset + screenWidth / 2) : (screenWidth / 2);
+					int cy = bTwoPlayerSplitscreen ? ((iHeightOffset + screenHeight) / 2) : (screenHeight / 2);
+					int colour = (((int)(marker * 255.0f)) << 24) | (markerHead ? 0xFF3030 : 0xFFFFFF);
+					for (int i = 4; i < 8; ++i)
+					{
+						fill(cx + i, cy + i, cx + i + 2, cy + i + 2, colour);
+						fill(cx - i - 1, cy + i, cx - i + 1, cy + i + 2, colour);
+						fill(cx + i, cy - i - 1, cx + i + 2, cy - i + 1, colour);
+						fill(cx - i - 1, cy - i - 1, cx - i + 1, cy - i + 1, colour);
+					}
+				}
+				if (gunHud)
+				{
+					wstring line = std::to_wstring(gMag) + L" / " + (gReserve < 0 ? wstring(L"INF") : std::to_wstring(gReserve));
+					int colour = 0xFFFFFF;
+					if (gMag <= 0) colour = 0xFF4040;
+					else if (gMag * 3 <= gCap) colour = 0xFFD040;
+					int w = minecraft->font->width(line);
+					int hx = iWidthOffset + screenWidth - iSafezoneXHalf - w - 6;
+					int hy = iHeightOffset + screenHeight - iSafezoneYHalf - iTooltipsYOffset - 30;
+					minecraft->font->drawShadow(line, hx, hy, colour);
+					// diagnostics (Mac10Item.h: MAC10_DEBUG_LOG): the client's own hit scan and what the server reported back for the last shot
+					{
+						std::wstring debugLine;
+						if (gun.getDebugLine(minecraft->player->inventory->getSelected(), debugLine))
+							minecraft->font->drawShadow(debugLine, iWidthOffset + iSafezoneXHalf + 6, iHeightOffset + screenHeight - iSafezoneYHalf - iTooltipsYOffset - 42, 0x80FF80);
+					}
+					if (gReloading)
+					{
+						wstring reloadText = L"RELOADING";
+						minecraft->font->drawShadow(reloadText, iWidthOffset + screenWidth - iSafezoneXHalf - minecraft->font->width(reloadText) - 6, hy - 11, 0xAAAAAA);
+					}
+					else if (gMag <= 0 && gReserve != 0)
+					{
+						wstring reloadText = L"CLICK TO RELOAD";
+						minecraft->font->drawShadow(reloadText, iWidthOffset + screenWidth - iSafezoneXHalf - minecraft->font->width(reloadText) - 6, hy - 11, 0xFF8080);
+					}
+				}
+				glDisable(GL_BLEND);
+				glColor4f(1, 1, 1, 1);
+			}
+		}
+
 
 		// 4J - do render of crouched player. This code is largely taken from the inventory render of the player, with some special hard-coded positions
 		// worked out by hand from the xui implementation of the crouch icon
@@ -1183,7 +1258,7 @@ void Gui::render(float a, bool mouseFree, int xMouse, int yMouse)
 							std::wstring decoded = BlockStateDecoderRegistry::decode(tid, st.value);
 				
 							if (decoded.empty()) {
-								if (tid == Tile::wooden_door_Id || tid == Tile::iron_door_Id || tid == Tile::spruce_door_Id || tid == Tile::birch_door_Id || tid == Tile::jungle_door_Id || tid == Tile::acacia_door_Id || tid == Tile::dark_oak_door_Id) {
+								if (tid == Tile::wooden_door_Id || tid == Tile::iron_door_Id || tid == Tile::spruce_door_Id || tid == Tile::birch_door_Id || tid == Tile::jungle_door_Id || tid == Tile::acacia_door_Id || tid == Tile::dark_oak_door_Id || tid == Tile::bamboo_door_Id) {
 									decoded = BlockStateDecoder::doorPropsToString(BlockStateDecoder::decodeDoor(st.value));
 								}
 							}
@@ -1377,12 +1452,325 @@ void Gui::render(float a, bool mouseFree, int xMouse, int yMouse)
         glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
     }
-	MemSect(0);
+    MemSect(0);
 #endif
 
-	glColor4f(1, 1, 1, 1);
+    // Arcade overlay: draw each cabinet as a readable, self-contained mini-game HUD.
+    // The owning LocalPlayer carries its own session, preserving split-screen isolation.
+    shared_ptr<LocalPlayer> arcadePlayer = dynamic_pointer_cast<LocalPlayer>(minecraft->player);
+    if (arcadePlayer != nullptr && arcadePlayer->getArcadeGameSession().isActive())
+    {
+        ArcadeGameSession &game = arcadePlayer->getArcadeGameSession();
+        game.setViewportSize(static_cast<float>(screenWidth), static_cast<float>(screenHeight));
+
+        glDisable(GL_DEPTH_TEST);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_ALPHA_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        fill(0, 0, screenWidth, screenHeight, 0xE50A1119);
+
+        // The legacy Font renderer depends on texture/alpha/blend state that GUI fills and
+        // item renderers may change. Re-establish it for every label and use literal drawing
+        // so HUD text doesn't get interpreted as formatting codes.
+        auto arcadeText = [&](const wstring &text, int x, int y, int color)
+        {
+            if (font == nullptr || text.empty()) return;
+            glEnable(GL_TEXTURE_2D);
+            glEnable(GL_ALPHA_TEST);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+            drawStringLiteral(font, text, x, y, color);
+            glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        };
+        auto arcadeCenteredText = [&](const wstring &text, int x, int y, int color)
+        {
+            if (font == nullptr || text.empty()) return;
+            arcadeText(text, x - font->width(text) / 2, y, color);
+        };
+
+        // Unlike drawItem(), this uses the terrain/block atlas UVs directly. It is used for
+        // cactus pipes and obsidian walls so they look like Minecraft blocks, not inventory icons.
+        auto drawTerrainTiledRect = [&](Icon *icon, int x, int y, int width, int height)
+        {
+            if (icon == nullptr || width <= 0 || height <= 0) return;
+            minecraft->textures->bindTexture(&TextureAtlas::LOCATION_BLOCKS);
+            glEnable(GL_TEXTURE_2D);
+            glEnable(GL_ALPHA_TEST);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+            Tesselator *t = Tesselator::getInstance();
+            t->begin();
+            for (int dy = 0; dy < height; dy += 16)
+            {
+                int tileH = (std::min)(16, height - dy);
+                float v0 = icon->getV0(true);
+                float v1 = icon->getV(tileH, true);
+                for (int dx = 0; dx < width; dx += 16)
+                {
+                    int tileW = (std::min)(16, width - dx);
+                    float u0 = icon->getU0(true);
+                    float u1 = icon->getU(tileW, true);
+                    float x0 = static_cast<float>(x + dx);
+                    float y0 = static_cast<float>(y + dy);
+                    float x1 = x0 + static_cast<float>(tileW);
+                    float y1 = y0 + static_cast<float>(tileH);
+                    t->vertexUV(x0, y1, 0.0f, u0, v1);
+                    t->vertexUV(x1, y1, 0.0f, u1, v1);
+                    t->vertexUV(x1, y0, 0.0f, u1, v0);
+                    t->vertexUV(x0, y0, 0.0f, u0, v0);
+                }
+            }
+            t->end();
+            glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        };
+        auto drawItem = [&](int itemId, float x, float y, float scale)
+        {
+            if (itemId >= 0 && itemId < Item::ITEM_NUM_COUNT && Item::items[itemId] != nullptr)
+            {
+                glEnable(GL_TEXTURE_2D);
+                glEnable(GL_ALPHA_TEST);
+                glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+                shared_ptr<ItemInstance> iconItem = std::make_shared<ItemInstance>(itemId, 1, 0);
+                itemRenderer->renderGuiItem(minecraft->font, minecraft->textures, iconItem, x, y, scale, 1.0f);
+                glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+            }
+        };
+        auto fmtDouble = [](double value) -> wstring
+        {
+            if (value >= 1000000000.0) return std::to_wstring(static_cast<long long>(value / 1000000000.0)) + L"B";
+            if (value >= 1000000.0) return std::to_wstring(static_cast<long long>(value / 1000000.0)) + L"M";
+            if (value >= 1000.0) return std::to_wstring(static_cast<long long>(value / 1000.0)) + L"K";
+            return std::to_wstring(static_cast<long long>(value));
+        };
+
+        // Shared top strip: opaque backing makes the title and exit hint readable even
+        // after rendering a model or a stitched block texture.
+        fill(6, 4, screenWidth - 6, 25, 0xF51B2A39);
+        arcadeCenteredText(L"COPIUM ARCADE", screenWidth / 2, 8, 0xFFFFFFFF);
+        arcadeText(L"ESC: EXIT", (std::max)(8, screenWidth - 82), 9, 0xFFFFD166);
+
+        if (game.getGameType() == ARCADE_GAME_COOKIE_MINER)
+        {
+            int left = 8, top = 30, bottom = screenHeight - 25;
+            int third = (std::max)(1, (screenWidth - 24) / 3);
+            int xCookie = left, xStats = left + third + 4, xShop = left + third * 2 + 8;
+            int shopW = screenWidth - 8 - xShop;
+
+            fill(xCookie, top, xCookie + third, bottom, 0xFF24394B);
+            fill(xStats, top, xStats + third, bottom, 0xFF182A39);
+            fill(xShop, top, screenWidth - 8, bottom, 0xFF24394B);
+            fill(xCookie, top, xCookie + third, top + 24, 0xFF365268);
+            fill(xStats, top, xStats + third, top + 24, 0xFF2A4052);
+            fill(xShop, top, screenWidth - 8, top + 24, 0xFF365268);
+            arcadeCenteredText(L"COOKIE MINER", xCookie + third / 2, top + 8, 0xFFFFE0A0);
+            arcadeCenteredText(L"CLICK COOKIE", xCookie + third / 2, top + 33, 0xFFFFFFFF);
+            arcadeCenteredText(L"+1 COOKIE / CLICK", xCookie + third / 2, top + 46, 0xFFBFE8FF);
+            drawItem(Item::cookie_Id, static_cast<float>(xCookie + third / 2 - 25), static_cast<float>(top + (bottom - top) / 2 - 14), 3.0f);
+            fill(xCookie + 8, bottom - 33, xCookie + third - 8, bottom - 8, 0xE51A2835);
+            arcadeCenteredText(L"CLICK TO BAKE", xCookie + third / 2, bottom - 25, 0xFFFFFFFF);
+
+            fill(xStats + 8, top + 32, xStats + third - 8, top + 76, 0xFF101D28);
+            arcadeCenteredText(L"COOKIES", xStats + third / 2, top + 7, 0xFFFFFFFF);
+            arcadeCenteredText(fmtDouble(game.getCookies()), xStats + third / 2, top + 39, 0xFFFFD166);
+            arcadeCenteredText(L"TOTAL COOKIES", xStats + third / 2, top + 60, 0xFFDAE7F0);
+            arcadeText(L"Rate / second", xStats + 12, top + 91, 0xFFCFDCE5);
+            arcadeText(fmtDouble(game.getCookiesPerSecond()), xStats + 12, top + 105, 0xFFFFFFFF);
+            arcadeText(L"Click value", xStats + 12, top + 130, 0xFFCFDCE5);
+            arcadeText(L"x" + std::to_wstring(static_cast<int>(game.getClickYield())), xStats + 12, top + 144, 0xFFFFFFFF);
+            if (game.getGoldenBoostTicks() > 0)
+            {
+                fill(xStats + 7, top + 170, xStats + third - 7, top + 195, 0xFF755322);
+                arcadeCenteredText(L"GOLDEN x7: " + std::to_wstring(game.getGoldenBoostTicks() / 20) + L"s", xStats + third / 2, top + 178, 0xFFFFE0A0);
+            }
+            fill(xStats + 8, bottom - 33, xStats + third - 8, bottom - 8, 0xE5101D28);
+            arcadeCenteredText(L"B / RIGHT-CLICK: BUY", xStats + third / 2, bottom - 25, 0xFFFFFFFF);
+
+            arcadeCenteredText(L"UPGRADE SHOP", xShop + shopW / 2, top + 8, 0xFFFFFFFF);
+            for (int u = 0; u < 4; ++u)
+            {
+                int rowY = top + 25 + u * 42;
+                bool selected = game.getSelectedUpgrade() == u;
+                fill(xShop + 3, rowY - 2, screenWidth - 11, rowY + 37, selected ? 0xFF596E80 : 0xFF1B2B38);
+                if (selected) fill(xShop + 3, rowY - 2, xShop + 6, rowY + 37, 0xFFFFD166);
+                drawItem(game.getUpgradeIconId(u), static_cast<float>(xShop + 7), static_cast<float>(rowY + 8), 1.0f);
+                arcadeText(game.getUpgradeName(u), xShop + 29, rowY + 1, 0xFFFFFFFF);
+                arcadeText(L"Owned " + std::to_wstring(game.getUpgradeOwned(u)), xShop + 29, rowY + 12, 0xFFDAE7F0);
+                arcadeText(L"Cost " + fmtDouble(game.getUpgradeCost(u)), xShop + 29, rowY + 23, 0xFFFFD166);
+            }
+            if (game.isGoldenAppleVisible())
+            {
+                // The target stays in the same top strip used by primaryActionAtCursor().
+                int gx = static_cast<int>(game.getGoldenAppleX() * screenWidth);
+                fill(8, top + 1, (std::min)(screenWidth - 8, 250), top + 23, 0xF56A4B14);
+                drawItem(Item::golden_apple_Id, static_cast<float>(gx), static_cast<float>(top + 4), 1.0f);
+                arcadeText(L"GOLDEN APPLE! CLICK FOR 7x", 32, top + 7, 0xFFFFFFFF);
+            }
+            fill(6, screenHeight - 21, screenWidth - 6, screenHeight - 3, 0xF51B2A39);
+            arcadeCenteredText(L"W/S OR STICK: SELECT   |   B / RIGHT-CLICK: BUY   |   SHIFT / ESC: EXIT", screenWidth / 2, screenHeight - 16, 0xFFFFFFFF);
+        }
+        else if (game.getGameType() == ARCADE_GAME_FLAPPY_CRAFT)
+        {
+            int left = 10, top = 28, right = screenWidth - 10, bottom = screenHeight - 28;
+            int playW = right - left, playH = bottom - top - 12;
+            fill(left, top, right, bottom, 0xFF95D9F4);
+            // Light-blue concrete uses the actual terrain atlas. If unavailable, the sky fill remains.
+            Icon *skyIcon = (Tile::concrete != nullptr) ? Tile::concrete->getTexture(Facing::UP, DyePowderItem::LIGHT_BLUE) : nullptr;
+            if (skyIcon != nullptr) drawTerrainTiledRect(skyIcon, left, top, playW, playH);
+
+            // Clouds add depth without turning the playfield into a patchwork of UI squares.
+            int cloudDrift = (tickCount * 2) % (playW + 100);
+            auto drawCloud = [&](int cx, int cy)
+            {
+                fill(cx, cy + 5, cx + 38, cy + 17, 0xFFF2FAFF);
+                fill(cx + 7, cy, cx + 29, cy + 18, 0xFFF2FAFF);
+                fill(cx + 25, cy + 5, cx + 49, cy + 17, 0xFFF2FAFF);
+            };
+            drawCloud(left + playW - cloudDrift, top + 52);
+            drawCloud(left + ((cloudDrift + playW / 2) % (playW + 70)) - 35, top + 118);
+            fill(left, bottom - 12, right, bottom, 0xFF6E9F45);
+            fill(left, bottom - 12, right, bottom - 8, 0xFF98C85E);
+
+            const std::vector<ArcadeGameSession::Obstacle> &obs = game.getObstacles();
+            Icon *cactusSide = (Tile::cactus != nullptr) ? Tile::cactus->getTexture(Facing::NORTH) : nullptr;
+            Icon *cactusTop = (Tile::cactus != nullptr) ? Tile::cactus->getTexture(Facing::UP) : nullptr;
+            Icon *cactusBottom = (Tile::cactus != nullptr) ? Tile::cactus->getTexture(Facing::DOWN) : nullptr;
+            int pipeW = (std::max)(32, static_cast<int>(playW * 0.12f));
+            for (size_t i = 0; i < obs.size(); ++i)
+            {
+                int ox = left + static_cast<int>(obs[i].x * playW);
+                int gapTop = top + static_cast<int>((obs[i].gapY - obs[i].gapHeight * 0.5f) * playH);
+                int gapBottom = top + static_cast<int>((obs[i].gapY + obs[i].gapHeight * 0.5f) * playH);
+                int upperH = (std::max)(0, gapTop - top);
+                int lowerH = (std::max)(0, (bottom - 12) - gapBottom);
+                // Dark outlines make the obstacle silhouette clear, while the body and the
+                // gap-side endcaps come from cactus_side, cactus_bottom and cactus_top UVs.
+                if (upperH > 0)
+                {
+                    fill(ox - 2, top, ox + pipeW + 2, gapTop, 0xFF244D2B);
+                    int capH = (std::min)(16, upperH);
+                    drawTerrainTiledRect(cactusSide, ox, top, pipeW, upperH - capH);
+                    drawTerrainTiledRect(cactusBottom, ox, gapTop - capH, pipeW, capH);
+                }
+                if (lowerH > 0)
+                {
+                    fill(ox - 2, gapBottom, ox + pipeW + 2, bottom - 12, 0xFF244D2B);
+                    int capH = (std::min)(16, lowerH);
+                    drawTerrainTiledRect(cactusTop, ox, gapBottom, pipeW, capH);
+                    drawTerrainTiledRect(cactusSide, ox, gapBottom + capH, pipeW, lowerH - capH);
+                }
+                if (obs[i].hasApple && !obs[i].appleCollected)
+                    drawItem(Item::golden_apple_Id, static_cast<float>(ox + pipeW / 2 - 8), static_cast<float>(top + obs[i].appleY * playH - 8.0f), 1.0f);
+            }
+
+            int birdX = left + static_cast<int>(0.24f * playW);
+            int birdY = top + static_cast<int>(game.getBirdY() * playH);
+            {
+                static ChickenModel arcadeChickenModel;
+                float birdSize = (std::max)(18.0f, (std::min)(28.0f, screenWidth * 0.045f));
+                glPushMatrix();
+                glTranslatef(static_cast<float>(birdX), static_cast<float>(birdY - static_cast<int>(birdSize)), 0.0f);
+                glScalef(birdSize, birdSize, birdSize);
+                // ChickenModel's beak points toward local -Z; -90 degrees turns it right on screen.
+                glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+                glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+                glEnable(GL_TEXTURE_2D);
+                minecraft->textures->bind(minecraft->textures->loadTexture(TN_MOB_CHICKEN));
+                float wingFlap = (tickCount % 12 < 6) ? 0.28f : -0.28f;
+                arcadeChickenModel.render(shared_ptr<Entity>(), static_cast<float>(tickCount), 0.35f,
+                    wingFlap, 0.0f, -8.0f, 1.0f / 16.0f, true);
+                glPopMatrix();
+                glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+            }
+            fill(left + 5, top + 5, left + 166, top + 39, 0xD91B2A39);
+            arcadeText(L"FLAPPY CRAFT", left + 12, top + 8, 0xFFFFFFFF);
+            arcadeText(L"SCORE " + std::to_wstring(game.getScore()) + L"   BEST " + std::to_wstring(game.getFlappyHighScore()), left + 12, top + 22, 0xFFFFD166);
+            if (game.hasFlappyShield())
+            {
+                fill(right - 160, top + 5, right - 5, top + 29, 0xE56A4B14);
+                drawItem(Item::golden_apple_Id, static_cast<float>(right - 155), static_cast<float>(top + 8), 0.85f);
+                arcadeText(L"SHIELD ACTIVE", right - 132, top + 12, 0xFFFFFFFF);
+            }
+            fill(left + 6, bottom - 32, right - 6, bottom - 16, 0xD91B2A39);
+            arcadeCenteredText(L"SPACE / CLICK / A: FLAP", (left + right) / 2, bottom - 28, 0xFFFFFFFF);
+            if (game.isGameOver())
+            {
+                int boxW = (std::min)(230, screenWidth - 24);
+                fill((screenWidth - boxW) / 2 - 2, screenHeight / 2 - 42, (screenWidth + boxW) / 2 + 2, screenHeight / 2 + 40, 0xF5101720);
+                fill((screenWidth - boxW) / 2, screenHeight / 2 - 40, (screenWidth + boxW) / 2, screenHeight / 2 + 38, 0xF52C3B49);
+                arcadeCenteredText(L"GAME OVER", screenWidth / 2, screenHeight / 2 - 23, 0xFFFFFFFF);
+                arcadeCenteredText(L"SCORE " + std::to_wstring(game.getScore()) + L"  |  BEST " + std::to_wstring(game.getFlappyHighScore()), screenWidth / 2, screenHeight / 2 - 7, 0xFFFFD166);
+                arcadeCenteredText(L"CLICK / A TO RETRY", screenWidth / 2, screenHeight / 2 + 13, 0xFFFFFFFF);
+            }
+        }
+        else
+        {
+            int cell = (std::max)(8, (std::min)((screenWidth - 24) / ArcadeGameSession::SNAKE_GRID_WIDTH, (screenHeight - 58) / ArcadeGameSession::SNAKE_GRID_HEIGHT));
+            int boardW = cell * ArcadeGameSession::SNAKE_GRID_WIDTH;
+            int boardH = cell * ArcadeGameSession::SNAKE_GRID_HEIGHT;
+            int left = (screenWidth - boardW) / 2;
+            int top = (std::max)(29, (screenHeight - boardH) / 2);
+            fill(6, 4, screenWidth - 6, 25, 0xF51B2A39);
+            arcadeCenteredText(L"MINESNAKE  |  COAL " + std::to_wstring(game.getScore()) + L"  |  BEST " + std::to_wstring(game.getSnakeHighScore()), screenWidth / 2, 8, 0xFFFFFFFF);
+            fill(left, top, left + boardW, top + boardH, 0xFF101A22);
+
+            Icon *obsidianSide = (Tile::obsidian != nullptr) ? Tile::obsidian->getTexture(Facing::NORTH) : nullptr;
+            // Draw walls from the terrain atlas, not the square inventory icon.
+            drawTerrainTiledRect(obsidianSide, left, top, boardW, cell);
+            drawTerrainTiledRect(obsidianSide, left, top + boardH - cell, boardW, cell);
+            drawTerrainTiledRect(obsidianSide, left, top + cell, cell, boardH - 2 * cell);
+            drawTerrainTiledRect(obsidianSide, left + boardW - cell, top + cell, cell, boardH - 2 * cell);
+
+            // Subtle grid lines clarify the movement cells without overwhelming the carts.
+            for (int gx = 1; gx < ArcadeGameSession::SNAKE_GRID_WIDTH - 1; ++gx)
+                fill(left + gx * cell, top + cell, left + gx * cell + 1, top + boardH - cell, 0x28364A57);
+            for (int gy = 1; gy < ArcadeGameSession::SNAKE_GRID_HEIGHT - 1; ++gy)
+                fill(left + cell, top + gy * cell, left + boardW - cell, top + gy * cell + 1, 0x28364A57);
+
+            drawItem(Item::coal_Id, static_cast<float>(left + game.getFood().x * cell), static_cast<float>(top + game.getFood().y * cell), static_cast<float>(cell) / 16.0f);
+            const std::vector<ArcadeGameSession::Cell> &snake = game.getSnake();
+            for (size_t i = 0; i < snake.size(); ++i)
+            {
+                int iconId = (i == 0) ? Item::furnace_minecart_Id : Item::minecart_Id;
+                int sx = left + snake[i].x * cell;
+                int sy = top + snake[i].y * cell;
+                if (i == 0) fill(sx + 1, sy + 1, sx + cell - 1, sy + cell - 1, 0xFF476B4A);
+                drawItem(iconId, static_cast<float>(sx), static_cast<float>(sy), static_cast<float>(cell) / 16.0f);
+            }
+            fill(6, screenHeight - 21, screenWidth - 6, screenHeight - 3, 0xF51B2A39);
+            arcadeCenteredText(L"WASD / ARROWS / STICK: MOVE   |   CLICK / A: RESTART   |   ESC: EXIT", screenWidth / 2, screenHeight - 16, 0xFFFFFFFF);
+            if (game.isGameOver())
+            {
+                int boxW = (std::min)(220, screenWidth - 24);
+                fill((screenWidth - boxW) / 2 - 2, screenHeight / 2 - 38, (screenWidth + boxW) / 2 + 2, screenHeight / 2 + 34, 0xF5101720);
+                fill((screenWidth - boxW) / 2, screenHeight / 2 - 36, (screenWidth + boxW) / 2, screenHeight / 2 + 32, 0xF52C3B49);
+                arcadeCenteredText(L"GAME OVER", screenWidth / 2, screenHeight / 2 - 18, 0xFFFFFFFF);
+                arcadeCenteredText(L"COAL " + std::to_wstring(game.getScore()) + L"  |  BEST " + std::to_wstring(game.getSnakeHighScore()), screenWidth / 2, screenHeight / 2 - 2, 0xFFFFD166);
+                arcadeCenteredText(L"CLICK / A TO RESTART", screenWidth / 2, screenHeight / 2 + 14, 0xFFFFFFFF);
+            }
+        }
+
+        // Hardware mouse stays captured for raw input. This high-contrast pixel cursor is
+        // drawn above every cabinet panel and remains local to this player's game session.
+        int cursorX = static_cast<int>(game.getCursorX() * screenWidth);
+        int cursorY = static_cast<int>(game.getCursorY() * screenHeight);
+        for (int row = 0; row < 9; ++row)
+        {
+            int arrowWidth = row + 1;
+            fill(cursorX - 1, cursorY + row - 1, cursorX + arrowWidth + 1, cursorY + row + 1, 0xFF101010);
+            fill(cursorX, cursorY + row, cursorX + arrowWidth, cursorY + row + 1, 0xFFFFFFFF);
+        }
+        fill(cursorX + 4, cursorY + 6, cursorX + 8, cursorY + 14, 0xFF101010);
+        fill(cursorX + 5, cursorY + 7, cursorX + 7, cursorY + 13, 0xFFFFFFFF);
+        glEnable(GL_DEPTH_TEST);
+    }
+
+    glColor4f(1, 1, 1, 1);
     glDisable(GL_BLEND);
-	glEnable(GL_ALPHA_TEST);
+    glEnable(GL_ALPHA_TEST);
 }
 
 // Moved to the xui base scene
@@ -1443,6 +1831,31 @@ void Gui::renderPumpkin(int w, int h)
     glEnable(GL_ALPHA_TEST);
     glColor4f(1, 1, 1, 1);
 
+}
+
+// neoLegacy - full-screen frost overlay, same quad as the pumpkin blur; opacity follows how frozen you are
+void Gui::renderFreeze(float progress, int w, int h)
+{
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(false);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(1, 1, 1, progress);
+    glDisable(GL_ALPHA_TEST);
+
+    MemSect(31);
+    minecraft->textures->bindTexture(&FREEZE_OVERLAY_LOCATION);
+    MemSect(0);
+    Tesselator *t = Tesselator::getInstance();
+    t->begin();
+    t->vertexUV(static_cast<float>(0), static_cast<float>(h), static_cast<float>(-90), static_cast<float>(0), static_cast<float>(1));
+    t->vertexUV(static_cast<float>(w), static_cast<float>(h), static_cast<float>(-90), static_cast<float>(1), static_cast<float>(1));
+    t->vertexUV(static_cast<float>(w), static_cast<float>(0), static_cast<float>(-90), static_cast<float>(1), static_cast<float>(0));
+    t->vertexUV(static_cast<float>(0), static_cast<float>(0), static_cast<float>(-90), static_cast<float>(0), static_cast<float>(0));
+    t->end();
+    glDepthMask(true);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_ALPHA_TEST);
+    glColor4f(1, 1, 1, 1);
 }
 
 void Gui::renderVignette(float br, int w, int h)

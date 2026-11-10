@@ -280,7 +280,7 @@ int FurnaceTileEntity::getBurnDuration(shared_ptr<ItemInstance> itemInstance)
 
 	Item *item = itemInstance->getItem();
 
-	if (id < 256 && Tile::tiles[id] != nullptr)
+	if (Tile::isTileItemId(id))
 	{
 		Tile *tile = Tile::tiles[id];
 

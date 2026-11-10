@@ -8,6 +8,43 @@
 #include "net.minecraft.world.level.storage.h"
 #include "FileHeader.h"
 #include "OldChunkStorage.h"
+#include "ByteArrayTag.h"
+#include <vector>
+
+// neoLegacy - tile ids >= 256 (see Tile::EXT_TILE_PLACEHOLDER): the chunk's "Blocks" array holds the placeholder, and the real ids are
+// stored in an extra "ExtTiles" tag (4 bytes each: x|z<<4, y, id high, id low). The tag is only written when the chunk has such tiles,
+// and older readers simply ignore it, so existing saves are unaffected. Works for both the NBT and the binary chunk formats.
+static void saveExtTilesTag(LevelChunk *lc, CompoundTag *tag)
+{
+	std::vector<LevelChunk::ExtTileEntry> entries;
+	lc->collectExtTiles(0, 0, 0, 16, Level::maxBuildHeight, 16, entries);
+	if (entries.empty()) return;
+
+	byteArray arr(static_cast<unsigned int>(entries.size() * 4));
+	for (size_t i = 0; i < entries.size(); i++)
+	{
+		arr[i * 4 + 0] = static_cast<byte>(entries[i].x | (entries[i].z << 4));
+		arr[i * 4 + 1] = static_cast<byte>(entries[i].y);
+		arr[i * 4 + 2] = static_cast<byte>((entries[i].tile >> 8) & 0xff);
+		arr[i * 4 + 3] = static_cast<byte>(entries[i].tile & 0xff);
+	}
+	tag->put(L"ExtTiles", new ByteArrayTag(L"ExtTiles", arr, true));	// the tag owns (and frees) this array
+}
+
+static void loadExtTilesTag(LevelChunk *lc, CompoundTag *tag)
+{
+	if (tag == nullptr || !tag->contains(L"ExtTiles")) return;
+	byteArray arr = tag->getByteArray(L"ExtTiles");
+	if (arr.data == nullptr) return;
+	for (unsigned int i = 0; i + 3 < arr.length; i += 4)
+	{
+		int xz = arr[i] & 0xff;
+		int y = arr[i + 1] & 0xff;
+		int tile = ((arr[i + 2] & 0xff) << 8) | (arr[i + 3] & 0xff);
+		if (tile >= 256) lc->setExtTile(xz & 15, y, (xz >> 4) & 15, tile);
+	}
+	delete [] arr.data;		// loaded arrays are not owned by the tag (same pattern as "Blocks" below)
+}
 DWORD OldChunkStorage::tlsIdx = 0;
 OldChunkStorage::ThreadStorage *OldChunkStorage::tlsDefault = nullptr;
 
@@ -260,14 +297,23 @@ void OldChunkStorage::save(LevelChunk *lc, Level *level, DataOutputStream *dos)
 	CompoundTag *tag = new CompoundTag();
 #ifndef SPLIT_SAVES
 	saveEntities(lc, level, tag);
+	saveExtTilesTag(lc, tag);
 #endif
 
 	PIXBeginNamedEvent(0,"Saving tile entities");
 	ListTag<CompoundTag> *tileEntityTags = new ListTag<CompoundTag>();
 
+	// neoLegacy - the save path can run while the world thread edits the map: copy the entries under the lock, then save them
+	// WITHOUT holding it (save() may take other locks, and the shared lock must never be held across that)
+	vector< shared_ptr<TileEntity> > toSave;
+	EnterCriticalSection(&LevelChunk::m_csTileEntities);
 	for(auto& it : lc->tileEntities)
 	{
-		shared_ptr<TileEntity> te = it.second;
+		toSave.push_back(it.second);
+	}
+	LeaveCriticalSection(&LevelChunk::m_csTileEntities);
+	for(auto& te : toSave)
+	{
 		CompoundTag *teTag = new CompoundTag();
 		te->save(teTag);
 		tileEntityTags->add(teTag);
@@ -348,14 +394,23 @@ void OldChunkStorage::save(LevelChunk *lc, Level *level, CompoundTag *tag)
 	PIXBeginNamedEvent(0,"Saving entities");
 #ifndef SPLIT_SAVES
 	saveEntities(lc, level, tag);
+	saveExtTilesTag(lc, tag);
 #endif
 
 	PIXBeginNamedEvent(0,"Saving tile entities");
 	ListTag<CompoundTag> *tileEntityTags = new ListTag<CompoundTag>();
 
+	// neoLegacy - the save path can run while the world thread edits the map: copy the entries under the lock, then save them
+	// WITHOUT holding it (save() may take other locks, and the shared lock must never be held across that)
+	vector< shared_ptr<TileEntity> > toSave;
+	EnterCriticalSection(&LevelChunk::m_csTileEntities);
 	for(auto& it : lc->tileEntities)
 	{
-		shared_ptr<TileEntity> te = it.second;
+		toSave.push_back(it.second);
+	}
+	LeaveCriticalSection(&LevelChunk::m_csTileEntities);
+	for(auto& te : toSave)
+	{
 		CompoundTag *teTag = new CompoundTag();
 		te->save(teTag);
 		tileEntityTags->add(teTag);
@@ -470,6 +525,7 @@ LevelChunk *OldChunkStorage::load(Level *level, DataInputStream *dis)
 
 	CompoundTag *tag = NbtIo::read(dis);
 
+	loadExtTilesTag(levelChunk, tag);
 	loadEntities(levelChunk, level, tag);
 
 	if (tag->contains(L"TileTicks"))
@@ -589,6 +645,7 @@ LevelChunk *OldChunkStorage::load(Level *level, CompoundTag *tag)
 		}
 	}
 
+	loadExtTilesTag(levelChunk, tag);
 	loadEntities(levelChunk, level, tag);
 
 	if (tag->contains(L"TileTicks"))

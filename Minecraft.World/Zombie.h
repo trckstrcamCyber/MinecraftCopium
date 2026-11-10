@@ -63,6 +63,15 @@ public:
 	virtual void updateSize(bool isBaby);
 
 protected:
+	// neoLegacy - husks (and anything that shouldn't burn in daylight) override this
+	virtual bool isSunSensitive();
+
+private:
+	// neoLegacy - plain zombies that stay submerged long enough turn into drowned
+	int underWaterTicks;
+	void convertToDrowned();
+
+protected:
 	virtual int getAmbientSound();
 	virtual int getHurtSound();
 	virtual int getDeathSound();

@@ -5,11 +5,48 @@
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.world.phys.h"
 #include "ItemInstance.h"
+#include "IconRegister.h"
 #include "BoatItem.h"
 
 BoatItem::BoatItem(int id) : Item( id )
 {
 	maxStackSize = 1;
+	setBaseItemTypeAndMaterial(Item::eBaseItemType_boat, Item::eMaterial_wood);
+	setStackedByData(true);
+	for (int i = 0; i < 7; i++) woodIcons[i] = nullptr;
+}
+
+// neoLegacy - names of the six boat kinds (index = WoodTile data)
+static const unsigned int BOAT_NAME_IDS[7] =
+{
+	IDS_ITEM_BOAT, IDS_ITEM_BOAT_SPRUCE, IDS_ITEM_BOAT_BIRCH, IDS_ITEM_BOAT_JUNGLE, IDS_ITEM_BOAT_ACACIA, IDS_ITEM_BOAT_DARK_OAK, IDS_ITEM_RAFT_BAMBOO
+};
+static const wchar_t *BOAT_ICON_NAMES[7] =
+{
+	L"boat", L"boatSpruce", L"boatBirch", L"boatJungle", L"boatAcacia", L"boatDark", L"bamboo_raft"
+};
+
+void BoatItem::registerIcons(IconRegister *iconRegister)
+{
+	for (int i = 0; i < 7; i++) woodIcons[i] = iconRegister->registerIcon(BOAT_ICON_NAMES[i]);
+	icon = woodIcons[0];
+}
+
+Icon *BoatItem::getIcon(int auxValue)
+{
+	if (auxValue < 0 || auxValue > 6) auxValue = 0;
+	return woodIcons[auxValue] != nullptr ? woodIcons[auxValue] : icon;
+}
+
+unsigned int BoatItem::getDescriptionId(int iData)
+{
+	if (iData < 0 || iData > 6) iData = 0;
+	return BOAT_NAME_IDS[iData];
+}
+
+unsigned int BoatItem::getDescriptionId(shared_ptr<ItemInstance> instance)
+{
+	return getDescriptionId(instance->getAuxValue());
 }
 
 bool BoatItem::TestUse(shared_ptr<ItemInstance> itemInstance, Level *level, shared_ptr<Player> player)
@@ -109,6 +146,7 @@ shared_ptr<ItemInstance> BoatItem::use(shared_ptr<ItemInstance> itemInstance, Le
 		{
 			shared_ptr<Boat> boat = std::make_shared<Boat>(level, xt + 0.5f, yt + 1.0f, zt + 0.5f);
 			boat->yRot = ((Mth::floor(player->yRot * 4.0F / 360.0F + 0.5) & 0x3) - 1) * 90;
+			boat->setWoodType(itemInstance->getAuxValue());	// neoLegacy: wood type comes from the item
 			if (!level->getCubes(boat, boat->bb->grow(-.1, -.1, -.1))->empty())
 			{
 				return itemInstance;

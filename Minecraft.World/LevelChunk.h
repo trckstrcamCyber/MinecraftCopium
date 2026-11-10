@@ -1,4 +1,6 @@
 #pragma once
+#include <memory>
+#include <vector>
 using namespace std;
 
 class DataLayer;
@@ -49,6 +51,20 @@ private:
 	CompressedTileStorage *upperBlocks; // 128 - 255
 public:
 	bool isRenderChunkEmpty(int y);
+
+	// ---- neoLegacy: tile ids >= 256 (see Tile::EXT_TILE_PLACEHOLDER) -----------------------------------------------------
+	struct ExtTileEntry { int x, y, z, tile; };		// chunk-local x/z (0-15), y (0-255)
+	int  resolveExtTile(int lowValue, int x, int y, int z);	// placeholder -> real id (anything else is returned unchanged)
+	void setExtTile(int x, int y, int z, int tile);			// tile >= 256 adds/changes the entry, anything else removes it
+	void collectExtTiles(int minX, int minY, int minZ, int maxX, int maxY, int maxZ, std::vector<ExtTileEntry> &out);	// half-open chunk-local box
+	bool hasExtTiles();
+	void clearExtTiles();
+	void getTileIds16(unsigned short *out);					// 16*16*maxBuildHeight real tile ids, same order as getBlockData
+private:
+	struct ExtTileTable;
+	std::shared_ptr<ExtTileTable> extTiles;				// shared between a server chunk and its client copy, like the tile storage
+	int getTileForLight(CompressedTileStorage *blocks, int x, int worldY, int z);
+public:
 	void setBlockData(byteArray data);	// Set block data to that passed in in the input array of size 32768
 	void getBlockData(byteArray data);	// Sets data in passed in array of size 32768, from the block data in this chunk
 	int getBlocksAllocatedSize(int *count0, int *count1, int *count2, int *count4, int *count8);

@@ -18,6 +18,7 @@ public:
 
 	virtual int getMaxStackSize() const;
 	virtual bool mayPlace(shared_ptr<ItemInstance> item);
+	virtual bool mayPickup(shared_ptr<Player> player);	// neoLegacy - Curse of Binding
 	Icon *getNoItemIcon();
 	//virtual bool mayCombine(shared_ptr<ItemInstance> item); // 4J Added
 	//virtual shared_ptr<ItemInstance> combine(shared_ptr<ItemInstance> item); // 4J Added

@@ -55,6 +55,11 @@ ServerChunkCache::~ServerChunkCache()
 		delete m_unloadedCache[i];
 	}
 	delete m_unloadedCache;
+	for(auto& retired : m_retiredChunks)
+	{
+		delete retired.chunk;
+	}
+	m_retiredChunks.clear();
 #endif
 
 	for (auto& it : m_loadedChunkList)
@@ -938,11 +943,40 @@ bool ServerChunkCache::save(bool force, ProgressListener *progressListener)
 
 }
 
+#ifdef _LARGE_WORLDS
+// neoLegacy - split-screen crash fix. tick() runs on the server thread and used to delete a replaced unloaded chunk on the spot, while
+// MultiPlayerChunkCache::create() on the main thread may have just fetched that same pointer and be copying its lighting
+// (SparseLightStorage copy ctor -> memcpy from a freed block). Same idea as SparseLightStorage's own delete queue: keep the chunk
+// alive for a grace period (200 ticks = 10 s) so no reader can still be using it when it is finally freed.
+void ServerChunkCache::retireChunk(LevelChunk *chunk)
+{
+	if (chunk == nullptr) return;
+	RetiredChunk retired;
+	retired.chunk = chunk;
+	retired.ticksLeft = 200;
+	m_retiredChunks.push_back(retired);
+}
+#endif
+
 bool ServerChunkCache::tick()
 {
     if (!level->noSave)
 	{
 #ifdef _LARGE_WORLDS
+		// neoLegacy - free chunks whose grace period has run out (see retireChunk)
+		for (size_t r = 0; r < m_retiredChunks.size(); )
+		{
+			if (--m_retiredChunks[r].ticksLeft <= 0)
+			{
+				delete m_retiredChunks[r].chunk;
+				m_retiredChunks.erase(m_retiredChunks.begin() + r);
+			}
+			else
+			{
+				++r;
+			}
+		}
+
 		for (int i = 0; i < 100; i++)
 		{
 			if (!m_toDrop.empty())
@@ -973,7 +1007,7 @@ bool ServerChunkCache::tick()
 						int ix = chunk->x + XZOFFSET;
 						int iz = chunk->z + XZOFFSET;
 						int idx = ix * XZSIZE + iz;
-						delete m_unloadedCache[idx];
+						retireChunk(m_unloadedCache[idx]);	// neoLegacy - was an immediate delete, see retireChunk()
 						m_unloadedCache[idx] = chunk;
 						cache[idx] = nullptr;
 #ifdef MINECRAFT_SERVER_BUILD

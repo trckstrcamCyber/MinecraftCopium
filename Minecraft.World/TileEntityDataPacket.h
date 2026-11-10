@@ -13,6 +13,8 @@ public:
 	static const int TYPE_BEACON = 3;
 	static const int TYPE_SKULL = 4;
 	static const int TYPE_BANNER = 5;
+	static const int TYPE_CONCRETE_COLOR = 6;	// neoLegacy - concrete stairs/slabs color
+	static const int TYPE_BED = 7;				// neoLegacy - Fancy Beds (which bed: color / straw)
 
 	int x, y, z;
 	int type;

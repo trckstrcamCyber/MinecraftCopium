@@ -63,6 +63,7 @@ void EntityTracker::addEntity(shared_ptr<Entity> e)
     else if (e->instanceof(eTYPE_SQUID)) addEntity(e, 16 * 4, 1, true);
 	else if (e->instanceof(eTYPE_WITHERBOSS)) addEntity(e, 16 * 5, 1, false);
 	else if (e->instanceof(eTYPE_BAT)) addEntity(e, 16 * 5, 1, false);
+	else if (e->instanceof(eTYPE_EVOKER_FANGS) || e->instanceof(eTYPE_ICE_CUBE)) addEntity(e, 16 * 5, 1, false);	// neoLegacy - plain Mobs: without this clients never see them
     else if (dynamic_pointer_cast<Creature>(e)!=nullptr) addEntity(e, 16 * 5, 1, true);
 	else if (e->instanceof(eTYPE_ENDERDRAGON)) addEntity(e, 16 * 10, 1, true);
     else if (e->instanceof(eTYPE_PRIMEDTNT)) addEntity(e, 16 * 10, 10, true);

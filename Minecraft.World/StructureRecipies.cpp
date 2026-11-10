@@ -1,11 +1,14 @@
 #include "stdafx.h"
 #include "net.minecraft.world.item.h"
 #include "net.minecraft.world.level.tile.h"
+#include "BlackStoneTile.h"
+#include "WoodTile.h"
+#include "StrippedLogTile.h"
 #include "Recipy.h"
 #include "Recipes.h"
 #include "StructureRecipies.h"
 
-void StructureRecipies::addRecipes(Recipes *r) 
+void StructureRecipies::addRecipes(Recipes *r)
 {
 	r->addShapedRecipy(new ItemInstance(Tile::sandStone), //
 		L"ssctg",
@@ -15,6 +18,68 @@ void StructureRecipies::addRecipes(Recipes *r)
 		L'#', Tile::sand,
 		L'S');
 
+    // neoLegacy - Bamboo: 9 Bamboo make a Block of Bamboo
+    r->addShapedRecipy(new ItemInstance(Tile::bambooBlock, 1), //
+        L"ssscig",
+        L"###", //
+        L"###", //
+        L"###", //
+
+        L'#', Item::bamboo,
+        L'S');
+
+    // neoLegacy - Bamboo: a Block of Bamboo (stripped or not) makes 2 Bamboo Planks (planks, data 6)
+    r->addShapelessRecipy(new ItemInstance(Tile::wood, 2, WoodTile::BAMBOO_PLANKS), //
+        L"tg",
+        Tile::bambooBlock,
+        L'S');
+    r->addShapelessRecipy(new ItemInstance(Tile::wood, 2, WoodTile::BAMBOO_PLANKS), //
+        L"zg",
+        new ItemInstance(Tile::strippedLog2, 1, StrippedLogTile::BAMBOO - 4),
+        L'S');
+
+    // neoLegacy - Stripped logs make 4 planks of their own wood, just like the plain logs (planks data 0-5 = oak..dark oak)
+    for (int wood = StrippedLogTile::OAK; wood <= StrippedLogTile::DARK_OAK; ++wood)
+    {
+        Tile *strippedTile = (wood < 4) ? Tile::strippedLog : Tile::strippedLog2;
+        int strippedData = (wood < 4) ? wood : (wood - 4);
+        r->addShapedRecipy(new ItemInstance(Tile::wood, 4, wood), //
+            L"sczg",
+            L"#", //
+
+            L'#', new ItemInstance(strippedTile, 1, strippedData),
+            L'S');
+    }
+
+    r->addShapedRecipy(new ItemInstance(Tile::calcite, 6),
+
+        L"ssczcig",
+        L"GG",
+        L"GQ",
+
+        L'G', new ItemInstance(Tile::stone, 1, StoneTile::DIORITE),
+        L'Q', Item::nether_quartz,
+        L'S');
+
+    r->addShapedRecipy(new ItemInstance(Tile::blackstone, 6),
+
+        L"ssczcig",
+        L"GG",
+        L"GQ",
+
+        L'G', new ItemInstance(Tile::stone, 1, 0),
+        L'Q', Item::coal,
+        L'S');
+
+    r->addShapedRecipy(new ItemInstance(Tile::blackstone, 4, BlackStoneTile::GILDED_BLACKSTONE),
+
+        L"ssczcig",
+        L"GG",
+        L"GQ",
+
+        L'G', new ItemInstance(Tile::blackstone, 1, BlackStoneTile::BLACKSTONE),
+        L'Q', Item::gold_nugget,
+        L'S');
 
 	r->addShapedRecipy(new ItemInstance(Tile::sandStone, 4, SandStoneTile::TYPE_SMOOTHSIDE), //
 		L"ssczg",
@@ -59,7 +124,7 @@ void StructureRecipies::addRecipes(Recipes *r)
 		L'S');
 
 
-	
+
 
 	r->addShapedRecipy(new ItemInstance(Tile::quartzBlock, 1, QuartzBlockTile::TYPE_CHISELED), //
 		L"ssczg",
@@ -68,6 +133,14 @@ void StructureRecipies::addRecipes(Recipes *r)
 
 		L'#', new ItemInstance(Tile::stoneSlabHalf, 1, StoneSlabTile::QUARTZ_SLAB),
 		L'S');
+
+    r->addShapedRecipy(new ItemInstance(Tile::blackstone, 1, BlackStoneTile::CHISELED_POLISHED_BLACKSTONE),
+        L"ssczg",
+        L"#",
+        L"#",
+
+        L'#', new ItemInstance(Tile::stoneSlab2Half, 1, StoneSlabTile2::BLACKSTONE_SLAB),
+        L'S');
 
 	r->addShapedRecipy(new ItemInstance(Tile::quartzBlock, 2, QuartzBlockTile::TYPE_LINES_Y), //
 		L"ssczg",
@@ -123,6 +196,10 @@ void StructureRecipies::addRecipes(Recipes *r)
 		L'#', new ItemInstance(Tile::stone_Id, 1, StoneTile::ANDESITE),
 		L'S');
 
+
+
+
+
 	// 4J Stu - Changed the order, as the blocks that go with sandstone cause a 3-icon scroll
 	// that touches the text "Structures" in the title in 720 fullscreen.
 	r->addShapedRecipy(new ItemInstance(Tile::workBench), //
@@ -132,7 +209,7 @@ void StructureRecipies::addRecipes(Recipes *r)
 
 		L'#', Tile::wood,
 		L'S');
-	
+
 	r->addShapedRecipy(new ItemInstance(Tile::furnace), //
 		L"sssctg",
 		L"###", //
@@ -174,6 +251,22 @@ void StructureRecipies::addRecipes(Recipes *r)
 
 		L'#', new ItemInstance(Tile::stone, 1, 0),
 		L'S');
+    r->addShapedRecipy(new ItemInstance(Tile::blackstone, 4, BlackStoneTile::POLISHED_BLACKSTONE_BRICKS),
+        L"ssczg",
+        L"##",
+        L"##",
+
+        L'#', new ItemInstance(Tile::blackstone, 1, BlackStoneTile::POLISHED_BLACKSTONE),
+        L'S');
+
+    r->addShapedRecipy(new ItemInstance(Tile::blackstone, 4, BlackStoneTile::POLISHED_BLACKSTONE),
+        L"ssczg",
+        L"##", //
+        L"##", //
+
+        L'#', new ItemInstance(Tile::blackstone, 1, BlackStoneTile::BLACKSTONE),
+        L'S');
+
 	r->addShapedRecipy(new ItemInstance(Tile::stoneBrick, 1, SmoothStoneBrickTile::TYPE_DETAIL), //
 		L"ssczg",
 		L"#", //
@@ -182,11 +275,12 @@ void StructureRecipies::addRecipes(Recipes *r)
 		L'#', new ItemInstance(Tile::stoneSlabHalf, 1, StoneSlabTile::SMOOTHBRICK_SLAB),
 		L'S');
 	r->addShapedRecipy(new ItemInstance(Tile::stoneBrick, 1, SmoothStoneBrickTile::TYPE_MOSSY), //
-		L"sczc zg",                       
-		L"#1",             
-		L'#', new ItemInstance(Tile::stoneBrick,1),  
-		L'1', new ItemInstance(Tile::vine, 1),        
+		L"sczc zg",
+		L"#1",
+		L'#', new ItemInstance(Tile::stoneBrick,1),
+		L'1', new ItemInstance(Tile::vine, 1),
 		L'S');
+
 
 	r->addShapedRecipy(new ItemInstance(Tile::mossyCobblestone, 1), //
 		L"sczc zg",
@@ -212,7 +306,7 @@ void StructureRecipies::addRecipes(Recipes *r)
 
 		L'#', Tile::glass,
 		L'D');
-	
+
 
 
 
@@ -277,4 +371,23 @@ for (int i = 0; i < 16; i++)
 
 		L'G', Tile::glass, L'S', Item::nether_star, L'O', Tile::obsidian,
 		L'M');
+
+	// Grindstone: stick, stone slab, stick / plank, -, plank
+	// VERIFY: group letter 'M' (Mechanism) chosen to match the Lucky Block
+	// recipe's placement a few lines up in this file -- neither Anvil nor
+	// Enchanting Table is registered in this file, so there was nothing to
+	// check their actual group letter against. If they use something other
+	// than 'M', change this one letter to match.
+	r->addShapedRecipy(new ItemInstance(Tile::grindstone_Id, 1, 0),
+
+		L"ssciczctg",
+		L"TLT",
+		L"P P",
+
+		L'T', Item::stick,
+		L'L', new ItemInstance(Tile::stone_slab_Id, 1, 0),
+		L'P', Tile::wood,
+		L'S');
+
+
 }

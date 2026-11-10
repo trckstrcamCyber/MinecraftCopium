@@ -14,6 +14,8 @@
 SavannaBiome::SavannaBiome(int id) : Biome(id)
 {
     friendlies.push_back(new MobSpawnerData(eTYPE_HORSE, 1, 2, 6));
+	// neoLegacy - rare Jelly Slimes (by day, on the surface: JellySlime::canSpawn)
+	enemies.push_back(new MobSpawnerData(eTYPE_JELLYSLIME, 3, 1, 1));
 
     decorator->treeCount   = 1;
     decorator->flowerCount = 4;

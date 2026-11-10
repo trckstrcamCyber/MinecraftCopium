@@ -8,6 +8,7 @@ using namespace std;
 #include "PlayerEnderChestContainer.h"
 #include "CommandSender.h"
 #include "ScoreHolder.h"
+#include "ArcadeSaveData.h"	// neoLegacy - Arcade Machines progress
 
 class AbstractContainerMenu;
 class Stats;
@@ -79,6 +80,9 @@ public:
 protected:
 	FoodData foodData;
 	int jumpTriggerTime;
+	// neoLegacy Added - Air Jump input edge/counter state.
+	bool airJumpWasPressed;
+	int airJumpsUsed;
 
 public:
 	int ticksElytraFlying;
@@ -88,6 +92,10 @@ public:
 	float m_elytraImpactYd;    
 	bool  m_wasElytraFlying;   
 	int   m_elytraFallProtectTicks; 
+	// neoLegacy - Mace: after a smash attack (and Wind Burst launch) fall damage is ignored above the point of impact.
+	// See MaceItem::applySmashToAttacker and Player::causeFallDamage.
+	bool  ignoreFallFromImpulse;
+	float impulseImpactY;
 	bool isElytraFlying();
 	virtual void setElytraFlying(bool flying);
 
@@ -99,6 +107,28 @@ public:
 	float oBob, bob;
 
 	wstring name;
+
+	// neoLegacy - lightweight combo state for the Zoro swords.
+	// Stored on Player so client-side first-person animation and server-side
+	// damage calculation follow the same three-hit rhythm.
+	int zoroSwordComboStep = 0;
+	int zoroSwordComboTimer = 0;
+	int zoroSwordAttackCooldown = 0;
+	int zoroSwordHitStopTicks = 0;
+	bool zoroSwingJustStarted = false;	// set by beginZoroSwing(), consumed by attack() in the same click
+	float zoroHitShake = 0.0f;				// client-only camera kick after a connected Zoro cut
+	float zoroHitShakeO = 0.0f;
+
+	// neoLegacy - Zoro combo state. Attack TYPES: 0 diagonal, 1 backhand (always the opener), 2 overhead chop, 3 sideways slash.
+	// A combo continues while each swing connects and the next one starts inside the window; a swing that finds no target, or
+	// the window running out, breaks it (back to the opener, and the Crit/Rage stacks reset).
+	static const int ZORO_ATTACK_TYPES = 4;
+	static const int ZORO_OPENER_TYPE = 1;
+	static const int ZORO_COMBO_WINDOW = 34;		// ticks allowed between two connecting hits
+	int zoroComboHits = 0;						// consecutive hits so far in this combo
+	float zoroCritChance = 0.0f;					// Crit Stacking: chance for the next hit (0-1)
+	float zoroRageBonus = 0.0f;					// Rage Stacking: extra damage for the next hit (0-2 = +200 %)
+	int zoroMissCheck = 0;						// ticks left for a swing to find a target before it counts as a miss
 	int takeXpDelay;
 
 	// 4J-PB - track custom skin
@@ -203,6 +233,8 @@ public:
 protected:
 	bool isImmobile();
 	virtual void closeContainer();
+	void updateSize();
+	bool shouldUseSwimmingPose();
 
 public:
 	virtual void ride(shared_ptr<Entity> e);
@@ -245,9 +277,14 @@ public:
 	virtual bool openHorseInventory(shared_ptr<EntityHorse> horse, shared_ptr<Container> container);
 	virtual bool startEnchanting(int x, int y, int z, const wstring &name);				// 4J - added bool return
 	virtual bool startRepairing(int x, int y, int z);				// 4J - added bool return
+	virtual bool startGrindstoneRepairing(int x, int y, int z);	// neoLegacy - grindstone job site
 	virtual bool startCrafting(int x, int y, int z);				// 4J - added bool return
+	virtual bool startComplexCrafting(int x, int y, int z);		// neoLegacy - Complex Table
+	virtual bool startArcadeGame(int x, int y, int z, int gameType);	// neoLegacy - Arcade Machines
+	ArcadeSaveData arcadeData;												// neoLegacy - saved with the player (per player, per world)
 	virtual bool openFireworks(int x, int y, int z);				// 4J - added
 	virtual float getHeadHeight();
+	bool isSwimming();
 
 	// 4J-PB - added to keep the code happy with the change to make the third person view per player
 	virtual int ThirdPersonView()	{return 0;}
@@ -285,9 +322,20 @@ public:
 	virtual void openItemInstanceGui(shared_ptr<ItemInstance> itemInstance, shared_ptr<Player> player);
 	virtual bool interact(shared_ptr<Entity> entity);
 	virtual shared_ptr<ItemInstance> getSelectedItem();
+	shared_ptr<ItemInstance> getSelectedItem() const;
 	void removeSelectedItem();
 	virtual double getRidingHeight();
 	virtual void attack(shared_ptr<Entity> entity);
+	bool canUseZoroSwordAttack();
+	int getZoroSwordComboStep() const;
+	int getZoroSwordHitStopTicks() const;
+	float getZoroSwordSwingProgress(float a = 0.0f) const;	// a = partial tick, so the swing is smooth between ticks
+	bool beginZoroSwing();										// starts a cut (combo step + cooldown) even when it hits nothing
+	float getZoroHitShake(float a) const;
+	virtual void swing();							// neoLegacy - arms the miss check when a Zoro sword is swung
+	void chooseZoroAttackType();
+	void zoroRegisterHit();
+	void zoroBreakCombo();
 	virtual void crit(shared_ptr<Entity> entity);
 	virtual void magicCrit(shared_ptr<Entity> entity);
 	virtual void respawn();

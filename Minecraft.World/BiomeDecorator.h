@@ -63,6 +63,17 @@ public:
 	Feature *tulipPinkFeature;
 	Feature *doublePlantFeature;
 
+	// New atmospheric worldgen layer - see LuckyStructureConfig.h
+	Feature *luckyBlockSpawnFeature;
+	Feature *abandonedTentFeature;
+	Feature *brokenCartFeature;
+	Feature *oreShrineFeature;
+	Feature *ruinedFenceFeature;
+	Feature *abandonedCampfireFeature;
+	Feature *rockPileFeature;
+	Feature *hunterPostFeature;
+	Feature *miniCaveFeature;
+
 	int doublePlantCount;
 	int waterlilyCount;
 	int treeCount;
@@ -92,4 +103,5 @@ protected:
 	void decorateDepthSpan(int count, Feature *feature, int y0, int y1);
 	void decorateDepthAverage(int count, Feature *feature, int yMid, int ySpan);
 	void decorateOres();
+	void decorateLuckyStructures();
 };

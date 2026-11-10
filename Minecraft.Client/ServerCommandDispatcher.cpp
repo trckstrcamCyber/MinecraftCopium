@@ -6,6 +6,7 @@
 #include "../Minecraft.World/net.minecraft.commands.common.h"
 #include "TeleportCommand.h"
 #include "ServerCommandDispatcher.h"
+#include "../Minecraft.World/ClearCommand.h"
 
 ServerCommandDispatcher::ServerCommandDispatcher()
 {
@@ -17,6 +18,7 @@ ServerCommandDispatcher::ServerCommandDispatcher()
 	addCommand(new ExperienceCommand());
 	addCommand(new TeleportCommand());
 	addCommand(new GiveItemCommand());
+	addCommand(new ClearCommand());
 	addCommand(new EnchantItemCommand());
 	//addCommand(new EmoteCommand());
 	//addCommand(new ShowSeedCommand());

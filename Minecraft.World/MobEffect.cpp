@@ -35,6 +35,7 @@ MobEffect *MobEffect::wither;
 MobEffect *MobEffect::healthBoost;
 MobEffect *MobEffect::absorption;
 MobEffect *MobEffect::saturation;
+MobEffect *MobEffect::freezing;	// neoLegacy
 MobEffect *MobEffect::reserved_24;
 MobEffect *MobEffect::reserved_25;
 MobEffect *MobEffect::reserved_26;
@@ -70,6 +71,9 @@ void MobEffect::staticCtor()
 	healthBoost =		(new HealthBoostMobEffect(21, false, eMinecraftColour_Effect_HealthBoost))	->setDescriptionId(IDS_POTION_HEALTHBOOST)		->setPostfixDescriptionId(IDS_POTION_HEALTHBOOST_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_HealthBoost)->addAttributeModifier(SharedMonsterAttributes::MAX_HEALTH, eModifierId_POTION_HEALTHBOOST, 4, AttributeModifier::OPERATION_ADDITION);
 	absorption =		(new AbsoptionMobEffect(22, false, eMinecraftColour_Effect_Absoprtion))		->setDescriptionId(IDS_POTION_ABSORPTION)		->setPostfixDescriptionId(IDS_POTION_ABSORPTION_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Absorption);
 	saturation =		(new InstantenousMobEffect(23, false, eMinecraftColour_Effect_Saturation))	->setDescriptionId(IDS_POTION_SATURATION)		->setPostfixDescriptionId(IDS_POTION_SATURATION_POSTFIX);
+	// neoLegacy - Freezing. All of its behaviour lives in LivingEntity::updateFreezing (slowdown, reduced jump, damage once fully frozen).
+	// Own icy colour; still borrows the Slowness HUD icon (the icons live inside the UI SWF). A brewed potion lasts a tenth of the usual time.
+	freezing =			(new MobEffect(24, true, eMinecraftColour_Effect_Freezing))		->setDescriptionId(IDS_POTION_FREEZING)		->setPostfixDescriptionId(IDS_POTION_FREEZING_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Slowness)->setDurationModifier(.1);
 	reserved_24 = nullptr;
 	reserved_25 = nullptr;
 	reserved_26 = nullptr;

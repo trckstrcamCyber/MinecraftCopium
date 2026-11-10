@@ -8,6 +8,13 @@
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.world.item.crafting.h"
 #include "DyePowderItem.h"
+#include "ObserverTile.h"
+#include "DrillTile.h"
+#include "ProcessorTile.h"
+#include "GrindstoneTile.h"
+#include "PistonBaseTile.h"
+#include "HopperTile.h"
+#include "ArcadeMachineTile.h"
 
 Recipes *Recipes::instance = nullptr;
 ArmorRecipes *Recipes::pArmorRecipes=nullptr;
@@ -106,12 +113,34 @@ void Recipes::_compileRecipes()
 
 	// 4J-PB - changing the order to the way we want to have things in the crafting menu
 	// bed
-	addShapedRecipy(new ItemInstance(Item::bed, 1), //
-		L"ssctctg",
+	// neoLegacy - Fancy Beds: three wool of ONE color over three planks gives a bed of that color (one item id, aux = color,
+	// wool order white..black). The old recipe accepted any wool and always made the same bed.
+	for (int bedColor = 0; bedColor < 16; bedColor++)
+	{
+		addShapedRecipy(new ItemInstance(Item::bed, 1, bedColor), //
+			L"ssczctg",
+			L"###", //
+			L"XXX", //
+			L'#', new ItemInstance(Tile::wool, 1, bedColor), L'X', Tile::wood,
+			L'S');
+	}
+
+	// neoLegacy - Straw Bed: three hay bales in a row give four straw beds (aux 16 of the bed item; a one-row recipe works in any row,
+	// including the middle one)
+	addShapedRecipy(new ItemInstance(Item::bed, 4, 16), //
+		L"sctg",
 		L"###", //
-		L"XXX", //
-		L'#', Tile::wool, L'X', Tile::wood,
+		L'#', Tile::hayBlock,
 		L'S');
+
+    addShapedRecipy(new ItemInstance(Tile::complexTable, 1), //
+        L"sssctcicig",
+        L"BBB", //
+        L"D D", //
+        L"###", //
+
+        L'#', Tile::wood, L'B', Item::stick, L'D', Item::iron_ingot,
+        L'S');
 
 	addShapedRecipy(new ItemInstance(Tile::enchantTable, 1), //
 		L"sssctcicig",
@@ -177,6 +206,125 @@ void Recipes::_compileRecipes()
 		L'W', new ItemInstance(Tile::wood, 1, TreeTile::JUNGLE_TRUNK),
 		L'S');
 
+    // neoLegacy - MAC-10 (Complex Table only): expensive late-progression firearm.
+    addShapedRecipy(new ItemInstance(Item::mac10, 1),
+        L"ssscictcictcicig",
+        L"ISI",
+        L"GFG",
+        L"DRD",
+        L'I', Item::iron_ingot,
+        L'S', static_cast<Tile *>(Tile::sticky_piston),
+        L'G', Item::gold_ingot,
+        L'F', static_cast<Tile *>(Tile::ironBlock),
+        L'D', Item::diamond,
+        L'R', Item::redstone,
+        L'M');
+
+    // neoLegacy - 9mm Bullets: TU43-compatible ingredients; no copper dependency.
+    addShapelessRecipy(new ItemInstance(Item::bullet_9mm, 6), L"zzzg",
+        new ItemInstance(Item::iron_ingot, 1),
+        new ItemInstance(Item::gunpowder, 1),
+        new ItemInstance(Item::flint, 1),
+        L'T');
+
+    // neoLegacy - M16 (Complex Table only): the MAC-10's recipe stepped up - iron BLOCK on top, a redstone BLOCK instead of dust, and the
+    // sticky piston (the bolt carrier) moves to the middle.
+    addShapedRecipy(new ItemInstance(Item::m16, 1),
+        L"ssscictcictcictg",
+        L"IFI",
+        L"GSG",
+        L"DBD",
+        L'I', Item::iron_ingot,
+        L'F', static_cast<Tile *>(Tile::ironBlock),
+        L'G', Item::gold_ingot,
+        L'S', static_cast<Tile *>(Tile::sticky_piston),
+        L'D', Item::diamond,
+        L'B', static_cast<Tile *>(Tile::redstoneBlock),
+        L'M');
+
+    // neoLegacy - 5.56 rounds: the 9mm recipe with a second charge of powder.
+    addShapelessRecipy(new ItemInstance(Item::bullet_556, 6), L"zzzzg",
+        new ItemInstance(Item::iron_ingot, 1),
+        new ItemInstance(Item::gunpowder, 1),
+        new ItemInstance(Item::gunpowder, 1),
+        new ItemInstance(Item::flint, 1),
+        L'T');
+
+    // neoLegacy - Flintlock Pistols (Complex Table only, machine category). One shape, three metals: barrel (M M), flint lock (F), redstone trigger work (R), iron-block grip (S).
+    //   Copper   - clay bricks stand in for the copper (there is no copper ingot in this version; swap the id here when there is one)
+    //   Iron     - iron ingots
+    //   Gold     - gold ingots
+    {
+        const int pistolMetals[3] = { Item::brick_Id, Item::iron_ingot_Id, Item::gold_ingot_Id };
+        Item *pistols[3] = { Item::flintlock_copper, Item::flintlock_iron, Item::flintlock_gold };
+        for (int v = 0; v < 3; ++v)
+        {
+            addShapedRecipy(new ItemInstance(pistols[v], 1),
+                L"ssscicicictg",
+                L"MMF",
+                L" RM",
+                L" S ",
+                L'M', Item::items[pistolMetals[v]],
+                L'F', Item::flint,
+                L'R', Item::redstone,
+                L'S', static_cast<Tile *>(Tile::ironBlock),
+                L'M');
+        }
+    }
+
+	// neoLegacy - Bamboo wood set (all from Bamboo Planks = planks data 6)
+	addShapedRecipy(new ItemInstance(Tile::bambooFence, 3), //
+		L"ssciczg",
+		L"W#W", //
+		L"W#W", //
+
+		L'#', Item::stick,
+		L'W', new ItemInstance(Tile::wood, 1, WoodTile::BAMBOO_PLANKS),
+		L'S');
+
+	addShapedRecipy(new ItemInstance(Tile::bambooGate, 1), //
+		L"ssciczg",
+		L"#W#", //
+		L"#W#", //
+
+		L'#', Item::stick, L'W', new ItemInstance(Tile::wood, 1, WoodTile::BAMBOO_PLANKS),
+		L'S');
+
+	addShapedRecipy(new ItemInstance(Item::bamboo_door, 3), //
+		L"sssczg",
+		L"##", //
+		L"##", //
+		L"##", //
+
+		L'#', new ItemInstance(Tile::wood, 1, WoodTile::BAMBOO_PLANKS),
+		L'S');
+
+	addShapedRecipy(new ItemInstance(Tile::bambooTrapdoor, 2), //
+		L"ssczg",
+		L"###", //
+		L"###", //
+
+		L'#', new ItemInstance(Tile::wood, 1, WoodTile::BAMBOO_PLANKS),
+		L'S');
+
+	addShapedRecipy(new ItemInstance(Tile::bambooStairs, 6), //
+		L"sssczg",
+		L"#  ", //
+		L"## ", //
+		L"###", //
+
+		L'#', new ItemInstance(Tile::wood, 1, WoodTile::BAMBOO_PLANKS),
+		L'S');
+
+	addShapedRecipy(new ItemInstance(Tile::bambooMosaicStairs, 6), //
+		L"sssczg",
+		L"#  ", //
+		L"## ", //
+		L"###", //
+
+		L'#', new ItemInstance(Tile::wood, 1, WoodTile::BAMBOO_MOSAIC),
+		L'S');
+
 	addShapedRecipy(new ItemInstance(Tile::acaciaFence, 3), //
 		L"ssciczg",
 		L"W#W", //
@@ -210,6 +358,22 @@ void Recipes::_compileRecipes()
 
 		L'#', Tile::mossyCobblestone,
 		L'S');
+
+    addShapedRecipy(new ItemInstance(Tile::calciteWall, 6),
+    	L"ssctg",
+    	L"CCC",
+    	L"CCC",
+
+    	L'C', Tile::calcite,
+    	L'S');
+
+    addShapedRecipy(new ItemInstance(Tile::blackstoneWall, 6),
+        L"ssctg",
+        L"CCC",
+        L"CCC",
+
+        L'C', Tile::blackstone,
+        L'S');
 
 	addShapedRecipy(new ItemInstance(Tile::netherFence, 6), //
 		L"ssctg",
@@ -338,13 +502,20 @@ void Recipes::_compileRecipes()
 		L'#', Item::iron_ingot,
 		L'S');
 
-	addShapedRecipy(new ItemInstance(Tile::trapdoor, 2), //
-		L"ssctg",
-		L"###", //
-		L"###", //
+	// neoLegacy - one trapdoor recipe per plank type (aux = WoodTile data); each gives its own trapdoor
+	{
+		Tile *trapdoors[6] = { Tile::trapdoor, Tile::spruce_trapdoor, Tile::birch_trapdoor, Tile::jungle_trapdoor, Tile::acacia_trapdoor, Tile::dark_oak_trapdoor };
+		for (int woodType = 0; woodType < 6; woodType++)
+		{
+			addShapedRecipy(new ItemInstance(trapdoors[woodType], 2), //
+				L"ssczg",
+				L"###", //
+				L"###", //
 
-		L'#', Tile::wood,
-		L'S');
+				L'#', new ItemInstance(Tile::wood, 1, woodType),
+				L'S');
+		}
+	}
 
 	addShapedRecipy(new ItemInstance(Tile::iron_trapdoor, 2), //
 		L"sscig",
@@ -354,7 +525,7 @@ void Recipes::_compileRecipes()
 		L'#', Item::iron_ingot,
 		L'S');
 
-	addShapedRecipy(new ItemInstance(Tile::stairs_wood, 4), //
+	addShapedRecipy(new ItemInstance(Tile::stairs_wood, 6), //
 		L"sssczg",
 		L"#  ", //
 		L"## ", //
@@ -363,7 +534,7 @@ void Recipes::_compileRecipes()
 		L'#', new ItemInstance(Tile::wood, 1, 0),
 		L'S');
 
-	addShapedRecipy(new ItemInstance(Tile::stairs_stone, 4), //
+	addShapedRecipy(new ItemInstance(Tile::stairs_stone, 6), //
 		L"sssctg",
 		L"#  ", //
 		L"## ", //
@@ -372,7 +543,7 @@ void Recipes::_compileRecipes()
 		L'#', Tile::cobblestone,
 		L'S');
 
-	addShapedRecipy(new ItemInstance(Tile::stairs_bricks, 4), //
+	addShapedRecipy(new ItemInstance(Tile::stairs_bricks, 6), //
 		L"sssctg",
 		L"#  ", //
 		L"## ", //
@@ -381,7 +552,7 @@ void Recipes::_compileRecipes()
 		L'#', Tile::redBrick,
 		L'S');
 
-	addShapedRecipy(new ItemInstance(Tile::stone_brick_stairsSmooth, 4), //
+	addShapedRecipy(new ItemInstance(Tile::stone_brick_stairsSmooth, 6), //
 		L"sssctg",
 		L"#  ", //
 		L"## ", //
@@ -390,7 +561,7 @@ void Recipes::_compileRecipes()
 		L'#', Tile::stoneBrick,
 		L'S');
 
-	addShapedRecipy(new ItemInstance(Tile::nether_brick_stairs, 4), //
+	addShapedRecipy(new ItemInstance(Tile::nether_brick_stairs, 6), //
 		L"sssctg",
 		L"#  ", //
 		L"## ", //
@@ -399,7 +570,7 @@ void Recipes::_compileRecipes()
 		L'#', Tile::netherBrick,
 		L'S');
 
-	addShapedRecipy(new ItemInstance(Tile::stairs_sandstone, 4), //
+	addShapedRecipy(new ItemInstance(Tile::stairs_sandstone, 6), //
 		L"sssctg",
 		L"#  ", //
 		L"## ", //
@@ -407,7 +578,7 @@ void Recipes::_compileRecipes()
 
 		L'#', Tile::sandStone,
 		L'S');
-	addShapedRecipy(new ItemInstance(Tile::stairs_red_sandstone, 4), //
+	addShapedRecipy(new ItemInstance(Tile::stairs_red_sandstone, 6), //
 		L"sssctg",
 		L"#  ", //
 		L"## ", //
@@ -416,7 +587,7 @@ void Recipes::_compileRecipes()
 		L'#', Tile::red_sandstone,
 		L'S');
 
-	addShapedRecipy(new ItemInstance(Tile::woodStairsBirch, 4), //
+	addShapedRecipy(new ItemInstance(Tile::woodStairsBirch, 6), //
 		L"sssczg",
 		L"#  ", //
 		L"## ", //
@@ -425,7 +596,7 @@ void Recipes::_compileRecipes()
 		L'#', new ItemInstance(Tile::wood, 1, TreeTile::BIRCH_TRUNK),
 		L'S');
 
-	addShapedRecipy(new ItemInstance(Tile::woodStairsSpruce, 4), //
+	addShapedRecipy(new ItemInstance(Tile::woodStairsSpruce, 6), //
 		L"sssczg",
 		L"#  ", //
 		L"## ", //
@@ -434,7 +605,7 @@ void Recipes::_compileRecipes()
 		L'#', new ItemInstance(Tile::wood, 1, TreeTile::SPRUCE_TRUNK),
 		L'S');
 
-	addShapedRecipy(new ItemInstance(Tile::woodStairsJungle, 4), //
+	addShapedRecipy(new ItemInstance(Tile::woodStairsJungle, 6), //
 		L"sssczg",
 		L"#  ", //
 		L"## ", //
@@ -443,7 +614,7 @@ void Recipes::_compileRecipes()
 		L'#', new ItemInstance(Tile::wood, 1, TreeTile::JUNGLE_TRUNK),
 		L'S');
 
-	addShapedRecipy(new ItemInstance(Tile::woodStairsAcacia, 4), //
+	addShapedRecipy(new ItemInstance(Tile::woodStairsAcacia, 6), //
 		L"sssczg",
 		L"#  ", //
 		L"## ", //
@@ -452,7 +623,7 @@ void Recipes::_compileRecipes()
 		L'#', new ItemInstance(Tile::wood, 1, TreeTile::ACACIA_TRUNK),
 		L'S');
 
-	addShapedRecipy(new ItemInstance(Tile::woodStairsDark, 4), //
+	addShapedRecipy(new ItemInstance(Tile::woodStairsDark, 6), //
 		L"sssczg",
 		L"#  ", //
 		L"## ", //
@@ -461,7 +632,7 @@ void Recipes::_compileRecipes()
 		L'#', new ItemInstance(Tile::wood, 1, TreeTile::DARK_TRUNK),
 		L'S');
 
-	addShapedRecipy(new ItemInstance(Tile::stairs_quartz, 4), //
+	addShapedRecipy(new ItemInstance(Tile::stairs_quartz, 6), //
 		L"sssctg",
 		L"#  ", //
 		L"## ", //
@@ -469,6 +640,25 @@ void Recipes::_compileRecipes()
 
 		L'#', Tile::quartzBlock,
 		L'S');
+
+    addShapedRecipy(new ItemInstance(Tile::stairs_calcite, 6), //
+        L"sssctg",
+        L"#  ", //
+        L"## ", //
+        L"###", //
+
+        L'#', Tile::calcite,
+        L'S');
+
+    addShapedRecipy(new ItemInstance(Tile::stairs_blackstone, 6), //
+        L"sssctg",
+        L"#  ", //
+        L"## ", //
+        L"###", //
+
+        L'#', Tile::blackstone,
+        L'S');
+
 
 	pArmorRecipes->addRecipes(this);
 
@@ -510,6 +700,8 @@ void Recipes::_compileRecipes()
 		L'#', Item::prismarine_shard, L'X', new ItemInstance(Item::dye, 1, DyePowderItem::BLACK),
 		L'S');
 
+
+
 	addShapedRecipy(new ItemInstance(Tile::topSnow, 6), //
 		L"sctg",
 		L"###", //
@@ -550,6 +742,8 @@ void Recipes::_compileRecipes()
 		L'X', Item::gunpowder,//
 		L'#', Tile::sand,
 		L'T');
+
+
 
 	addShapedRecipy(new ItemInstance(Tile::stoneSlabHalf, 6, StoneSlabTile::SAND_SLAB), //
 		L"sctg",
@@ -605,6 +799,20 @@ void Recipes::_compileRecipes()
 		L'#', Tile::quartzBlock,
 		L'S');
 
+    addShapedRecipy(new ItemInstance(Tile::stoneSlab2Half, 6, StoneSlabTile2::CALCITE_SLAB),
+        L"sctg",
+        L"###", //
+
+        L'#', Tile::calcite,
+        L'S');
+    //(new ItemInstance(Tile::stoneSlab2Half, 6, StoneSlabTile2::CALCITE_SLAB),
+    addShapedRecipy(new ItemInstance(Tile::stoneSlab2Half, 6, StoneSlabTile2::BLACKSTONE_SLAB),
+        L"sctg",
+        L"###", //
+
+        L'#', Tile::blackstone,
+        L'S');
+
 	addShapedRecipy(new ItemInstance(Tile::woodSlabHalf, 6, 0), //
 		L"sczg",
 		L"###", //
@@ -640,6 +848,30 @@ void Recipes::_compileRecipes()
 		L"###", //
 
 		L'#', new ItemInstance(Tile::wood, 1, TreeTile::ACACIA_TRUNK),
+		L'S');
+
+	// neoLegacy - Bamboo slabs (data 6) and Bamboo Mosaic slabs (data 7)
+	addShapedRecipy(new ItemInstance(Tile::woodSlabHalf, 6, 6), //
+		L"sczg",
+		L"###", //
+
+		L'#', new ItemInstance(Tile::wood, 1, 6),
+		L'S');
+
+	addShapedRecipy(new ItemInstance(Tile::woodSlabHalf, 6, 7), //
+		L"sczg",
+		L"###", //
+
+		L'#', new ItemInstance(Tile::wood, 1, 7),
+		L'S');
+
+	// two Bamboo Slabs stacked make a Bamboo Mosaic block (like Java)
+	addShapedRecipy(new ItemInstance(Tile::wood, 1, 7), //
+		L"ssczg",
+		L"#", //
+		L"#", //
+
+		L'#', new ItemInstance(Tile::woodSlabHalf, 1, 6),
 		L'S');
 
 	addShapedRecipy(new ItemInstance(Tile::woodSlabHalf, 6, TreeTile::DARK_TRUNK), //
@@ -720,6 +952,33 @@ void Recipes::_compileRecipes()
 		L'#', Item::iron_ingot,
 		L'V');
 
+	// neoLegacy - Complex Table: the Mace. (In Java it is only found in trial vaults, which this build does not have, so it needs a
+	// recipe to be obtainable in Survival: a diamond-block head on a blaze-rod handle, braced by two iron blocks.)
+	//   I D I      I = iron block, D = diamond block, R = blaze rod
+	//   . R .
+	//   . R .
+	addShapedRecipy(new ItemInstance(Item::mace, 1), //
+		L"sssctctcig",
+		L"IDI", //
+		L" R ", //
+		L" R ", //
+
+		L'I', Tile::ironBlock,
+		L'D', Tile::diamondBlock,
+		L'R', Item::blaze_rod,
+		L'T');
+
+	// neoLegacy - Complex Table: Diamond Minecart = the normal minecart recipe, but with diamonds.
+	//   # . #      # = diamond
+	//   # # #
+	addShapedRecipy(new ItemInstance(Item::diamond_minecart, 1), //
+		L"sscig",
+		L"# #", //
+		L"###", //
+
+		L'#', Item::diamond,
+		L'V');
+
 	addShapedRecipy(new ItemInstance(Item::chest_minecart, 1), //
 		L"ssctcig",
 		L"A", //
@@ -752,13 +1011,17 @@ void Recipes::_compileRecipes()
 		L'A', Tile::hopper, L'B', Item::minecart,
 		L'V');
 
-	addShapedRecipy(new ItemInstance(Item::boat, 1), //
-		L"ssctg",
-		L"# #", //
-		L"###", //
+	// neoLegacy - one boat recipe per plank type; the result's aux value is the wood type (6 = bamboo: the Bamboo Raft)
+	for (int woodType = 0; woodType < 7; woodType++)
+	{
+		addShapedRecipy(new ItemInstance(Item::boat, 1, woodType), //
+			L"ssczg",
+			L"# #", //
+			L"###", //
 
-		L'#', Tile::wood,
-		L'V');
+			L'#', new ItemInstance(Tile::wood, 1, woodType),
+			L'V');
+	}
 
 	addShapedRecipy(new ItemInstance((Item *)Item::fishing_rod, 1), //
 		L"ssscicig",
@@ -801,6 +1064,19 @@ void Recipes::_compileRecipes()
 
 		L'X', Item::string,//
 		L'#', Item::stick,
+		L'T');
+
+	// neoLegacy - Crossbow (Java recipe): sticks, an iron ingot, two string and a tripwire hook
+	addShapedRecipy(new ItemInstance(Item::crossbow, 1), //
+		L"ssscicicicig",
+		L"#I#", //
+		L"XHX", //
+		L" # ", //
+
+		L'#', Item::stick,//
+		L'I', Item::iron_ingot,//
+		L'X', Item::string,//
+		L'H', Tile::tripWireSource,
 		L'T');
 
 	addShapedRecipy(new ItemInstance(Item::arrow, 4), //
@@ -1044,6 +1320,26 @@ void Recipes::_compileRecipes()
 		L'#', Tile::cobblestone, L'R', Item::redstone,
 		L'M');
 
+    addShapedRecipy(new ItemInstance(Tile::observer, 1), //
+        L"sssctcicig",
+        L"###", //
+        L"RRX", //
+        L"###", //
+        L'#', Tile::cobblestone, L'X', Item::nether_quartz, L'R', Item::redstone,
+        L'M');
+
+    // Lucky Block
+    addShapedRecipy(new ItemInstance(Tile::lucky_block, 1),
+
+        L"ssscictg",
+        L"GGG",
+        L"GDG",
+        L"GGG",
+
+        L'G', Item::gold_ingot,
+        L'D', Tile::dispenser,
+        L'M');
+
 	addShapedRecipy(new ItemInstance(Item::cauldron, 1), //
 		L"ssscig",
 		L"# #", //
@@ -1128,6 +1424,14 @@ void Recipes::_compileRecipes()
 		ItemInstance(Item::dye, 1, DyePowderItem::BLACK),
 		L'D');
 
+	// neoLegacy - Enchantment Encyclopedia: a Book and a Lapis Lazuli (shapeless). Complex-Table-only via isComplexOnly()
+	// (keyed on the result item), so it is not craftable at a normal Workbench.
+	addShapelessRecipy(new ItemInstance(Item::enchantment_encyclopedia, 1),
+		L"izg",
+		Item::book,
+		new ItemInstance(Item::dye, 1, DyePowderItem::BLUE),
+		L'D');
+
 	//addShapelessRecipy(new ItemInstance(Item.writable_book, 1), //
 	//            Item.book, new ItemInstance(Item.dye, 1, DyePowderItem.BLACK), Item.feather);
 
@@ -1170,6 +1474,41 @@ void Recipes::_compileRecipes()
 
 	pOreRecipies->addRecipes(this);
 
+	// neoLegacy - Jelly Block / Jelly Ball. Registered right after the ore/storage-block recipes so they sit next to the Slime Block and
+	// Slime Ball recipes (the last pair in that list) in the same crafting-menu group.
+	// 4 Jelly Balls in a 2x2 square make a Jelly Block (like Java's honey block); a Jelly Block breaks back into 4 Jelly Balls.
+	addShapedRecipy(new ItemInstance(Tile::jellyBlock, 1), //
+		L"sscig",
+		L"##", //
+		L"##", //
+
+		L'#', Item::jelly_ball,
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Item::jelly_ball, 4), //
+		L"sctg",
+		L"#", //
+
+		L'#', Tile::jellyBlock,
+		L'D');
+
+	// neoLegacy - Complex Table: an Ice block makes 4 Ice Balls, and 4 Ice Balls make an Ice block again. Both are Complex-Table-only
+	// via isComplexOnly() (keyed on the results: nothing else in the game produces Ice or Ice Balls).
+	addShapedRecipy(new ItemInstance(Item::ice_ball, 4), //
+		L"sctg",
+		L"#", //
+
+		L'#', Tile::ice,
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Tile::ice, 1), //
+		L"sscig",
+		L"##", //
+		L"##", //
+
+		L'#', Item::ice_ball,
+		L'D');
+
 	addShapedRecipy(new ItemInstance(Item::gold_ingot), //
 		L"ssscig",
 		L"###", //
@@ -1186,14 +1525,20 @@ void Recipes::_compileRecipes()
 		L'D');
 
 	// 4J-PB - moving into decorations to make the structures list smaller
-	addShapedRecipy(new ItemInstance(Item::sign, 3), //
-		L"sssctcig",
-		L"###", //
-		L"###", //
-		L" X ", //
+	// neoLegacy - one sign recipe per plank type (aux = WoodTile data, 6 = bamboo); every one gives THE sign item with that wood as its aux value
+	{
+		for (int woodType = 0; woodType < 7; woodType++)
+		{
+			addShapedRecipy(new ItemInstance(Item::sign, 3, woodType), //
+				L"sssczcig",
+				L"###", //
+				L"###", //
+				L" X ", //
 
-		L'#', Tile::wood, L'X', Item::stick,
-		L'D');
+				L'#', new ItemInstance(Tile::wood, 1, woodType), L'X', Item::stick,
+				L'D');
+		}
+	}
 
 	// 4J - TODO - put these new 1.7.3 items in required place within recipes
 	addShapedRecipy(new ItemInstance(static_cast<Tile*>(Tile::pistonBase), 1), //
@@ -1238,6 +1583,160 @@ void Recipes::_compileRecipes()
 
 		L'D', Item::dye, L'C', Item::firework_charge,
 		L'D');
+
+	// neoLegacy - Complex Table: "4 sand + 4 gravel + 1 dye -> 8 concrete powder" for all
+	// 16 colors. Index 0-15 is BOTH the dye's aux value and Tile::concrete_powder's own
+	// color data (DyePowderItem::BLACK..WHITE == concrete powder color 0..15).
+	// These live in the shared list on purpose (recipe-book UI + CraftItemPacket use list
+	// indexes) and are kept exclusive to the Complex Table via isComplexOnly().
+	for (int color = 0; color < 16; color++)
+	{
+		vector<ItemInstance *> *ingredients = new vector<ItemInstance *>();
+		for (int n = 0; n < 4; n++) ingredients->push_back(new ItemInstance(Tile::sand, 1));
+		for (int n = 0; n < 4; n++) ingredients->push_back(new ItemInstance(Tile::gravel, 1));
+		ingredients->push_back(new ItemInstance(Item::dye, 1, color));
+
+		recipies->push_back(new ShapelessRecipy(new ItemInstance(Tile::concrete_powder, 8, color), ingredients, Recipy::eGroupType_Structure));
+	}
+
+	// neoLegacy - Complex Table: concrete stairs and slabs, all 16 colors. Same yields as the
+	// vanilla stone recipes: 6 concrete -> 4 stairs, 3 concrete -> 6 slabs. The ingredient is
+	// the matching COLOR of concrete block (Tile::concrete data 0-15) and the result carries
+	// that same 0-15 color as its aux value (stairs/slabs are single-ID, color in the item aux
+	// / tile entity). Complex-Table-only via isComplexOnly(), same as the powder recipes.
+	// ShapedRecipy takes ownership of the ingredient array (delete[] in its destructor), so it
+	// is heap-allocated here with nullptr for the empty grid cells.
+	for (int color = 0; color < 16; color++)
+	{
+		// Stairs: staircase pattern in a 3x3 grid
+		//   #..
+		//   ##.
+		//   ###
+		ItemInstance **stairIngredients = new ItemInstance *[9];
+		for (int i = 0; i < 9; i++) stairIngredients[i] = nullptr;
+		stairIngredients[0] = new ItemInstance(Tile::concrete, 1, color);
+		stairIngredients[3] = new ItemInstance(Tile::concrete, 1, color);
+		stairIngredients[4] = new ItemInstance(Tile::concrete, 1, color);
+		stairIngredients[6] = new ItemInstance(Tile::concrete, 1, color);
+		stairIngredients[7] = new ItemInstance(Tile::concrete, 1, color);
+		stairIngredients[8] = new ItemInstance(Tile::concrete, 1, color);
+		recipies->push_back(new ShapedRecipy(3, 3, stairIngredients, new ItemInstance(Tile::concrete_stairs, 4, color), Recipy::eGroupType_Structure));
+
+		// Slabs: three across
+		ItemInstance **slabIngredients = new ItemInstance *[3];
+		for (int i = 0; i < 3; i++) slabIngredients[i] = new ItemInstance(Tile::concrete, 1, color);
+		recipies->push_back(new ShapedRecipy(3, 1, slabIngredients, new ItemInstance(Tile::concrete_slab_half, 6, color), Recipy::eGroupType_Structure));
+	}
+
+	// neoLegacy - Complex Table: 1 redstone -> 4 red dye. Complex-Table-only (see isComplexOnly,
+	// which matches on the redstone ingredient so the normal rose -> red dye recipe is untouched).
+	{
+		vector<ItemInstance *> *redIngredients = new vector<ItemInstance *>();
+		redIngredients->push_back(new ItemInstance(Item::redstone, 1, 0));
+		recipies->push_back(new ShapelessRecipy(new ItemInstance(Item::dye, 4, DyePowderItem::RED), redIngredients, Recipy::eGroupType_Decoration));
+	}
+
+	// neoLegacy - Complex Table: Zoro swords. The Cursed Hilt is the core of every sword; the
+	// catalyst decides which one you get. The Diamond Sword may be any durability (ANY_AUX_VALUE).
+	//   Charcoal + Blaze Rod + Flint          -> Cursed Hilt
+	//   Cursed Hilt + Diamond Sword + Lapis   -> Emma
+	//   Cursed Hilt + Diamond Sword + Quartz  -> Wado Ichimonji
+	//   Cursed Hilt + Diamond Sword + Redstone-> Sandai Kitetsu
+	//   Cursed Hilt + Diamond Sword + Coal    -> Shusui
+	// All are Complex-Table-only via isComplexOnly() (keyed on the result item).
+	{
+		addShapelessRecipy(new ItemInstance(Item::cursed_hilt, 1), //
+			L"zizg",
+			new ItemInstance(Item::coal, 1, CoalItem::CHAR_COAL), Item::blaze_rod, new ItemInstance(Item::flint, 1, 0),
+			L'T');
+
+		struct ZoroForge { Item *result; ItemInstance *catalyst; };
+		ZoroForge forges[4] =
+		{
+			{ Item::enma,			new ItemInstance(Item::dye, 1, DyePowderItem::BLUE) },	// lapis lazuli
+			{ Item::wado_ichimonji,	new ItemInstance(Item::nether_quartz, 1, 0) },
+			{ Item::sandai_kitetsu,	new ItemInstance(Item::redstone, 1, 0) },
+			{ Item::shusui,			new ItemInstance(Item::coal, 1, CoalItem::STONE_COAL) },
+		};
+		for (int i = 0; i < 4; i++)
+		{
+			ItemInstance *anySword = new ItemInstance(Item::diamond_sword->id, 1, Recipes::ANY_AUX_VALUE);
+			ItemInstance *hilt = new ItemInstance(Item::cursed_hilt, 1, 0);
+			addShapelessRecipy(new ItemInstance(forges[i].result, 1), //
+				L"zzzg",
+				hilt, anySword, forges[i].catalyst,
+				L'T');
+		}
+	}
+
+	// neoLegacy - Complex Table: Drill.
+	//   I I I      I = iron ingot
+	//   P R Q      P = iron pickaxe (any durability), R = redstone, Q = nether quartz
+	//   C C C      C = cobblestone
+	// Complex-Table-only via isComplexOnly() (keyed on the result being the drill). Shown in the
+	// Mechanisms group like the Observer. The 'i'/'t' ingredient types build ANY_AUX_VALUE
+	// ingredients, so a used (damaged) iron pickaxe works.
+	addShapedRecipy(new ItemInstance(Tile::drill, 1), //
+		L"ssscicicicictg",
+		L"III", //
+		L"PRQ", //
+		L"CCC", //
+
+		L'I', Item::iron_ingot, L'P', Item::iron_pickaxe, L'R', Item::redstone, L'Q', Item::nether_quartz, L'C', Tile::cobblestone,
+		L'M');
+
+	// neoLegacy - Complex Table: Crusher.
+	//   I P I      I = iron ingot, P = piston (the crushing head)
+	//   I G I      G = grindstone
+	//   C H C      C = cobblestone, H = hopper (the feed)
+	// A piston drives a grindstone fed by a hopper -- which is exactly what the block does.
+	addShapedRecipy(new ItemInstance(Tile::crusher, 1), //
+		L"ssscictctctctg",
+		L"IPI", //
+		L"IGI", //
+		L"CHC", //
+
+		L'I', Item::iron_ingot, L'P', static_cast<Tile *>(Tile::pistonBase), L'G', static_cast<Tile *>(Tile::grindstone), L'C', Tile::cobblestone, L'H', static_cast<Tile *>(Tile::hopper),
+		L'M');
+
+	// neoLegacy - Complex Table: Refiner. A Crusher upgraded with the things it produces.
+	//   G G G      G = gold ingot
+	//   R X L      R = redstone, X = Crusher, L = lapis lazuli
+	//   I I I      I = iron ingot
+	addShapedRecipy(new ItemInstance(Tile::refiner, 1), //
+		L"ssscicictczcig",
+		L"GGG", //
+		L"RXL", //
+		L"III", //
+
+		L'G', Item::gold_ingot, L'R', Item::redstone, L'X', static_cast<Tile *>(Tile::crusher), L'L', new ItemInstance(Item::dye, 1, DyePowderItem::BLUE), L'I', Item::iron_ingot,
+		L'M');
+
+    // Copium Arcade machines are listed under Decoration, separate from Mechanisms.
+    //   O = Obsidian, G = Glass, D = Diamond, R = Redstone Dust.
+    addShapedRecipy(new ItemInstance(Tile::cookieMiner, 1), //
+        L"sssctcicictcig",
+        L"OCO", //
+        L"ORO", //
+        L"GDG", //
+        L'O', Tile::obsidian, L'C', Item::cookie, L'R', Item::redstone, L'G', Tile::glass, L'D', Item::diamond,
+        L'D');
+
+    addShapedRecipy(new ItemInstance(Tile::flappyCraft, 1), //
+        L"sssctcicictcig",
+        L"OCO", //
+        L"ORO", //
+        L"GDG", //
+        L'O', Tile::obsidian, L'C', Item::raw_chicken, L'R', Item::redstone, L'G', Tile::glass, L'D', Item::diamond,
+        L'D');
+
+    addShapedRecipy(new ItemInstance(Tile::mineSnake, 1), //
+        L"sssctcicictcig",
+        L"OCO", //
+        L"ORO", //
+        L"GDG", //
+        L'O', Tile::obsidian, L'C', Item::minecart, L'R', Item::redstone, L'G', Tile::glass, L'D', Item::diamond,
+        L'D');
 
 	buildRecipeIngredientsArray();
 }
@@ -1346,8 +1845,8 @@ ShapedRecipy *Recipes::addShapedRecipy(ItemInstance *result, ...)
 
 			break;
 		case L'c':
-			wchFrom=va_arg(vl,wchar_t);
-			break;
+		    wchFrom=va_arg(vl,wchar_t);
+		    break;
 		case L'z':
 			pItemInstance=va_arg(vl,ItemInstance *);
 			mappings->insert(myMap::value_type(wchFrom,pItemInstance));
@@ -1363,7 +1862,7 @@ ShapedRecipy *Recipes::addShapedRecipy(ItemInstance *result, ...)
 			mappings->insert(myMap::value_type(wchFrom,pItemInstance));
 			break;
 		case L'g':
-			wchFrom=va_arg(vl,wchar_t);
+			wchFrom=static_cast<wchar_t>(va_arg(vl,int));
 			switch(wchFrom)
 			{
 // 			case L'W':
@@ -1530,8 +2029,66 @@ shared_ptr<ItemInstance> Recipes::getItemFor(shared_ptr<CraftingContainer> craft
 	{
 		for (auto& r : *recipies)
 		{
+			if (isComplexOnly(r)) continue;	// neoLegacy - Complex Table recipes only match at a Complex Table
 			if (r->matches(craftSlots, level)) return r->assemble(craftSlots);
 		}
+	}
+	return nullptr;
+}
+
+// neoLegacy - Complex Table-only recipes include late-game machinery, selected custom items, the MAC-10, and 9mm ammunition.
+bool Recipes::isComplexOnly(Recipy *r)
+{
+	if (r == nullptr) return false;
+	const ItemInstance *result = r->getResultItem();
+	if (result == nullptr) return false;
+	if (result->id == Tile::concrete_powder_Id
+		|| result->id == Tile::concrete_stairs_Id
+		|| result->id == Tile::concrete_slab_half_Id
+		|| result->id == Tile::drill_Id
+		|| result->id == Tile::crusher_Id
+		|| result->id == Tile::refiner_Id
+        || result->id == Tile::cookie_miner_Id
+        || result->id == Tile::flappy_craft_Id
+        || result->id == Tile::mine_snake_Id
+		|| result->id == Item::diamond_minecart_Id
+		|| result->id == Item::cursed_hilt_Id		// neoLegacy - Zoro sword forging
+		|| result->id == Item::wado_ichimonji_Id
+		|| result->id == Item::sandai_kitetsu_Id
+		|| result->id == Item::enma_Id
+		|| result->id == Item::shusui_Id
+		|| result->id == Item::mac10_Id
+		|| result->id == Item::bullet_9mm_Id
+		|| result->id == Item::m16_Id			// neoLegacy - M16, 5.56 rounds, Flintlock Pistols
+		|| result->id == Item::bullet_556_Id
+		|| result->id == Item::flintlock_copper_Id
+		|| result->id == Item::flintlock_iron_Id
+		|| result->id == Item::flintlock_gold_Id
+		|| result->id == Item::mace_Id			// neoLegacy - Mace
+		|| result->id == Item::ice_ball_Id		// neoLegacy - Ice Ball <-> Ice
+		|| result->id == Tile::ice_Id
+		|| result->id == Item::enchantment_encyclopedia_Id)	// neoLegacy - Enchantment Encyclopedia
+	{
+		return true;
+	}
+
+	// Red dye has other (normal workbench) recipes, e.g. rose -> 2 red dye, so identify the
+	// Complex Table one by its redstone ingredient rather than by its result alone.
+	if (result->id == Item::dye_Id && result->getAuxValue() == DyePowderItem::RED)
+	{
+		ShapelessRecipy *sr = dynamic_cast<ShapelessRecipy *>(r);
+		return sr != nullptr && sr->hasIngredient(Item::redstone_Id);
+	}
+	return false;
+}
+
+// neoLegacy - Complex Table: grid matching that considers ONLY the Complex-Table-only recipes.
+shared_ptr<ItemInstance> Recipes::getComplexItemFor(shared_ptr<CraftingContainer> craftSlots, Level *level)
+{
+	for (auto& r : *recipies)
+	{
+		if (!isComplexOnly(r)) continue;
+		if (r->matches(craftSlots, level)) return r->assemble(craftSlots);
 	}
 	return nullptr;
 }

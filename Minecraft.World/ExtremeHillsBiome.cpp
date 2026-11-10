@@ -20,6 +20,9 @@ ExtremeHillsBiome::ExtremeHillsBiome(int id, bool extraTrees) : Biome(id)
     taigaFeature = new SpruceFeature(false);
 
     friendlies.clear();
+    // neoLegacy - goats live in the hills (the only passive mob here: hills clear the default list)
+    friendlies.push_back(new MobSpawnerData(eTYPE_GOAT, 10, 2, 3));
+    enemies.push_back(new MobSpawnerData(eTYPE_ICEOLOGER, 5, 1, 1));	// neoLegacy - ...and the mountains
     type = TYPE_NORMAL;
 
     if (extraTrees)

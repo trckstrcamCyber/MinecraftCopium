@@ -1,4 +1,6 @@
 ﻿#include "stdafx.h"
+#include "ObserverTile.h"
+#include "HeapCheck.h"
 #include "System.h"
 #include "BasicTypeContainers.h"
 #include "File.h"
@@ -947,6 +949,9 @@ bool Level::setTileAndData(int x, int y, int z, int tile, int data, int updateFl
 	}
 	if (result)
 	{
+		// neoLegacy - observers react to ANY change of the block they look at (placing, breaking, piston moves...)
+		if (!isClientSide && (updateFlags & Tile::UPDATE_KNOWN_SHAPE) == 0) ObserverTile::notifyWatchers(this, x, y, z);
+
 		if ((updateFlags & Tile::UPDATE_CLIENTS) != 0 && !(isClientSide && (updateFlags & Tile::UPDATE_INVISIBLE) != 0))
 		{
 			sendTileUpdated(x, y, z);
@@ -1003,6 +1008,7 @@ bool Level::setData(int x, int y, int z, int data, int updateFlags, bool forceUp
 
 	bool maskedBitsChanged;
 	bool result = c->setData(cx, y, cz, data, importantMask, &maskedBitsChanged);
+	if (result && !isClientSide && (updateFlags & Tile::UPDATE_KNOWN_SHAPE) == 0) ObserverTile::notifyWatchers(this, x, y, z);	// neoLegacy - data changes count too (e.g. a piston extending)
 	if (result || forceUpdate)
 	{
 		int tile = c->getTile(cx, y, cz);
@@ -2308,7 +2314,9 @@ void Level::tickEntities()
 
 		if (e->riding != nullptr)
 		{
-			if (e->riding->removed || e->riding->rider.lock() != e)
+			// neoLegacy - a camel or a boat carries two riders but the engine only has one rider link per mount, so a rider
+			// whose mount's link points at the other passenger is still perfectly valid on those two.
+			if (e->riding->removed || (e->riding->rider.lock() != e && !e->riding->instanceof(eTYPE_CAMEL) && !e->riding->instanceof(eTYPE_BOAT)))
 			{
 				e->riding->rider = weak_ptr<Entity>();
 				e->riding = nullptr;
@@ -2327,6 +2335,7 @@ void Level::tickEntities()
 #endif
 			{
 				tick(e);
+				HeapCheck::check("Level::tickEntities - just after tick(entity)", e.get(), static_cast<unsigned>(e->GetType()));	// neoLegacy - opt-in, see HeapCheck.h
 			}
 		}
 
@@ -2551,7 +2560,17 @@ void Level::tick(shared_ptr<Entity> e, bool actual)
 		}
 	}
 
-	if (actual && e->inChunk)
+	if (actual && e->inChunk && (e->instanceof(eTYPE_CAMEL) || e->instanceof(eTYPE_BOAT)))
+	{
+		// neoLegacy - the mount ticks its riders (riding entities skip the normal entity loop), so tick BOTH camel
+		// or boat riders, found by scanning the players riding it rather than through the single rider link.
+		for (size_t i = 0; i < players.size(); i++)
+		{
+			shared_ptr<Player> p = players[i];
+			if (p != nullptr && !p->removed && p->riding == e) tick(p);
+		}
+	}
+	else if (actual && e->inChunk)
 	{
 		if (e->rider.lock() != nullptr)
 		{
@@ -4821,4 +4840,36 @@ BlockPos Level::getHeightmapPos(int x, int z)
     }
 
     return BlockPos(x, 0, z);
+}
+
+
+// neoLegacy - extended tile ids
+void Level::collectExtTiles(int x0, int y0, int z0, int xs, int ys, int zs, std::vector<int> &out)
+{
+	for (int cx = x0 >> 4; cx <= ((x0 + xs - 1) >> 4); cx++)
+	{
+		for (int cz = z0 >> 4; cz <= ((z0 + zs - 1) >> 4); cz++)
+		{
+			if (!hasChunk(cx, cz)) continue;
+			LevelChunk *lc = getChunk(cx, cz);
+			if (lc == nullptr || !lc->hasExtTiles()) continue;
+
+			std::vector<LevelChunk::ExtTileEntry> entries;
+			lc->collectExtTiles(x0 - cx * 16, y0, z0 - cz * 16, x0 + xs - cx * 16, y0 + ys, z0 + zs - cz * 16, entries);
+			for (size_t i = 0; i < entries.size(); i++)
+			{
+				out.push_back(cx * 16 + entries[i].x - x0);
+				out.push_back(entries[i].y - y0);
+				out.push_back(cz * 16 + entries[i].z - z0);
+				out.push_back(entries[i].tile);
+			}
+		}
+	}
+}
+
+void Level::setExtTile(int x, int y, int z, int tile)
+{
+	if (!hasChunk(x >> 4, z >> 4)) return;
+	LevelChunk *lc = getChunk(x >> 4, z >> 4);
+	if (lc != nullptr) lc->setExtTile(x & 15, y, z & 15, tile);
 }

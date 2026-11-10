@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "net.minecraft.world.item.h"
 #include "EnchantmentCategory.h"
+#include "Mac10Item.h"
+#include "MaceItem.h"
 
 const EnchantmentCategory *EnchantmentCategory::all = new EnchantmentCategory();
 const EnchantmentCategory *EnchantmentCategory::armor = new EnchantmentCategory();
@@ -12,10 +14,18 @@ const EnchantmentCategory *EnchantmentCategory::weapon = new EnchantmentCategory
 const EnchantmentCategory *EnchantmentCategory::digger = new EnchantmentCategory();
 const EnchantmentCategory *EnchantmentCategory::bow = new EnchantmentCategory();
 const EnchantmentCategory *EnchantmentCategory::fishing_rod = new EnchantmentCategory();
+const EnchantmentCategory *EnchantmentCategory::zoro_sword = new EnchantmentCategory();
+const EnchantmentCategory *EnchantmentCategory::firearm = new EnchantmentCategory();
+const EnchantmentCategory *EnchantmentCategory::mace = new EnchantmentCategory();
 
 bool EnchantmentCategory::canEnchant(Item *item) const
 {
 	if (this == all) return true;
+	if (this == firearm) return dynamic_cast<Mac10Item *>(item) != nullptr;
+	if (this == mace) return dynamic_cast<MaceItem *>(item) != nullptr;
+	// the Mace is not a WeaponItem. Which enchantments it really takes is decided by MaceItem::isEnchantmentAllowed (checked in
+	// Enchantment::canEnchant and the table roll), so the weapon / durability categories pass here.
+	if (dynamic_cast<MaceItem *>(item) != nullptr) return this == weapon || this == digger;
 
 	if (dynamic_cast<ArmorItem *>( item ) != nullptr)
 	{
@@ -29,7 +39,10 @@ bool EnchantmentCategory::canEnchant(Item *item) const
 	}
 	else if (dynamic_cast<WeaponItem *>(item) != nullptr)
 	{
-		return this == weapon;
+		// every sword takes the normal weapon enchantments; the Zoro-only ones need a Zoro sword
+		if (this == weapon) return true;
+		if (this == zoro_sword) return static_cast<WeaponItem *>(item)->isZoroSword();
+		return false;
 	}
 	else if (dynamic_cast<DiggerItem *>(item) != nullptr)
 	{

@@ -53,7 +53,7 @@ void WitchRenderer::additionalRendering(shared_ptr<LivingEntity> entity, float a
 		witchModel->nose->translateTo(1 / 16.0f);
 		glTranslatef(-1 / 16.0f, 8.5f / 16.0f, 3.5f / 16.0f);
 
-		if (item->id < 256 && TileRenderer::canRender(Tile::tiles[item->id]->getRenderShape()))
+		if (Tile::isTileItemId(item->id) && TileRenderer::canRender(Tile::tiles[item->id]->getRenderShape()))
 		{
 			float s = 8 / 16.0f;
 			glTranslatef(-0 / 16.0f, 3 / 16.0f, -5 / 16.0f);

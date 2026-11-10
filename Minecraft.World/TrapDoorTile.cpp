@@ -172,11 +172,8 @@ void TrapDoorTile::neighborChanged(Level *level, int x, int y, int z, int type)
 	if ((data & 3) == 3) xt--;
 
 
-	if (!attachesTo(level->getTile(xt, y, zt)))
-	{
-		level->removeTile(x, y, z);
-		spawnResources(level, x, y, z, data, 0);
-	}
+	// neoLegacy - Java behaviour: a trapdoor does not need a supporting block, so it no longer breaks when the block
+	// beside it is removed (this also lets floor/ceiling trapdoors exist).
 
 	bool signal = level->hasNeighborSignal(x, y, z);
 	if( signal || ((type > 0 && Tile::tiles[type]->isSignalSource())) )
@@ -203,8 +200,14 @@ int TrapDoorTile::getDir(int dir)
 	}
 }
 
+// the face that was clicked for the trapdoor being placed right now (read back in setPlacedBy to orient floor/ceiling ones)
+static thread_local int s_trapdoorPlacedFace = 2;
+
 int TrapDoorTile::getPlacedOnFaceDataValue(Level *level, int x, int y, int z, int face, float clickX, float clickY, float clickZ, int itemValue)
 {
+	s_trapdoorPlacedFace = face;
+	if (face == Facing::UP) return 0;			// lying on a floor: bottom half
+	if (face == Facing::DOWN) return TOP_MASK;	// hanging from a ceiling: top half
 	int dir = 0;
 	if (face == 2) dir = 0;
 	if (face == 3) dir = 1;
@@ -216,14 +219,21 @@ int TrapDoorTile::getPlacedOnFaceDataValue(Level *level, int x, int y, int z, in
 
 bool TrapDoorTile::mayPlace(Level *level, int x, int y, int z, int face)
 {
-	if (face == 0) return false;
-	if (face == 1) return false;
-	if (face == 2) z++;
-	if (face == 3) z--;
-	if (face == 4) x++;
-	if (face == 5) x--;
+	// neoLegacy - Java: trapdoors can be placed on any face, including floors and ceilings, with no support requirement
+	return true;
+}
 
-	return attachesTo(level->getTile(x, y, z));
+void TrapDoorTile::setPlacedBy(Level *level, int x, int y, int z, shared_ptr<LivingEntity> by, shared_ptr<ItemInstance> itemInstance)
+{
+	if (by == nullptr) return;
+	if (s_trapdoorPlacedFace != Facing::UP && s_trapdoorPlacedFace != Facing::DOWN) return;
+
+	// floor/ceiling trapdoor: put the hinge on the side the player is looking toward, so the open flap stands up facing them
+	// look direction 0 = south, 1 = west, 2 = north, 3 = east  ->  data 0 = hinge south, 1 = hinge north, 2 = hinge east, 3 = hinge west
+	static const int hingeForLook[4] = { 0, 3, 1, 2 };
+	int look = Mth::floor(by->yRot * 4.0f / 360.0f + 0.5) & 3;
+	int data = level->getData(x, y, z);
+	level->setData(x, y, z, (data & ~3) | hingeForLook[look], Tile::UPDATE_ALL);
 }
 
 bool TrapDoorTile::isOpen(int data)

@@ -178,6 +178,9 @@ Node *PathFinder::getNode(Entity *entity, int x, int y, int z, Node *size, int j
 		}
 		// fell into lava?
 		if (cost == TYPE_LAVA) return nullptr;
+
+		// neoLegacy - Jelly Block: mobs will not path over it (Java gives the honey block a heavy path penalty)
+		if (Tile::jellyBlock != nullptr && y > 0 && entity->level->getTile(x, y - 1, z) == Tile::jellyBlock->id) return nullptr;
 	}
 
 	return best;
@@ -216,7 +219,7 @@ int PathFinder::isFree(Entity *entity, int x, int y, int z, Node *size, bool avo
 			{
 				int tileId = entity->level->getTile(xx, yy, zz);
 				if(tileId <= 0) continue;
-				if (tileId == Tile::trapdoor_Id) walkable = true;
+				if (Tile::isWoodTrapdoorId(tileId)) walkable = true;
 				else if (tileId == Tile::flowing_water_Id || tileId == Tile::water_Id)
 				{
 					if (avoidWater) return TYPE_WATER;
@@ -252,7 +255,7 @@ int PathFinder::isFree(Entity *entity, int x, int y, int z, Node *size, bool avo
 
 				int renderShape = tile->getRenderShape();
 				if (renderShape == Tile::SHAPE_FENCE || tileId == Tile::fence_gate_Id || renderShape == Tile::SHAPE_WALL) return TYPE_FENCE;
-				if (tileId == Tile::trapdoor_Id) return TYPE_TRAP;
+				if (Tile::isWoodTrapdoorId(tileId)) return TYPE_TRAP;
 				Material *m = tile->material;
 				if (m == Material::lava)
 				{

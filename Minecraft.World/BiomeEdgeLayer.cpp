@@ -54,7 +54,8 @@ intArray BiomeEdgeLayer::getArea(int xo, int yo, int w, int h)
                 }
                 else
                 {
-                    bool nearJungle = (n == Biome::jungle->id || e == Biome::jungle->id || w1 == Biome::jungle->id || s == Biome::jungle->id);
+                    bool nearJungle = (n == Biome::jungle->id || e == Biome::jungle->id || w1 == Biome::jungle->id || s == Biome::jungle->id ||
+                                       n == Biome::bambooJungle->id || e == Biome::bambooJungle->id || w1 == Biome::bambooJungle->id || s == Biome::bambooJungle->id);
                     result[ix + iy * w] = nearJungle ? Biome::jungleEdge->id : center;
                 }
             }

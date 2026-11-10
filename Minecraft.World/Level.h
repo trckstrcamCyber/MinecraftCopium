@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 using namespace std;
 #include "LevelSource.h"
 #include "LightLayer.h"
@@ -473,6 +474,15 @@ public:
 	void setGameTime(int64_t time);
 	int64_t getSeed();
 	int64_t getGameTime();
+
+	// neoLegacy - Java ServerLevel.isHandlingTick(): true while scheduled ticks and block events of the current
+	// tick are being processed. Pistons use it to decide between "retract" and "drop".
+	bool m_handlingTick = false;
+	bool isHandlingTick() const { return m_handlingTick; }
+
+	// neoLegacy - extended tile ids (see LevelChunk): region-relative (x, y, z, tile) quads for a box, and a setter for the client
+	void collectExtTiles(int x0, int y0, int z0, int xs, int ys, int zs, std::vector<int> &out);
+	void setExtTile(int x, int y, int z, int tile);
 	int64_t getDayTime();
 	void setDayTime(int64_t newTime);
 	Pos *getSharedSpawnPos();

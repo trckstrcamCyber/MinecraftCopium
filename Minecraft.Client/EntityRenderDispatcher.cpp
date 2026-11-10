@@ -84,6 +84,21 @@
 #include "RabbitRenderer.h"
 #include "PolarBearRenderer.h"
 #include "PolarBearModel.h"
+#include "GoatRenderer.h"
+#include "JellySlimeRenderer.h"
+#include "GoatModel.h"
+#include "CamelRenderer.h"
+#include "CamelModel.h"
+#include "HuskRenderer.h"
+#include "FrostbiteRenderer.h"
+#include "IllagerRenderer.h"
+#include "VexRenderer.h"
+#include "EvokerFangsRenderer.h"
+#include "IceologerRenderer.h"
+#include "IceCubeRenderer.h"
+#include "IllusionerRenderer.h"
+#include "DrownedRenderer.h"
+#include "WanderingTraderRenderer.h"
 
 #include "ArmorStandRenderer.h"
 #include "EndermiteRenderer.h"
@@ -125,6 +140,7 @@ EntityRenderDispatcher::EntityRenderDispatcher()
 	renderers[eTYPE_PIGZOMBIE] = new ZombieRenderer();
 	renderers[eTYPE_SLIME] = new SlimeRenderer(new SlimeModel(16), new SlimeModel(0), 0.25f);
 	renderers[eTYPE_LAVASLIME] = new LavaSlimeRenderer();
+	renderers[eTYPE_JELLYSLIME] = new JellySlimeRenderer(new SlimeModel(16), new SlimeModel(0), 0.25f);	// neoLegacy
 	renderers[eTYPE_PLAYER] = new PlayerRenderer();
 	renderers[eTYPE_GIANT] = new GiantMobRenderer(new ZombieModel(), 0.5f, 6);
 	renderers[eTYPE_GHAST] = new GhastRenderer();
@@ -145,6 +161,20 @@ EntityRenderDispatcher::EntityRenderDispatcher()
 
 	renderers[eTYPE_RABBIT] = new RabbitRenderer();
 	renderers[eTYPE_POLARBEAR] = new PolarBearRenderer(new PolarBearModel(), 0.7f);
+	renderers[eTYPE_GOAT] = new GoatRenderer(new GoatModel(), 0.5f);
+	renderers[eTYPE_CAMEL] = new CamelRenderer(new CamelModel(), 0.9f);
+	renderers[eTYPE_HUSK] = new HuskRenderer();
+	renderers[eTYPE_FROSTBITE] = new FrostbiteRenderer();
+	renderers[eTYPE_VINDICATOR] = new IllagerRenderer();	// neoLegacy
+	renderers[eTYPE_EVOKER] = new IllagerRenderer();
+	renderers[eTYPE_VEX] = new VexRenderer();
+	renderers[eTYPE_EVOKER_FANGS] = new EvokerFangsRenderer();
+	renderers[eTYPE_ICEOLOGER] = new IceologerRenderer();
+	renderers[eTYPE_ICE_CUBE] = new IceCubeRenderer();
+	renderers[eTYPE_ILLUSIONER] = new IllusionerRenderer();
+	renderers[eTYPE_PILLAGER] = new IllagerRenderer();	// neoLegacy
+	renderers[eTYPE_DROWNED] = new DrownedRenderer();
+	renderers[eTYPE_WANDERING_TRADER] = new WanderingTraderRenderer();
 	
 
 	renderers[eTYPE_ENTITY] = new DefaultRenderer();
@@ -171,6 +201,7 @@ EntityRenderDispatcher::EntityRenderDispatcher()
 	renderers[eTYPE_MINECART_TNT] = new TntMinecartRenderer();
 	renderers[eTYPE_MINECART_SPAWNER] = new MinecartSpawnerRenderer();
 	renderers[eTYPE_MINECART_RIDEABLE] = new MinecartRenderer();
+	renderers[eTYPE_MINECART_DIAMOND] = new MinecartRenderer();
 	
 	renderers[eTYPE_MINECART_FURNACE] = new MinecartRenderer();
 	renderers[eTYPE_MINECART_CHEST] = new MinecartRenderer();

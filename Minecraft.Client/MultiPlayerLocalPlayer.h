@@ -30,6 +30,7 @@ private:
     bool lastSneaked;
 	bool lastIdle;
 	bool lastSprinting;
+	bool lastElytraFlying;	// neoLegacy - the server only learns about gliding through a command packet
     int positionReminder;
 public:
 	void sendPosition();

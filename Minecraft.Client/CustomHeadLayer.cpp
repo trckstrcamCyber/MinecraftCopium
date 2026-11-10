@@ -87,7 +87,7 @@ void CustomHeadLayer::render(shared_ptr<LivingEntity> mob,
             );
         }
     }
-    else if (item->id < 256)
+    else if (Tile::isTileItemId(item->id))
     {
         glTranslatef(0.0f, -0.25f, 0.0f);
         glRotatef(180.0f, 0.0f, 1.0f, 0.0f);

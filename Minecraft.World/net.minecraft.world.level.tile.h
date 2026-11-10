@@ -3,6 +3,7 @@
 #include "Tile.h"
 #include "AirTile.h"
 #include "AnvilTile.h"
+#include "GrindstoneTile.h"
 #include "BarrierTile.h"
 #include "BaseEntityTile.h"
 #include "BasePressurePlateTile.h"
@@ -150,5 +151,9 @@
 #include "MagmaTile.h"
 #include "BoneBlockTile.h"
 #include "BannerTile.h"
+
+#include "CalciteTile.h"
+#include "ConcreteTile.h"
+#include "ConcretePowderTile.h"
 
 

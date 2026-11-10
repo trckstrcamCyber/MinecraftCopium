@@ -15,7 +15,8 @@ static std::map<wstring, int> doorItemMap = {
 	{ L"doorBirch",  Item::birch_door_Id  },
 	{ L"doorJungle", Item::jungle_door_Id },
 	{ L"doorAcacia", Item::acacia_door_Id },
-	{ L"doorDark",   Item::dark_oak_door_Id   }
+	{ L"doorDark",   Item::dark_oak_door_Id   },
+	{ L"doorBamboo", Item::bamboo_door_Id }
 };
 
 DoorTile::DoorTile(int id, Material *material, const wstring& doorType) : Tile(id, material,isSolidRender())

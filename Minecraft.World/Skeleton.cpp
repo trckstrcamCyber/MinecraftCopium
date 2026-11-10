@@ -232,7 +232,8 @@ MobGroupData *Skeleton::finalizeMobSpawn(MobGroupData *groupData, int extraData 
 {
 	groupData = Monster::finalizeMobSpawn(groupData);
 
-	if ( dynamic_cast<HellDimension *>(level->dimension) != nullptr && getRandom()->nextInt(5) > 0)
+	// neoLegacy - the Wither Skeleton spawn egg passes extraData = TYPE_WITHER + 1 to force a wither skeleton anywhere
+	if (extraData == TYPE_WITHER + 1 || (dynamic_cast<HellDimension *>(level->dimension) != nullptr && getRandom()->nextInt(5) > 0))
 	{
 		goalSelector.addGoal(4, meleeGoal, false);
 

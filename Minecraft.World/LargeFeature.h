@@ -7,6 +7,16 @@ class LargeFeature
 {
 public:
 	static const wstring STRONGHOLD;
+	static const wstring VILLAGE;	// neoLegacy - for /locate
+	static const wstring MINESHAFT;	// neoLegacy - for /locate
+	static const wstring MONUMENT;		// neoLegacy - for /locate
+	static const wstring TEMPLE;		// neoLegacy - for /locate
+
+	// neoLegacy - /locate: how many chunks StructureFeature::searchForGeneratedFeature
+	// spirals outward before giving up. 64 chunks (1024 blocks) comfortably covers
+	// Village's spacing (16-32 chunks) even from a bad starting position relative to
+	// its placement grid.
+	static const int LOCATE_SEARCH_RADIUS_CHUNKS = 64;
 protected:
     int radius;
     Random *random;

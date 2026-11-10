@@ -12,14 +12,16 @@ SignUpdatePacket::SignUpdatePacket()
 	shouldDelay = true;
 	m_bVerified=false;
 	m_bCensored=false;
+	woodType = 0;
 	x = 0;
 	y = 0;
 	z = 0;
 
 }
 
-SignUpdatePacket::SignUpdatePacket(int x, int y, int z, bool bVerified, bool bCensored, wstring lines[]) 
+SignUpdatePacket::SignUpdatePacket(int x, int y, int z, bool bVerified, bool bCensored, wstring lines[], int woodType) 
 {
+	this->woodType = woodType;
 	shouldDelay = true;
 	this->m_bVerified=bVerified;
 	this->m_bCensored=bCensored;
@@ -36,6 +38,7 @@ void SignUpdatePacket::read(DataInputStream *dis) //throws IOException
 	z = dis->readInt();
 	this->m_bVerified=dis->readBoolean();
 	this->m_bCensored=dis->readBoolean();;
+	woodType = dis->readByte();
 	for (int i = 0; i < MAX_SIGN_LINES; i++)
 		lines[i] = readUtf(dis, SignTileEntity::MAX_LINE_LENGTH);
 }
@@ -47,6 +50,7 @@ void SignUpdatePacket::write(DataOutputStream *dos) //throws IOException
 	dos->writeInt(z);
 	dos->writeBoolean(m_bVerified);
 	dos->writeBoolean(m_bCensored);
+	dos->writeByte(static_cast<byte>(woodType));
 	for (int i = 0; i < MAX_SIGN_LINES; i++)
 		writeUtf(lines[i], dos);
 }
@@ -62,6 +66,7 @@ int SignUpdatePacket::getEstimatedSize()
 	l+=sizeof(int);
 	l+=sizeof(short);
 	l+=sizeof(int);
+	l+=sizeof(byte);
 	l+=sizeof(byte);
 	l+=sizeof(byte);
 

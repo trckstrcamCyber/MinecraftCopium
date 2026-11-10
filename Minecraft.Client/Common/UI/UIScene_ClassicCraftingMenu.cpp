@@ -2,6 +2,7 @@
 #include "UI.h"
 #include "..\..\..\Minecraft.World\net.minecraft.world.level.tile.entity.h"
 #include "..\..\..\Minecraft.World\net.minecraft.world.inventory.h"
+#include "..\..\..\Minecraft.World\ComplexCraftingMenu.h"	// neoLegacy - Complex Table
 #include "..\..\Minecraft.h"
 #include "..\..\LocalPlayer.h"
 #include "UIScene_ClassicCraftingMenu.h"
@@ -27,7 +28,10 @@ UIScene_ClassicCraftingMenu::UIScene_ClassicCraftingMenu(int iPad, void* _initDa
 //	m_labelTitle.init(app.GetString(IDS_HOW_TO_PLAY_MENU_FIREWORKS));
 //	FireworksMenu *m_menu = new FireworksMenu(initData->player->inventory, initData->player->level, initData->x, initData->y, initData->z);
 
-	CraftingMenu* m_menu = new CraftingMenu(initData->player->inventory, initData->player->level, initData->x, initData->y, initData->z);
+	// neoLegacy - a Complex Table needs its own menu so the result slot uses the Complex Table recipes
+	CraftingMenu* m_menu = initData->bComplexTable
+		? new ComplexCraftingMenu(initData->player->inventory, initData->player->level, initData->x, initData->y, initData->z)
+		: new CraftingMenu(initData->player->inventory, initData->player->level, initData->x, initData->y, initData->z);
 
 	Initialize(initData->iPad, m_menu, true, CraftingMenu::INV_SLOT_START, eSectionClassicCraftingHotbar, eSectionClassicCraftingMax);
 

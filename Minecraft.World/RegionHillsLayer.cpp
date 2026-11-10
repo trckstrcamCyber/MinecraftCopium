@@ -116,6 +116,10 @@ intArray RegionHillsLayer::getArea(int xo, int yo, int w, int h)
 				{
 					i1 = Biome::jungleHills->id;
 				}
+				else if (k == Biome::bambooJungle->id)
+				{
+					i1 = Biome::bambooJungleHills->id;
+				}
 				else if (k == Biome::ocean->id)
 				{
 					// java: ocean → deepOcean

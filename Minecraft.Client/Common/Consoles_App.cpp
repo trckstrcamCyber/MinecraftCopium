@@ -547,6 +547,7 @@ bool CMinecraftApp::LoadCrafting2x2Menu(int iPad,shared_ptr<LocalPlayer> player)
 
 	CraftingPanelScreenInput* initData = new CraftingPanelScreenInput();
 	initData->player = player;
+	initData->bComplexTable = false;
 	initData->iContainerType=RECIPE_TYPE_2x2;
 	initData->iPad = iPad;
 	initData->x = 0;
@@ -567,12 +568,13 @@ bool CMinecraftApp::LoadCrafting2x2Menu(int iPad,shared_ptr<LocalPlayer> player)
 	return success;
 }
 
-bool CMinecraftApp::LoadCrafting3x3Menu(int iPad,shared_ptr<LocalPlayer> player, int x, int y, int z)
+bool CMinecraftApp::LoadCrafting3x3Menu(int iPad,shared_ptr<LocalPlayer> player, int x, int y, int z, bool bComplexTable)
 {
 	bool success = true;
 
 	CraftingPanelScreenInput* initData = new CraftingPanelScreenInput();
 	initData->player = player;
+	initData->bComplexTable = bComplexTable;	// neoLegacy - Complex Table
 	initData->iContainerType=RECIPE_TYPE_3x3;
 	initData->iPad = iPad;
 	initData->x = x;
@@ -785,6 +787,26 @@ bool CMinecraftApp::LoadRepairingMenu(int iPad,shared_ptr<Inventory> inventory, 
 	else initData->bSplitscreen=false;
 
 	success = ui.NavigateToScene(iPad,eUIScene_AnvilMenu, initData);
+
+	return success;
+}
+
+bool CMinecraftApp::LoadGrindstoneMenu(int iPad,shared_ptr<Inventory> inventory, Level *level, int x, int y, int z)
+{
+	bool success = true;
+
+	GrindstoneScreenInput *initData = new GrindstoneScreenInput();
+	initData->inventory = inventory;
+	initData->level = level;
+	initData->x = x;
+	initData->y = y;
+	initData->z = z;
+	initData->iPad = iPad;
+	if(app.GetLocalPlayerCount()>1) initData->bSplitscreen=true;
+	else initData->bSplitscreen=false;
+
+	success = ui.NavigateToScene(iPad,eUIScene_GrindstoneMenu, initData);
+	app.DebugPrintf("[GRINDSTONE DIAG] 5/6 Consoles_App::LoadGrindstoneMenu -- NavigateToScene returned %d\n", (int)success);
 
 	return success;
 }
@@ -9100,6 +9122,32 @@ wstring CMinecraftApp::getEntityName(eINSTANCEOF type)
 		return app.GetString(IDS_BAT);
 	case eTYPE_RABBIT:
 		return app.GetString(IDS_RABBIT);
+	case eTYPE_GOAT:
+		return app.GetString(IDS_GOAT);
+	case eTYPE_JELLYSLIME:
+		return app.GetString(IDS_JELLY_SLIME);
+	case eTYPE_CAMEL:
+		return app.GetString(IDS_CAMEL);
+	case eTYPE_DROWNED:
+		return app.GetString(IDS_DROWNED);
+	case eTYPE_HUSK:
+		return app.GetString(IDS_HUSK);
+	case eTYPE_FROSTBITE:
+		return app.GetString(IDS_FROSTBITE);
+	case eTYPE_VINDICATOR:
+		return app.GetString(IDS_VINDICATOR);
+	case eTYPE_EVOKER:
+		return app.GetString(IDS_EVOKER);
+	case eTYPE_VEX:
+		return app.GetString(IDS_VEX);
+	case eTYPE_ICEOLOGER:
+		return app.GetString(IDS_ICEOLOGER);
+	case eTYPE_ILLUSIONER:
+		return app.GetString(IDS_ILLUSIONER);
+	case eTYPE_PILLAGER:
+		return app.GetString(IDS_PILLAGER);
+	case eTYPE_WANDERING_TRADER:
+		return app.GetString(IDS_WANDERING_TRADER);
 	
 	};
 

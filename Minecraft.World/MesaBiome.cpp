@@ -26,6 +26,9 @@ MesaBiome::MesaBiome(int id, bool mesaPlateau, bool hasTrees) : Biome(id)
     this->setNoRain();
     this->setTemperatureAndDownfall(2.0f, 0.0f);
 
+	// neoLegacy - rare Jelly Slimes (by day, on the surface: JellySlime::canSpawn)
+	enemies.push_back(new MobSpawnerData(eTYPE_JELLYSLIME, 3, 1, 1));
+
     this->topMaterial     = static_cast<byte>(Tile::sand_Id);
     this->topMaterialData = static_cast<byte>(SandTile::RED_SAND);
     this->material        = static_cast<byte>(Tile::stained_hardened_clay_Id);

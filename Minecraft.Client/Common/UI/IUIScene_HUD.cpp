@@ -176,7 +176,12 @@ void IUIScene_HUD::updateFrameTick()
 	}
 	SetOpacity(fVal);
 
-	bool bDisplayGui=app.GetGameStarted() && !ui.GetMenuDisplayed(iPad) && !(app.GetXuiAction(iPad)==eAppAction_AutosaveSaveGameCapturedThumbnail) && app.GetGameSettings(iPad,eGameSetting_DisplayHUD)!=0;
+    // Copium Arcade draws a full-screen cabinet view. Hide the normal XUI HUD (including
+    // the hotbar) only for the player currently using a cabinet; other split-screen players
+    // continue to see their own normal HUD.
+    bool bArcadeGameActive = pMinecraft->localplayers[iPad] != nullptr &&
+        pMinecraft->localplayers[iPad]->getArcadeGameSession().isActive();
+	bool bDisplayGui=!bArcadeGameActive && app.GetGameStarted() && !ui.GetMenuDisplayed(iPad) && !(app.GetXuiAction(iPad)==eAppAction_AutosaveSaveGameCapturedThumbnail) && app.GetGameSettings(iPad,eGameSetting_DisplayHUD)!=0;
 	if(bDisplayGui && pMinecraft->localplayers[iPad] != nullptr)
 	{
 		SetVisible(true);			

@@ -84,6 +84,12 @@ enum EStructurePiece
 	eStructurePiece_DoubleFarmland,
 	eStructurePiece_LightPost,
 	eStructurePiece_VillageStartPiece,
+
+	// New village pieces - appended at the end so existing save data (which
+	// encodes this enum positionally through the id strings below, but other
+	// systems may rely on ordinal order too) is never renumbered.
+	eStructurePiece_BlacksmithHouse,
+	eStructurePiece_ModernHouse,
 };
 
 class StructureFeatureIO

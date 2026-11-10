@@ -94,3 +94,8 @@ bool MinecartItem::useOn(shared_ptr<ItemInstance> instance, shared_ptr<Player> p
 	}
 	return false;
 }
+int MinecartItem::getColor(shared_ptr<ItemInstance> item, int spriteLayer)
+{
+	if (type == Minecart::TYPE_DIAMOND) return 0x7FEFE6;
+	return Item::getColor(item, spriteLayer);
+}

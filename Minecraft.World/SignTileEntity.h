@@ -19,6 +19,8 @@ public:
 	wstring GetMessage(int i)								{ return m_wsmessages[i];}
 	wstring *GetMessages()									{ return m_wsmessages;}
 	void SetMessage(int iIndex,wstring &wsText);
+	int getWoodType() const									{return m_woodType;}
+	void setWoodType(int woodType)							{m_woodType = (woodType < 0 || woodType > 6) ? 0 : woodType;}
 	int GetSelectedLine()									{return m_iSelectedLine;}
 	void SetSelectedLine(int iLine)							{m_iSelectedLine=iLine;}
 	bool IsVerified()										{return m_bVerified;}
@@ -33,6 +35,7 @@ private:
 	bool m_bVerified;
 	bool m_bCensored;
 	int m_iSelectedLine;
+	int m_woodType;	// neoLegacy - 0 oak, 1 spruce, 2 birch, 3 jungle, 4 acacia, 5 dark oak, 6 bamboo (every wood shares one standing and one wall sign tile)
 
 	wstring m_wsmessages[MAX_SIGN_LINES];
 

@@ -22,3 +22,5 @@
 #include "EnderChestTileEntity.h"
 #include "ItemFrame.h"
 #include "BannerTileEntity.h"
+#include "ConcreteColorTileEntity.h"
+#include "BedTileEntity.h"

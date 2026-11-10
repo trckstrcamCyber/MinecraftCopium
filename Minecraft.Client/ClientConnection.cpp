@@ -1325,7 +1325,7 @@ void ClientConnection::handleChunkTilesUpdate(shared_ptr<ChunkTilesUpdatePacket>
 		for (int i = 0; i < packet->count; i++)
 		{
 			int pos = packet->positions[i];
-			int tile = packet->blocks[i] & 0xff;
+			int tile = packet->blocks[i] & 0xffff;	// neoLegacy - 16-bit block types
 			int data = packet->data[i];
 
 
@@ -1407,6 +1407,13 @@ void ClientConnection::handleBlockRegionUpdate(shared_ptr<BlockRegionUpdatePacke
 				PIXEndNamedEvent();
 			}
 		}
+		// neoLegacy - tiles with ids >= 256 arrive as a trailer (the block data holds a placeholder for them); record them first
+		for (size_t ei = 0; ei + 3 < packet->extTiles.size(); ei += 4)
+		{
+			dimensionLevel->setExtTile(packet->x + packet->extTiles[ei], packet->y + packet->extTiles[ei + 1],
+				packet->z + packet->extTiles[ei + 2], packet->extTiles[ei + 3]);
+		}
+
 		PIXBeginNamedEvent(0,"Clear rest region");
 		dimensionLevel->clearResetRegion(packet->x, packet->y, packet->z, packet->x + packet->xs - 1, y1 - 1, packet->z + packet->zs - 1);
 		PIXEndNamedEvent();
@@ -1876,6 +1883,10 @@ void ClientConnection::handleChat(shared_ptr<ChatPacket> packet)
 		break;
 	case ChatPacket::e_ChatDeathWither:
 		message=app.GetString(IDS_DEATH_WITHER);
+		replacePlayer = true;
+		break;
+	case ChatPacket::e_ChatDeathFreeze:
+		message=app.GetString(IDS_DEATH_FREEZE);
 		replacePlayer = true;
 		break;
 	case ChatPacket::e_ChatDeathPlayerItem:
@@ -3233,6 +3244,18 @@ void ClientConnection::handleContainerOpen(shared_ptr<ContainerOpenPacket> packe
 			}
 		}
 		break;
+	case ContainerOpenPacket::COMPLEX_WORKBENCH:	// neoLegacy - Complex Table
+		{
+			if( player->startComplexCrafting(Mth::floor(player->x), Mth::floor(player->y), Mth::floor(player->z)) )
+			{
+				player->containerMenu->containerId = packet->containerId;
+			}
+			else
+			{
+				failed = true;
+			}
+		}
+		break;
 	case ContainerOpenPacket::ENCHANTMENT:
 		{
 			if( player->startEnchanting(Mth::floor(player->x), Mth::floor(player->y), Mth::floor(player->z), packet->customName ? packet->title : L"") )
@@ -3277,6 +3300,19 @@ void ClientConnection::handleContainerOpen(shared_ptr<ContainerOpenPacket> packe
 	case ContainerOpenPacket::REPAIR_TABLE:
 		{
 			if(player->startRepairing(Mth::floor(player->x), Mth::floor(player->y), Mth::floor(player->z)))
+			{
+				player->containerMenu->containerId = packet->containerId;
+			}
+			else
+			{
+				failed = true;
+			}
+		}
+		break;
+	case ContainerOpenPacket::GRINDSTONE:
+		{
+			app.DebugPrintf("[GRINDSTONE DIAG] 3/6 ClientConnection::handleContainerOpen -- GRINDSTONE case reached\n");
+			if(player->startGrindstoneRepairing(Mth::floor(player->x), Mth::floor(player->y), Mth::floor(player->z)))
 			{
 				player->containerMenu->containerId = packet->containerId;
 			}
@@ -3444,6 +3480,7 @@ void ClientConnection::handleSignUpdate(shared_ptr<SignUpdatePacket> packet)
 			app.DebugPrintf("[SIGN]   verified=%d censored=%d\n", packet->m_bVerified, packet->m_bCensored);
 			ste->SetVerified(packet->m_bVerified);
 			ste->SetCensored(packet->m_bCensored);
+			ste->setWoodType(packet->woodType);
 
 		   ste->setChanged();
 		}
@@ -3485,6 +3522,19 @@ void ClientConnection::handleTileEntityData(shared_ptr<TileEntityDataPacket> pac
 			else if (packet->type == TileEntityDataPacket::TYPE_BANNER && dynamic_pointer_cast<BannerTileEntity>(te) != nullptr)
 			{
 				dynamic_pointer_cast<BannerTileEntity>(te)->load(packet->tag);
+			}
+			else if (packet->type == TileEntityDataPacket::TYPE_CONCRETE_COLOR && dynamic_pointer_cast<ConcreteColorTileEntity>(te) != nullptr)
+			{
+				dynamic_pointer_cast<ConcreteColorTileEntity>(te)->load(packet->tag);
+				// Unlike banners (drawn by a tile entity renderer every frame), the concrete
+				// stair/slab color is baked into the chunk mesh, so rebuild it now that the
+				// real color has arrived.
+				minecraft->level->setTilesDirty(packet->x, packet->y, packet->z, packet->x, packet->y, packet->z);
+			}
+			else if (packet->type == TileEntityDataPacket::TYPE_BED && dynamic_pointer_cast<BedTileEntity>(te) != nullptr)
+			{
+				// neoLegacy - Fancy Beds: BedRenderer reads the variant from the tile entity every frame, so no chunk rebuild is needed
+				dynamic_pointer_cast<BedTileEntity>(te)->load(packet->tag);
 			}
 		}
 	}
@@ -4063,6 +4113,16 @@ void ClientConnection::handleCustomPayload(shared_ptr<CustomPayloadPacket> custo
 					input.readInt();
 				}
 			}
+		}
+	}
+	else if (CustomPayloadPacket::ARCADE_SYNC_PACKET.compare(customPayloadPacket->identifier) == 0) {
+		// neoLegacy - the server's saved Arcade Machine progress for this player
+		if (customPayloadPacket->data.data != nullptr && customPayloadPacket->length >= 64 && minecraft->localplayers[m_userIndex] != nullptr) {
+			ByteArrayInputStream bais(customPayloadPacket->data);
+			DataInputStream input(&bais);
+			ArcadeSaveData arcade;
+			arcade.read(&input);
+			minecraft->localplayers[m_userIndex]->applyArcadeSave(arcade);
 		}
 	}
 	else if (CustomPayloadPacket::UPDATE_RECIPE_REGISTRY.compare(customPayloadPacket->identifier) == 0) {

@@ -3,6 +3,7 @@
 #include "net.minecraft.world.phys.h"
 #include "net.minecraft.h"
 #include "net.minecraft.world.h"
+#include "net.minecraft.world.item.enchantment.h"
 #include "FarmTile.h"
 
 
@@ -104,6 +105,13 @@ void FarmTile::tick(Level *level, int x, int y, int z, Random *random)
 
 void FarmTile::fallOn(Level *level, int x, int y, int z, shared_ptr<Entity> entity, float fallDistance)
 {
+	// CAM - Soft Step boots prevent farmland from being trampled.
+	if (Enchantment::softStep != nullptr &&
+		EnchantmentHelper::getEnchantmentLevel(Enchantment::softStep->id, entity->getEquipmentSlots()) > 0)
+	{
+		return;
+	}
+
 	// 4J Stu - Fix for #86148 - Code: Gameplay: Jumping on Farmland does not always result in turning to Dirt Block
 	// We should not be setting tiles on the client based on random values!
 	if (!level->isClientSide && level->random->nextFloat() < (fallDistance - .5f))

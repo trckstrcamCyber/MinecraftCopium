@@ -15,6 +15,9 @@ public:
 	static const EnchantmentCategory *digger;
 	static const EnchantmentCategory *bow;
 	static const EnchantmentCategory *fishing_rod;
+	static const EnchantmentCategory *zoro_sword;	// neoLegacy - only the four Zoro swords (table, anvil and books all go through this)
+	static const EnchantmentCategory *firearm; // neoLegacy - MAC-10 only
+	static const EnchantmentCategory *mace;		// neoLegacy - Mace only (Density, Breach, Wind Burst)
 
 	bool canEnchant(Item *item) const;
 };

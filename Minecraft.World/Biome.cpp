@@ -63,6 +63,8 @@ Biome *Biome::taigaM = nullptr;//133
 Biome *Biome::swamplandM = nullptr;//134
 Biome *Biome::iceSpikes = nullptr;//140
 Biome *Biome::jungleM = nullptr;//149
+Biome *Biome::bambooJungle = nullptr;//168
+Biome *Biome::bambooJungleHills = nullptr;//169
 Biome *Biome::jungleEdgeM = nullptr;//151
 Biome *Biome::birchForestM = nullptr;//155
 Biome *Biome::birchForestHillsM = nullptr;//156
@@ -151,6 +153,9 @@ void Biome::staticCtor()
 
     Biome::mesaBryce = (new MesaBiome(165, true, false))->setColor(0xd94515)->setName(L"Mesa (Bryce)")->setLeafFoliageWaterSkyColor(eMinecraftColour_Grass_Mesa, eMinecraftColour_Foliage_Mesa, eMinecraftColour_Water_Mesa, eMinecraftColour_Sky_Desert);
     Biome::mesaPlateauFM = (new MesaBiome(166, true, true))->setColor(0xb09765)->setName(L"Mesa Plateau F M")->setLeafFoliageWaterSkyColor(eMinecraftColour_Grass_Mesa, eMinecraftColour_Foliage_Mesa, eMinecraftColour_Water_Mesa, eMinecraftColour_Sky_Desert);
+    // neoLegacy - Bamboo Jungle (Java 1.14): a rare variant of Jungle with dense bamboo and podzol
+    Biome::bambooJungle = (new JungleBiome(168, false, true))->setColor(0x768e14)->setName(L"Bamboo Jungle")->setLeafColor(0x537b09)->setTemperatureAndDownfall(0.95f, 0.9f)->setDepthAndScale(0.1f, 0.2f)->setLeafFoliageWaterSkyColor(eMinecraftColour_Grass_Jungle, eMinecraftColour_Foliage_Jungle, eMinecraftColour_Water_Jungle, eMinecraftColour_Sky_Jungle);
+    Biome::bambooJungleHills = (new JungleBiome(169, false, true))->setColor(0x3b470a)->setName(L"Bamboo Jungle Hills")->setLeafColor(0x537b09)->setTemperatureAndDownfall(0.95f, 0.9f)->setDepthAndScale(0.45f, 0.3f)->setLeafFoliageWaterSkyColor(eMinecraftColour_Grass_JungleHills, eMinecraftColour_Foliage_JungleHills, eMinecraftColour_Water_JungleHills, eMinecraftColour_Sky_JungleHills);
     Biome::mesaPlateauM = (new MesaBiome(167, true, false))->setColor(0xca5936)->setName(L"Mesa Plateau M")->setLeafFoliageWaterSkyColor(eMinecraftColour_Grass_Mesa, eMinecraftColour_Foliage_Mesa, eMinecraftColour_Water_Mesa, eMinecraftColour_Sky_Desert);
     
 

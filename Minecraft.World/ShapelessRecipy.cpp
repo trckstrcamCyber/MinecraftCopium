@@ -119,7 +119,12 @@ void ShapelessRecipy::reqs(INGREDIENTS_REQUIRED *pIngReq)
 
 	// shapeless doesn't have the 3x3 shape, but we'll just use this to store the ingredients anyway
 	TempIngReq.iIngC=0;
-	TempIngReq.iType = RECIPE_TYPE_2x2; // all the dyes can be made in a 2x2
+	// neoLegacy - every shapeless recipe used to be forced to 2x2 ("all the dyes can be made in a 2x2").
+	// A shapeless recipe with more than 4 ingredients (the Complex Table's 9-ingredient concrete powder
+	// recipes) cannot fit a 2x2: it must be a 3x3 recipe, laid out in slots 0-8 in order. Recipes with
+	// 4 or fewer ingredients behave exactly as before.
+	const bool bNeeds3x3 = ingredients->size() > 4;
+	TempIngReq.iType = bNeeds3x3 ? RECIPE_TYPE_3x3 : RECIPE_TYPE_2x2;
 	TempIngReq.uiGridA = new unsigned int [9];
 	TempIngReq.iIngIDA= new int [3*3];
 	TempIngReq.iIngValA = new int [3*3];
@@ -137,7 +142,7 @@ void ShapelessRecipy::reqs(INGREDIENTS_REQUIRED *pIngReq)
 			int iAuxVal = expected->getAuxValue();
 			TempIngReq.uiGridA[iCount++]=expected->id | iAuxVal<<24;
 			// 4J-PB - put the ingredients in boxes 1,2,4,5 so we can see them in a 2x2 crafting screen
-			if(iCount==2) iCount=3;
+			if(!bNeeds3x3 && iCount==2) iCount=3;
 			bFound=false;
 			for(j=0;j<TempIngReq.iIngC;j++)
 			{
@@ -243,4 +248,13 @@ ShapelessRecipy* ShapelessRecipy::readFromStream(DataInputStream* dis) {
 	}
 
 	return new ShapelessRecipy(resultItem, ingredients, (Recipy::_eGroupType)groupType);
+}
+
+bool ShapelessRecipy::hasIngredient(int itemId) const
+{
+	for (size_t i = 0; i < ingredients->size(); i++)
+	{
+		if ((*ingredients)[i] != nullptr && (*ingredients)[i]->id == itemId) return true;
+	}
+	return false;
 }

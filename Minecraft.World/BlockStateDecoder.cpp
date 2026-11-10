@@ -639,6 +639,7 @@ static bool registerDoorDecoder()
 	registerDecoder(Tile::birch_door_Id, fn);
 	registerDecoder(Tile::jungle_door_Id, fn);
 	registerDecoder(Tile::acacia_door_Id, fn);
+	registerDecoder(Tile::bamboo_door_Id, fn);
 	registerDecoder(Tile::dark_oak_door_Id, fn);
 	return true;
 }
@@ -676,6 +677,8 @@ static bool registerStairDecoder()
 	registerDecoder(Tile::jungle_stairs_Id, fn);
 	registerDecoder(Tile::quartz_stairs_Id, fn);
 	registerDecoder(Tile::acacia_stairs_Id, fn);
+	registerDecoder(Tile::bamboo_stairs_Id, fn);
+	registerDecoder(Tile::bamboo_mosaic_stairs_Id, fn);
 	registerDecoder(Tile::dark_oak_stairs_Id, fn);
 	registerDecoder(Tile::red_sandstone_stairs_Id, fn);
 	return true;
@@ -729,6 +732,7 @@ static bool registerPlantDecoders()
 	registerDecoder(Tile::jungle_fence_Id, [](int composite)->std::wstring { return fencePropsToString(composite); });
 	registerDecoder(Tile::dark_oak_fence_Id, [](int composite)->std::wstring { return fencePropsToString(composite); });
 	registerDecoder(Tile::acacia_fence_Id, [](int composite)->std::wstring { return fencePropsToString(composite); });
+	registerDecoder(Tile::bamboo_fence_Id, [](int composite)->std::wstring { return fencePropsToString(composite); });
 	registerDecoder(Tile::double_stone_slab_Id, [](int composite)->std::wstring { return slabPropsToString(Tile::double_stone_slab_Id, composite); });
 	registerDecoder(Tile::stone_slab_Id, [](int composite)->std::wstring { return slabPropsToString(Tile::stone_slab_Id, composite); });
 	registerDecoder(Tile::double_wooden_slab_Id, [](int composite)->std::wstring { return slabPropsToString(Tile::double_wooden_slab_Id, composite); });
@@ -737,6 +741,12 @@ static bool registerPlantDecoders()
 	registerDecoder(Tile::stone_slab2_Id, [](int composite)->std::wstring { return slabPropsToString(Tile::stone_slab2_Id, composite); });
 	registerDecoder(Tile::trapdoor_Id, [](int composite)->std::wstring { return trapDoorPropsToString(composite); });
 	registerDecoder(Tile::iron_trapdoor_Id, [](int composite)->std::wstring { return trapDoorPropsToString(composite); });
+	registerDecoder(Tile::spruce_trapdoor_Id, [](int composite)->std::wstring { return trapDoorPropsToString(composite); });
+	registerDecoder(Tile::birch_trapdoor_Id, [](int composite)->std::wstring { return trapDoorPropsToString(composite); });
+	registerDecoder(Tile::jungle_trapdoor_Id, [](int composite)->std::wstring { return trapDoorPropsToString(composite); });
+	registerDecoder(Tile::acacia_trapdoor_Id, [](int composite)->std::wstring { return trapDoorPropsToString(composite); });
+	registerDecoder(Tile::bamboo_trapdoor_Id, [](int composite)->std::wstring { return trapDoorPropsToString(composite); });
+	registerDecoder(Tile::dark_oak_trapdoor_Id, [](int composite)->std::wstring { return trapDoorPropsToString(composite); });
 	registerDecoder(Tile::tripwire_Id, [](int composite)->std::wstring { return tripWirePropsToString(composite); });
 	registerDecoder(Tile::tripwire_hook_Id, [](int composite)->std::wstring { return tripWireSourcePropsToString(composite); });
 	registerDecoder(Tile::hay_block_Id, [](int composite)->std::wstring { return hayBlockPropsToString(composite); });
@@ -762,6 +772,7 @@ static bool registerPlantDecoders()
 	registerDecoder(Tile::jungle_fence_gate_Id, [](int composite)->std::wstring { return fenceGatePropsToString(composite); });
 	registerDecoder(Tile::dark_oak_fence_gate_Id, [](int composite)->std::wstring { return fenceGatePropsToString(composite); });
 	registerDecoder(Tile::acacia_fence_gate_Id, [](int composite)->std::wstring { return fenceGatePropsToString(composite); });
+	registerDecoder(Tile::bamboo_fence_gate_Id, [](int composite)->std::wstring { return fenceGatePropsToString(composite); });
 	registerDecoder(Tile::daylight_detector_Id, [](int composite)->std::wstring { return daylightDetectorPropsToString(composite, false); });
 	registerDecoder(Tile::daylight_detector_inverted_Id, [](int composite)->std::wstring { return daylightDetectorPropsToString(composite, true); });
 	registerDecoder(Tile::snow_Id, [](int composite)->std::wstring { return snowPropsToString(composite); });

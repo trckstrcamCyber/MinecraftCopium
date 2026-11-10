@@ -10,7 +10,8 @@ ShoreLayer::ShoreLayer(int64_t seed, shared_ptr<Layer> parent, int64_t seedMixup
 bool ShoreLayer::isJungleCompatible(int id)
 {
     if (id == Biome::jungle->id || id == Biome::jungleHills->id || id == Biome::jungleEdge->id ||
-        id == Biome::jungleM->id || id == Biome::jungleEdgeM->id)
+        id == Biome::jungleM->id || id == Biome::jungleEdgeM->id ||
+        id == Biome::bambooJungle->id || id == Biome::bambooJungleHills->id)
         return true;
     if (id == Biome::forest->id || id == Biome::taiga->id)
         return true;
@@ -70,7 +71,7 @@ intArray ShoreLayer::getArea(int xo, int yo, int w, int h)
             }
 
             if (old == Biome::jungle->id || old == Biome::jungleHills->id ||
-                old == Biome::jungleM->id)
+                old == Biome::jungleM->id || old == Biome::bambooJungle->id || old == Biome::bambooJungleHills->id)
             {
                 bool allCompatible = isJungleCompatible(n) && isJungleCompatible(e) &&
                                       isJungleCompatible(w1) && isJungleCompatible(s);

@@ -12,9 +12,14 @@ class SignTile : public BaseEntityTile
 private:
 	eINSTANCEOF clas;
 	bool onGround;
+	int woodType;	// neoLegacy - 0 oak, 1 spruce, 2 birch, 3 jungle, 4 acacia, 5 dark oak
 
 protected:
-	SignTile(int id, eINSTANCEOF clas, bool onGround);
+	SignTile(int id, eINSTANCEOF clas, bool onGround, int woodType = 0);
+
+public:
+	bool isStanding() const { return onGround; }
+	int getWoodType() const { return woodType; }
 
 public:
 	Icon *getTexture(int face, int data);
@@ -32,6 +37,9 @@ protected:
 
 public:
 	int getResource(int data, Random *random, int playerBonusLevel);
+	using BaseEntityTile::spawnResources;
+	virtual void spawnResources(Level *level, int x, int y, int z, int data, float odds, int playerBonusLevel);	// neoLegacy - the dropped sign keeps its wood
+	virtual void onRemove(Level *level, int x, int y, int z, int id, int data);
 	void neighborChanged(Level *level, int x, int y, int z, int type);
 	int cloneTileId(Level *level, int x, int y, int z);
 	void registerIcons(IconRegister *iconRegister);

@@ -24,3 +24,8 @@ int LuckOfTheSeaEnchantment::getMaxLevel()
 {
     return 3;
 }
+
+bool LuckOfTheSeaEnchantment::isCompatibleWith(Enchantment *other) const
+{
+    return Enchantment::isCompatibleWith(other) && other != Enchantment::hookOfMuddyWaters;
+}

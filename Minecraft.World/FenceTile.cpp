@@ -44,7 +44,7 @@ Tile::BlockState FenceTile::getBlockState(LevelSource *level, int x, int y, int 
 
 static const int fences[] = {
 	Tile::fence_Id, Tile::nether_brick_fence_Id, Tile::spruce_fence_Id,
-	Tile::birch_fence_Id, Tile::jungle_fence_Id, Tile::acacia_fence_Id, Tile::dark_oak_fence_Id
+	Tile::birch_fence_Id, Tile::jungle_fence_Id, Tile::acacia_fence_Id, Tile::dark_oak_fence_Id, Tile::bamboo_fence_Id
 };
 
 void FenceTile::addAABBs(Level *level, int x, int y, int z, AABB *box, AABBList *boxes, shared_ptr<Entity> source)

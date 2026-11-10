@@ -24,7 +24,9 @@ int UntouchingEnchantment::getMaxLevel()
 
 bool UntouchingEnchantment::isCompatibleWith(Enchantment *other) const
 {
-	return Enchantment::isCompatibleWith(other) && other->id != resourceBonus->id;
+	// neoLegacy Added - also exclude Auto Smelt: Silk Touch wants the raw
+	// block, Auto Smelt wants the smelted result, contradictory on the same tool.
+	return Enchantment::isCompatibleWith(other) && other->id != resourceBonus->id && other->id != Enchantment::autoSmelt->id;
 }
 
 bool UntouchingEnchantment::canEnchant(shared_ptr<ItemInstance> item)

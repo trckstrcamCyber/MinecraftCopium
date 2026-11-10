@@ -1,5 +1,12 @@
 #include "stdafx.h"
 #include "LocalPlayer.h"
+#include "ArcadeGameSession.h"
+#include "../Minecraft.World/ArcadeGameTypes.h"
+#include "../Minecraft.World/ArcadeSaveData.h"
+#include "../Minecraft.World/CustomPayloadPacket.h"
+#include "../Minecraft.World/ByteArrayOutputStream.h"
+#include "../Minecraft.World/DataOutputStream.h"
+#include "ClientConnection.h"
 #include "User.h"
 #include "Input.h"
 #include "StatsCounter.h"
@@ -32,6 +39,7 @@
 #include "../Minecraft.World/net.minecraft.stats.h"
 #include "../Minecraft.World/com.mojang.nbt.h"
 #include "../Minecraft.World/Random.h"
+#include "../Minecraft.World/Mac10Item.h"
 #include "../Minecraft.World/TileEntity.h"
 #include "../Minecraft.World/Mth.h"
 #include "AchievementPopup.h"
@@ -39,6 +47,7 @@
 
 // 4J : WESTY : Added for new achievements.
 #include "../Minecraft.World/Item.h"
+#include "../Minecraft.World/EnchantmentEncyclopedia.h"
 #include "../Minecraft.World/MapItem.h"
 #include "../Minecraft.World/Tile.h"
 
@@ -100,6 +109,9 @@ LocalPlayer::LocalPlayer(Minecraft *minecraft, Level *level, User *user, int dim
 
 	}
 	input = nullptr;
+	m_arcadeMachineX = m_arcadeMachineY = m_arcadeMachineZ = -1;
+	m_arcadeSynced = false;
+	m_arcadeRequestTimer = 0;
 	m_iPad = -1;
 	m_iScreenSection=C4JRender::VIEWPORT_TYPE_FULLSCREEN; // assume singleplayer default
 	m_bPlayerRespawned=false;
@@ -223,11 +235,42 @@ void LocalPlayer::aiStep()
 
 	if (changingDimensionDelay > 0) changingDimensionDelay--;
 	bool wasJumping = input->jumping;
+    bool wasSneaking = input->sneaking;
 	float runTreshold = 0.8f;
 	bool wasRunning = input->ya >= runTreshold;
 	//input->tick( dynamic_pointer_cast<Player>( shared_from_this() ) );
 	// 4J-PB - make it a localplayer
 	input->tick( this );
+
+    tickArcadeSave();
+
+    // Arcade control belongs to this LocalPlayer. The session is not stored on Minecraft
+    // or Gui, so split-screen players can play different machines at the same time.
+    if (m_arcadeGame.isActive())
+    {
+        int machineId = (level != nullptr && m_arcadeMachineX >= 0)
+            ? level->getTile(m_arcadeMachineX, m_arcadeMachineY, m_arcadeMachineZ) : 0;
+        // The powered/unpowered block ID is synchronized by ArcadeMachineTile on redstone changes.
+        // Trust that state here so a signal-query mismatch cannot close the game immediately.
+        bool machineStillPowered = level != nullptr
+            && (machineId == Tile::cookie_miner_powered_Id || machineId == Tile::flappy_craft_powered_Id || machineId == Tile::mine_snake_powered_Id);
+        if (!machineStillPowered)
+        {
+            m_arcadeGame.stop();
+        }
+        else
+        {
+            m_arcadeGame.tick(input->xa, input->ya, input->jumping && !wasJumping, input->sneaking && !wasSneaking);
+            input->xa = 0.0f;
+            input->ya = 0.0f;
+            input->jumping = false;
+            input->sneaking = false;
+            if (m_arcadeGame.isActive()) return;
+        }
+    }
+	// neoLegacy - MAC-10: controller + view model tick (aim-down-sights slowdown is applied to input->xa/ya in here)
+	m_mac10.tick(this);
+
 	if (isUsingItem() && !isRiding())
 	{
 		input->xa *= 0.2f;
@@ -256,7 +299,7 @@ void LocalPlayer::aiStep()
 	bool forwardEnoughToContinueSprint = input->ya >= runTreshold;
 
 	// 4J - altered this slightly to make sure that the joypad returns to below returnTreshold in between registering two movements up to runThreshold
-	if ((onGround || isRiding()) && !isSprinting() && enoughFoodToSprint && !isUsingItem() && !hasEffect(MobEffect::blindness))
+	if ((onGround || isRiding()) && !isSprinting() && enoughFoodToSprint && !isUsingItem() && !m_mac10.blocksSprint() && !hasEffect(MobEffect::blindness))
 	{
 		if( !wasRunning && forwardEnoughToTriggerSprint )
 		{
@@ -282,19 +325,25 @@ void LocalPlayer::aiStep()
 	}
 	if (isSneaking()) sprintTriggerTime = 0;
 #ifdef _WINDOWS64
-	if (input->sprinting && !isSprinting() && (onGround || isRiding()) && enoughFoodToSprint && !isUsingItem() && !hasEffect(MobEffect::blindness) && !isSneaking())
+	if (input->sprinting && !isSprinting() && (onGround || isRiding() || isInWater()) && enoughFoodToSprint && !isUsingItem() && !m_mac10.blocksSprint() && !hasEffect(MobEffect::blindness) && !isSneaking())
 	{
 		setSprinting(true);
 	}
 #endif
 	// 4J-PB - try not stopping sprint on collision
 	//if (isSprinting() && (input->ya < runTreshold || horizontalCollision || !enoughFoodToSprint))
-	if (isSprinting() && (!forwardEnoughToContinueSprint || !enoughFoodToSprint || isSneaking() || isUsingItem()))
+	if (isSprinting() && (!forwardEnoughToContinueSprint || !enoughFoodToSprint || isSneaking() || isUsingItem() || m_mac10.blocksSprint()))
 	{
 		setSprinting(false);
 	}	
 
-	// 4J Stu - Fix for #52705 - Customer Encountered: Player can fly in bed while being in Creative mode.
+	
+	if (shouldUseSwimmingPose())
+	{
+		if (ySlideOffset < 2.2f) ySlideOffset = 2.2f;
+	}
+
+// 4J Stu - Fix for #52705 - Customer Encountered: Player can fly in bed while being in Creative mode.
 	if (!isSleeping() && (abilities.mayfly || isAllowedToFly() ))
 	{
 		// 4J altered to require jump button to released after being tapped twice to trigger move between flying / not flying
@@ -717,6 +766,15 @@ void LocalPlayer::openItemInstanceGui(shared_ptr<ItemInstance> itemInstance, sha
 		app.LoadWritingBookMenu(GetXboxPad(), itemInstance, player, true);
 		return;
 	}
+	else if (itemId == Item::enchantment_encyclopedia_Id)
+	{
+		// neoLegacy - Enchantment Encyclopedia: open the stock book reader, read-only, on a temporary signed book built from the
+		// live enchantment registry. editable = false so it can never be changed or saved back.
+		ui.PlayUISFX(eSFX_Press);
+		shared_ptr<ItemInstance> encyclopedia = EnchantmentEncyclopedia::createBook();
+		app.LoadWritingBookMenu(GetXboxPad(), encyclopedia, player, false);
+		return;
+	}
 
 
 	//bool success = app.LoadBookMenu(GetXboxPad(), inventory);
@@ -729,6 +787,83 @@ bool LocalPlayer::startCrafting(int x, int y, int z)
 	if( success ) ui.PlayUISFX(eSFX_Press);
 	//app.LoadXuiCraftMenu(0,inventory, level, x, y, z);
 	//minecraft->setScreen(new CraftingScreen(inventory, level, x, y, z));
+	return success;
+}
+
+// neoLegacy - Complex Table: same 3x3 UI as startCrafting, but flagged so the
+// scene builds a ComplexCraftingMenu and only lists/crafts the Complex Table's
+// own recipes (and the normal crafting UI hides those recipes).
+bool LocalPlayer::startArcadeGame(int x, int y, int z, int gameType)
+{
+    if (m_arcadeGame.isActive()) return true;
+    // LocalPlayer is a client-owned object; do not gate this on Level::isClientSide.
+    // In this legacy fork, local-player interactions can be backed by a Level whose
+    // flag is not set the same way as modern client-world implementations.
+    if (level == nullptr) return true;
+    int block = level->getTile(x, y, z);
+    bool isMachine = block == Tile::cookie_miner_Id || block == Tile::flappy_craft_Id || block == Tile::mine_snake_Id
+        || block == Tile::cookie_miner_powered_Id || block == Tile::flappy_craft_powered_Id || block == Tile::mine_snake_powered_Id;
+    // The powered block ID is the canonical state after ArcadeMachineTile syncs redstone.
+    // Use it directly instead of rejecting a valid powered variant if signal lookup
+    // differs between the client-side interaction and the world tick.
+    bool powered = (block == Tile::cookie_miner_powered_Id || block == Tile::flappy_craft_powered_Id || block == Tile::mine_snake_powered_Id);
+    if (!isMachine) return false;
+    if (!powered)
+    {
+        if (minecraft->gui != nullptr) minecraft->gui->addMessage(L"Power this Arcade Machine with redstone first.", GetXboxPad());
+        return true;
+    }
+    if (gameType < ARCADE_GAME_COOKIE_MINER || gameType > ARCADE_GAME_MINE_SNAKE) return false;
+    if (!m_arcadeSynced)
+    {
+        // The saved progress has not arrived from the server yet (it is requested again every few seconds).
+        // Starting now would let a fresh, empty session overwrite what was saved.
+        if (minecraft->gui != nullptr) minecraft->gui->addMessage(L"Loading your Arcade progress, try again in a moment.", GetXboxPad());
+        return true;
+    }
+    m_arcadeMachineX = x; m_arcadeMachineY = y; m_arcadeMachineZ = z;
+    m_arcadeGame.start(gameType);
+    return true;
+}
+
+// neoLegacy - Arcade Machines persistence. The progress is stored in the player's data on the server (so it is saved in the
+// world with the player); this just keeps the local session and the server copy in step.
+void LocalPlayer::applyArcadeSave(const ArcadeSaveData &data)
+{
+    m_arcadeGame.applySaveData(data);
+    m_arcadeSynced = true;
+}
+
+void LocalPlayer::tickArcadeSave()
+{
+    MultiplayerLocalPlayer *mplp = dynamic_cast<MultiplayerLocalPlayer *>(this);
+    if (mplp == nullptr || mplp->connection == nullptr) return;
+
+    if (!m_arcadeSynced)
+    {
+        if (--m_arcadeRequestTimer > 0) return;
+        m_arcadeRequestTimer = 100;
+        ByteArrayOutputStream baos;
+        DataOutputStream dos(&baos);
+        dos.writeInt(0);	// 0 = "send me my saved progress"
+        mplp->connection->send(std::make_shared<CustomPayloadPacket>(CustomPayloadPacket::ARCADE_SAVE_PACKET, baos.toByteArray()));
+        return;
+    }
+
+    if (m_arcadeGame.takeSaveRequest())
+    {
+        ByteArrayOutputStream baos;
+        DataOutputStream dos(&baos);
+        dos.writeInt(1);	// 1 = "store this progress"
+        m_arcadeGame.getSaveData().write(&dos);
+        mplp->connection->send(std::make_shared<CustomPayloadPacket>(CustomPayloadPacket::ARCADE_SAVE_PACKET, baos.toByteArray()));
+    }
+}
+
+bool LocalPlayer::startComplexCrafting(int x, int y, int z)
+{
+	bool success = app.LoadCrafting3x3Menu(GetXboxPad(), dynamic_pointer_cast<LocalPlayer>( shared_from_this() ), x, y, z, true );
+	if( success ) ui.PlayUISFX(eSFX_Press);
 	return success;
 }
 
@@ -752,6 +887,14 @@ bool LocalPlayer::startRepairing(int x, int y, int z)
 	bool success = app.LoadRepairingMenu(GetXboxPad(), inventory, level, x, y, z );
 	if( success ) ui.PlayUISFX(eSFX_Press);
 	//minecraft.setScreen(new RepairScreen(inventory, level, x, y, z));
+	return success;
+}
+
+bool LocalPlayer::startGrindstoneRepairing(int x, int y, int z)
+{
+	app.DebugPrintf("[GRINDSTONE DIAG] 4/6 LocalPlayer::startGrindstoneRepairing -- calling LoadGrindstoneMenu\n");
+	bool success = app.LoadGrindstoneMenu(GetXboxPad(), inventory, level, x, y, z );
+	if( success ) ui.PlayUISFX(eSFX_Press);
 	return success;
 }
 
@@ -1399,6 +1542,17 @@ void LocalPlayer::mapPlayerChunk(const unsigned int flagTileType)
 
 void LocalPlayer::handleMouseDown(int button, bool down)
 {
+    if (m_arcadeGame.isActive()) return;
+    // neoLegacy - consume held-button input for the MAC-10 rather than breaking blocks. Firing itself happens in Mac10Client::tick.
+    if (button == 0 && inventory != nullptr)
+    {
+        if (Mac10Item::isMac10(inventory->getSelected()))
+        {
+            m_mac10.onMouseDown(this, button, down);
+            if (!down) missTime = 0;
+            return;
+        }
+    }
 	// 4J Stu - We should not accept any input while asleep, except the above to wake up
 	if(isSleeping() && level != nullptr && level->isClientSide)
 	{
@@ -1601,13 +1755,26 @@ bool LocalPlayer::creativeModeHandleMouseClick(int button, bool buttonPressed)
 
 bool LocalPlayer::handleMouseClick(int button)
 {
+    if (m_arcadeGame.isActive())
+    {
+        if (button == 0) m_arcadeGame.primaryActionAtCursor();
+        else if (button == 1) m_arcadeGame.secondaryActionAtCursor();
+        return true;
+    }
 	bool returnItemPlaced = false;
 
-	if (button == 0 && missTime > 0) return false;
+	if (button == 0 && missTime > 0 && !Mac10Item::isMac10(inventory->getSelected())) return false;
+	bool zoroSwingBegan = false;
 	if (button == 0) 
 	{
-		//app.DebugPrintf("handleMouseClick - Player %d is swinging\n",GetXboxPad());
-		swing();
+		// neoLegacy - Zoro swords use a real attack cadence; other items
+		// keep the original Legacy swing behavior.
+		if (canUseZoroSwordAttack())
+		{
+			swing();
+			// start the cut now so air swings animate and combo too, not only ones that hit something
+			zoroSwingBegan = beginZoroSwing();
+		}
 	}
 
 	bool mayUse = true;		
@@ -1630,6 +1797,13 @@ bool LocalPlayer::handleMouseClick(int button)
 		return false;
 	}
 
+    // neoLegacy - MAC-10: the left button feeds the trigger, the right button aims (polled in Mac10Client::tick), the middle button inspects.
+    // The gun never does vanilla attack / use / block placing.
+    if (inventory != nullptr && (button == 0 || button == 1 || button == 2) && Mac10Item::isMac10(inventory->getSelected()))
+    {
+        m_mac10.onMouseClick(this, button);
+        return true;
+    }
 	shared_ptr<ItemInstance> oldItem = inventory->getSelected();
 
 	if (minecraft->hitResult == nullptr)
@@ -1640,6 +1814,11 @@ bool LocalPlayer::handleMouseClick(int button)
 	{
 		if (button == 0)
 		{
+			// neoLegacy - respect the deliberate Zoro sword swing cadence on the client
+			// so an input during cooldown does not start a misleading extra animation.
+			if (!zoroSwingBegan && !canUseZoroSwordAttack())
+				return false;
+
 			minecraft->gameMode->attack(minecraft->localplayers[GetXboxPad()], minecraft->hitResult->entity);
 		}
 		if (button == 1)
@@ -1670,6 +1849,26 @@ bool LocalPlayer::handleMouseClick(int button)
 		int y = minecraft->hitResult->y;
 		int z = minecraft->hitResult->z;
 		int face = minecraft->hitResult->f;
+
+        // Copium Arcade client-side fast path: open the local player's session before
+        // GameMode routes block use through a generic Player pointer. This guarantees
+        // the minigame opens on the correct split-screen player and consumes the click.
+        if (button != 0)
+        {
+            int arcadeBlock = level != nullptr ? level->getTile(x, y, z) : 0;
+            int arcadeType = -1;
+            if (arcadeBlock == Tile::cookie_miner_Id || arcadeBlock == Tile::cookie_miner_powered_Id)
+                arcadeType = ARCADE_GAME_COOKIE_MINER;
+            else if (arcadeBlock == Tile::flappy_craft_Id || arcadeBlock == Tile::flappy_craft_powered_Id)
+                arcadeType = ARCADE_GAME_FLAPPY_CRAFT;
+            else if (arcadeBlock == Tile::mine_snake_Id || arcadeBlock == Tile::mine_snake_powered_Id)
+                arcadeType = ARCADE_GAME_MINE_SNAKE;
+            if (arcadeType >= 0)
+            {
+                startArcadeGame(x, y, z, arcadeType);
+                return false;
+            }
+        }
 
 		if (button == 0)
 		{

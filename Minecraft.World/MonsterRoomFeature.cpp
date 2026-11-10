@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "CurseLoot.h"
 #include "net.minecraft.world.level.h"
 #include "net.minecraft.world.level.material.h"
 #include "net.minecraft.world.level.tile.h"
@@ -108,7 +109,7 @@ bool MonsterRoomFeature::place(Level *level, Random *random, int x, int y, int z
 
 			level->setTileAndData(xc, yc, zc, Tile::chest_Id, 0, Tile::UPDATE_CLIENTS);
 			WeighedTreasureArray wrapperArray(monsterRoomTreasure, TREASURE_ITEMS_COUNT);
-			WeighedTreasureArray treasure = WeighedTreasure::addToTreasure(wrapperArray, Item::enchanted_book->createForRandomTreasure(random));
+			WeighedTreasureArray treasure = WeighedTreasure::addToTreasure(WeighedTreasure::addToTreasure(wrapperArray, Item::enchanted_book->createForRandomTreasure(random)), CurseLoot::createTreasure(random, 1, 1, 1));
 			shared_ptr<ChestTileEntity> chest = dynamic_pointer_cast<ChestTileEntity >( level->getTileEntity(xc, yc, zc) );
 			if (chest != nullptr )
 			{

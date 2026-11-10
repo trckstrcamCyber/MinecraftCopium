@@ -8,6 +8,7 @@
 #include "net.minecraft.world.level.levelgen.structure.h"
 #include "net.minecraft.world.item.h"
 #include "WeighedTreasure.h"
+#include "CurseLoot.h"
 #include "FileHeader.h"
 #include "Facing.h"
 
@@ -816,7 +817,7 @@ bool StrongholdPieces::ChestCorridor::postProcess(Level *level, Random *random, 
 		if (chunkBB->isInside(x, y, z))
 		{
 			hasPlacedChest = true;
-			createChest(level, chunkBB, random, 3, 2, 3, WeighedTreasure::addToTreasure(WeighedTreasureArray(treasureItems,TREASURE_ITEMS_COUNT), Item::enchanted_book->createForRandomTreasure(random)), 2 + random->nextInt(2));
+			createChest(level, chunkBB, random, 3, 2, 3, WeighedTreasure::addToTreasure(WeighedTreasure::addToTreasure(WeighedTreasureArray(treasureItems,TREASURE_ITEMS_COUNT), Item::enchanted_book->createForRandomTreasure(random)), CurseLoot::createTreasure(random, 1, 1, 2)), 2 + random->nextInt(2));
 		}
 	}
 
@@ -1153,7 +1154,7 @@ bool StrongholdPieces::RoomCrossing::postProcess(Level *level, Random *random, B
 			placeBlock(level, Tile::ladder_Id, getOrientationData(Tile::ladder_Id, Facing::WEST), 9, 2, 3, chunkBB);
 			placeBlock(level, Tile::ladder_Id, getOrientationData(Tile::ladder_Id, Facing::WEST), 9, 3, 3, chunkBB);
 
-			createChest(level, chunkBB, random, 3, 4, 8, WeighedTreasure::addToTreasure(WeighedTreasureArray(smallTreasureItems,SMALL_TREASURE_ITEMS_COUNT), Item::enchanted_book->createForRandomTreasure(random)), 1 + random->nextInt(4));
+			createChest(level, chunkBB, random, 3, 4, 8, WeighedTreasure::addToTreasure(WeighedTreasure::addToTreasure(WeighedTreasureArray(smallTreasureItems,SMALL_TREASURE_ITEMS_COUNT), Item::enchanted_book->createForRandomTreasure(random)), CurseLoot::createTreasure(random, 1, 1, 2)), 1 + random->nextInt(4));
 			// System.out.println("Created chest at " + getWorldX(3, 8) +
 			// "," + getWorldY(4) + "," + getWorldZ(3, 8));
 
@@ -1407,11 +1408,11 @@ bool StrongholdPieces::Library::postProcess(Level *level, Random *random, Boundi
 	}
 
 	// place chests
-	createChest(level, chunkBB, random, 3, 3, 5, WeighedTreasure::addToTreasure(WeighedTreasureArray(libraryTreasureItems,LIBRARY_TREASURE_ITEMS_COUNT), Item::enchanted_book->createForRandomTreasure(random, 1, 5, 2)), 1 + random->nextInt(4));
+	createChest(level, chunkBB, random, 3, 3, 5, WeighedTreasure::addToTreasure(WeighedTreasure::addToTreasure(WeighedTreasureArray(libraryTreasureItems,LIBRARY_TREASURE_ITEMS_COUNT), Item::enchanted_book->createForRandomTreasure(random, 1, 5, 2)), CurseLoot::createTreasure(random, 1, 1, 2)), 1 + random->nextInt(4));
 	if (isTall)
 	{
 		placeBlock(level, 0, 0, width - 2, tallHeight - 2, 1, chunkBB);
-		createChest(level, chunkBB, random, width - 2, tallHeight - 3, 1, WeighedTreasure::addToTreasure(WeighedTreasureArray(libraryTreasureItems,LIBRARY_TREASURE_ITEMS_COUNT), Item::enchanted_book->createForRandomTreasure(random, 1, 5, 2)), 1 + random->nextInt(4));
+		createChest(level, chunkBB, random, width - 2, tallHeight - 3, 1, WeighedTreasure::addToTreasure(WeighedTreasure::addToTreasure(WeighedTreasureArray(libraryTreasureItems,LIBRARY_TREASURE_ITEMS_COUNT), Item::enchanted_book->createForRandomTreasure(random, 1, 5, 2)), CurseLoot::createTreasure(random, 1, 1, 2)), 1 + random->nextInt(4));
 	}
 
 	return true;

@@ -167,6 +167,19 @@ const char *SoundEngine::m_szStreamFileA[eStream_Max]=
 
 std::vector<MiniAudioSound*> m_activeSounds;
 
+// neoLegacy - upper bound on simultaneously live one-shot sounds. Split screen multiplies footsteps/mob/UI sounds and every
+// live sound owns a data buffer, so an unbounded list is an easy way to run the audio thread and resource manager into the ground.
+static const size_t MAX_ACTIVE_ONE_SHOT_SOUNDS = 96;
+
+// neoLegacy - miniaudio divides by the pitch inside its resampler. A zero / negative / NaN pitch (some sound callers compute it)
+// must never reach it.
+static float SanitizePitch(float pitch)
+{
+	if (!(pitch > 0.01f)) return 1.0f;	// also catches NaN
+	if (pitch > 8.0f) return 8.0f;
+	return pitch;
+}
+
 /////////////////////////////////////////////
 //
 //	init
@@ -279,7 +292,7 @@ void SoundEngine::updateMiniAudio()
             finalVolume = SFX_MAX_GAIN;
 
         ma_sound_set_volume(&s->sound, finalVolume);
-        ma_sound_set_pitch(&s->sound, s->info.pitch);
+        ma_sound_set_pitch(&s->sound, SanitizePitch(s->info.pitch));
 
         if (s->info.bIs3D)
         {
@@ -355,6 +368,8 @@ static S32 running = AIL_ms_count();
 
 void SoundEngine::tick(shared_ptr<Mob> *players, float a)
 {
+	std::lock_guard<std::recursive_mutex> soundLock(m_mutex);	// neoLegacy - see m_mutex in SoundEngine.h
+
 	ConsoleSoundEngine::tick();
 
 	// update the listener positions
@@ -481,6 +496,12 @@ void SoundEngine::GetSoundName(char *szSoundName,int iSound)
 /////////////////////////////////////////////
 void SoundEngine::play(int iSound, float x, float y, float z, float volume, float pitch)
 {
+	std::lock_guard<std::recursive_mutex> soundLock(m_mutex);	// neoLegacy - see m_mutex in SoundEngine.h
+	if (m_activeSounds.size() >= MAX_ACTIVE_ONE_SHOT_SOUNDS)	// neoLegacy - safety net, each live sound owns a decoder/data buffer
+	{
+		return;
+	}
+
     U8 szSoundName[256];
 
     if (iSound == -1)
@@ -582,7 +603,7 @@ void SoundEngine::play(int iSound, float x, float y, float z, float volume, floa
     if (ma_sound_init_from_file(
             &m_engine,
             finalPath,
-            MA_SOUND_FLAG_ASYNC,
+            MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_ASYNC,
             nullptr,
             nullptr,
             &s->sound) != MA_SUCCESS)
@@ -602,7 +623,7 @@ void SoundEngine::play(int iSound, float x, float y, float z, float volume, floa
         finalVolume = SFX_MAX_GAIN;
 
     ma_sound_set_volume(&s->sound, finalVolume);
-    ma_sound_set_pitch(&s->sound, pitch);
+    ma_sound_set_pitch(&s->sound, SanitizePitch(pitch));
     ma_sound_set_position(&s->sound, x, y, z);
 
     ma_sound_start(&s->sound);
@@ -612,6 +633,7 @@ void SoundEngine::play(int iSound, float x, float y, float z, float volume, floa
 
 MiniAudioSound* SoundEngine::startLoopingSound(const wstring& name, float x, float y, float z, float volume, float pitch, bool bIs3D)
 {
+	std::lock_guard<std::recursive_mutex> soundLock(m_mutex);	// neoLegacy - see m_mutex in SoundEngine.h
 	char* soundName = ConvertSoundPathToName(name);
 	char basePath[256];
 	sprintf_s(basePath, "Windows64Media/Sound/Minecraft/%s", soundName);
@@ -646,7 +668,7 @@ MiniAudioSound* SoundEngine::startLoopingSound(const wstring& name, float x, flo
 	s->info.bIs3D = bIs3D;
 	s->info.bUseSoundsPitchVal = false;
 
-	if (ma_sound_init_from_file(&m_engine, finalPath, 0, nullptr, nullptr, &s->sound) != MA_SUCCESS)
+	if (ma_sound_init_from_file(&m_engine, finalPath, MA_SOUND_FLAG_DECODE, nullptr, nullptr, &s->sound) != MA_SUCCESS)
 	{
 		delete s;
 		return nullptr;
@@ -659,7 +681,7 @@ MiniAudioSound* SoundEngine::startLoopingSound(const wstring& name, float x, flo
 	if (finalVolume > SFX_MAX_GAIN)
 		finalVolume = SFX_MAX_GAIN;
 	ma_sound_set_volume(&s->sound, finalVolume);
-	ma_sound_set_pitch(&s->sound, pitch);
+	ma_sound_set_pitch(&s->sound, SanitizePitch(pitch));
 	if (bIs3D)
 	{
 		ma_sound_set_position(&s->sound, x, y, z);
@@ -670,6 +692,7 @@ MiniAudioSound* SoundEngine::startLoopingSound(const wstring& name, float x, flo
 
 void SoundEngine::updateLoopingSound(MiniAudioSound* sound, float x, float y, float z, float volume, float pitch)
 {
+	std::lock_guard<std::recursive_mutex> soundLock(m_mutex);	// neoLegacy - see m_mutex in SoundEngine.h
 	if (sound == nullptr)
 	{
 		return;
@@ -679,12 +702,13 @@ void SoundEngine::updateLoopingSound(MiniAudioSound* sound, float x, float y, fl
 	if (finalVolume > SFX_MAX_GAIN)
 		finalVolume = SFX_MAX_GAIN;
 	ma_sound_set_volume(&sound->sound, finalVolume);
-	ma_sound_set_pitch(&sound->sound, pitch);
+	ma_sound_set_pitch(&sound->sound, SanitizePitch(pitch));
 	ma_sound_set_position(&sound->sound, x, y, z);
 }
 
 void SoundEngine::stopLoopingSound(MiniAudioSound* sound)
 {
+	std::lock_guard<std::recursive_mutex> soundLock(m_mutex);	// neoLegacy - see m_mutex in SoundEngine.h
 	if (sound == nullptr)
 	{
 		return;
@@ -711,6 +735,7 @@ void SoundEngine::stopLoopingSound(MiniAudioSound* sound)
 /////////////////////////////////////////////
 void SoundEngine::startElytraSound(float x, float y, float z, float volume, float pitch)
 {
+	std::lock_guard<std::recursive_mutex> soundLock(m_mutex);	// neoLegacy - see m_mutex in SoundEngine.h
 	// If already initialized just update volume and pitch - never reinitialize mid-flight.
 	if (m_elytraLoopingSound != nullptr)
 	{
@@ -723,6 +748,7 @@ void SoundEngine::startElytraSound(float x, float y, float z, float volume, floa
 
 void SoundEngine::stopElytraSound()
 {
+	std::lock_guard<std::recursive_mutex> soundLock(m_mutex);	// neoLegacy - see m_mutex in SoundEngine.h
 	if (m_elytraLoopingSound == nullptr) return;
 	stopLoopingSound(m_elytraLoopingSound);
 	m_elytraLoopingSound = nullptr;
@@ -733,6 +759,12 @@ void SoundEngine::stopElytraSound()
 /////////////////////////////////////////////
 void SoundEngine::playUI(int iSound, float volume, float pitch)
 {
+	std::lock_guard<std::recursive_mutex> soundLock(m_mutex);	// neoLegacy - see m_mutex in SoundEngine.h
+	if (m_activeSounds.size() >= MAX_ACTIVE_ONE_SHOT_SOUNDS)	// neoLegacy - safety net, each live sound owns a decoder/data buffer
+	{
+		return;
+	}
+
     U8 szSoundName[256];
     wstring name;
     const char* soundDir;
@@ -788,7 +820,7 @@ void SoundEngine::playUI(int iSound, float volume, float pitch)
     if (ma_sound_init_from_file(
             &m_engine,
             finalPath,
-            MA_SOUND_FLAG_ASYNC,
+            MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_ASYNC,
             nullptr,
             nullptr,
             &s->sound) != MA_SUCCESS)
@@ -806,7 +838,7 @@ void SoundEngine::playUI(int iSound, float volume, float pitch)
 	printf("UI Sound volume set to %f\nEffects volume: %f\n", finalVolume, m_MasterEffectsVolume);
 
     ma_sound_set_volume(&s->sound, finalVolume);
-    ma_sound_set_pitch(&s->sound, pitch);
+    ma_sound_set_pitch(&s->sound, SanitizePitch(pitch));
 
     ma_sound_start(&s->sound);
 
@@ -820,6 +852,7 @@ void SoundEngine::playUI(int iSound, float volume, float pitch)
 /////////////////////////////////////////////
 void SoundEngine::playStreaming(const wstring& name, float x, float y, float z, float volume, float pitch, bool bMusicDelay)
 {
+	std::lock_guard<std::recursive_mutex> soundLock(m_mutex);	// neoLegacy - see m_mutex in SoundEngine.h
 	// This function doesn't actually play a streaming sound, just sets states and an id for the music tick to play it
 	// Level audio will be played when a play with an empty name comes in
 	// CD audio will be played when a named stream comes in
@@ -1144,6 +1177,7 @@ void SoundEngine::playMusicTick()
 // AP - moved to a separate function so it can be called from the mixer callback on Vita
 void SoundEngine::playMusicUpdate() 
 {
+	std::lock_guard<std::recursive_mutex> soundLock(m_mutex);	// neoLegacy - see m_mutex in SoundEngine.h
 	static float fMusicVol = 0.0f;
 	fMusicVol = getMasterMusicVolume();
 
@@ -1435,7 +1469,7 @@ void SoundEngine::playMusicUpdate()
 				ma_sound_set_spatialization_enabled(&m_musicStream, MA_FALSE);
 			}
 
-			ma_sound_set_pitch(&m_musicStream, m_StreamingAudioInfo.pitch);
+			ma_sound_set_pitch(&m_musicStream, SanitizePitch(m_StreamingAudioInfo.pitch));
 
 			float finalVolume = m_StreamingAudioInfo.volume * getMasterMusicVolume();
 

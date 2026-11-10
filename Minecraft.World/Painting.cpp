@@ -13,13 +13,14 @@
 
 typedef Painting::Motive _Motive;
 const _Motive *Painting::Motive::values[] = {
-	new _Motive(L"Kebab", 16, 16, 0 * 16, 0 * 16),
-	new _Motive(L"Aztec", 16, 16, 1 * 16, 0 * 16), //
+	new _Motive(L"Pika", 16, 16, 0 * 16, 0 * 16),
+	new _Motive(L"Zombie", 16, 16, 1 * 16, 0 * 16), //
 	new _Motive(L"Alban", 16, 16, 2 * 16, 0 * 16), //
 	new _Motive(L"Aztec2", 16, 16, 3 * 16, 0 * 16), //
 	new _Motive(L"Bomb", 16, 16, 4 * 16, 0 * 16), //
 	new _Motive(L"Plant", 16, 16, 5 * 16, 0 * 16), //
 	new _Motive(L"Wasteland", 16, 16, 6 * 16, 0 * 16), //
+    new _Motive(L"Milesmorales", 16, 16, 7 * 16, 0 * 16), //
 
 	new _Motive(L"Pool", 32, 16, 0 * 16, 2 * 16), //
 	new _Motive(L"Courbet", 32, 16, 2 * 16, 2 * 16), //
@@ -138,7 +139,7 @@ void Painting::readAdditionalSaveData(CompoundTag *tag)
 			this->motive = (Motive *)Motive::values[i];
 		}
 	}
-	if (this->motive == nullptr) motive = (Motive *)Motive::values[ Kebab ];
+	if (this->motive == nullptr) motive = (Motive *)Motive::values[ Pika ];
 
 	HangingEntity::readAdditionalSaveData(tag);
 }

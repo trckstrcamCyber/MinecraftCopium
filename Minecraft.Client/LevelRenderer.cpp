@@ -3,6 +3,7 @@
 #include "Textures.h"
 #include "TextureAtlas.h"
 #include "Tesselator.h"
+#include "MaceEffectParticle.h"	// neoLegacy - Mace smash effects
 #include "Chunk.h"
 #include "EntityRenderDispatcher.h"
 #include "TileEntityRenderDispatcher.h"
@@ -3145,6 +3146,11 @@ shared_ptr<Particle> LevelRenderer::addParticleInternal(ePARTICLE_TYPE eParticle
 	case eParticleType_slime:
 		particle = std::make_shared<BreakingItemParticle>(lev, x, y, z, Item::slime_ball, textures);
 		break;
+	case eParticleType_jelly:
+		// neoLegacy - Jelly Slime: the round snowball icon tinted the mob's crimson-pink instead of slime green
+		particle = std::make_shared<BreakingItemParticle>(lev, x, y, z, Item::snowball, textures);
+		particle->setColor(0.86f, 0.22f, 0.40f);
+		break;
 	case eParticleType_heart:
 		particle = std::make_shared<HeartParticle>(lev, x, y, z, xa, ya, za);
 		break;
@@ -3517,6 +3523,65 @@ void LevelRenderer::levelEvent(shared_ptr<Player> source, int type, int x, int y
 			}
 
 			mc->particleEngine->destroy(x, y, z, data & Tile::TILE_NUM_MASK, (data >> Tile::TILE_NUM_SHIFT) & 0xff);
+			break;
+		}
+	case LevelEvent::PARTICLES_ZORO_CRIT_STACK:
+		{
+			// Crit Stacking: a ring of cool blue-white sparks that gets denser as the crit chance builds; a crit adds a bright burst.
+			int chance = data & 0xff;
+			bool proc = (data & 0x100) != 0;
+			int n = 3 + chance / 12;
+			for (int i = 0; i < n; i++)
+			{
+				double ang = (i + random->nextDouble() * 0.5) * 2.0 * PI / n;
+				double px = x + 0.5 + Mth::cos(static_cast<float>(ang)) * 0.7;
+				double pz = z + 0.5 + Mth::sin(static_cast<float>(ang)) * 0.7;
+				double py = y + 0.9 + random->nextDouble() * 0.5;
+				level[playerIndex]->addParticle(eParticleType_magicCrit, px, py, pz, Mth::cos(static_cast<float>(ang)) * -0.05, 0.12, Mth::sin(static_cast<float>(ang)) * -0.05);
+			}
+			if (proc)
+			{
+				for (int i = 0; i < 14; i++)
+				{
+					double ang = random->nextDouble() * 2.0 * PI;
+					level[playerIndex]->addParticle(eParticleType_crit, x + 0.5, y + 1.1, z + 0.5, Mth::cos(static_cast<float>(ang)) * 0.35, 0.15 + random->nextDouble() * 0.2, Mth::sin(static_cast<float>(ang)) * 0.35);
+				}
+			}
+			break;
+		}
+	case LevelEvent::PARTICLES_ZORO_RAGE_STACK:
+		{
+			// Rage Stacking: angry red puffs over the shoulders plus rising embers; more of both as the bonus grows, smoke at the cap.
+			int bonus = data;
+			int n = 2 + bonus / 25;
+			for (int i = 0; i < n; i++)
+			{
+				double ang = random->nextDouble() * 2.0 * PI;
+				double r = 0.35 + random->nextDouble() * 0.3;
+				double px = x + 0.5 + Mth::cos(static_cast<float>(ang)) * r;
+				double pz = z + 0.5 + Mth::sin(static_cast<float>(ang)) * r;
+				if (i % 2 == 0)	level[playerIndex]->addParticle(eParticleType_angryVillager, px, y + 1.9 + random->nextDouble() * 0.3, pz, 0, 0, 0);
+				else			level[playerIndex]->addParticle(eParticleType_flame, px, y + 0.6 + random->nextDouble() * 0.8, pz, 0, 0.05, 0);
+			}
+			if (bonus >= 200)
+			{
+				for (int i = 0; i < 6; i++)
+				{
+					level[playerIndex]->addParticle(eParticleType_smoke, x + 0.5 + (random->nextDouble() - 0.5) * 0.8, y + 1.0 + random->nextDouble(), z + 0.5 + (random->nextDouble() - 0.5) * 0.8, 0, 0.06, 0);
+				}
+			}
+			break;
+		}
+	case LevelEvent::PARTICLES_MACE_SMASH:
+		{
+			// neoLegacy - Mace smash: shockwave rings, flash, sparks and (with Breach) armor scraps, plus dust from the block underfoot.
+			// x,y,z is the block the target was standing on, so the ground surface is y + 1.
+			MaceEffectParticle::spawnSmash(mc->particleEngine, level[playerIndex], x + 0.5, y + 1.0, z + 0.5, data);
+			int groundTile = level[playerIndex]->getTile(x, y, z);
+			if (groundTile > 0 && groundTile < 256)
+			{
+				mc->particleEngine->destroy(x, y, z, groundTile, level[playerIndex]->getData(x, y, z));
+			}
 			break;
 		}
 	case LevelEvent::PARTICLES_MOBTILE_SPAWN:

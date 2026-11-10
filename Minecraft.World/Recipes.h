@@ -96,6 +96,14 @@ public:
 	shared_ptr<ItemInstance> getItemFor(shared_ptr<CraftingContainer> craftSlots, Level *level, Recipy *recipesClass = nullptr); // 4J Added recipesClass param
 	vector <Recipy *> *getRecipies();
 
+	// neoLegacy - Complex Table. Recipes that produce concrete powder live in the
+	// shared list (the recipe-book UI and CraftItemPacket both address recipes by
+	// index into it) but are tagged Complex-Table-only: getItemFor() and the crafting
+	// UI skip them everywhere else, and getComplexItemFor() matches ONLY them.
+	// Tagging is by result item, so it survives loadFromPacket() replacing the list.
+	static bool isComplexOnly(Recipy *r);
+	shared_ptr<ItemInstance> getComplexItemFor(shared_ptr<CraftingContainer> craftSlots, Level *level);
+
 	// 4J-PB - Added all below for new Xbox 'crafting'
 	shared_ptr<ItemInstance> getItemForRecipe(Recipy *r);
 	Recipy::INGREDIENTS_REQUIRED *getRecipeIngredientsArray();

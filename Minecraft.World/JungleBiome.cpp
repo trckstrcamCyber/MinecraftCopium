@@ -6,10 +6,12 @@
 	#include "net.minecraft.world.entity.animal.h"
 	#include "JungleBiome.h"
 	#include "MelonFeature.h"
+	#include "BambooFeature.h"
 
-	JungleBiome::JungleBiome(int id, bool isEdge) : Biome(id)
+	JungleBiome::JungleBiome(int id, bool isEdge, bool isBamboo) : Biome(id)
 	{
 		this->isEdge = isEdge;
+		this->isBamboo = isBamboo;
 
 		if (isEdge)
 		{
@@ -17,7 +19,7 @@
 		}
 		else
 		{
-			decorator->treeCount = 50;
+			decorator->treeCount = isBamboo ? 10 : 50;	// the Bamboo Jungle is mostly bamboo, with only a few trees
 			enemies.push_back(new MobSpawnerData(eTYPE_OCELOT, 2, 1, 1));
 		}
 
@@ -81,6 +83,28 @@
 			MelonFeature *melonFeature = new MelonFeature();
 			melonFeature->place(level, random, x, y, z);
 			delete melonFeature;
+		}
+		PIXEndNamedEvent();
+
+		// neoLegacy - natural bamboo. Bamboo Jungle: dense patches on podzol. Jungle / Jungle Hills: a few scattered stalks.
+		// Jungle Edge (sparse jungle): none.
+		PIXBeginNamedEvent(0, "Adding bamboo");
+		if (isBamboo)
+		{
+			for (int p = 0; p < 6; p++)
+			{
+				int x = xo + random->nextInt(16) + 8;
+				int z = zo + random->nextInt(16) + 8;
+				BambooFeature bamboo(14, 4, true);
+				bamboo.place(level, random, x, 0, z);
+			}
+		}
+		else if (!isEdge && random->nextInt(3) == 0)
+		{
+			int x = xo + random->nextInt(16) + 8;
+			int z = zo + random->nextInt(16) + 8;
+			BambooFeature bamboo(3, 4, false);
+			bamboo.place(level, random, x, 0, z);
 		}
 		PIXEndNamedEvent();
 	}

@@ -2307,6 +2307,9 @@ Can also be used for low-level lighting.</value>
   <data name="IDS_TILE_MONSTER_STONE_EGG">
     <value>Silverfish Block</value>
   </data>
+  <data name="IDS_TILE_CALCITE">
+    <value>Calcite</value>
+  </data>
   <data name="IDS_TILE_STONE_BRICK_SMOOTH">
     <value>Stone Bricks</value>
   </data>

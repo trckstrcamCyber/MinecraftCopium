@@ -26,19 +26,19 @@ DWORD Chunk::tlsIdx = TlsAlloc();
 
 void Chunk::CreateNewThreadStorage()
 {
-	unsigned char *tileIds = new unsigned char[16 * 16 * Level::maxBuildHeight];
+	unsigned short *tileIds = new unsigned short[16 * 16 * Level::maxBuildHeight];	// neoLegacy - 16 bit: tile ids can exceed 255
 	TlsSetValue(tlsIdx, tileIds);
 }
 
 void Chunk::ReleaseThreadStorage()
 {
-	unsigned char *tileIds = static_cast<unsigned char *>(TlsGetValue(tlsIdx));
-	delete tileIds;
+	unsigned short *tileIds = static_cast<unsigned short *>(TlsGetValue(tlsIdx));
+	delete [] tileIds;
 }
 
-unsigned char *Chunk::GetTileIdsStorage()
+unsigned short *Chunk::GetTileIdsStorage()
 {
-	unsigned char *tileIds = static_cast<unsigned char *>(TlsGetValue(tlsIdx));
+	unsigned short *tileIds = static_cast<unsigned short *>(TlsGetValue(tlsIdx));
 	return tileIds;
 }
 #else
@@ -230,12 +230,12 @@ void Chunk::rebuild()
 	// the cache anyway.
 
 #ifdef _LARGE_WORLDS
-	unsigned char *tileIds = GetTileIdsStorage();
+	unsigned short *tileIds = GetTileIdsStorage();
 #else
-	static unsigned char tileIds[16 * 16 * Level::maxBuildHeight];
+	static unsigned short tileIds[16 * 16 * Level::maxBuildHeight];
 #endif
-	byteArray tileArray = byteArray(tileIds, 16 * 16 * Level::maxBuildHeight);
-	level->getChunkAt(x,z)->getBlockData(tileArray);		// 4J - TODO - now our data has been re-arranged, we could just extra the vertical slice of this chunk rather than the whole thing
+	// neoLegacy - 16 bit cache holding the REAL tile ids (the chunk's 8 bit data only has a placeholder for ids >= 256)
+	level->getChunkAt(x,z)->getTileIds16(tileIds);		// 4J - TODO - now our data has been re-arranged, we could just extra the vertical slice of this chunk rather than the whole thing
 
 	LevelSource *region = new Region(level, x0 - r, y0 - r, z0 - r, x1 + r, y1 + r, z1 + r, r);
 	TileRenderer *tileRenderer = new TileRenderer(region, this->x, this->y, this->z, tileIds);
@@ -271,7 +271,7 @@ void Chunk::rebuild()
 					offset = Level::COMPRESSED_CHUNK_SECTION_TILES;
 				}
 
-				unsigned char tileId = tileIds[ offset + ( ( ( xx + 0 ) << 11 ) | ( ( zz + 0 ) << 7 ) | ( indexY + 0 ) ) ];
+				unsigned short tileId = tileIds[ offset + ( ( ( xx + 0 ) << 11 ) | ( ( zz + 0 ) << 7 ) | ( indexY + 0 ) ) ];
 				if( tileId > 0 ) empty = false;
 
 				// Don't bother trying to work out neighbours for this tile if we are at the edge of the chunk - apart from the very
@@ -282,15 +282,15 @@ void Chunk::rebuild()
 
 				// Establish whether this tile and its neighbours are all made of rock, dirt, unbreakable tiles, or have already
 				// been determined to meet this criteria themselves and have a tile of 255 set.
-				if( !( ( tileId == Tile::stone_Id ) || ( tileId == Tile::dirt_Id ) || ( tileId == Tile::bedrock_Id ) || ( tileId == 255) ) ) continue;
+				if( !( ( tileId == Tile::stone_Id ) || ( tileId == Tile::dirt_Id ) || ( tileId == Tile::bedrock_Id ) || ( tileId == 0xffff) ) ) continue;
 				tileId = tileIds[ offset + ( ( ( xx - 1 ) << 11 ) | ( ( zz + 0 ) << 7 ) | ( indexY + 0 )) ];
-				if( !( ( tileId == Tile::stone_Id ) || ( tileId == Tile::dirt_Id ) || ( tileId == Tile::bedrock_Id ) || ( tileId == 255) ) ) continue;
+				if( !( ( tileId == Tile::stone_Id ) || ( tileId == Tile::dirt_Id ) || ( tileId == Tile::bedrock_Id ) || ( tileId == 0xffff) ) ) continue;
 				tileId = tileIds[ offset + ( ( ( xx + 1 ) << 11 ) | ( ( zz + 0 ) << 7 ) | ( indexY + 0 )) ];
-				if( !( ( tileId == Tile::stone_Id ) || ( tileId == Tile::dirt_Id ) || ( tileId == Tile::bedrock_Id ) || ( tileId == 255) ) ) continue;
+				if( !( ( tileId == Tile::stone_Id ) || ( tileId == Tile::dirt_Id ) || ( tileId == Tile::bedrock_Id ) || ( tileId == 0xffff) ) ) continue;
 				tileId = tileIds[ offset + ( ( ( xx + 0 ) << 11 ) | ( ( zz - 1 ) << 7 ) | ( indexY + 0 )) ];
-				if( !( ( tileId == Tile::stone_Id ) || ( tileId == Tile::dirt_Id ) || ( tileId == Tile::bedrock_Id ) || ( tileId == 255) ) ) continue;
+				if( !( ( tileId == Tile::stone_Id ) || ( tileId == Tile::dirt_Id ) || ( tileId == Tile::bedrock_Id ) || ( tileId == 0xffff) ) ) continue;
 				tileId = tileIds[ offset + ( ( ( xx + 0 ) << 11 ) | ( ( zz + 1 ) << 7 ) | ( indexY + 0 )) ];
-				if( !( ( tileId == Tile::stone_Id ) || ( tileId == Tile::dirt_Id ) || ( tileId == Tile::bedrock_Id ) || ( tileId == 255) ) ) continue;
+				if( !( ( tileId == Tile::stone_Id ) || ( tileId == Tile::dirt_Id ) || ( tileId == Tile::bedrock_Id ) || ( tileId == 0xffff) ) ) continue;
 				// Treat the bottom of the world differently - we shouldn't ever be able to look up at this, so consider tiles as invisible
 				// if they are surrounded on sides other than the bottom
 				if( yy > 0 )
@@ -303,7 +303,7 @@ void Chunk::rebuild()
 						yMinusOneOffset = Level::COMPRESSED_CHUNK_SECTION_TILES;
 					}
 					tileId = tileIds[ yMinusOneOffset + ( ( ( xx + 0 ) << 11 ) | ( ( zz + 0 ) << 7 ) | indexYMinusOne ) ];
-					if( !( ( tileId == Tile::stone_Id ) || ( tileId == Tile::dirt_Id ) || ( tileId == Tile::bedrock_Id ) || ( tileId == 255) ) ) continue;
+					if( !( ( tileId == Tile::stone_Id ) || ( tileId == Tile::dirt_Id ) || ( tileId == Tile::bedrock_Id ) || ( tileId == 0xffff) ) ) continue;
 				}
 				int indexYPlusOne = yy + 1;
 				int yPlusOneOffset = 0;
@@ -313,10 +313,10 @@ void Chunk::rebuild()
 					yPlusOneOffset = Level::COMPRESSED_CHUNK_SECTION_TILES;
 				}
 				tileId = tileIds[ yPlusOneOffset + ( ( ( xx + 0 ) << 11 ) | ( ( zz + 0 ) << 7 ) | indexYPlusOne ) ];
-				if( !( ( tileId == Tile::stone_Id ) || ( tileId == Tile::dirt_Id ) || ( tileId == Tile::bedrock_Id ) || ( tileId == 255) ) ) continue;
+				if( !( ( tileId == Tile::stone_Id ) || ( tileId == Tile::dirt_Id ) || ( tileId == Tile::bedrock_Id ) || ( tileId == 0xffff) ) ) continue;
 
 				// This tile is surrounded. Flag it as not requiring to be rendered by setting its id to 255.
-				tileIds[ offset + ( ( ( xx + 0 ) << 11 ) | ( ( zz + 0 ) << 7 ) | ( indexY + 0 ) ) ] = 0xff;
+				tileIds[ offset + ( ( ( xx + 0 ) << 11 ) | ( ( zz + 0 ) << 7 ) | ( indexY + 0 ) ) ] = 0xffff;
 			}
 		}
 	}
@@ -377,9 +377,9 @@ void Chunk::rebuild()
 					}
 
 					// 4J - get tile from those copied into our local array in earlier optimisation
-					unsigned char tileId = tileIds[ offset + ( ( ( x - x0 ) << 11 ) | ( ( z - z0 ) << 7 ) | indexY) ];
+					unsigned short tileId = tileIds[ offset + ( ( ( x - x0 ) << 11 ) | ( ( z - z0 ) << 7 ) | indexY) ];
 					// If flagged as not visible, drop out straight away
-					if( tileId == 0xff ) continue;
+					if( tileId == 0xffff ) continue;
 //					int tileId = region->getTile(x,y,z);
 					if (tileId > 0)
 					{
@@ -423,7 +423,7 @@ void Chunk::rebuild()
 
 						if (renderLayer > currentLayer)
 						{
-							if (currentLayer == 1 && tile == Tile::slimeBlock)
+							if (currentLayer == 1 && (tile == Tile::slimeBlock || (Tile::jellyBlock != nullptr && tile == Tile::jellyBlock)))	// neoLegacy - Jelly Block too
 							{
 								rendered |= tileRenderer->tesselateSlimeInnerInWorld(tile, x, y, z);
 							}

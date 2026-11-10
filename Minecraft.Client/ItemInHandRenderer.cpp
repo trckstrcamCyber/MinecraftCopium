@@ -16,6 +16,10 @@
 #include "../Minecraft.World/BannerItem.h"
 #include "../Minecraft.World/Facing.h"
 #include "../Minecraft.World/net.minecraft.world.item.h"
+#include "../Minecraft.World/WeaponItem.h"
+#include "../Minecraft.World/Mac10Item.h"
+#include "../Minecraft.World/MaceItem.h"
+#include "MaceModel.h"
 #include "../Minecraft.World/net.minecraft.world.level.tile.h"
 #include "../Minecraft.World/net.minecraft.world.entity.h"
 #include "../Minecraft.World/net.minecraft.world.entity.player.h"
@@ -25,6 +29,91 @@
 ResourceLocation ItemInHandRenderer::ENCHANT_GLINT_LOCATION = ResourceLocation(TN__BLUR__MISC_GLINT);
 ResourceLocation ItemInHandRenderer::MAP_BACKGROUND_LOCATION = ResourceLocation(TN_MISC_MAPBG);
 ResourceLocation ItemInHandRenderer::UNDERWATER_LOCATION = ResourceLocation(TN_MISC_WATER);
+
+// ---------------------------------------------------------------------------------------------
+// neoLegacy - Zoro katana animation helpers.
+// Every cut is driven by one value k(p): small pull-back (anticipation), a fast snap through the
+// target (strike), a little overshoot (follow-through), then a slow ease back to the guard (recovery).
+// The pose is applied around the handle, and the blade is rolled about its own axis so the CUTTING
+// EDGE (the bright side of the sprite) leads the motion instead of the spine.
+// The roll angles were solved numerically for each cut direction.
+// ---------------------------------------------------------------------------------------------
+static float gZoroRoll = 0.0f;	// roll (degrees) applied by renderItem() while the first-person swing is drawn
+static const float KATANA_LENGTH = 1.38f;	// blade stretch along its own axis
+static const float KATANA_WIDTH = 1.15f;	// blade stretch across it
+
+static float zoroEaseOutQuad(float t) { return 1.0f - (1.0f - t) * (1.0f - t); }
+static float zoroEaseOutCubic(float t) { float u = 1.0f - t; return 1.0f - u * u * u; }
+static float zoroEaseInOutCubic(float t) { return t < 0.5f ? 4.0f * t * t * t : 1.0f - powf(-2.0f * t + 2.0f, 3.0f) / 2.0f; }
+static float zoroSmoothStep(float a, float b, float x)
+{
+	float t = (x - a) / (b - a);
+	if (t < 0.0f) t = 0.0f; else if (t > 1.0f) t = 1.0f;
+	return t * t * (3.0f - 2.0f * t);
+}
+
+static float zoroSwingCurve(float p, float antic)
+{
+	const float aEnd = 0.10f, sEnd = 0.32f, fEnd = 0.58f;
+	if (p <= 0.0f) return 0.0f;
+	if (p < aEnd) return -antic * zoroEaseOutQuad(p / aEnd);								// anticipation
+	if (p < sEnd) return -antic + (1.0f + antic) * zoroEaseOutCubic((p - aEnd) / (sEnd - aEnd));	// strike
+	if (p < fEnd) return 1.0f + 0.07f * Mth::sin(((p - sEnd) / (fEnd - sEnd)) * PI);			// follow-through
+	if (p < 1.0f) return 1.0f - zoroEaseInOutCubic((p - fEnd) / (1.0f - fEnd));				// recovery
+	return 0.0f;
+}
+
+// applies the first-person pose for one cut and returns the blade roll to use
+static float zoroApplySwingPose(int combo, float p)
+{
+	const float REST = -14.0f;		// the guard leans the blade away from the camera a little so the long tip stays on screen
+	const float px = 0.56f, py = -0.64f, pz = -0.72f;	// handle position in view space
+	float antic, rx, ry = 0, rz = 0, tx = 0, ty = 0, tz = 0, roll;
+	float k;
+
+	if (combo == 0)		// diagonal cut, right to left
+	{
+		antic = 0.25f; roll = -120.0f;
+		k = zoroSwingCurve(p, antic);
+		rx = REST - 22.0f * k; ry = -18.0f * k; rz = 74.0f * k;
+		tx = -0.16f * k; ty = -0.07f * k; tz = -0.08f * k;
+	}
+	else if (combo == 1)	// backhand, left to right
+	{
+		antic = 0.35f; roll = 110.0f;
+		k = zoroSwingCurve(p, antic);
+		rx = REST - 18.0f * k; ry = 16.0f * k; rz = -50.0f * k;
+		tx = 0.12f * k; ty = -0.05f * k; tz = -0.08f * k;
+	}
+	else if (combo == 3)	// sideways slash: the blade levels out, then sweeps right to left at chest height
+	{
+		antic = 0.30f; roll = -110.0f;
+		k = zoroSwingCurve(p, antic);
+		const float s = (k > 0.0f) ? ((k / 0.25f) > 1.0f ? 1.0f : (k / 0.25f)) : 0.0f;	// tilt into the horizontal quickly, then yaw
+		rx = REST + (k > 0.0f ? -95.0f * s : -30.0f * k);
+		ry = 90.0f * k;
+		tx = -0.04f * k; ty = (k > 0.0f ? 0.25f * s : 0.0f) - 0.03f * k; tz = -0.05f * k;
+	}
+	else					// finisher: raise, then chop forward and down
+	{
+		antic = 0.40f; roll = 175.0f;
+		k = zoroSwingCurve(p, antic);
+		rx = REST + (k > 0.0f ? -62.0f * k : -26.0f * k);
+		ty = (k < 0.0f) ? -0.30f * k : -0.20f * k;
+		tz = -0.14f * k;
+	}
+
+	glTranslatef(tx, ty, tz);
+	glTranslatef(px, py, pz);
+	glRotatef(ry, 0, 1, 0);
+	glRotatef(rz, 0, 0, 1);
+	glRotatef(rx, 1, 0, 0);
+	glTranslatef(-px, -py, -pz);
+
+	// wrist roll: eased in quickly, held through the cut, eased out during recovery
+	float env = zoroSmoothStep(0.0f, 0.12f, p) * (1.0f - zoroSmoothStep(0.62f, 1.0f, p));
+	return roll * env;
+}
 
 int ItemInHandRenderer::listItem = -1;
 int ItemInHandRenderer::listTerrain = -1;
@@ -57,9 +146,9 @@ ItemInHandRenderer::ItemInHandRenderer(Minecraft *minecraft, bool optimisedMinim
 			for( int xp = 0; xp < 16; xp++ )
 			{
 				float u = (15-xp) / 256.0f;
-				float v = (15-yp) / 256.0f;
+				float v = (15-yp) / 512.0f;	// neoLegacy - item atlas is 512 tall now (same as terrain)
 				u += 0.5f / 256.0f;
-				v += 0.5f / 256.0f;
+				v += 0.5f / 512.0f;
 				float x0 = xp / 16.0f;
 				float x1 = x0 + 1.0f/16.0f;
 				float y0 = yp / 16.0f;
@@ -341,6 +430,59 @@ void ItemInHandRenderer::renderItem(shared_ptr<LivingEntity> mob, shared_ptr<Ite
         glTranslatef(-15 / 16.0f, -1 / 16.0f, 0);
         float dd = 1 / 16.0f;
 
+		// neoLegacy - Zoro swords are drawn as long katanas: the sprite is stretched along its blade (the
+		// diagonal from the grip) and rolled about the blade axis during a cut so the edge leads.
+		WeaponItem *katana = dynamic_cast<WeaponItem *>(item->getItem());
+		if (katana != nullptr && katana->isZoroSword())
+		{
+			glTranslatef(15 / 16.0f, 1 / 16.0f, 0);
+			glRotatef(135, 0, 0, 1);
+			glRotatef(gZoroRoll, 1, 0, 0);
+			glScalef(KATANA_LENGTH, KATANA_WIDTH, 1.0f);
+			glRotatef(-135, 0, 0, 1);
+			glTranslatef(-15 / 16.0f, -1 / 16.0f, 0);
+		}
+
+		// neoLegacy - Mace: drawn as its 3D Blockbench model instead of the extruded flat sprite (same pose as every other held tool)
+		if (MaceItem::isMace(item))
+		{
+			minecraft->textures->bindTexture(MaceModel::getTextureLocation());
+			MaceModel::draw(false);
+
+			if (item->isFoil() && layer == 0)
+			{
+				glDepthFunc(GL_EQUAL);
+				glDisable(GL_LIGHTING);
+				minecraft->textures->bindTexture(&ENCHANT_GLINT_LOCATION);
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_COLOR, GL_ONE);
+				float brm = 0.76f;
+				glColor4f(0.5f * brm, 0.25f * brm, 0.8f * brm, 1);
+				glMatrixMode(GL_TEXTURE);
+				glPushMatrix();
+				float ssm = 1 / 8.0f;
+				glScalef(ssm, ssm, ssm);
+				float sxm = Minecraft::currentTimeMillis() % (3000) / (3000.0f) * 8;
+				glTranslatef(sxm, 0, 0);
+				glRotatef(-50, 0, 0, 1);
+				MaceModel::draw(true);
+				glPopMatrix();
+				glPushMatrix();
+				glScalef(ssm, ssm, ssm);
+				sxm = System::currentTimeMillis() % (3000 + 1873) / (3000 + 1873.0f) * 8;
+				glTranslatef(-sxm, 0, 0);
+				glRotatef(10, 0, 0, 1);
+				MaceModel::draw(true);
+				glPopMatrix();
+				glMatrixMode(GL_MODELVIEW);
+				glDisable(GL_BLEND);
+				glEnable(GL_LIGHTING);
+				glDepthFunc(GL_LEQUAL);
+			}
+			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		}
+		else
+		{
         renderItem3D(t, u0, v0, u1, v1, icon->getSourceWidth(), icon->getSourceHeight(), 1 / 16.0f, false, bIsTerrain);
 
         if (item != nullptr && item->isFoil() && layer == 0)
@@ -374,6 +516,7 @@ void ItemInHandRenderer::renderItem(shared_ptr<LivingEntity> mob, shared_ptr<Ite
             glEnable(GL_LIGHTING);
             glDepthFunc(GL_LEQUAL);
         }
+		}	// neoLegacy - end of "not a Mace"
 
 		RenderManager.StateSetForceLOD(-1);
 
@@ -414,6 +557,9 @@ void ItemInHandRenderer::renderItem3D(Tesselator *t, float u0, float v0, float u
 
 void ItemInHandRenderer::render(float a)
 {
+	struct ZoroRollReset { ~ZoroRollReset() { gZoroRoll = 0.0f; } } zoroRollReset;	// roll only applies while the first-person item is drawn
+	gZoroRoll = 0.0f;
+
 	float h = oHeight + (height - oHeight) * a;
 	shared_ptr<Player> player = minecraft->player;
 
@@ -487,6 +633,17 @@ void ItemInHandRenderer::render(float a)
 	{
 	    glColor4f(br, br, br, 1);
 	}
+
+    // neoLegacy - MAC-10: animated glTF first-person view model. If the model cannot be loaded this returns false and the flat icon is drawn.
+    if (localPlayer && item != nullptr && Mac10Item::isMac10(item))
+    {
+        if (localPlayer->getMac10().render(minecraft, player, a, h, br, fudgeX, fudgeY))
+        {
+            glDisable(GL_RESCALE_NORMAL);
+            Lighting::turnOff();
+            return;
+        }
+    }
 
     if (item != nullptr && item->id == Item::map->id)
 	{
@@ -624,26 +781,46 @@ void ItemInHandRenderer::render(float a)
         }
 		else
 		{
-			float swing = powf(player->getAttackAnim(a),swingPowFactor);
+			WeaponItem *zoroWeapon = item != nullptr ? dynamic_cast<WeaponItem *>(item->getItem()) : nullptr;
+			const bool zoroSword = zoroWeapon != nullptr && zoroWeapon->isZoroSword();
+			float swing = powf(player->getAttackAnim(a), swingPowFactor);
 
-			float swing1 = Mth::sin(swing * PI);
-			float swing2 = Mth::sin((sqrt(swing)) * PI);
-			glTranslatef(-swing2 * 0.4f, Mth::sin(sqrt(swing) * PI * 2) * 0.2f, -swing1 * 0.2f);
-
+			if (zoroSword)
+			{
+				// neoLegacy - smooth, partial-tick driven katana cut (see zoroApplySwingPose)
+				gZoroRoll = zoroApplySwingPose(player->getZoroSwordComboStep() % Player::ZORO_ATTACK_TYPES, player->getZoroSwordSwingProgress(a));
+			}
+			else
+			{
+				float swing1 = Mth::sin(swing * PI);
+				float swing2 = Mth::sin((sqrt(swing)) * PI);
+				glTranslatef(-swing2 * 0.4f, Mth::sin(sqrt(swing) * PI * 2) * 0.2f, -swing1 * 0.2f);
+			}
 		}
 
-        glTranslatef(0.7f * d, -0.65f * d - (1 - h) * 0.6f, -0.9f * d);
+		glTranslatef(0.7f * d, -0.65f * d - (1 - h) * 0.6f, -0.9f * d);
 		glTranslatef(fudgeX, fudgeY, fudgeZ);	// 4J added
 
-        glRotatef(45, 0, 1, 0);
-        glEnable(GL_RESCALE_NORMAL);
+		glRotatef(45, 0, 1, 0);
+		glEnable(GL_RESCALE_NORMAL);
 
-		float swing = powf(player->getAttackAnim(a),swingPowFactor);
-		float swing3 = Mth::sin(swing * swing * PI);
-		float swing2 = Mth::sin(sqrt(swing) * PI);
-		glRotatef(-swing3 * 20, 0, 1, 0);
-		glRotatef(-swing2 * 20, 0, 0, 1);
-		glRotatef(-swing2 * 80, 1, 0, 0);
+		WeaponItem *zoroWeapon = item != nullptr ? dynamic_cast<WeaponItem *>(item->getItem()) : nullptr;
+		const bool zoroSword = zoroWeapon != nullptr && zoroWeapon->isZoroSword();
+		float swing = powf(player->getAttackAnim(a), swingPowFactor);
+
+		if (zoroSword)
+		{
+			// pose already applied above, around the handle
+		}
+		else
+		{
+			float swing3 = Mth::sin(swing * swing * PI);
+			float swing2 = Mth::sin(sqrt(swing) * PI);
+			glRotatef(-swing3 * 20, 0, 1, 0);
+			glRotatef(-swing2 * 20, 0, 0, 1);
+			glRotatef(-swing2 * 80, 1, 0, 0);
+		}
+
 
         float ss = 0.4f;
         glScalef(ss, ss, ss);
@@ -1019,4 +1196,3 @@ void ItemInHandRenderer::itemUsed()
 {
 	height = 0;
 }
-

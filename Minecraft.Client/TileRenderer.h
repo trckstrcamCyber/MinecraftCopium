@@ -26,6 +26,7 @@ class FlowerPotTile;
 class WallTile;
 class BeaconTile;
 class HopperTile;
+class GrindstoneTile;
 class Icon;
 class Minecraft;
 
@@ -59,7 +60,7 @@ class TileRenderer
 	float getShadeBrightness( Tile *tt, LevelSource *level, int x, int y, int z);
 	bool isTranslucentAt( LevelSource *level, int x, int y, int z);
 	unsigned int *cache;
-	unsigned char *tileIds;
+	unsigned short *tileIds;
 	static const unsigned int cache_getLightColor_valid			= 0x80000000;
 	static const unsigned int cache_isTranslucentAt_valid		= 0x40000000;
 	static const unsigned int cache_isSolidBlockingTile_valid	= 0x20000000;
@@ -71,7 +72,7 @@ class TileRenderer
 	void _init();
 
 public:
-	TileRenderer( LevelSource* level, int xMin, int yMin, int zMin, unsigned char *tileIds );
+	TileRenderer( LevelSource* level, int xMin, int yMin, int zMin, unsigned short *tileIds );
 	TileRenderer( LevelSource* level );
 	TileRenderer();
 	~TileRenderer();
@@ -204,6 +205,10 @@ public:
 	bool tesselateFenceGateInWorld(FenceGateTile *tt, int x, int y, int z);
 	bool tesselateHopperInWorld(Tile *tt, int x, int y, int z);
 	bool tesselateHopperInWorld(Tile *tt, int x, int y, int z, int data, bool render);
+	// GRINDSTONE_RENDERER: exact five-cuboid JSON model renderer.
+	bool tesselateGrindstoneInWorld(GrindstoneTile *tt, int x, int y, int z);
+	bool tesselateBambooInWorld(Tile *tt, int x, int y, int z);	// neoLegacy - Bamboo
+	void renderGrindstoneInventory(GrindstoneTile *tt, int data, float brightness, float alpha);
 	bool tesselateStairsInWorld( StairTile* tt, int x, int y, int z );
 	bool tesselateDoorInWorld( Tile* tt, int x, int y, int z );
 	void renderFaceUp( Tile* tt, double x, double y, double z, Icon *tex );

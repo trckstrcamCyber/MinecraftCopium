@@ -830,6 +830,15 @@
   <data name="IDS_TILE_MONSTER_STONE_EGG">
     <value>Silverfish Block</value>
   </data>
+  <data name="IDS_TILE_CALCITE">
+    <value>Calcite</value>
+  </data>
+    <data name="IDS_TILE_CALCITE_STAIRS">
+      <value>Calcite Stairs</value>
+  </data>
+    <data name="IDS_TILE_CALCITE_WALL">
+      <value>Calcite Wall</value>
+    </data>
   <data name="IDS_TILE_STONE_BRICK_SMOOTH">
     <value>Stone Bricks</value>
   </data>

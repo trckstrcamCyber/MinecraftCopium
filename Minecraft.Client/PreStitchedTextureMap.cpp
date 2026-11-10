@@ -118,6 +118,19 @@ void PreStitchedTextureMap::stitch()
 	//BufferedImage *image = new BufferedImage(texturePack->getResource(L"/" + filename),false,true,drive); //ImageIO::read(texturePack->getResource(L"/" + filename));
 	BufferedImage *image = texturePack->getImageResource(filename, false, true, drive);
 	MemSect(0);
+
+	// neoLegacy - the item icon table above assumes 32 rows. A texture pack that still ships a square
+	// 256x256 items.png would be sampled at half scale, so pad it with transparent rows first.
+	if (iconType == Icon::TYPE_ITEM && image->getHeight() == image->getWidth())
+	{
+		BufferedImage *padded = new BufferedImage(image->getWidth(), image->getHeight() * 2, BufferedImage::TYPE_INT_ARGB);
+		const size_t texels = static_cast<size_t>(image->getWidth()) * image->getHeight();
+		memset(padded->getData(), 0, texels * 2 * sizeof(int));
+		memcpy(padded->getData(), image->getData(), texels * sizeof(int));
+		delete image;
+		image = padded;
+	}
+
 	int height = image->getHeight();
 	int width = image->getWidth();
 
@@ -338,7 +351,10 @@ void PreStitchedTextureMap::loadUVs()
 	if(iconType != Icon::TYPE_TERRAIN)
 	{
 		float horizRatio = 1.0f/16.0f;
-		float vertRatio = 1.0f/16.0f;
+		// neoLegacy - the item atlas is now 16 columns x 32 rows (256x512), the same shape as terrain.png.
+		// Rows 0-15 are unchanged; rows 16-31 are new space. stitch() pads old 256x256 atlases (texture
+		// packs) with transparent rows so they still line up.
+		float vertRatio = 1.0f/32.0f;
 
 		ADD_ICON(0,		0,	L"helmetCloth")
 		ADD_ICON(0,		1,	L"helmetChain")
@@ -413,6 +429,18 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(4,		2,	L"swordIron")
 		ADD_ICON(4,		3,	L"swordDiamond")
 		ADD_ICON(4,		4,	L"swordGold")
+		// neoLegacy - Zoro swords live in the new rows (16+) of the extended item atlas
+		ADD_ICON(16,	0,	L"swordWadoIchimonji")
+		ADD_ICON(16,	1,	L"swordSandaiKitetsu")
+		ADD_ICON(16,	2,	L"swordEmma")
+		ADD_ICON(16,	3,	L"swordWadoShusui")
+		ADD_ICON(16,	4,	L"cursedHilt")
+		// neoLegacy - wooden sign item icons
+		ADD_ICON(16,	5,	L"signSpruce")
+		ADD_ICON(16,	6,	L"signBirch")
+		ADD_ICON(16,	7,	L"signJungle")
+		ADD_ICON(16,	8,	L"signAcacia")
+		ADD_ICON(16,	9,	L"signDark")
 		ADD_ICON(4,		5,	L"fishing_rod_uncast")
 		ADD_ICON(4,		6,	L"clock")
 		ADD_ICON(4,		7,	L"bowl")
@@ -485,6 +513,12 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(8,		6,	L"poisonous_potato")
 		ADD_ICON(8,		7,	L"minecart")
 		ADD_ICON(8,		8,	L"boat")
+		// neoLegacy - wooden boat variants (art was already in the atlas, it just was never registered)
+		ADD_ICON(13,	8,	L"boatAcacia")
+		ADD_ICON(13,	9,	L"boatBirch")
+		ADD_ICON(13,	10,	L"boatDark")
+		ADD_ICON(13,	11,	L"boatJungle")
+		ADD_ICON(13,	12,	L"boatSpruce")
 		ADD_ICON(8,		9,	L"speckled_melon")
 		ADD_ICON(8,		10,	L"fermented_spider_eye")
 		ADD_ICON(8,		11,	L"spider_eye")
@@ -605,6 +639,60 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(15,		9,	L"record_ward")
 		ADD_ICON(15,		10,	L"record_11")
 		ADD_ICON(15,		11,	L"record_where are we now")
+
+		// Arcade cabinet inventory icons live in the item atlas as well as terrain.png.
+		ADD_ICON(30,	5,	L"game_front_off")
+		ADD_ICON(30,	6,	L"gameMS_front_on")
+		ADD_ICON(30,	7,	L"gameFC_front_on")
+		ADD_ICON(30,	8,	L"gameCM_front_on")
+
+		// neoLegacy - Bamboo items
+		ADD_ICON(16, 10, L"bamboo");
+		ADD_ICON(16, 11, L"bamboo_door");
+		ADD_ICON(16, 12, L"bamboo_sign");
+		ADD_ICON(16, 13, L"bamboo_raft");
+
+		// neoLegacy - MAC-10 and its 9mm ammunition. These are ITEMS, so they belong in the item atlas (items.png row 31).
+		// They used to be registered in the terrain branch below, so the item map could not find them -> startup crash.
+		ADD_ICON(31, 3, L"mac10");
+		ADD_ICON(31, 4, L"9mm_bullet");
+		// neoLegacy - M16, 5.56 rounds, Flintlock Pistol variants (items.png row 31, cols 5-9)
+		ADD_ICON(31, 5, L"m16");
+		ADD_ICON(31, 6, L"flintlock_copper");
+		ADD_ICON(31, 7, L"flintlock_iron");
+		ADD_ICON(31, 8, L"flintlock_gold");
+		ADD_ICON(31, 9, L"556_bullet");
+		// neoLegacy - Enchantment Encyclopedia (items.png row 31, col 10)
+		ADD_ICON(31, 10, L"enchantment_encyclopedia");
+		// neoLegacy - Mace and Jelly Ball (items.png row 31, cols 11-12)
+		ADD_ICON(31, 11, L"mace");
+		ADD_ICON(31, 12, L"jelly_ball");
+		ADD_ICON(31, 13, L"ice_ball");
+		ADD_ICON(31, 14, L"ice_wand");
+		ADD_ICON(31, 15, L"crossbow_standby");
+		ADD_ICON(30, 9, L"crossbow_arrow");
+		ADD_ICON(30, 10, L"crossbow_pulling_0");
+		ADD_ICON(30, 11, L"crossbow_pulling_1");
+		ADD_ICON(30, 12, L"crossbow_pulling_2");
+		ADD_ICON(30, 13, L"crossbow_firework");	// reserved for firework-loaded crossbows
+		// neoLegacy - Fancy Beds item icons (one item id, aux = variant): items.png row 28 cols 0-15 (colors), row 29 col 0 (straw)
+		ADD_ICON(28, 0, L"bed_white");
+		ADD_ICON(28, 1, L"bed_orange");
+		ADD_ICON(28, 2, L"bed_magenta");
+		ADD_ICON(28, 3, L"bed_light_blue");
+		ADD_ICON(28, 4, L"bed_yellow");
+		ADD_ICON(28, 5, L"bed_lime");
+		ADD_ICON(28, 6, L"bed_pink");
+		ADD_ICON(28, 7, L"bed_gray");
+		ADD_ICON(28, 8, L"bed_light_gray");
+		ADD_ICON(28, 9, L"bed_cyan");
+		ADD_ICON(28, 10, L"bed_purple");
+		ADD_ICON(28, 11, L"bed_blue");
+		ADD_ICON(28, 12, L"bed_brown");
+		ADD_ICON(28, 13, L"bed_green");
+		ADD_ICON(28, 14, L"bed_red");
+		ADD_ICON(28, 15, L"bed_black");
+		ADD_ICON(29, 0, L"bed_straw");
 
 		// Special cases
 		ClockTexture *dataClock = new ClockTexture();
@@ -745,7 +833,7 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(4,		0,	L"wool_colored_white");
 		ADD_ICON(4,		1,	L"mob_spawner");
 		ADD_ICON(4,		2,	L"snow");
-		ADD_ICON(4,		3,	L"ice");
+		ADD_ICON(4,		3,	L"ice");// no image add them
 		ADD_ICON(4,		4,	L"snow_side");
 		ADD_ICON(4,		5,	L"cactus_top");
 		ADD_ICON(4,		6,	L"cactus_side");
@@ -1064,6 +1152,17 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(23, 12, L"packed_ice");
 		ADD_ICON(23, 14, L"inverted_daylight_detector");
 		ADD_ICON(23, 15, L"iron_trapdoor");
+		// neoLegacy - trapdoors for the other wood types (free cells in the last terrain rows)
+		ADD_ICON(30, 0, L"spruce_trapdoor");
+		ADD_ICON(30, 1, L"birch_trapdoor");
+		ADD_ICON(30, 2, L"jungle_trapdoor");
+		ADD_ICON(30, 3, L"acacia_trapdoor");
+		ADD_ICON(30, 4, L"dark_oak_trapdoor");
+        // neoLegacy Arcade Machines: row 30 columns 5-8 are free in the 32-row atlas.
+        ADD_ICON(30, 5, L"game_front_off");
+        ADD_ICON(30, 6, L"gameMS_front_on");
+        ADD_ICON(30, 7, L"gameFC_front_on");
+        ADD_ICON(30, 8, L"gameCM_front_on");
 
 		ADD_ICON(24, 0, L"acacia_door_lower");
 		ADD_ICON(24, 1, L"birch_door_lower");
@@ -1105,6 +1204,92 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(20, 6, L"tallgrass2_sunflower_upper");
 		ADD_ICON(21, 7, L"tallgrass2_sunflower_head_front"); // dont ask me why these are flipped
 		ADD_ICON(20, 7, L"tallgrass2_sunflower_head_back"); // probably something to do with my slop code - Fireblade
+	    ADD_ICON(26, 4, L"calcite");
+	    ADD_ICON(26, 5, L"blackstone");
+	    ADD_ICON(26, 6, L"gilded_blackstone");
+	    ADD_ICON(26, 7, L"polished_blackstone");
+	    ADD_ICON(26, 8, L"polished_blackstone_bricks");
+	    ADD_ICON(26, 9, L"chiseled_polished_blackstone");
+	    ADD_ICON(26, 10, L"cracked_polished_blackstone_bricks");
+
+	    ADD_ICON(27, 0,  L"lucky_block");
+	    ADD_ICON(27, 1,  L"grindstone_pivot");
+	    ADD_ICON(27, 2,  L"grindstone_side");
+	    ADD_ICON(27, 3,  L"grindstone_round");
+	    ADD_ICON(21, 8, L"dark_oak_log");
+	    ADD_ICON(27, 4,  L"observer_top");
+	    ADD_ICON(27, 5,  L"observer_side");
+	    ADD_ICON(27, 6,  L"observer_front");
+	    ADD_ICON(27, 7,  L"observer_back");
+	    ADD_ICON(27, 8,  L"observer_back_on");
+	    ADD_ICON(27, 9,  L"drill_face");
+	    ADD_ICON(27, 10, L"crusher_top");
+	    ADD_ICON(27, 11, L"crusher_bottom");
+
+	    ADD_ICON(28, 0,  L"concrete_white");
+	    ADD_ICON(28, 1,  L"concrete_yellow");
+	    ADD_ICON(28, 2,  L"concrete_red");
+	    ADD_ICON(28, 3,  L"concrete_purple");
+	    ADD_ICON(28, 4,  L"concrete_pink");
+	    ADD_ICON(28, 5,  L"concrete_orange");
+	    ADD_ICON(28, 6,  L"concrete_magenta");
+	    ADD_ICON(28, 7,  L"concrete_lime");
+	    ADD_ICON(28, 8,  L"concrete_green");
+	    ADD_ICON(28, 9,  L"concrete_gray");
+	    ADD_ICON(28, 10,  L"concrete_cyan");
+	    ADD_ICON(28, 11,  L"concrete_brown");
+	    ADD_ICON(28, 12,  L"concrete_blue");
+	    ADD_ICON(28, 13,  L"concrete_black");
+	    ADD_ICON(28, 14,  L"concrete_light_blue");
+	    ADD_ICON(28, 15,  L"concrete_silver");
+
+	    ADD_ICON(29, 0,  L"concrete_powder_white");
+	    ADD_ICON(29, 1,  L"concrete_powder_yellow");
+	    ADD_ICON(29, 2,  L"concrete_powder_red");
+	    ADD_ICON(29, 3,  L"concrete_powder_purple");
+	    ADD_ICON(29, 4,  L"concrete_powder_pink");
+	    ADD_ICON(29, 5,  L"concrete_powder_orange");
+	    ADD_ICON(29, 6,  L"concrete_powder_magenta");
+	    ADD_ICON(29, 7,  L"concrete_powder_lime");
+	    ADD_ICON(29, 8,  L"concrete_powder_green");
+	    ADD_ICON(29, 9,  L"concrete_powder_gray");
+	    ADD_ICON(29, 10,  L"concrete_powder_cyan");
+	    ADD_ICON(29, 11,  L"concrete_powder_brown");
+	    ADD_ICON(29, 12,  L"concrete_powder_blue");
+	    ADD_ICON(29, 13,  L"concrete_powder_black");
+	    ADD_ICON(29, 14,  L"concrete_powder_light_blue");
+	    ADD_ICON(29, 15,  L"concrete_powder_silver");
+
+		// neoLegacy - Bamboo (textures from Bamboo.zip; the stripped_* ones were generated from the block/planks art)
+		ADD_ICON(27, 12, L"bamboo_block");
+		ADD_ICON(27, 13, L"bamboo_block_top");
+		ADD_ICON(27, 14, L"stripped_bamboo_block");
+		ADD_ICON(27, 15, L"stripped_bamboo_block_top");
+		ADD_ICON(30, 9,  L"planks_bamboo");
+		ADD_ICON(30, 10, L"planks_mosaic");
+		ADD_ICON(30, 11, L"bamboo_stalk");
+		ADD_ICON(30, 12, L"bamboo_small_leaves");
+		ADD_ICON(30, 13, L"bamboo_large_leaves");
+		ADD_ICON(30, 14, L"bamboo_singleleaf");
+		ADD_ICON(30, 15, L"bamboo_stage0");
+		ADD_ICON(31, 0,  L"bamboo_trapdoor");
+		ADD_ICON(31, 1,  L"bamboo_door_upper");
+		ADD_ICON(31, 2,  L"bamboo_door_lower");
+		// neoLegacy - stripped logs (terrain.png row 31, cols 3-14). Side texture first, then the end-grain "_top" texture.
+		ADD_ICON(31, 3,  L"stripped_oak_log");
+		ADD_ICON(31, 4,  L"stripped_oak_log_top");
+		ADD_ICON(31, 5,  L"stripped_spruce_log");
+		ADD_ICON(31, 6,  L"stripped_spruce_log_top");
+		ADD_ICON(31, 7,  L"stripped_birch_log");
+		ADD_ICON(31, 8,  L"stripped_birch_log_top");
+		ADD_ICON(31, 9,  L"stripped_jungle_log");
+		ADD_ICON(31, 10, L"stripped_jungle_log_top");
+		ADD_ICON(31, 11, L"stripped_acacia_log");
+		ADD_ICON(31, 12, L"stripped_acacia_log_top");
+		ADD_ICON(31, 13, L"stripped_dark_oak_log");
+		ADD_ICON(31, 14, L"stripped_dark_oak_log_top");
+		// neoLegacy - Jelly Block (terrain.png row 31, col 15)
+		ADD_ICON(31, 15, L"jelly_block");
 
 	}
 }

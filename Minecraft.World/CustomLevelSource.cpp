@@ -644,7 +644,25 @@ TilePos *CustomLevelSource::findNearestMapFeature(Level *level, const wstring& f
 #ifdef _OVERRIDE_HEIGHTMAP
 	if (LargeFeature::STRONGHOLD == featureName && strongholdFeature != nullptr)
 	{
-		return strongholdFeature->getNearestGeneratedFeature(level, x, y, z);
+		return strongholdFeature->searchForGeneratedFeature(level, x, y, z, LargeFeature::LOCATE_SEARCH_RADIUS_CHUNKS);
+	}
+	// neoLegacy - /locate village support
+	if (LargeFeature::VILLAGE == featureName && villageFeature != nullptr)
+	{
+		return villageFeature->searchForGeneratedFeature(level, x, y, z, LargeFeature::LOCATE_SEARCH_RADIUS_CHUNKS);
+	}
+	// neoLegacy - /locate: extra structure types, same as RandomLevelSource
+	if (LargeFeature::MINESHAFT == featureName && mineShaftFeature != nullptr)
+	{
+		return mineShaftFeature->searchForGeneratedFeature(level, x, y, z, LargeFeature::LOCATE_SEARCH_RADIUS_CHUNKS);
+	}
+	if (LargeFeature::MONUMENT == featureName && oceanMonument != nullptr)
+	{
+		return oceanMonument->searchForGeneratedFeature(level, x, y, z, LargeFeature::LOCATE_SEARCH_RADIUS_CHUNKS);
+	}
+	if (LargeFeature::TEMPLE == featureName && scatteredFeature != nullptr)
+	{
+		return scatteredFeature->searchForGeneratedFeature(level, x, y, z, LargeFeature::LOCATE_SEARCH_RADIUS_CHUNKS);
 	}
 #endif
 	return nullptr;

@@ -18,6 +18,7 @@
 #include "EntityPos.h"
 #include "Entity.h"
 #include "SoundTypes.h"
+#include "JellyBlockTile.h"	// neoLegacy - Jelly Block
 #include "../Minecraft.Client/HumanoidModel.h"
 #include "../Minecraft.Client/MinecraftServer.h"
 #include "../Minecraft.Client/MultiPlayerLevel.h"
@@ -655,14 +656,27 @@ int Entity::getPortalWaitTime()
 
 void Entity::lavaHurt()
 {
-	if (fireImmune)
+	// neoLegacy Added - Lava Walker makes the wearer immune to lava damage.
+	// Entity::lavaHurt is shared by all entities, so only living entities with
+	// the enchantment are affected.
+	bool lavaWalkerImmune = false;
+	if (instanceof(eTYPE_LIVINGENTITY))
 	{
+		shared_ptr<LivingEntity> living = dynamic_pointer_cast<LivingEntity>(shared_from_this());
+		if (living != nullptr)
+		{
+			lavaWalkerImmune = EnchantmentHelper::getEnchantmentLevel(
+				Enchantment::lavaWalker->id, living->getEquipmentSlots()) > 0;
+		}
 	}
-	else
+
+	if (fireImmune || lavaWalkerImmune)
 	{
-		hurt(DamageSource::lava, 4);
-		setOnFire(15);
+		return;
 	}
+
+	hurt(DamageSource::lava, 4);
+	setOnFire(15);
 }
 
 void Entity::setOnFire(int numberOfSeconds)
@@ -716,6 +730,19 @@ void Entity::move(double xa, double ya, double za, bool noEntityCubes)   // 4J -
 	}
 
 	auto self = shared_from_this();
+
+	// CAM - Climb enchantment: allow stepping up ledges without jumping.
+	// Keep this temporary so normal entities retain their original footSize.
+	// neoLegacy Added - footSize now scales with enchant level (see ClimbEnchantment::getFootSizeBonus).
+	float originalFootSize = footSize;
+	if (Enchantment::climb != nullptr)
+	{
+		int climbLevel = EnchantmentHelper::getEnchantmentLevel(Enchantment::climb->id, getEquipmentSlots());
+		if (climbLevel > 0)
+		{
+			footSize = ClimbEnchantment::getFootSizeBonus(climbLevel);
+		}
+	}
 
 	ySlideOffset *= 0.4f;
 
@@ -913,6 +940,12 @@ void Entity::move(double xa, double ya, double za, bool noEntityCubes)   // 4J -
 		}
 	}
 	if (zaOrg != za) zd = 0;
+
+	// neoLegacy - Jelly Block: standing on one slows horizontal movement to 40%
+	JellyBlockTile::applyStandingSlowdown(level, this);
+
+	// CAM - restore the entity's normal step height after movement.
+	footSize = originalFootSize;
 
 	double xm = x - xo;
 	double ym = y - yo;
@@ -1313,6 +1346,12 @@ void Entity::push(shared_ptr<Entity> e)
 {
 	if (e->rider.lock().get() == this || e->riding.get() == this) return;
 
+	// neoLegacy - multi-seat mounts (Camel). Entity only remembers ONE rider (the weak "rider" pointer holds
+	// whichever player mounted last), so the other rider used to slip past the check above and shove the
+	// camel every tick: the driver sits in front of the camel's centre, so the camel was pushed straight
+	// backwards. Never push between a mount and anything riding it, or between two riders of one mount.
+	if (riding != nullptr && (riding == e || riding == e->riding)) return;
+
 	double xa = e->x - x;
 	double za = e->z - z;
 
@@ -1616,6 +1655,9 @@ bool Entity::isInWall()
 		int zt = Mth::floor(z + zo);
 		if (level->isSolidBlockingTile(xt, yt, zt))
 		{
+			// neoLegacy - a Jelly Block is a squishy 14-pixel collision box inside a full cell, so standing against one puts you in the
+			// cell's outer pixel: that must never count as being stuck in a wall
+			if (Tile::jellyBlock != nullptr && level->getTile(xt, yt, zt) == Tile::jellyBlock->id) continue;
 			return true;
 		}
 	}
@@ -1673,7 +1715,7 @@ void Entity::rideTick()
 	//      because I can't figure out what it's needed for. Riding boats and minecarts seem unaffected...
 	// 
 	// 3UR: re-enabled this for TU20 but only for rideable minecarts
-	if (riding->instanceof(eTYPE_MINECART_RIDEABLE))
+	if (riding->instanceof(eTYPE_MINECART_RIDEABLE) || riding->instanceof(eTYPE_MINECART_DIAMOND))
 	{
 		yRot += yra;
 		xRot += xra;

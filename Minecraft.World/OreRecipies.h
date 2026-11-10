@@ -1,6 +1,6 @@
 #pragma once
 
-#define MAX_ORE_RECIPES 9
+#define MAX_ORE_RECIPES 8	// neoLegacy - the Slime Block is no longer a 3x3 storage recipe (see OreRecipies::addRecipes)
 
 class OreRecipies 
 {

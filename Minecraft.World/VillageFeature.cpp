@@ -14,6 +14,30 @@ void VillageFeature::staticCtor()
 {
 	allowedBiomes.push_back( Biome::plains );
 	allowedBiomes.push_back( Biome::desert );
+	allowedBiomes.push_back( Biome::desertHills );
+
+	// Savanna villages (acacia wood, see VillagePiece::biomeBlock)
+	allowedBiomes.push_back( Biome::savanna );
+	allowedBiomes.push_back( Biome::savannaPlateau );
+	allowedBiomes.push_back( Biome::savannaM );
+	allowedBiomes.push_back( Biome::savannaPlateauM );
+
+	// Taiga villages (spruce wood)
+	allowedBiomes.push_back( Biome::taiga );
+	allowedBiomes.push_back( Biome::taigaHills );
+	allowedBiomes.push_back( Biome::taigaM );
+	allowedBiomes.push_back( Biome::megaTaiga );
+	allowedBiomes.push_back( Biome::megaTaigaHills );
+	allowedBiomes.push_back( Biome::redwoodTaiga );
+	allowedBiomes.push_back( Biome::redwoodTaigaHills );
+
+	// Snowy villages (spruce wood + stone brick, see VillagePiece::biomeBlock)
+	allowedBiomes.push_back( Biome::iceFlats );
+	allowedBiomes.push_back( Biome::iceMountains );
+	allowedBiomes.push_back( Biome::iceSpikes );
+	allowedBiomes.push_back( Biome::coldTaiga );
+	allowedBiomes.push_back( Biome::coldTaigaHills );
+	allowedBiomes.push_back( Biome::coldTaigaM );
 }
 
 void VillageFeature::_init(int iXZSize)

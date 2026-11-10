@@ -180,7 +180,12 @@ LevelChunk *MultiPlayerChunkCache::create(int x, int z)
 		if( g_NetworkManager.IsHost() )		// force here to disable sharing of data
 		{
 			// 4J-JEV: We are about to use shared data, abort if the server is stopped and the data is deleted.
-			if (MinecraftServer::getInstance()->serverHalted()) return nullptr;
+			if (MinecraftServer::getInstance()->serverHalted())
+			{
+				// neoLegacy - this used to return while still holding m_csLoadCreate, so every later create() would block forever
+				LeaveCriticalSection(&m_csLoadCreate);
+				return nullptr;
+			}
 
 			// If we're the host, then don't create the chunk, share data from the server's copy
 #ifdef _LARGE_WORLDS
@@ -188,7 +193,17 @@ LevelChunk *MultiPlayerChunkCache::create(int x, int z)
 #else
 			LevelChunk *serverChunk = MinecraftServer::getInstance()->getLevel(level->dimension->id)->cache->getChunk(x,z);
 #endif
-			chunk = new LevelChunk(level, x, z, serverChunk);
+			if (serverChunk != nullptr)
+			{
+				chunk = new LevelChunk(level, x, z, serverChunk);
+			}
+			else
+			{
+				// neoLegacy - no server chunk to share from (server level going away): build an empty client chunk like a remote client does
+				byteArray emptyBytes;
+				chunk = new LevelChunk(level, emptyBytes, x, z);
+				chunk->setSkyLightDataAllBright();
+			}
 			// Let renderer know that this chunk has been created - it might have made render data from the EmptyChunk if it got to a chunk before the server sent it
 			level->setTilesDirty( x * 16 , 0 , z * 16 , x * 16 + 15, 127, z * 16 + 15);
 			hasData[idx] = true;

@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "CrossbowHold.h"
 #include "HumanoidMobRenderer.h"
 #include "SkullTileRenderer.h"
 #include "HumanoidModel.h"
@@ -197,7 +198,7 @@ void HumanoidMobRenderer::additionalRendering(shared_ptr<LivingEntity> mob, floa
 			glPushMatrix();
 			humanoidModel->head->translateTo(1 / 16.0f);
 
-			if (headGear->getItem()->id < 256)
+			if (Tile::isTileItemId(headGear->getItem()->id))
 			{
 				if (Tile::tiles[headGear->id] != nullptr && TileRenderer::canRender(Tile::tiles[headGear->id]->getRenderShape()))
 				{
@@ -241,7 +242,7 @@ void HumanoidMobRenderer::additionalRendering(shared_ptr<LivingEntity> mob, floa
 		humanoidModel->arm0->translateTo(1 / 16.0f);
 		glTranslatef(-1 / 16.0f, 7 / 16.0f, 1 / 16.0f);
 
-		if (item->id < 256 && TileRenderer::canRender(Tile::tiles[item->id]->getRenderShape()) && item->id != Tile::barrier_Id)
+		if (Tile::isTileItemId(item->id) && TileRenderer::canRender(Tile::tiles[item->id]->getRenderShape()) && item->id != Tile::barrier_Id)
 		{
 			float s = 8 / 16.0f;
 			glTranslatef(-0 / 16.0f, 3 / 16.0f, -5 / 16.0f);
@@ -258,6 +259,16 @@ void HumanoidMobRenderer::additionalRendering(shared_ptr<LivingEntity> mob, floa
 			glScalef(s, -s, s);
 			glRotatef(-100, 1, 0, 0);
 			glRotatef(45, 0, 1, 0);
+		}
+		else if (item->id == Item::crossbow_Id || item->id == Item::crossbow_loaded_Id)
+		{
+			// neoLegacy - a crossbow is held on its side with the muzzle pointing forward, not like a sword
+			float s = 10 / 16.0f;
+			glTranslatef(0, 3 / 16.0f, 0);
+			glScalef(s, -s, s);
+			glRotatef(-100, 1, 0, 0);
+			glRotatef(45, 0, 1, 0);
+			glRotatef(CROSSBOW_ROLL_DEGREES, 1, 1, 0);		// roll about its own long axis, see CrossbowHold.h
 		}
 		else if (Item::items[item->id]->isHandEquipped())
 		{

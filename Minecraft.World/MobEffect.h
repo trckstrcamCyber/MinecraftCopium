@@ -64,6 +64,7 @@ public:
 	static MobEffect *healthBoost;
 	static MobEffect *absorption;
 	static MobEffect *saturation;
+	static MobEffect *freezing;	// neoLegacy - id 24: Frostbite hits, see LivingEntity::updateFreezing
 	static MobEffect *reserved_24;
 	static MobEffect *reserved_25;
 	static MobEffect *reserved_26;

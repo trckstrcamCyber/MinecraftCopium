@@ -83,6 +83,14 @@ public:
     static int getWaterWalker(shared_ptr<LivingEntity> source);
 	static int getFrostWalker(shared_ptr<LivingEntity> source);
 	static int getArmorThorns(shared_ptr<LivingEntity> source);
+
+	// neoLegacy custom enchantment helpers
+	static int getAdrenalineLevel(shared_ptr<LivingEntity> source);
+	static int getBerserkLevel(shared_ptr<LivingEntity> source);
+	static int getSonicLevel(shared_ptr<LivingEntity> source);
+	static int getLifestealLevel(shared_ptr<LivingEntity> source);
+	static int getVeinminerLevel(shared_ptr<ItemInstance> heldItem);
+	static bool hasAutoSmelt(shared_ptr<LivingEntity> source);
 	static shared_ptr<ItemInstance> getMendingItem(shared_ptr<LivingEntity> source);
 	static shared_ptr<ItemInstance> getRandomItemWith(Enchantment *enchantment, shared_ptr<LivingEntity> source);
 

@@ -227,15 +227,28 @@ void PistonExtensionTile::updateShape(LevelSource *level, int x, int y, int z, i
 
 void PistonExtensionTile::neighborChanged(Level *level, int x, int y, int z, int type)
 {
-	int facing = getFacing(level->getData(x, y, z));
-	int tile = level->getTile(x - Facing::STEP_X[facing], y - Facing::STEP_Y[facing], z - Facing::STEP_Z[facing]);
-	if (tile != Tile::piston_Id && tile != Tile::sticky_piston_Id)
+	// neoLegacy - Java PistonHeadBlock.canSurvive(): the head stays while its base is a matching EXTENDED piston, OR while the
+	// base position is a moving piece with the same facing (the base is mid-retract). Anything else and the head breaks.
+	int data = level->getData(x, y, z);
+	int facing = getFacing(data);
+	int bx = x - Facing::STEP_X[facing];
+	int by = y - Facing::STEP_Y[facing];
+	int bz = z - Facing::STEP_Z[facing];
+	int tile = level->getTile(bx, by, bz);
+	bool sticky = (data & STICKY_BIT) != 0;
+
+	bool fittingBase = (tile == (sticky ? Tile::sticky_piston_Id : Tile::piston_Id))
+		&& PistonBaseTile::isExtended(level->getData(bx, by, bz))
+		&& PistonBaseTile::getFacing(level->getData(bx, by, bz)) == facing;
+	bool movingBase = tile == Tile::piston_extension_Id && (level->getData(bx, by, bz) & 7) == facing;
+
+	if (!fittingBase && !movingBase)
 	{
 		level->removeTile(x, y, z);
 	}
-	else
+	else if (tile == Tile::piston_Id || tile == Tile::sticky_piston_Id)
 	{
-		Tile::tiles[tile]->neighborChanged(level, x - Facing::STEP_X[facing], y - Facing::STEP_Y[facing], z - Facing::STEP_Z[facing], type);
+		Tile::tiles[tile]->neighborChanged(level, bx, by, bz, type);	// Java forwards neighborChanged to the base
 	}
 }
 

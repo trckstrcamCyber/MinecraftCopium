@@ -6,6 +6,13 @@
 #include "net.minecraft.world.item.enchantment.h"
 #include "AnvilMenu.h"
 
+// neoLegacy - anvil cost tuning. The goal is that a tool can be taken to every compatible enchantment at max level without
+// any single step becoming unaffordable.
+//  - ANVIL_MAX_PENALTY: each anvil use adds 1 to an item's stored repair cost, never past this value
+//  - ANVIL_MAX_COST:    hard ceiling on the XP levels one anvil operation can ask for (an enchanting table already gets a player to 30)
+static const int ANVIL_MAX_PENALTY = 5;
+static const int ANVIL_MAX_COST = 30;
+
 AnvilMenu::AnvilMenu(shared_ptr<Inventory> inventory, Level *level, int xt, int yt, int zt, shared_ptr<Player> player)
 {
 	resultSlots = std::make_shared<ResultContainer>();
@@ -68,10 +75,15 @@ void AnvilMenu::createResult()
 		unordered_map<int,int> *enchantments = EnchantmentHelper::getEnchantments(result);
 		bool usingBook = false;
 
-		tax += input->getBaseRepairCost() + (addition == nullptr ? 0 : addition->getBaseRepairCost());
+		// neoLegacy - the two items' repair penalties used to be added together; now only the larger one counts, and it is capped
+		{
+			int inputPenalty = std::min<int>(input->getBaseRepairCost(), ANVIL_MAX_PENALTY);
+			int additionPenalty = (addition == nullptr) ? 0 : std::min<int>(addition->getBaseRepairCost(), ANVIL_MAX_PENALTY);
+			tax += std::max<int>(inputPenalty, additionPenalty);
+		}
 		if (DEBUG_COST)
 		{
-			app.DebugPrintf("Starting with base repair tax of %d (%d + %d)\n", tax, input->getBaseRepairCost(), (addition == nullptr ? 0 : addition->getBaseRepairCost()));
+			app.DebugPrintf("Starting with base repair tax of %d\n", tax);
 		}
 
 		repairItemCountCost = 0;
@@ -96,7 +108,7 @@ void AnvilMenu::createResult()
 					{
 						int resultDamage = result->getDamageValue() - repairAmount;
 						result->setAuxValue(resultDamage);
-						price += max(1, repairAmount / 100) + enchantments->size();
+						price += max(1, repairAmount / 100);	// neoLegacy - no longer scales with how many enchantments are already on the item
 
 						repairAmount = min(result->getDamageValue(), result->getMaxDamage() / 4);
 						count++;
@@ -140,48 +152,54 @@ void AnvilMenu::createResult()
 					{
 						int id = it.first;
 						Enchantment* enchantment = Enchantment::enchantments[id];
+						if (enchantment == nullptr) continue;
 						auto localIt = enchantments->find(id);
 						int current = localIt != enchantments->end() ? localIt->second : 0;
 						int level = it.second;
 						level = (current == level) ? level += 1 : std::max<int>(level, current);
+						if (level > enchantment->getMaxLevel()) level = enchantment->getMaxLevel();
 						int extra = level - current;
-						bool compatible = enchantment->canEnchant(input);
 
-						if (player->abilities.instabuild || input->id == EnchantedBookItem::enchanted_book_Id) compatible = true;
+						// neoLegacy - nothing to gain (already at max level, or the other one is weaker): no charge and no change
+						if (extra <= 0) continue;
 
+						// neoLegacy - an enchantment may only go on an item it really suits (Veinminer: pickaxes, Crit/Rage Stacking: Zoro swords...).
+						// Only an enchanted book can hold anything. The old "creative mode can enchant anything" bypass is gone.
+						bool compatible = enchantment->canEnchant(input) || input->id == EnchantedBookItem::enchanted_book_Id;
+
+						// neoLegacy - incompatible enchantments (Sharpness/Smite/Bane, the Protections, Silk Touch/Fortune...) are checked both
+						// ways so it doesn't matter which side defines the rule, and they are simply skipped - no XP is charged for them
 						for (auto& it2 : *enchantments)
 						{
 							int other = it2.first;
-							if (other != id && !enchantment->isCompatibleWith(Enchantment::enchantments[other]))
+							if (other == id) continue;
+							Enchantment *otherEnchantment = Enchantment::enchantments[other];
+							if (otherEnchantment == nullptr) continue;
+							if (!enchantment->isCompatibleWith(otherEnchantment) || !otherEnchantment->isCompatibleWith(enchantment))
 							{
 								compatible = false;
-
-								price += extra;
-								if (DEBUG_COST)
-								{
-									app.DebugPrintf("Enchantment incompatibility fee; price is now %d (went up by %d)\n", price, extra);
-								}
+								break;
 							}
 						}
 
 						if (!compatible) continue;
-						if (level > enchantment->getMaxLevel()) level = enchantment->getMaxLevel();
 						(*enchantments)[id] = level;
 						int fee = 0;
 
+						// neoLegacy - flatter fees (was 1/2/4/8) so a fully enchanted tool stays affordable
 						switch (enchantment->getFrequency())
 						{
 						case Enchantment::FREQ_COMMON:
 							fee = 1;
 							break;
 						case Enchantment::FREQ_UNCOMMON:
-							fee = 2;
+							fee = 1;
 							break;
 						case Enchantment::FREQ_RARE:
-							fee = 4;
+							fee = 2;
 							break;
 						case Enchantment::FREQ_VERY_RARE:
-							fee = 8;
+							fee = 3;
 							break;
 						}
 
@@ -235,60 +253,21 @@ void AnvilMenu::createResult()
 			result->setHoverName(itemName);
 		}
 
-		int count = 0;
-		for( const auto& it : *enchantments )
-		{
-			int id = it.first;
-			Enchantment *enchantment = Enchantment::enchantments[id];
-			int level = it.second;
-			int fee = 0;
-
-			count++;
-
-			switch (enchantment->getFrequency())
-			{
-			case Enchantment::FREQ_COMMON:
-				fee = 1;
-				break;
-			case Enchantment::FREQ_UNCOMMON:
-				fee = 2;
-				break;
-			case Enchantment::FREQ_RARE:
-				fee = 4;
-				break;
-			case Enchantment::FREQ_VERY_RARE:
-				fee = 8;
-				break;
-			}
-
-			if (usingBook) fee = std::max<int>(1, fee / 2);
-
-			tax += count + level * fee;
-			if (DEBUG_COST)
-			{
-				app.DebugPrintf("Enchantment tax; tax is now %d (went up by %d)", tax, (count + level * fee));
-			}
-		}
+		// neoLegacy - the old "tax" charged (count + level * fee) for EVERY enchantment already on the result, so each extra
+		// enchantment made all later anvil steps dearer. You now only pay for what you actually add (see 'price' above).
 
 		if (usingBook) tax = max(1, tax / 2);
 
 		cost = tax + price;
+		if (cost > ANVIL_MAX_COST) cost = ANVIL_MAX_COST;	// neoLegacy - never ask for more than a player can reasonably have
 		if (price <= 0)
 		{
 			if (DEBUG_COST) app.DebugPrintf("No purchase, only tax; aborting");
 			result = nullptr;
 		}
-		if (namingCost == price && namingCost > 0 && cost >= 40)
-		{
-			if (DEBUG_COST) app.DebugPrintf("Cost is too high; aborting");
-			app.DebugPrintf("Naming an item only, cost too high; giving discount to cap cost to 39 levels");
-			cost = 39;
-		}
-		if (cost >= 40 && !player->abilities.instabuild)
-		{
-			if (DEBUG_COST) app.DebugPrintf("Cost is too high; aborting");
-			result = nullptr;
-		}
+		// CAM - Removed the vanilla "Too Expensive" anvil limit.
+		// Costs can now be 40+ levels. The player still has to pay the
+		// calculated XP level cost when taking the result.
 
 		if (result != nullptr)
 		{
@@ -296,7 +275,13 @@ void AnvilMenu::createResult()
 			if (addition != nullptr && baseCost < addition->getBaseRepairCost()) baseCost = addition->getBaseRepairCost();
 			if (result->hasCustomHoverName()) baseCost -= 9;
 			if (baseCost < 0) baseCost = 0;
-			baseCost += 2;
+
+			// CAM - Keep the anvil's repair penalty from escalating too quickly.
+			// Each completed anvil operation adds only 1 penalty level,
+			// with a maximum stored RepairCost of ANVIL_MAX_PENALTY.
+			if (baseCost > ANVIL_MAX_PENALTY) baseCost = ANVIL_MAX_PENALTY;
+			baseCost += 1;
+			if (baseCost > ANVIL_MAX_PENALTY) baseCost = ANVIL_MAX_PENALTY;
 
 			result->setRepairCost(baseCost);
 			EnchantmentHelper::setEnchantments(enchantments, result);
