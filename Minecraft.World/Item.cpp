@@ -37,6 +37,8 @@ const _Tier *_Tier::IRON = new _Tier(2, 250, 6, 2, 14); //
 const _Tier *_Tier::DIAMOND = new _Tier(3, 1561, 8, 3, 10); //
 const _Tier *_Tier::GOLD = new _Tier(0, 32, 12, 0, 22);
 const _Tier *_Tier::ZORO = new _Tier(4, 2031, 9, 5, 18); // neoLegacy - Zoro sword tier
+const _Tier *_Tier::JDMON = new _Tier(5, 2500, 10, 4, 30); // neoLegacy - JDemon sword tier (damage 4: one above diamond)
+const _Tier *_Tier::CMON = new _Tier(5, 2500, 10, 4, 30); // neoLegacy - CMonster sword tier (damage 4: one above diamond)
 
 Random *Item::random = new Random();
 
@@ -72,6 +74,8 @@ Item *Item::wado_ichimonji = nullptr;
 Item *Item::sandai_kitetsu = nullptr;
 Item *Item::enma = nullptr;
 Item *Item::shusui = nullptr;
+Item *Item::jdemon_sword = nullptr;	// neoLegacy - JDemon sword
+Item *Item::cmonster_sword = nullptr;	// neoLegacy - CMonster sword
 Item *Item::cursed_hilt = nullptr;
 Item *Item::mac10 = nullptr;
 Item *Item::mace = nullptr;		// neoLegacy - Mace
@@ -336,6 +340,16 @@ void Item::staticCtor()
 		->setBaseItemTypeAndMaterial(eBaseItemType_sword, eMaterial_diamond)
 		->setIconName(L"swordWadoShusui")->setDescriptionId(IDS_ITEM_SWORD_SHUSUI)->setUseDescriptionId(IDS_DESC_SWORD)
 		->setMaxDamage(2100);
+
+	// neoLegacy - JDemon / CMonster swords. Both sit one tier above diamond
+	// (tier damage 4 vs diamond's 3); their identity is their on-hit and
+	// on-use effects, not their stats.
+	Item::jdemon_sword	= (new JDemonSword(jdemon_sword_Id - 256, _Tier::JDMON))
+		->setBaseItemTypeAndMaterial(eBaseItemType_sword, eMaterial_iron)
+		->setIconName(L"swordJDemon")->setDescriptionId(IDS_ITEM_SWORD_JDEMON)->setUseDescriptionId(IDS_DESC_SWORD);
+	Item::cmonster_sword	= (new CMonsterSword(cmonster_sword_Id - 256, _Tier::CMON))
+		->setBaseItemTypeAndMaterial(eBaseItemType_sword, eMaterial_iron)
+		->setIconName(L"swordCMonster")->setDescriptionId(IDS_ITEM_SWORD_CMONSTER)->setUseDescriptionId(IDS_DESC_SWORD);
 
 	// neoLegacy - Cursed Hilt: the shared core of every Zoro sword recipe (Complex Table only)
 	Item::cursed_hilt	= (new Item(cursed_hilt_Id - 256))
@@ -728,6 +742,15 @@ int _Tier::getTierItemId() const
 		return Item::iron_ingot_Id;
 	}
 	else if (this == Tier::DIAMOND)
+	{
+		return Item::diamond_Id;
+	}
+	else if (this == Tier::JDMON)
+	{
+		// neoLegacy - JDemon and CMonster swords repair with diamonds, like the Zoro swords.
+		return Item::diamond_Id;
+	}
+	else if (this == Tier::CMON)
 	{
 		return Item::diamond_Id;
 	}

@@ -44,3 +44,25 @@ public:
 	float getZoroAttackAngle() const;
 	int getZoroAttackCooldown() const;
 };
+
+// neoLegacy - JDemon sword: sets enemies on fire on hit; holding block turns
+// the wielder invisible until they stop blocking.
+class JDemonSword : public WeaponItem
+{
+public:
+	JDemonSword(int id, const Tier *tier);
+	virtual bool hurtEnemy(shared_ptr<ItemInstance> itemInstance, shared_ptr<LivingEntity> mob, shared_ptr<LivingEntity> attacker);
+	virtual shared_ptr<ItemInstance> use(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player);
+	virtual shared_ptr<ItemInstance> useTimeDepleted(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player);
+	virtual void releaseUsing(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player, int durationLeft);
+};
+
+// neoLegacy - CMonster sword: poisons enemies on hit; holding block grants
+// night vision while blocking.
+class CMonsterSword : public WeaponItem
+{
+public:
+	CMonsterSword(int id, const Tier *tier);
+	virtual bool hurtEnemy(shared_ptr<ItemInstance> itemInstance, shared_ptr<LivingEntity> mob, shared_ptr<LivingEntity> attacker);
+	virtual shared_ptr<ItemInstance> use(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player);
+};

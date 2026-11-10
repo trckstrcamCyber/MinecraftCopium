@@ -2190,3 +2190,5 @@
 #define IDS_ENCHANTMENT_HOLLOW_POINT                      2151
 #define IDS_ENCHANTMENT_REINFORCED_PARTS                  2152
 #define IDS_ITEM_RAFT_BAMBOO                              2153
+#define IDS_ITEM_SWORD_JDEMON                             2154
+#define IDS_ITEM_SWORD_CMONSTER                           2155
