@@ -87,6 +87,7 @@ void IUIScene_CreativeMenu::staticCtor()
 	DEF(eCreativeInventory_BuildingBlocks)
 		ITEM(Tile::stone_Id)
 		ITEM(Tile::grass_Id)
+		ITEM(Tile::grass_path_Id)
 		ITEM_AUX(Tile::dirt_Id, 0)
 		ITEM(Tile::cobblestone_Id)
 		ITEM(Tile::sand_Id)
@@ -196,7 +197,6 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Tile::mycelium_Id)
 		ITEM_AUX(Tile::dirt_Id, DirtTile::COARSE_DIRT)
 		ITEM_AUX(Tile::dirt_Id, DirtTile::PODZOL)
-		ITEM(Tile::grass_path_Id)
 		ITEM(Tile::nether_brick_Id)
 		ITEM(Tile::red_nether_brick_Id)
 		ITEM(Tile::end_stone_Id)
@@ -685,7 +685,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Item::spawn_egg_Id, 95); // Wolf
 		ITEM_AUX(Item::spawn_egg_Id, 96); // Mooshroom
 		ITEM_AUX(Item::spawn_egg_Id, 98); // Ozelot
-		ITEM_AUX(Item::spawn_egg_Id, 100); // Horse
+		ITEM_AUX(Item::spawn_egg_Id, 100 | ((EntityHorse::TYPE_HORSE + 1) << 12)); // Horse
 		
 		ITEM_AUX(Item::spawn_egg_Id, 100 | ((EntityHorse::TYPE_DONKEY + 1) << 12) ); // Donkey
 		ITEM_AUX(Item::spawn_egg_Id, 100 | ((EntityHorse::TYPE_MULE + 1) << 12)); // Mule

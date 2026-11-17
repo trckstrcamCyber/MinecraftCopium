@@ -64,6 +64,8 @@ set(_MINECRAFT_SERVER_COMMON_ROOT
   "${_MS_SRC}/../Minecraft.Client/CaveSpiderRenderer.cpp"
   "${_MS_SRC}/../Minecraft.Client/ChatScreen.cpp"
   "${_MS_SRC}/../Minecraft.Client/ChestModel.cpp"
+  "${_MS_SRC}/../Minecraft.Client/Windows64/CrashHandler.cpp"
+  "${_MS_SRC}/../Minecraft.Client/Windows64/CrashHandler.h"
   "${_MS_SRC}/../Minecraft.Client/ChestRenderer.cpp"
   "${_MS_SRC}/../Minecraft.Client/ChickenModel.cpp"
   "${_MS_SRC}/../Minecraft.Client/ChickenRenderer.cpp"

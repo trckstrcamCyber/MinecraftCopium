@@ -453,6 +453,8 @@ set(_MINECRAFT_CLIENT_COMMON_NET_MINECRAFT_CLIENT
   "${CMAKE_CURRENT_SOURCE_DIR}/KeyMapping.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Lighting.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Lighting.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Windows64/CrashHandler.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Windows64/CrashHandler.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/MemoryTracker.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/MemoryTracker.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Minecraft.cpp"

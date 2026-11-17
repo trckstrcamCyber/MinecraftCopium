@@ -189,10 +189,12 @@ VillageFeature::VillageStart::VillageStart(Level *level, Random *random, int chu
 
 bool VillageFeature::VillageStart::isValid()
 {
-	// 4J-PB - Adding a bounds check to ensure a village isn't over the edge of our world - we end up with half houses in that case
-	if((boundingBox->x0<(-m_iXZSize/2)) || (boundingBox->x1>(m_iXZSize/2)) || (boundingBox->z0<(-m_iXZSize/2)) || (boundingBox->z1>(m_iXZSize/2)))
+	// m_iXZSize is in chunks, bounding box is in blocks
+	const int halfBlocks = (m_iXZSize << 4) / 2;
+	if ((boundingBox->x0 < -halfBlocks) || (boundingBox->x1 > halfBlocks) ||
+		(boundingBox->z0 < -halfBlocks) || (boundingBox->z1 > halfBlocks))
 	{
-		valid=false;
+		valid = false;
 	}
 	return valid;
 }
