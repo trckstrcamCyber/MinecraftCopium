@@ -230,6 +230,8 @@ if __name__=="__main__": notecolors()
   <colour name="Effect_Poison" value="4e9331"/>
   <colour name="Effect_Wither" value="352a27"/>
   <colour name="Effect_Freezing" value="A5E8F2"/>
+  <colour name="Effect_BadOmen" value="0B6138"/>
+  <colour name="Effect_RaidOmen" value="DE4058"/>
   <colour name="Effect_HealthBoost" value="f87d23"/>
   <colour name="Effect_Absorption" value="2552a5"/>
   <colour name="Effect_Saturation" value="f82423"/>
@@ -318,6 +320,8 @@ if __name__=="__main__": notecolors()
    <colour name="Mob_Illusioner_Colour2" value="9C9C9C"/>
    <colour name="Mob_Pillager_Colour1" value="532F36"/>
    <colour name="Mob_Pillager_Colour2" value="959B9B"/>
+   <colour name="Mob_Ravager_Colour1" value="757470"/>
+   <colour name="Mob_Ravager_Colour2" value="5B5049"/>
    <colour name="Mob_WanderingTrader_Colour1" value="456E92"/>
    <colour name="Mob_WanderingTrader_Colour2" value="E5B34A"/>
    <colour name="Mob_WitherSkeleton_Colour1" value="141414"/>

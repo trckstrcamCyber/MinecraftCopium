@@ -47,7 +47,7 @@ void BannerTileEntity::load(CompoundTag *tag)
 				bp.pattern = entry->getString(L"Pattern");
 				bp.color = entry->getInt(L"Color");
 				patterns.push_back(bp);
-				if (patterns.size() >= 6) break;
+				if (patterns.size() >= 16) break;	// crafting stops at 6, but the Ominous Banner has 8
 			}
 		}
 	}

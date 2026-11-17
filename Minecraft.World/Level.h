@@ -47,6 +47,7 @@ class LevelSettings;
 class Biome;
 class Villages;
 class VillageSiege;
+class RaidManager;
 class Tickable;
 class Minecart;
 class EntitySelector;
@@ -161,6 +162,7 @@ public:
 	SavedDataStorage *savedDataStorage;
 	shared_ptr<Villages> villages;
 	VillageSiege *villageSiege;
+	RaidManager *raidManager;	// neoLegacy - patrols and raids
 
 private:
 	// 4J - Calendar is now static

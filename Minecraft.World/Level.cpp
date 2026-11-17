@@ -8,6 +8,7 @@
 #include "net.minecraft.h"
 #include "net.minecraft.world.h"
 #include "net.minecraft.world.entity.ai.village.h"
+#include "RaidManager.h"
 #include "net.minecraft.world.entity.h"
 #include "net.minecraft.world.entity.global.h"
 #include "net.minecraft.world.entity.player.h"
@@ -588,6 +589,7 @@ void Level::_init()
 	updatingTileEntities = false;
 
 	villageSiege = new VillageSiege(this);
+	raidManager = new RaidManager(this);
 	scoreboard = new Scoreboard();
 
 	toCheckLevel = new int[ 32 * 32 * 32];	// 4J - brought forward from 1.8.2
@@ -732,6 +734,7 @@ Level::~Level()
 	delete toCheckLevel;
 	delete scoreboard;
 	delete villageSiege;
+	delete raidManager;
 
 	if( !isClientSide )
 	{

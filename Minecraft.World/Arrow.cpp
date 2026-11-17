@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <algorithm>
 #include "net.minecraft.world.level.h"
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.world.entity.h"
@@ -47,6 +48,9 @@ void Arrow::_init()
 	baseDamage = ARROW_BASE_DAMAGE;
 	knockback = 0;
 	explosiveLevel = 0; // neoLegacy Added
+	pierceLevel = 0;
+	torchArrow = false;
+	lootingLevel = -1;
 }
 
 
@@ -254,6 +258,8 @@ void Arrow::tick()
 	for ( auto& e : *objects )
 	{
 		if (!e->isPickable() || (e == owner && flightTime < 5)) continue;
+		// neoLegacy - a piercing arrow never hits the same mob twice
+		if (!piercedEntities.empty() && std::find(piercedEntities.begin(), piercedEntities.end(), e->entityId) != piercedEntities.end()) continue;
 
 		float rr = 0.3f;
 		AABB *bb = e->bb->grow(rr, rr, rr);
@@ -307,7 +313,8 @@ void Arrow::tick()
 
 			if(!res->entity->isInvulnerable())
 			{
-				if (isOnFire() && res->entity->GetType() != eTYPE_ENDERMAN)
+				// neoLegacy - a shot torch ignites every mob it hits (the Enderman exception only applies to Flame)
+				if ((isOnFire() && res->entity->GetType() != eTYPE_ENDERMAN) || torchArrow)
 				{
 					res->entity->setOnFire(5);
 				}
@@ -361,7 +368,12 @@ void Arrow::tick()
 				}
 
 				playSound( eSoundType_RANDOM_BOW_HIT, 1.0f, 1.2f / (random->nextFloat() * 0.2f + 0.9f));
-				if (res->entity->GetType() != eTYPE_ENDERDRAGON) remove();
+				if (res->entity->GetType() != eTYPE_ENDERDRAGON)
+				{
+					// neoLegacy - Piercing: the arrow flies on through pierceLevel extra mobs before it stops
+					piercedEntities.push_back(res->entity->entityId);
+					if (pierceLevel <= 0 || static_cast<int>(piercedEntities.size()) > pierceLevel) remove();
+				}
 
 				// neoLegacy Added - Explosive
 				if (getExplosiveLevel() > 0)
@@ -383,6 +395,15 @@ void Arrow::tick()
 		}
 		else
 		{
+			// neoLegacy - Torched: the torch is planted where it hit (or dropped), and the arrow is gone
+			if (torchArrow)
+			{
+				if (!level->isClientSide) landTorch(res->x, res->y, res->z, res->f);
+				remove();
+				delete res;
+				return;
+			}
+
 			xTile = res->x;
 			yTile = res->y;
 			zTile = res->z;
@@ -483,6 +504,9 @@ void Arrow::addAdditonalSaveData(CompoundTag *tag)
 	tag->putByte(L"inGround", static_cast<byte>(inGround ? 1 : 0));
 	tag->putByte(L"pickup", static_cast<byte>(pickup));
 	tag->putDouble(L"damage", baseDamage);
+	tag->putByte(L"pierce", static_cast<byte>(pierceLevel));
+	tag->putByte(L"torch", static_cast<byte>(torchArrow ? 1 : 0));
+	tag->putByte(L"looting", static_cast<byte>(lootingLevel + 1));	// stored +1 so that "not set" (-1) is 0 and no sign handling is needed
 }
 
 void Arrow::readAdditionalSaveData(CompoundTag *tag)
@@ -498,6 +522,10 @@ void Arrow::readAdditionalSaveData(CompoundTag *tag)
 	{
 		baseDamage = tag->getDouble(L"damage");
 	}
+
+	if (tag->contains(L"pierce")) pierceLevel = static_cast<int>(tag->getByte(L"pierce"));
+	if (tag->contains(L"torch")) torchArrow = tag->getByte(L"torch") == 1;
+	if (tag->contains(L"looting")) lootingLevel = (tag->getByte(L"looting") & 0xff) - 1;
 
 	if (tag->contains(L"pickup"))
 	{
@@ -578,6 +606,34 @@ bool Arrow::isCritArrow()
 {
 	byte flags = entityData->getByte(ID_FLAGS);
 	return (flags & FLAG_CRIT) != 0;
+}
+
+// neoLegacy Added - Torched. The block that was hit is (hitX, hitY, hitZ) and `face` is the side of it that was struck.
+void Arrow::landTorch(int hitX, int hitY, int hitZ, int face)
+{
+	int x = hitX, y = hitY, z = hitZ;
+	if (face == 0) y--;
+	if (face == 1) y++;
+	if (face == 2) z--;
+	if (face == 3) z++;
+	if (face == 4) x--;
+	if (face == 5) x++;
+
+	bool placed = false;
+	// a torch cannot hang from the underside of a block
+	if (face != 0 && y > 0 && y < Level::maxBuildHeight - 1 && level->mayPlace(Tile::torch_Id, x, y, z, false, face, nullptr, nullptr))
+	{
+		int data = Tile::torch->getPlacedOnFaceDataValue(level, x, y, z, face, 0.5f, 0.5f, 0.5f, 0);
+		if (level->setTileAndData(x, y, z, Tile::torch_Id, data, Tile::UPDATE_ALL) && level->getTile(x, y, z) == Tile::torch_Id)
+		{
+			placed = true;
+			level->playSound(x + 0.5f, y + 0.5f, z + 0.5f, Tile::torch->soundType->getPlaceSound(), (Tile::torch->soundType->getVolume() + 1) / 2, Tile::torch->soundType->getPitch() * 0.8f);
+		}
+	}
+	if (!placed)
+	{
+		spawnAtLocation(std::make_shared<ItemInstance>(Tile::torch, 1), 0.1f);
+	}
 }
 
 // neoLegacy Added

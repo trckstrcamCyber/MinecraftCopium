@@ -1494,7 +1494,7 @@ if (cmd == L"tp" || cmd == L"teleport")
 		if (structureArg.empty())
 		{
 			warn(L"Usage: /locate <structure>");
-			warn(L"Available: village, stronghold, mineshaft, monument, temple");
+			warn(L"Available: village, stronghold, mineshaft, monument, temple, outpost");
 			return;
 		}
 
@@ -1525,10 +1525,15 @@ if (cmd == L"tp" || cmd == L"teleport")
 			featureKey = LargeFeature::TEMPLE;
 			displayName = L"Temple";
 		}
+		else if (structureArg == L"outpost")
+		{
+			featureKey = LargeFeature::OUTPOST;
+			displayName = L"Pillager Outpost";
+		}
 		else
 		{
 			warn(L"Unknown structure: " + structureArg);
-			warn(L"Available: village, stronghold, mineshaft, monument, temple");
+			warn(L"Available: village, stronghold, mineshaft, monument, temple, outpost");
 			return;
 		}
 

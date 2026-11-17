@@ -620,7 +620,7 @@ void PlayerRenderer::additionalRendering(shared_ptr<LivingEntity> _mob, float a)
 				glRotatef(-100, 1, 0, 0);
 				glRotatef(45, 0, 1, 0);
 			}
-			else if (item->id == Item::crossbow_Id || item->id == Item::crossbow_loaded_Id)
+			else if (item->id == Item::crossbow_Id || item->id == Item::crossbow_loaded_Id || item->id == Item::crossbow_loaded_firework_Id)
 		{
 			// neoLegacy - a crossbow is held on its side with the muzzle pointing forward, not like a sword
 			float s = 10 / 16.0f;

@@ -20,6 +20,8 @@ set(_MINECRAFT_SERVER_COMMON_ROOT
   "${_MS_SRC}/../Minecraft.Client/FrostbiteModel.cpp"
   "${_MS_SRC}/../Minecraft.Client/IllagerModel.cpp"
   "${_MS_SRC}/../Minecraft.Client/IllagerRenderer.cpp"
+  "${_MS_SRC}/../Minecraft.Client/RavagerModel.cpp"
+  "${_MS_SRC}/../Minecraft.Client/RavagerRenderer.cpp"
   "${_MS_SRC}/../Minecraft.Client/VexModel.cpp"
   "${_MS_SRC}/../Minecraft.Client/VexRenderer.cpp"
   "${_MS_SRC}/../Minecraft.Client/EvokerFangsModel.cpp"

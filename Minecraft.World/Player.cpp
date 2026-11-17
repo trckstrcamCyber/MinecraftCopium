@@ -2955,8 +2955,9 @@ Icon *Player::getItemInHandIcon(shared_ptr<ItemInstance> item, int layer)
 		if (crossbow != nullptr)
 		{
 			int ticksHeld = (item->getUseDuration() - useItemDuration);
-			if (ticksHeld >= CrossbowItem::CHARGE_TICKS) return crossbow->getDrawnIcon(2);
-			if (ticksHeld > (CrossbowItem::CHARGE_TICKS * 2) / 3) return crossbow->getDrawnIcon(1);
+			int drawTicks = CrossbowItem::getChargeTicks(item);	// shorter with Quick Charge
+			if (ticksHeld >= drawTicks) return crossbow->getDrawnIcon(2);
+			if (ticksHeld > (drawTicks * 2) / 3) return crossbow->getDrawnIcon(1);
 			if (ticksHeld > 0) return crossbow->getDrawnIcon(0);
 		}
 	}

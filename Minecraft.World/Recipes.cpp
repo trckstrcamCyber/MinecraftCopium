@@ -7,6 +7,7 @@
 #include "ItemInstance.h"
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.world.item.crafting.h"
+#include "BannerPatternRecipe.h"
 #include "DyePowderItem.h"
 #include "ObserverTile.h"
 #include "DrillTile.h"
@@ -25,6 +26,7 @@ StructureRecipies *Recipes::pStructureRecipies=nullptr;
 ToolRecipies *Recipes::pToolRecipies=nullptr;
 WeaponRecipies *Recipes::pWeaponRecipies=nullptr;
 FireworksRecipe *Recipes::pFireworksRecipes=nullptr;
+BannerPatternRecipe *Recipes::pBannerPatternRecipe=nullptr;	// neoLegacy
 
 void Recipes::staticCtor()
 {
@@ -51,6 +53,7 @@ void Recipes::_init()
 	//recipies->add(new MapExtendingRecipe());
 	//recipies->add(new FireworksRecipe());
 	pFireworksRecipes = new FireworksRecipe();
+	pBannerPatternRecipe = new BannerPatternRecipe();	// neoLegacy - not in the list either: asked directly by getItemFor
 }
 
 void Recipes::_compileRecipes()
@@ -2032,6 +2035,8 @@ shared_ptr<ItemInstance> Recipes::getItemFor(shared_ptr<CraftingContainer> craft
 			if (isComplexOnly(r)) continue;	// neoLegacy - Complex Table recipes only match at a Complex Table
 			if (r->matches(craftSlots, level)) return r->assemble(craftSlots);
 		}
+		// neoLegacy - a banner and dyes in a pattern add a pattern to the banner (free-form 3x3 grids)
+		if (pBannerPatternRecipe != nullptr && pBannerPatternRecipe->matches(craftSlots, level)) return pBannerPatternRecipe->assemble(craftSlots);
 	}
 	return nullptr;
 }

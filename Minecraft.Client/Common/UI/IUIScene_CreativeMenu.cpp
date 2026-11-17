@@ -16,6 +16,7 @@
 #include "../../../Minecraft.World/net.minecraft.world.entity.animal.h"
 #include "../../../Minecraft.World/net.minecraft.world.entity.monster.h"
 #include "../../../Minecraft.World/JavaMath.h"
+#include "../../../Minecraft.World/BannerItem.h"
 
 
 // 4J JEV - Images for each tab.
@@ -448,6 +449,12 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Tile::standing_banner_Id, 8)	// Dark Grey
 		ITEM_AUX(Tile::standing_banner_Id, 7)	// Light Grey
 		ITEM_AUX(Tile::standing_banner_Id, 0)	// Black
+		list->push_back(BannerItem::createOminousBanner());	// neoLegacy - Ominous Banner
+		ITEM_AUX(Item::ominous_bottle_Id, 0)	// Ominous Bottle I
+		ITEM_AUX(Item::ominous_bottle_Id, 1)	// II
+		ITEM_AUX(Item::ominous_bottle_Id, 2)	// III
+		ITEM_AUX(Item::ominous_bottle_Id, 3)	// IV
+		ITEM_AUX(Item::ominous_bottle_Id, 4)	// V
 		ITEM_AUX(Tile::wool_Id,14)	// Red
 		ITEM_AUX(Tile::wool_Id,1)	// Orange
 		ITEM_AUX(Tile::wool_Id,4)	// Yellow
@@ -699,6 +706,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Item::spawn_egg_Id, 119); // Iceologer
 		ITEM_AUX(Item::spawn_egg_Id, 123); // Illusioner
 		ITEM_AUX(Item::spawn_egg_Id, 124); // Pillager
+		ITEM_AUX(Item::spawn_egg_Id, 125); // Ravager
 		ITEM_AUX(Item::spawn_egg_Id, 113); // Wandering Trader
 		ITEM(Item::record_13_Id)
 		ITEM(Item::record_cat_Id)

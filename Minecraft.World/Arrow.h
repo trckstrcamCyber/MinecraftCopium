@@ -47,6 +47,12 @@ private:
 	// neoLegacy Added - Explosive enchantment level (0 = not explosive)
 	int explosiveLevel;
 
+	// neoLegacy Added - crossbow enchantments (set by CrossbowItem when it fires; server side only, nothing here is synched)
+	int pierceLevel;				// Piercing: how many EXTRA mobs the arrow passes through (0 = stops at the first one)
+	bool torchArrow;				// Torched: this is a shot torch - it ignites every mob it hits and is placed where it hits a block
+	int lootingLevel;				// Looting of the crossbow that shot it; -1 = not set, so the shooter's held item decides as for any arrow
+	vector<int> piercedEntities;	// ids of the mobs a piercing arrow has already hit
+
 private:
 	int life;
 	int flightTime;
@@ -88,4 +94,15 @@ public:
 	// neoLegacy Added
 	void setExplosiveLevel(int level);
 	int getExplosiveLevel();
+
+	// neoLegacy Added - crossbow enchantments
+	void setPierceLevel(int level) { pierceLevel = level; }
+	int getPierceLevel() { return pierceLevel; }
+	void setTorchArrow(bool torch) { torchArrow = torch; }
+	bool isTorchArrow() { return torchArrow; }
+	void setLootingLevel(int level) { lootingLevel = level; }
+	int getLootingLevel() { return lootingLevel; }
+
+private:
+	void landTorch(int hitX, int hitY, int hitZ, int face);	// a torch arrow hit a block: plant the torch, or drop it if it cannot stand there
 };

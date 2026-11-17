@@ -7,6 +7,7 @@ const wstring LargeFeature::VILLAGE = L"Village";	// neoLegacy - for /locate; ma
 const wstring LargeFeature::MINESHAFT = L"Mineshaft";	// neoLegacy - matches MineShaftFeature::getFeatureName()
 const wstring LargeFeature::MONUMENT = L"Monument";	// neoLegacy - matches OceanMonumentFeature::getFeatureName()
 const wstring LargeFeature::TEMPLE = L"Temple";		// neoLegacy - matches RandomScatteredLargeFeature::getFeatureName() (desert/jungle temple + witch hut, whichever this fork's biome check nearest matches)
+const wstring LargeFeature::OUTPOST = L"Outpost";		// neoLegacy - matches PillagerOutpostFeature::getFeatureName()
 
 LargeFeature::LargeFeature()
 {

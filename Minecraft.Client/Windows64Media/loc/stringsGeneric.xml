@@ -10184,6 +10184,12 @@
 	<data name="IDS_ITEM_SWORD_SHUSUI">
 		<value>Shusui</value>
 	</data>
+	<data name="IDS_ITEM_SWORD_JDEMON">
+		<value>JDemon Sword</value>
+	</data>
+	<data name="IDS_ITEM_SWORD_CMONSTER">
+		<value>CMonster Sword</value>
+	</data>
 
 	<data name="IDS_ITEM_BOAT_SPRUCE">
 		<value>Spruce Boat</value>
@@ -10521,5 +10527,28 @@
 	<data name="IDS_DESC_CROSSBOW">
 		<value>A ranged weapon. Hold right-click to draw it and release to load an arrow, then right-click again to fire.</value>
 	</data>
+	<data name="IDS_RAVAGER">
+	<value>Ravager</value>
+	</data>
+	<data name="IDS_POTION_BADOMEN">
+		<value>Bad Omen</value>
+	</data>
+	<data name="IDS_POTION_BADOMEN_POSTFIX">
+		<value>Bad Omen</value>
+	</data>
+	<data name="IDS_POTION_RAIDOMEN">
+		<value>Raid Omen</value>
+	</data>
+	<data name="IDS_POTION_RAIDOMEN_POSTFIX">
+		<value>Raid Omen</value>
+	</data>
+	<data name="IDS_ITEM_OMINOUS_BOTTLE">
+		<value>Ominous Bottle</value>
+	</data>
+	<data name="IDS_DESC_OMINOUS_BOTTLE">
+		<value>Drink it to get Bad Omen. Take Bad Omen into a village to start a raid.</value>
+	</data>
+
+
 
 </root>

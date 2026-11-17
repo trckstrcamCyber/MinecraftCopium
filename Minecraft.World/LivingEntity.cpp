@@ -24,6 +24,7 @@
 #include "SonicEnchantment.h"
 #include "LavaWalkerEnchantment.h"
 #include "MaceEnchantments.h"	// neoLegacy - Breach
+#include "Arrow.h"				// neoLegacy - Looting carried by a crossbow arrow
 #include "JellyBlockTile.h"	// neoLegacy - Jelly Block jump factor
 #include "ArmorItem.h"		// neoLegacy - leather armor stops Freezing
 #include "net.minecraft.world.effect.h"
@@ -1047,6 +1048,14 @@ void LivingEntity::die(DamageSource *source)
 		{
 			player = dynamic_pointer_cast<Player>(sourceEntity);
 			playerBonus = EnchantmentHelper::getKillingLootBonus(dynamic_pointer_cast<LivingEntity>(player));
+
+			// neoLegacy - an arrow shot from a crossbow carries that crossbow's Looting, whatever the player holds when it lands
+			shared_ptr<Entity> directEntity = source->getDirectEntity();
+			if (directEntity != nullptr && directEntity->GetType() == eTYPE_ARROW)
+			{
+				shared_ptr<Arrow> killingArrow = dynamic_pointer_cast<Arrow>(directEntity);
+				if (killingArrow != nullptr && killingArrow->getLootingLevel() >= 0) playerBonus = killingArrow->getLootingLevel();
+			}
 		}
 
 		if (!isBaby() && level->getGameRules()->getBoolean(GameRules::RULE_DOMOBLOOT))

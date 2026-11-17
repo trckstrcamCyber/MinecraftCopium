@@ -5,6 +5,7 @@
 #include "../Minecraft.World/LightLayer.h"
 #include "../Minecraft.World/Difficulty.h"
 #include "../Minecraft.World/WanderingTrader.h"
+#include "../Minecraft.World/RaidManager.h"
 #include "../Minecraft.World/net.minecraft.world.entity.monster.h"
 #include "../Minecraft.World/net.minecraft.world.entity.animal.h"
 
@@ -345,6 +346,7 @@ void ServerLevel::tick()
 	//MemSect(18);
 	villages->tick();
 	villageSiege->tick();
+	raidManager->tick();	// neoLegacy
 	//MemSect(0);
 	PIXEndNamedEvent();
 #if defined(_WINDOWS64) && defined(MINECRAFT_SERVER_BUILD)

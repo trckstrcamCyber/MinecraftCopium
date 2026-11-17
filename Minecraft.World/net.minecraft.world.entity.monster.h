@@ -17,6 +17,7 @@
 #include "Iceologer.h"
 #include "Illusioner.h"
 #include "Pillager.h"
+#include "Ravager.h"
 #include "IceCube.h"
 #include "Drowned.h"
 #include "PigZombie.h"

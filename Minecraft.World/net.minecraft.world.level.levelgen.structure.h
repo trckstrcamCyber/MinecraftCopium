@@ -19,4 +19,5 @@
 #include "VillageFeature.h"
 #include "VillagePieces.h"
 #include "RandomScatteredLargeFeature.h"
+#include "PillagerOutpostFeature.h"
 #include "ScatteredFeaturePieces.h"

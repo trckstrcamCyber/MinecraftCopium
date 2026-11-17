@@ -9146,6 +9146,8 @@ wstring CMinecraftApp::getEntityName(eINSTANCEOF type)
 		return app.GetString(IDS_ILLUSIONER);
 	case eTYPE_PILLAGER:
 		return app.GetString(IDS_PILLAGER);
+	case eTYPE_RAVAGER:
+		return app.GetString(IDS_RAVAGER);
 	case eTYPE_WANDERING_TRADER:
 		return app.GetString(IDS_WANDERING_TRADER);
 	

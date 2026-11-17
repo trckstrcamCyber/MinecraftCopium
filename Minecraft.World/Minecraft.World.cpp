@@ -68,6 +68,7 @@ void MinecraftWorld_RunStaticCtors()
 			VillagePieces::BlacksmithHouse::staticCtor();
 			VillageFeature::staticCtor();
 			RandomScatteredLargeFeature::staticCtor();
+			PillagerOutpostFeature::staticCtor();
 		}
 	}
 	EnderMan::staticCtor();

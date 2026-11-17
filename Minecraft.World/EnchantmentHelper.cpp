@@ -7,6 +7,7 @@
 #include "WeighedRandom.h"
 #include "EnchantmentHelper.h"
 #include "MaceItem.h"
+#include "CrossbowItem.h"
 #include "EnchantmentCategory.h"
 
 Random EnchantmentHelper::random;
@@ -526,6 +527,11 @@ unordered_map<int, EnchantmentInstance *> *EnchantmentHelper::getAvailableEnchan
 		if (isMace && !isBook)
 		{
 			if (!MaceItem::isEnchantmentAllowed(e)) continue;
+		}
+		else if (CrossbowItem::isCrossbow(itemInstance) && !isBook)
+		{
+			// neoLegacy - Crossbow: its own four plus Looting, Unbreaking and Mending (see CrossbowItem::isEnchantmentAllowed)
+			if (!CrossbowItem::isEnchantmentAllowed(e)) continue;
 		}
 		else if (!e->category->canEnchant(item) && !isBook)
 		{

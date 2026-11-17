@@ -14,6 +14,7 @@ enum EStructureStart
 	eStructureStart_StrongholdStart,
 	eStructureStart_ScatteredFeatureStart,
 	eStructureStart_Monument,
+	eStructureStart_PillagerOutpostStart,	// neoLegacy
 };
 
 enum EStructurePiece
@@ -90,6 +91,9 @@ enum EStructurePiece
 	// systems may rely on ordinal order too) is never renumbered.
 	eStructurePiece_BlacksmithHouse,
 	eStructurePiece_ModernHouse,
+
+	// Pillager Outpost
+	eStructurePiece_PillagerOutpostPiece,
 };
 
 class StructureFeatureIO

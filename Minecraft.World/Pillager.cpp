@@ -1,10 +1,12 @@
 #include "stdafx.h"
+#include "RaidGoals.h"
 #include "Random.h"
 #include "PathNavigation.h"
 #include "AttributeInstance.h"
 #include "ItemInstance.h"
 #include "net.minecraft.world.level.h"
 #include "net.minecraft.world.item.h"
+#include "net.minecraft.world.item.enchantment.h"
 #include "net.minecraft.world.entity.ai.attributes.h"
 #include "net.minecraft.world.entity.ai.goal.h"
 #include "net.minecraft.world.entity.ai.goal.target.h"
@@ -20,9 +22,20 @@
 #include "Sensing.h"
 #include "net.minecraft.world.entity.ai.control.h"
 #include "Pillager.h"
+#include "CrossbowItem.h"
 
 namespace
 {
+	// The crossbow in its hand with the loaded / unloaded item id swapped. Copying the stack keeps its enchantments (before, every swap made a
+	// brand new plain crossbow, so a Pillager could never keep Piercing or Quick Charge).
+	void setCrossbowState(Pillager *mob, bool loaded)
+	{
+		shared_ptr<ItemInstance> current = mob->getCarriedItem();
+		shared_ptr<ItemInstance> next = (current != nullptr) ? current->copy() : std::make_shared<ItemInstance>(Item::crossbow);
+		next->id = loaded ? Item::crossbow_loaded_Id : Item::crossbow_Id;
+		mob->setEquippedSlot(LivingEntity::SLOT_WEAPON, next);
+	}
+
 	// Java's crossbow routine: close to within 12 blocks, draw the crossbow (1.25 s, charging flag on), then stand loaded and aiming
 	// for a moment and fire (loaded flag on), then start over.
 	class PillagerCrossbowGoal : public Goal
@@ -52,7 +65,7 @@ namespace
 		{
 			mob->setChargingCrossbow(false);
 			mob->setCrossbowLoaded(false);
-			mob->setEquippedSlot(LivingEntity::SLOT_WEAPON, std::make_shared<ItemInstance>(Item::crossbow));
+			setCrossbowState(mob, false);
 			stage = 0;
 		}
 
@@ -81,11 +94,11 @@ namespace
 			}
 			else if (stage == 1)
 			{
-				if (++timer >= 25)
+				if (++timer >= CrossbowItem::getChargeTicks(mob->getCarriedItem()))	// Quick Charge shortens it
 				{
 					mob->setChargingCrossbow(false);
 					mob->setCrossbowLoaded(true);
-					mob->setEquippedSlot(LivingEntity::SLOT_WEAPON, std::make_shared<ItemInstance>(Item::crossbow_loaded));
+					setCrossbowState(mob, true);
 					mob->playSound(eSoundType_ITEM_CROSSBOW_LOADING_END, 1.0f, 1.0f);
 					stage = 2;
 					timer = 20 + mob->getRandom()->nextInt(20);		// aims for a moment before it fires
@@ -97,7 +110,7 @@ namespace
 				{
 					mob->performRangedAttack(target, 1.0f);
 					mob->setCrossbowLoaded(false);
-					mob->setEquippedSlot(LivingEntity::SLOT_WEAPON, std::make_shared<ItemInstance>(Item::crossbow));
+					setCrossbowState(mob, false);
 					stage = 0;
 				}
 			}
@@ -127,6 +140,8 @@ Pillager::Pillager(Level *level) : Illager(level)
 
 	goalSelector.addGoal(0, new FloatGoal(this));
 	goalSelector.addGoal(3, new PillagerCrossbowGoal(this));
+	goalSelector.addGoal(4, new RaidMoveGoal(this, this, 1.0));
+	goalSelector.addGoal(6, new PatrolGoal(this, 0.5));
 	goalSelector.addGoal(8, new RandomStrollGoal(this, 0.6));
 	goalSelector.addGoal(9, new LookAtPlayerGoal(this, typeid(Player), 15.0f, 1.0f));
 	goalSelector.addGoal(10, new LookAtPlayerGoal(this, typeid(Mob), 15.0f));
@@ -149,7 +164,9 @@ void Pillager::registerAttributes()
 MobGroupData *Pillager::finalizeMobSpawn(MobGroupData *groupData, int extraData)
 {
 	groupData = Monster::finalizeMobSpawn(groupData);
-	setEquippedSlot(SLOT_WEAPON, std::make_shared<ItemInstance>(Item::crossbow));
+	shared_ptr<ItemInstance> crossbow = std::make_shared<ItemInstance>(Item::crossbow);
+	if (random->nextInt(300) == 0) crossbow->enchant(Enchantment::piercing, 1);	// Java: 1 in 300 Pillagers spawn with Piercing I
+	setEquippedSlot(SLOT_WEAPON, crossbow);
 	return groupData;
 }
 
@@ -166,6 +183,9 @@ void Pillager::performRangedAttack(shared_ptr<LivingEntity> target, float power)
 	shared_ptr<Arrow> arrow = std::make_shared<Arrow>(level, dynamic_pointer_cast<LivingEntity>(shared_from_this()), target, 1.60f, 14 - (level->difficulty * 4));
 	arrow->setBaseDamage(power * 2.0f + (random->nextGaussian() * 0.25f + (level->difficulty * 0.11f)));
 	arrow->setCritArrow(true);
+	// Piercing on its crossbow works for it too
+	int piercing = EnchantmentHelper::getEnchantmentLevel(Enchantment::piercing->id, getCarriedItem());
+	if (piercing > 0) arrow->setPierceLevel(piercing);
 	playSound(eSoundType_ITEM_CROSSBOW_SHOOT, 1.0f, 1.0f / (getRandom()->nextFloat() * 0.4f + 0.8f));
 	level->addEntity(arrow);
 }
@@ -185,6 +205,14 @@ void Pillager::dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel)
 		if (playerBonusLevel > 0) count += random->nextInt(playerBonusLevel + 1);
 		for (int i = 0; i < count; i++) spawnAtLocation(Item::emerald_Id, 1);
 	}
+}
+
+// the crossbow in hand can be the loaded variant at the moment it dies; what drops (8.5% as for any held item, more with Looting) is a plain one
+void Pillager::dropEquipment(bool byPlayer, int playerBonusLevel)
+{
+	shared_ptr<ItemInstance> weapon = getCarriedItem();
+	if (weapon != nullptr && weapon->id == Item::crossbow_loaded_Id) weapon->id = Item::crossbow_Id;
+	Illager::dropEquipment(byPlayer, playerBonusLevel);
 }
 
 int Pillager::getAmbientSound() { return eSoundType_MOB_PILLAGER_IDLE; }

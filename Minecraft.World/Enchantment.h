@@ -67,6 +67,12 @@ public :
 	// neoLegacy custom bow enchantments
 	static Enchantment *explosive;
 
+	// neoLegacy - crossbow enchantments (CrossbowItem.h)
+	static Enchantment *quickCharge;
+	static Enchantment *multishot;
+	static Enchantment *piercing;
+	static Enchantment *torched;
+
 	// fishing rod
 	static Enchantment *lure;
 	static Enchantment *luckOfTheSea;

@@ -441,9 +441,11 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(16,	7,	L"signJungle")
 		ADD_ICON(16,	8,	L"signAcacia")
 		ADD_ICON(16,	9,	L"signDark")
-		// neoLegacy - JDemon / CMonster swords (row 16, cols 10-11 of the extended item atlas)
-		ADD_ICON(16,	10,	L"swordJDemon")
-		ADD_ICON(16,	11,	L"swordCMonster")
+		// neoLegacy - JDemon / CMonster swords: a section of their own, row 17 of the item atlas (rows 17-27 were empty and unregistered).
+		// They used to share row 16 cols 10-11 with the bamboo and bamboo door icons, which belong to those two items.
+		ADD_ICON(17,	0,	L"swordJDemon")
+		ADD_ICON(17,	1,	L"swordCMonster")
+		ADD_ICON(17,	2,	L"ominous_bottle")	// neoLegacy - Ominous Bottle
 		ADD_ICON(4,		5,	L"fishing_rod_uncast")
 		ADD_ICON(4,		6,	L"clock")
 		ADD_ICON(4,		7,	L"bowl")

@@ -39,6 +39,8 @@ RandomLevelSource::RandomLevelSource(Level *level, int64_t seed, bool generateSt
 	villageFeature = new VillageFeature(m_XZSize);
 	mineShaftFeature = new MineShaftFeature();
 	scatteredFeature = new RandomScatteredLargeFeature();
+	outpostFeature = new PillagerOutpostFeature();
+	outpostFeature->setVillageFeature(villageFeature);
 	canyonFeature = new CanyonFeature();
 	oceanMonument = new OceanMonumentFeature();
 
@@ -78,6 +80,7 @@ RandomLevelSource::~RandomLevelSource()
 	delete villageFeature;
 	delete mineShaftFeature;
 	delete scatteredFeature;
+	delete outpostFeature;
 	delete canyonFeature;
 	delete oceanMonument;
 
@@ -435,6 +438,7 @@ LevelChunk *RandomLevelSource::getChunk(int xOffs, int zOffs)
 		villageFeature->apply(this, level, xOffs, zOffs, blocks);
 		strongholdFeature->apply(this, level, xOffs, zOffs, blocks);
 		scatteredFeature->apply(this, level, xOffs, zOffs, blocks);
+		outpostFeature->apply(this, level, xOffs, zOffs, blocks);
 		oceanMonument->apply(this, level, xOffs, zOffs, blocks);
 	}
 
@@ -738,6 +742,7 @@ void RandomLevelSource::postProcess(ChunkSource *parent, int xt, int zt)
 		hasVillage = villageFeature->postProcess(level, pprandom, xt, zt);
 		strongholdFeature->postProcess(level, pprandom, xt, zt);
 		scatteredFeature->postProcess(level, random, xt, zt);
+		outpostFeature->postProcess(level, random, xt, zt);
 		oceanMonument->postProcess(level, pprandom, xt, zt);
 	}
 	PIXEndNamedEvent();
@@ -852,6 +857,11 @@ vector<Biome::MobSpawnerData *> *RandomLevelSource::getMobsAt(MobCategory *mobCa
 		{
 			return scatteredFeature->getSwamphutEnemies();
 		}
+		// neoLegacy - Pillagers spawn inside an outpost
+		if (outpostFeature->isInsideFeature(x, y, z))
+		{
+			return outpostFeature->getEnemies();
+		}
 		if (oceanMonument->isInsideFeature(x, y, z))
         {
             return oceanMonument->getMonumentEnemies();
@@ -886,6 +896,10 @@ TilePos *RandomLevelSource::findNearestMapFeature(Level *level, const wstring& f
 	{
 		return scatteredFeature->searchForGeneratedFeature(level, x, y, z, LargeFeature::LOCATE_SEARCH_RADIUS_CHUNKS);
 	}
+	if (LargeFeature::OUTPOST == featureName && outpostFeature != nullptr)
+	{
+		return outpostFeature->searchForGeneratedFeature(level, x, y, z, LargeFeature::LOCATE_SEARCH_RADIUS_CHUNKS);
+	}
 	return nullptr;
 }
 
@@ -897,5 +911,6 @@ void RandomLevelSource::recreateLogicStructuresForChunk(int chunkX, int chunkZ)
 		villageFeature->apply(this, level, chunkX, chunkZ, byteArray());
 		strongholdFeature->apply(this, level, chunkX, chunkZ, byteArray());
 		scatteredFeature->apply(this, level, chunkX, chunkZ, byteArray());
+		outpostFeature->apply(this, level, chunkX, chunkZ, byteArray());
 	}
 }

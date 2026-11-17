@@ -371,6 +371,16 @@ enum eSOUND_TYPE
 	eSoundType_MOB_PILLAGER_DEATH,
 	eSoundType_MOB_PILLAGER_CELEBRATE,
 
+	// neoLegacy - ravager (mob/ravager). Roar, stun and celebrate are in place for when shields and raids arrive.
+	eSoundType_MOB_RAVAGER_IDLE,
+	eSoundType_MOB_RAVAGER_HURT,
+	eSoundType_MOB_RAVAGER_DEATH,
+	eSoundType_MOB_RAVAGER_STEP,
+	eSoundType_MOB_RAVAGER_BITE,
+	eSoundType_MOB_RAVAGER_ROAR,
+	eSoundType_MOB_RAVAGER_STUN,
+	eSoundType_MOB_RAVAGER_CELEBRATE,
+
 	// neoLegacy - mace smash (files: Windows64Media/Sound/Minecraft/item/mace/*)
 	eSoundType_ITEM_MACE_SMASH_AIR,			// target was in the air: smash_air1-3
 	eSoundType_ITEM_MACE_SMASH_GROUND,		// target on the ground: smash_ground1-4
