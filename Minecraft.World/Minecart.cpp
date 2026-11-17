@@ -664,6 +664,11 @@ void Minecart::moveAlongTrack(int xt, int yt, int zt, double maxSpeed, double sl
 	}
 }
 
+void Minecart::checkFallDamage(double ya, bool onGround)
+{
+	fallDistance = 0;
+}
+
 void Minecart::applyNaturalSlowdown()
 {
 	if (rider.lock() != nullptr)

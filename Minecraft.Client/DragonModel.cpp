@@ -56,39 +56,81 @@ DragonModel::DragonModel(float g) : Model()
 	body->addBox(L"scale", -1, -6, -10 + 20 * 1, 2, 6, 12);
 	body->addBox(L"scale", -1, -6, -10 + 20 * 2, 2, 6, 12);
 
-	wing = new ModelPart(this, L"wing");
-	wing->setPos(-12, 5, 2);
-	wing->addBox(L"bone", -56, -4, -4, 56, 8, 8);
-	wing->addBox(L"skin", -56, 0, +2, 56, 0, 56);
-	wingTip = new ModelPart(this, L"wingtip");
-	wingTip->setPos(-56, 0, 0);
-	wingTip->addBox(L"bone", -56, -2, -2, 56, 4, 4);
-	wingTip->addBox(L"skin", -56, 0, +2, 56, 0, 56);
-	wing->addChild(wingTip);
+	wingLeft = new ModelPart(this, L"wing");
+	wingLeft->setPos(12, 5, 2);
+    wingLeft->bMirror = true;
+	wingLeft->addBox(L"bone", 0, -4, -4, 56, 8, 8);
+	wingLeft->addBox(L"skin", 0, 0, +2, 56, 0, 56);
+	wingTipLeft = new ModelPart(this, L"wingtip");
+	wingTipLeft->setPos(56, 0, 0);
+	wingTipLeft->bMirror = true;
+	wingTipLeft->addBox(L"bone", 0, -2, -2, 56, 4, 4);
+	wingTipLeft->addBox(L"skin", 0, 0, +2, 56, 0, 56);
+	wingLeft->addChild(wingTipLeft);
 
-	frontLeg = new ModelPart(this, L"frontleg");
-	frontLeg->setPos(-12, 20, 2);
-	frontLeg->addBox(L"main", -4, -4, -4, 8, 24, 8);
-	frontLegTip = new ModelPart(this, L"frontlegtip");
-	frontLegTip->setPos(0, 20, -1);
-	frontLegTip->addBox(L"main", -3, -1, -3, 6, 24, 6);
-	frontLeg->addChild(frontLegTip);
-	frontFoot = new ModelPart(this, L"frontfoot");
-	frontFoot->setPos(0, 23, 0);
-	frontFoot->addBox(L"main", -4, 0, -12, 8, 4, 16);
-	frontLegTip->addChild(frontFoot);
+	frontLegLeft = new ModelPart(this, L"frontleg");
+	frontLegLeft->setPos(12, 20, 2);
+	frontLegLeft->bMirror = true;
+	frontLegLeft->addBox(L"main", -4, -4, -4, 8, 24, 8);
+	frontLegTipLeft = new ModelPart(this, L"frontlegtip");
+	frontLegTipLeft->setPos(0, 20, -1);
+	frontLegTipLeft->bMirror = true;
+	frontLegTipLeft->addBox(L"main", -3, -1, -3, 6, 24, 6);
+	frontLegLeft->addChild(frontLegTipLeft);
+	frontFootLeft = new ModelPart(this, L"frontfoot");
+	frontFootLeft->setPos(0, 23, 0);
+	frontFootLeft->bMirror = true;
+	frontFootLeft->addBox(L"main", -4, 0, -12, 8, 4, 16);
+	frontLegTipLeft->addChild(frontFootLeft);
 
-	rearLeg = new ModelPart(this, L"rearleg");
-	rearLeg->setPos(-12 - 4, 16, 2 + 40);
-	rearLeg->addBox(L"main", -8, -4, -8, 16, 32, 16);
-	rearLegTip = new ModelPart(this, L"rearlegtip");
-	rearLegTip->setPos(0, 32, -4);
-	rearLegTip->addBox(L"main", -6, -2, 0, 12, 32, 12);
-	rearLeg->addChild(rearLegTip);
-	rearFoot = new ModelPart(this, L"rearfoot");
-	rearFoot->setPos(0, 31, 4);
-	rearFoot->addBox(L"main", -9, 0, -20, 18, 6, 24);
-	rearLegTip->addChild(rearFoot);
+	rearLegLeft = new ModelPart(this, L"rearleg");
+	rearLegLeft->setPos(12 + 4, 16, 2 + 40);
+	rearLegLeft->bMirror = true;
+	rearLegLeft->addBox(L"main", -8, -4, -8, 16, 32, 16);
+	rearLegTipLeft = new ModelPart(this, L"rearlegtip");
+	rearLegTipLeft->setPos(0, 32, -4);
+	rearLegTipLeft->bMirror = true;
+	rearLegTipLeft->addBox(L"main", -6, -2, 0, 12, 32, 12);
+	rearLegLeft->addChild(rearLegTipLeft);
+	rearFootLeft = new ModelPart(this, L"rearfoot");
+	rearFootLeft->setPos(0, 31, 4);
+	rearFootLeft->bMirror = true;
+	rearFootLeft->addBox(L"main", -9, 0, -20, 18, 6, 24);
+	rearLegTipLeft->addChild(rearFootLeft);
+
+	wingRight = new ModelPart(this, L"wing");
+	wingRight->setPos(-12, 5, 2);
+	wingRight->addBox(L"bone", -56, -4, -4, 56, 8, 8);
+	wingRight->addBox(L"skin", -56, 0, +2, 56, 0, 56);
+	wingTipRight = new ModelPart(this, L"wingtip");
+	wingTipRight->setPos(-56, 0, 0);
+	wingTipRight->addBox(L"bone", -56, -2, -2, 56, 4, 4);
+	wingTipRight->addBox(L"skin", -56, 0, +2, 56, 0, 56);
+	wingRight->addChild(wingTipRight);
+
+	frontLegRight = new ModelPart(this, L"frontleg");
+	frontLegRight->setPos(-12, 20, 2);
+	frontLegRight->addBox(L"main", -4, -4, -4, 8, 24, 8);
+	frontLegTipRight = new ModelPart(this, L"frontlegtip");
+	frontLegTipRight->setPos(0, 20, -1);
+	frontLegTipRight->addBox(L"main", -3, -1, -3, 6, 24, 6);
+	frontLegRight->addChild(frontLegTipRight);
+	frontFootRight = new ModelPart(this, L"frontfoot");
+	frontFootRight->setPos(0, 23, 0);
+	frontFootRight->addBox(L"main", -4, 0, -12, 8, 4, 16);
+	frontLegTipRight->addChild(frontFootRight);
+
+	rearLegRight = new ModelPart(this, L"rearleg");
+	rearLegRight->setPos(-12 - 4, 16, 2 + 40);
+	rearLegRight->addBox(L"main", -8, -4, -8, 16, 32, 16);
+	rearLegTipRight = new ModelPart(this, L"rearlegtip");
+	rearLegTipRight->setPos(0, 32, -4);
+	rearLegTipRight->addBox(L"main", -6, -2, 0, 12, 32, 12);
+	rearLegRight->addChild(rearLegTipRight);
+	rearFootRight = new ModelPart(this, L"rearfoot");
+	rearFootRight->setPos(0, 31, 4);
+	rearFootRight->addBox(L"main", -9, 0, -20, 18, 6, 24);
+	rearLegTipRight->addChild(rearFootRight);
 
 	// 4J added - compile now to avoid random performance hit first time cubes are rendered
 	// 4J Stu - Not just performance, but alpha+depth tests don't work right unless we compile here
@@ -96,14 +138,24 @@ DragonModel::DragonModel(float g) : Model()
 	jaw->compile(1.0f/16.0f);
 	neck->compile(1.0f/16.0f);
 	body->compile(1.0f/16.0f);
-	wing->compile(1.0f/16.0f);
-	wingTip->compile(1.0f/16.0f);
-	frontLeg->compile(1.0f/16.0f);
-	frontLegTip->compile(1.0f/16.0f);
-	frontFoot->compile(1.0f/16.0f);
-	rearLeg->compile(1.0f/16.0f);
-	rearLegTip->compile(1.0f/16.0f);
-	rearFoot->compile(1.0f/16.0f);
+
+	wingLeft->compile(1.0f / 16.0f);
+	wingTipLeft->compile(1.0f / 16.0f);
+	frontLegLeft->compile(1.0f / 16.0f);
+	frontLegTipLeft->compile(1.0f / 16.0f);
+	frontFootLeft->compile(1.0f / 16.0f);
+	rearLegLeft->compile(1.0f / 16.0f);
+	rearLegTipLeft->compile(1.0f / 16.0f);
+	rearFootLeft->compile(1.0f / 16.0f);
+
+	wingRight->compile(1.0f/16.0f);
+	wingTipRight->compile(1.0f/16.0f);
+	frontLegRight->compile(1.0f/16.0f);
+	frontLegTipRight->compile(1.0f/16.0f);
+	frontFootRight->compile(1.0f/16.0f);
+	rearLegRight->compile(1.0f/16.0f);
+	rearLegTipRight->compile(1.0f/16.0f);
+	rearFootRight->compile(1.0f/16.0f);
 }
 
 void DragonModel::prepareMobModel(shared_ptr<LivingEntity> mob, float time, float r, float a) 
@@ -186,34 +238,53 @@ void DragonModel::render(shared_ptr<Entity> entity, float time, float r, float b
 	body->zRot = 0;
 	body->render(scale,usecompiled);
 	
-	glEnable(GL_CULL_FACE);
-	for (int i = 0; i < 2; i++) 
 	{
 		float flapTime = ttt * PI * 2;
-		wing->xRot = 0.125f - (float) (Mth::cos(flapTime)) * 0.2f;
-		wing->yRot = 0.25f;
-		wing->zRot = (float) (Mth::sin(flapTime) + 0.125f) * 0.8f;
-		wingTip->zRot = -(float) (Mth::sin(flapTime + 2.0f) + 0.5f) * 0.75f;
+		wingRight->xRot = 0.125f - (float)(Mth::cos(flapTime)) * 0.2f;
+		wingRight->yRot = 0.25f;
+		wingRight->zRot = (float)(Mth::sin(flapTime) + 0.125f) * 0.8f;
+		wingTipRight->zRot = -(float)(Mth::sin(flapTime + 2.0f) + 0.5f) * 0.75f;
 
-		rearLeg->xRot = 1.0f + yo * 0.1f;
-		rearLegTip->xRot = 0.5f + yo * 0.1f;
-		rearFoot->xRot = 0.75f + yo * 0.1f;
+		rearLegRight->xRot = 1.0f + yo * 0.1f;
+		rearLegTipRight->xRot = 0.5f + yo * 0.1f;
+		rearFootRight->xRot = 0.75f + yo * 0.1f;
 
-		frontLeg->xRot = 1.3f + yo * 0.1f;
-		frontLegTip->xRot = -0.5f - yo * 0.1f;
-		frontFoot->xRot = 0.75f + yo * 0.1f;
-		wing->render(scale,usecompiled);
-		frontLeg->render(scale,usecompiled);
-		rearLeg->render(scale,usecompiled);
-		glScalef(-1, 1, 1);
-		if (i == 0) 
+		frontLegRight->xRot = 1.3f + yo * 0.1f;
+		frontLegTipRight->xRot = -0.5f - yo * 0.1f;
+		frontFootRight->xRot = 0.75f + yo * 0.1f;
+
 		{
-			glCullFace(GL_FRONT);
+			wingLeft->xRot = wingRight->xRot;
+			wingLeft->yRot = -wingRight->yRot;
+			wingLeft->zRot = -wingRight->zRot;
+			wingTipLeft->zRot = -wingTipRight->zRot;
+
+			rearLegLeft->xRot = rearLegRight->xRot;
+			rearLegTipLeft->xRot = rearLegTipRight->xRot;
+			rearFootLeft->xRot = rearFootRight->xRot;
+
+			frontLegLeft->xRot = frontLegRight->xRot;
+			frontLegTipLeft->xRot = frontLegTipRight->xRot;
+			frontFootLeft->xRot = frontFootRight->xRot;
 		}
 	}
-	glPopMatrix();
-	glCullFace(GL_BACK);
-	glDisable(GL_CULL_FACE);
+
+	{
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+
+		wingRight->render(scale,usecompiled);
+		frontLegRight->render(scale,usecompiled);
+		rearLegRight->render(scale,usecompiled);
+
+		wingLeft->render(scale, usecompiled);
+		frontLegLeft->render(scale, usecompiled);
+		rearLegLeft->render(scale, usecompiled);
+
+		glPopMatrix();
+		glDisable(GL_CULL_FACE);
+	}
+
 
 	rr = -(float) Mth::sin(ttt * PI * 2) * 0.0f;
 	roff = ttt * PI * 2;

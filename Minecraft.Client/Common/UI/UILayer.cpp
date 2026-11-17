@@ -5,6 +5,10 @@
 #include "IUIScene_WritingBookMenu.h"
 #include "UIScene_BookAndQuillMenu.h"
 #include "UIScene_AchievementsMenu.h"
+#include "UIScene_MinigamesMenu.h"
+#include "UIScene_MinigamesCreateMenu.h"
+#include "UIScene_MinigamesJoinMenu.h"
+#include "UIScene_MinigamesMapSelectMenu.h"
 
 UILayer::UILayer(UIGroup *parent)
 {
@@ -391,6 +395,22 @@ bool UILayer::NavigateToScene(int iPad, EUIScene scene, void *initData)
 		break;
 	case eUIScene_LoadCreateJoinMenu:
 		newScene = new UIScene_LoadCreateJoinMenu(iPad, initData, this);
+		break;
+	case eUIScene_MinigamesMenu:
+		app.DebugPrintf("[MGDBG] UILayer creating UIScene_MinigamesMenu\n");
+		newScene = new UIScene_MinigamesMenu(iPad, initData, this);
+		break;
+	case eUIScene_MinigamesCreateMenu:
+		app.DebugPrintf("[MGDBG] UILayer creating UIScene_MinigamesCreateMenu\n");
+		newScene = new UIScene_MinigamesCreateMenu(iPad, initData, this);
+		break;
+	case eUIScene_MinigamesJoinMenu:
+		app.DebugPrintf("[MGDBG] UILayer creating UIScene_MinigamesJoinMenu\n");
+		newScene = new UIScene_MinigamesJoinMenu(iPad, initData, this);
+		break;
+	case eUIScene_MinigamesMapSelectMenu:
+		app.DebugPrintf("[MGDBG] UILayer creating UIScene_MinigamesMapSelectMenu\n");
+		newScene = new UIScene_MinigamesMapSelectMenu(iPad, initData, this);
 		break;
 	case eUIScene_LoadMenu:
 		newScene = new UIScene_LoadMenu(iPad, initData, this);

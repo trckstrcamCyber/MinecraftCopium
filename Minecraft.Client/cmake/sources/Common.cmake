@@ -327,6 +327,14 @@ set(_MINECRAFT_CLIENT_COMMON_COMMON_UI_ALL_PLATFORMS
   "${BASE_DIR}/UI/UIControl_AchievementsList.h"
   "${BASE_DIR}/UI/UIEnums.h"
   "${BASE_DIR}/UI/UIStructs.h"
+  "${BASE_DIR}/UI/UIScene_MinigamesMenu.cpp"
+  "${BASE_DIR}/UI/UIScene_MinigamesMenu.h"
+  "${BASE_DIR}/UI/UIScene_MinigamesCreateMenu.cpp"
+  "${BASE_DIR}/UI/UIScene_MinigamesCreateMenu.h"
+  "${BASE_DIR}/UI/UIScene_MinigamesJoinMenu.cpp"
+  "${BASE_DIR}/UI/UIScene_MinigamesJoinMenu.h"
+  "${BASE_DIR}/UI/UIScene_MinigamesMapSelectMenu.cpp"
+  "${BASE_DIR}/UI/UIScene_MinigamesMapSelectMenu.h"
 )
 source_group("Common/UI/All Platforms" FILES ${_MINECRAFT_CLIENT_COMMON_COMMON_UI_ALL_PLATFORMS})
 
@@ -453,6 +461,8 @@ set(_MINECRAFT_CLIENT_COMMON_NET_MINECRAFT_CLIENT
   "${CMAKE_CURRENT_SOURCE_DIR}/KeyMapping.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Lighting.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Lighting.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Windows64/CrashHandler.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Windows64/CrashHandler.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/MemoryTracker.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/MemoryTracker.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Minecraft.cpp"

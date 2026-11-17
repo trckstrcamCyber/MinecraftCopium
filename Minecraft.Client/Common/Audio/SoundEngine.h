@@ -136,6 +136,8 @@ public:
 	void startElytraSound(float x, float y, float z, float volume, float pitch);
 	void stopElytraSound();
     void playStreaming(const wstring& name, float x, float y , float z, float volume, float pitch, bool bMusicDelay=true) override;
+	void stopStreamingNow();
+	bool isPlayingMenuMusic() const;
     void playUI(int iSound, float volume, float pitch) override;
     void playMusicTick() override;
     void updateMusicVolume(float fVal) override;
@@ -173,6 +175,9 @@ private:
 	float m_musicFadeSecondsRemaining;
 	std::chrono::steady_clock::time_point m_musicFadeLastUpdateTime;
 	bool m_bCurrentStreamIsCustom;
+	bool m_bCurrentStreamIsMenuMusic;
+	bool m_bPendingCustomMusicFade;
+	bool m_bPendingMenuMusicStart;
 
 	ma_engine m_engine;
 	ma_engine_config m_engineConfig;

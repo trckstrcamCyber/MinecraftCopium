@@ -12,14 +12,24 @@ private:
 	ModelPart *neck;
 	ModelPart *jaw;
 	ModelPart *body;
-	ModelPart *rearLeg;
-	ModelPart *frontLeg;
-	ModelPart *rearLegTip;
-	ModelPart *frontLegTip;
-	ModelPart *rearFoot;
-	ModelPart *frontFoot;
-	ModelPart *wing;
-	ModelPart *wingTip;
+
+	ModelPart* rearLegLeft;
+	ModelPart* frontLegLeft;
+	ModelPart* rearLegTipLeft;
+	ModelPart* frontLegTipLeft;
+	ModelPart* rearFootLeft;
+	ModelPart* frontFootLeft;
+	ModelPart* wingLeft;
+	ModelPart* wingTipLeft;
+
+	ModelPart *rearLegRight;
+	ModelPart *frontLegRight;
+	ModelPart *rearLegTipRight;
+	ModelPart *frontLegTipRight;
+	ModelPart *rearFootRight;
+	ModelPart *frontFootRight;
+	ModelPart *wingRight;
+	ModelPart *wingTipRight;
 	float a;
 
 public:

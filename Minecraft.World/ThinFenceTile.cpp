@@ -50,36 +50,14 @@ void ThinFenceTile::addAABBs(Level *level, int x, int y, int z, AABB *box, AABBL
     bool w = attachsTo(level->getTile(x - 1, y, z));
     bool e = attachsTo(level->getTile(x + 1, y, z));
 
-    if ((w && e) || (!w && !e && !n && !s))
-	{
-        setShape(0, 0, 7.0f / 16.0f, 1, 1, 9.0f / 16.0f);
-        Tile::addAABBs(level, x, y, z, box, boxes, source);
-    }
-	else if (w && !e)
-	{
-        setShape(0, 0, 7.0f / 16.0f, .5f, 1, 9.0f / 16.0f);
-        Tile::addAABBs(level, x, y, z, box, boxes, source);
-    }
-	else if (!w && e)
-	{
-        setShape(.5f, 0, 7.0f / 16.0f, 1, 1, 9.0f / 16.0f);
-        Tile::addAABBs(level, x, y, z, box, boxes, source);
-    }
-    if ((n && s) || (!w && !e && !n && !s))
-	{
-        setShape(7.0f / 16.0f, 0, 0, 9.0f / 16.0f, 1, 1);
-        Tile::addAABBs(level, x, y, z, box, boxes, source);
-    }
-	else if (n && !s)
-	{
-        setShape(7.0f / 16.0f, 0, 0, 9.0f / 16.0f, 1, .5f);
-        Tile::addAABBs(level, x, y, z, box, boxes, source);
-    }
-	else if (!n && s)
-	{
-        setShape(7.0f / 16.0f, 0, .5f, 9.0f / 16.0f, 1, 1);
-        Tile::addAABBs(level, x, y, z, box, boxes, source);
-    }
+	const float lo = 7.0f / 16.0f;
+	const float hi = 9.0f / 16.0f;
+	setShape(lo, 0, lo, hi, 1, hi);
+	Tile::addAABBs(level, x, y, z, box, boxes, source);
+	if (n) { setShape(lo, 0, 0, hi, 1, hi); Tile::addAABBs(level, x, y, z, box, boxes, source); }
+	if (s) { setShape(lo, 0, lo, hi, 1, 1); Tile::addAABBs(level, x, y, z, box, boxes, source); }
+	if (w) { setShape(0, 0, lo, hi, 1, hi); Tile::addAABBs(level, x, y, z, box, boxes, source); }
+	if (e) { setShape(lo, 0, lo, 1, 1, hi); Tile::addAABBs(level, x, y, z, box, boxes, source); }
 }
 
 void ThinFenceTile::updateDefaultShape()
@@ -94,37 +72,15 @@ void ThinFenceTile::updateShape(LevelSource *level, int x, int y, int z, int for
     float minZ = 7.0f / 16.0f;
     float maxZ = 9.0f / 16.0f;
 
-    bool n = attachsTo(level->getTile(x, y, z - 1));
+	bool n = attachsTo(level->getTile(x, y, z - 1));
     bool s = attachsTo(level->getTile(x, y, z + 1));
     bool w = attachsTo(level->getTile(x - 1, y, z));
     bool e = attachsTo(level->getTile(x + 1, y, z));
 
-    if ((w && e) || (!w && !e && !n && !s))
-	{
-        minX = 0;
-        maxX = 1;
-    }
-	else if (w && !e)
-	{
-        minX = 0;
-    }
-	else if (!w && e)
-	{
-        maxX = 1;
-    }
-    if ((n && s) || (!w && !e && !n && !s))
-	{
-        minZ = 0;
-        maxZ = 1;
-    }
-	else if (n && !s)
-	{
-        minZ = 0;
-    }
-	else if (!n && s)
-	{
-        maxZ = 1;
-    }
+	if (w) minX = 0;
+	if (e) maxX = 1;
+	if (n) minZ = 0;
+	if (s) maxZ = 1;
 	setShape(minX, 0, minZ, maxX, 1, maxZ);
 }
 

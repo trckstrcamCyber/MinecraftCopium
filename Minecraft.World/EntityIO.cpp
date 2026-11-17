@@ -174,6 +174,7 @@ void EntityIO::staticCtor()
 
 	// 4J-PB - moved to allow the eggs to be named and coloured in the Creative Mode menu
 	// 4J Added for custom spawn eggs
+    setId(EntityHorse::create, eTYPE_HORSE, L"EntityHorse", 100 | ((EntityHorse::TYPE_HORSE + 1) << 12), eMinecraftColour_Mob_Horse_Colour1, eMinecraftColour_Mob_Horse_Colour2, IDS_HORSE);
 	setId(EntityHorse::create,	eTYPE_HORSE,	L"EntityHorse", 100 | ((EntityHorse::TYPE_DONKEY + 1) << 12),	eMinecraftColour_Mob_Horse_Colour1,		eMinecraftColour_Mob_Horse_Colour2,		IDS_DONKEY);
 	setId(EntityHorse::create,	eTYPE_HORSE,	L"EntityHorse", 100 | ((EntityHorse::TYPE_MULE + 1) << 12),		eMinecraftColour_Mob_Horse_Colour1,		eMinecraftColour_Mob_Horse_Colour2,		IDS_MULE);
 
