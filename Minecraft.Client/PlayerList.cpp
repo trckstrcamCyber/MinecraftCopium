@@ -932,7 +932,7 @@ shared_ptr<ServerPlayer> PlayerList::respawn(shared_ptr<ServerPlayer> serverPlay
 
 	if(keepAllPlayerData)
 	{
-		vector<MobEffectInstance *> *activeEffects = player->getActiveEffects();
+		vector<MobEffectInstance *> *activeEffects = serverPlayer->getActiveEffects();
 		for(MobEffectInstance *effect : *activeEffects)
 		{
 			player->connection->send(std::make_shared<UpdateMobEffectPacket>( player->entityId, effect ) );

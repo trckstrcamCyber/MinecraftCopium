@@ -57,6 +57,7 @@ void SoundEngine::playUI(int iSound, float volume, float pitch) {}
 
 void SoundEngine::updateMusicVolume(float fVal) {}
 void SoundEngine::updateSoundEffectVolume(float fVal) {}
+void SoundEngine::stopStreamingNow() {}
 
 void SoundEngine::add(const wstring& name, File *file) {}
 void SoundEngine::addMusic(const wstring& name, File *file) {}
@@ -66,6 +67,23 @@ bool SoundEngine::isStreamingWavebankReady() { return true; }
 void SoundEngine::playMusicTick() {};
 
 #else
+void SoundEngine::stopStreamingNow()
+{
+	if (m_musicStreamActive)
+	{
+		ma_sound_stop(&m_musicStream);
+		ma_sound_uninit(&m_musicStream);
+		m_musicStreamActive = false;
+	}
+
+	SetIsPlayingStreamingCDMusic(false);
+	SetIsPlayingStreamingGameMusic(false);
+
+	m_StreamState = eMusicStreamState_Idle;
+	m_musicID = -1;
+	m_iMusicDelay = 0;
+	m_bCurrentStreamIsMenuMusic = false;
+}
 
 #ifdef _WINDOWS64
 char SoundEngine::m_szSoundPath[]={"Windows64Media\\Sound\\"};
@@ -347,13 +365,18 @@ void SoundEngine::updateMiniAudio()
 /////////////////////////////////////////////
 inline void SoundEngine::getGameModeMusicID(Minecraft* pMinecraft, unsigned int i)
 {
-    if (pMinecraft->localplayers[i] != nullptr && pMinecraft->localplayers[i]->abilities.instabuild && pMinecraft->localplayers[i]->abilities.mayfly)
-        m_musicID = getMusicID(eMusicType_Creative);
-    // TODO(3UR): this is a part of minigames also in the future other minigame ids will need to be handled for now TU30 only checks for BATTLE
-    //else if (pMinecraft->GetCustomGameMode() && CustomGameModeInst::GetId() == EMiniGameId::BATTLE) // @3UR: thanks https://github.com/GRAnimated/MinecraftLCE/blob/6947670d152582457bfe02bd909ee30a7ab7eb55/src/Minecraft.World/net/minecraft/world/level/gamemode/minigames/EMiniGameId.h#L3
-    //	m_musicID = getMusicID(eMusicType_Battle);
-    else
-        m_musicID = getMusicID(eMusicType_Overworld);
+	if (pMinecraft == nullptr || i > std::size(pMinecraft->localplayers)) return;
+
+	const auto& localPlayer = pMinecraft->localplayers[i];
+	if (localPlayer != nullptr && localPlayer->abilities.instabuild && localPlayer->abilities.mayfly) {
+		m_musicID = getMusicID(eMusicType_Creative);
+	}
+	// TODO(3UR): this is a part of minigames also in the future other minigame ids will need to be handled for now TU30 only checks for BATTLE
+	//else if (pMinecraft->GetCustomGameMode() && CustomGameModeInst::GetId() == EMiniGameId::BATTLE) // @3UR: thanks https://github.com/GRAnimated/MinecraftLCE/blob/6947670d152582457bfe02bd909ee30a7ab7eb55/src/Minecraft.World/net/minecraft/world/level/gamemode/minigames/EMiniGameId.h#L3
+	//	m_musicID = getMusicID(eMusicType_Battle);
+	else {
+		m_musicID = getMusicID(eMusicType_Overworld);
+	}  
 }
 
 /////////////////////////////////////////////
@@ -468,6 +491,9 @@ SoundEngine::SoundEngine()
 	m_musicFadeSecondsRemaining = 0.0f;
 	m_musicFadeLastUpdateTime = std::chrono::steady_clock::now();
 	m_bCurrentStreamIsCustom = false;
+	m_bCurrentStreamIsMenuMusic = true;
+	m_bPendingCustomMusicFade = false;
+	m_bPendingMenuMusicStart = false;
 
 	memset(CurrentSoundsPlaying,0,sizeof(int)*(eSoundType_MAX+eSFX_MAX));
 	memset(m_ListenerA,0,sizeof(AUDIO_LISTENER)*XUSER_MAX_COUNT);
@@ -863,10 +889,40 @@ void SoundEngine::playStreaming(const wstring& name, float x, float y, float z, 
 	m_StreamingAudioInfo.volume = volume;
 	m_StreamingAudioInfo.pitch  = pitch;
 
-	bool bNextCustom = isCustomMusicRequest(name);
-	bool bCurrentCustom = m_musicStreamActive && m_bCurrentStreamIsCustom;
+	if (name.empty() && m_musicStreamActive && isPlayingMenuMusic() && !isCustomMusicRequest(name))
+	{
+		return;
+	}
 
-	if(m_StreamState == eMusicStreamState_Playing)
+	if (name.empty() && m_bPendingMenuMusicStart &&
+		(m_StreamState == eMusicStreamState_Playing || m_StreamState == eMusicStreamState_Fading))
+	{
+		return;
+	}
+
+	const bool bNextCustom = isCustomMusicRequest(name);
+	const bool bCurrentCustom = m_musicStreamActive && m_bCurrentStreamIsCustom;
+	const bool bTransitioningFromCustomMusic = name.empty() && m_musicStreamActive && bCurrentCustom && !m_bCurrentStreamIsMenuMusic;
+	const bool bTransitioningFromNonMenuMusic = name.empty() && m_musicStreamActive && !m_bCurrentStreamIsMenuMusic;
+
+	if (bTransitioningFromNonMenuMusic && (m_StreamState == eMusicStreamState_Playing || m_StreamState == eMusicStreamState_Fading))
+	{
+		m_bPendingMenuMusicStart = true;
+		m_bCurrentStreamIsMenuMusic = false;
+		if (bTransitioningFromCustomMusic)
+		{
+			m_bPendingCustomMusicFade = true;
+		}
+		if (m_StreamState == eMusicStreamState_Playing)
+		{
+			m_StreamState = eMusicStreamState_Fading;
+			m_musicFadeSecondsRemaining = MUSIC_FADE_DURATION_SECONDS;
+			m_musicFadeLastUpdateTime = std::chrono::steady_clock::now();
+		}
+		return;
+	}
+
+	if (m_StreamState == eMusicStreamState_Playing)
 	{
 		if (bCurrentCustom != bNextCustom)
 		{
@@ -884,6 +940,7 @@ void SoundEngine::playStreaming(const wstring& name, float x, float y, float z, 
 	{
 		// music, or stop CD
 		m_StreamingAudioInfo.bIs3D = false;
+		m_bCurrentStreamIsMenuMusic = false;
 
 		// random delay of up to 3 minutes for music
 		m_iMusicDelay = random->nextInt(20 * 60 * 3);
@@ -937,9 +994,22 @@ void SoundEngine::playStreaming(const wstring& name, float x, float y, float z, 
 	{
 		// jukebox
 		m_StreamingAudioInfo.bIs3D=true;
-		m_musicID=getMusicID(name);
-		m_iMusicDelay=0;
+		m_bCurrentStreamIsMenuMusic = false;
+		m_musicID = getMusicID(name);
+		m_iMusicDelay = 0;
+		
+		if (m_StreamState == eMusicStreamState_Playing || m_StreamState == eMusicStreamState_Opening || m_musicStreamActive)
+		{
+			m_StreamState = eMusicStreamState_Fading;
+			m_musicFadeSecondsRemaining = MUSIC_FADE_DURATION_SECONDS;
+			m_musicFadeLastUpdateTime = std::chrono::steady_clock::now();
+		}
 	}
+}
+
+bool SoundEngine::isPlayingMenuMusic() const
+{
+	return m_musicStreamActive && m_bCurrentStreamIsMenuMusic;
 }
 
 bool SoundEngine::isCustomMusicRequest(const wstring& name) const
@@ -1530,7 +1600,15 @@ void SoundEngine::playMusicUpdate()
 
 		SetIsPlayingStreamingCDMusic(false);
 		SetIsPlayingStreamingGameMusic(false);
+		if (m_bPendingMenuMusicStart)
+		{
+			m_musicID = getMusicID(eMusicType_Menu);
+			m_bCurrentStreamIsMenuMusic = true;
+			m_iMusicDelay = 0;
+			m_bPendingMenuMusicStart = false;
+		}
 		m_StreamState = eMusicStreamState_Idle;
+		m_bPendingCustomMusicFade = false;
 	break;
 	case eMusicStreamState_Stopping:
 		break;
