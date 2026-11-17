@@ -61,7 +61,6 @@ UIScene_MainMenu::UIScene_MainMenu(int iPad, void *initData, UILayer *parentLaye
 	m_buttons[(int)eControl_XboxHelp].init(IDS_XBOX_HELP_APP, eControl_XboxHelp);
 #endif
 
-	removeControl( &m_buttons[(int)eControl_MiniGames], false );
 	int controlType = app.GetGameSettings(m_iPad, eGameSetting_ControlType);
 	if (controlType == 3 || controlType == 4)
 	{
@@ -250,7 +249,6 @@ wstring UIScene_MainMenu::getMoviePath()
 
 void UIScene_MainMenu::handleReload()
 {
-	removeControl( &m_buttons[(int)eControl_MiniGames], false );
 	int controlType = app.GetGameSettings(m_iPad, eGameSetting_ControlType);
 	if (controlType == 3 || controlType == 4)
 	{
@@ -355,23 +353,12 @@ void UIScene_MainMenu::handlePress(F64 controlId, F64 childId)
 		signInReturnedFunc = &UIScene_MainMenu::CreateLoad_SignInReturned;
 #endif		
 		break;
-    case eControl_MiniGames:
-	#ifdef __ORBIS__
-		{
-			m_bIgnorePress=true;
-
-			//CD - Added for audio
-			ui.PlayUISFX(eSFX_Press);
-
-			ProfileManager.RefreshChatAndContentRestrictions(RefreshChatAndContentRestrictionsReturned_PlayGame, this);
-		}
-#else
-		m_eAction=eAction_RunGame;
+	case eControl_MiniGames:
 		//CD - Added for audio
 		ui.PlayUISFX(eSFX_Press);
-
-		signInReturnedFunc = &UIScene_MainMenu::CreateLoad_SignInReturned;
-#endif		
+		m_eAction=eAction_RunMiniGames;
+		RunAction(primaryPad);
+		return;
 		break;
 	case eControl_Leaderboards:
 		//CD - Added for audio
@@ -472,6 +459,9 @@ void UIScene_MainMenu::RunAction(int iPad)
 	{
 	case eAction_RunGame:
 		RunPlayGame(iPad);
+		break;
+	case eAction_RunMiniGames:
+		RunMiniGames(iPad);
 		break;
 	case eAction_RunLeaderboards:
 		RunLeaderboards(iPad);
@@ -2067,6 +2057,15 @@ void UIScene_MainMenu::RunAchievements(int iPad)
 	}
 #endif
 	ui.NavigateToScene(iPad, eUIScene_AchievementsMenu);
+}
+
+void UIScene_MainMenu::RunMiniGames(int iPad)
+{
+	ProfileManager.SetLockedProfile(iPad);
+#ifdef _XBOX_ONE
+	ui.ShowPlayerDisplayname(true);
+#endif
+	proceedToScene(iPad, eUIScene_MinigamesMenu);
 }
 
 void UIScene_MainMenu::RunHelpAndOptions(int iPad)
