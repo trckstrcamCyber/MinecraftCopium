@@ -19,6 +19,7 @@ protected:
 	float m_lastDragonHealth;
 	bool m_showDragonHealth;
 	int m_ticksWithNoBoss;
+	wstring m_bossLabel;	// neoLegacy - the label last shown on the boss bar, so a bar whose text changes (the raid's wave) gets its label updated
 	bool m_lastShowDisplayName;
 	int m_horseHealth;
 	int m_iCurrentHealthAbsorb;

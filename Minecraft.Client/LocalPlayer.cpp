@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "BossMobGuiInfo.h"
 #include "LocalPlayer.h"
 #include "ArcadeGameSession.h"
 #include "../Minecraft.World/ArcadeGameTypes.h"
@@ -180,6 +181,29 @@ bool LocalPlayer::isEffectiveAi() const
 
 void LocalPlayer::aiStep()
 {
+	// neoLegacy - the raid bar: the server packs it into this player's synched data; show it with the boss bar
+	{
+		int raid = getEntityData()->getInteger(DATA_RAID_BAR_ID);
+		if (raid & 1)
+		{
+			int percent = (raid >> 1) & 127;
+			int wave = (raid >> 8) & 15;
+			int total = (raid >> 12) & 15;
+			int state = (raid >> 16) & 3;
+
+			wchar_t text[48];
+			if (state == 1) swprintf(text, 48, L"Raid - Victory");
+			else if (state == 2) swprintf(text, 48, L"Raid - Defeat");
+			else swprintf(text, 48, L"Raid - Wave %d of %d", wave, total);
+
+			int idx = BossMobGuiInfo::getIndexFromDimension(dimension);
+			BossMobGuiInfo::name[idx] = text;
+			BossMobGuiInfo::healthProgress[idx] = percent / 100.0f;
+			BossMobGuiInfo::displayTicks[idx] = 100;
+			BossMobGuiInfo::darkenWorld[idx] = false;
+		}
+	}
+
 	if (sprintTime > 0)
 	{
 		sprintTime--;

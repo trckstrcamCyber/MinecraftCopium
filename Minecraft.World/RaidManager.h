@@ -31,6 +31,9 @@ private:
 		int quietTicks;			// how long no player has been near
 		bool waveOut;
 		bool finished;
+		int waveSize;			// how many raiders the wave in progress started with (the bar is what is left of them)
+		int endState;			// 0 under way, 1 victory, 2 defeat: shown on the bar for a few seconds after it ends
+		int endTicks;
 		vector<weak_ptr<Mob> > raiders;
 	};
 
@@ -46,6 +49,7 @@ private:
 	int patrolCountdown;
 	vector<Raid> raids;
 	vector<OmenWatch> omens;
+	vector<int> warnedPeaceful;		// players already told that raids do not happen on Peaceful
 
 	void tickPatrols();
 	void spawnPatrol(shared_ptr<Player> player);
@@ -57,6 +61,8 @@ private:
 	bool findRaiderSpawn(Raid &raid, int *x, int *y, int *z);
 	int aliveRaiders(Raid &raid);
 	void tell(Raid &raid, const wstring &message);
+	void updateRaidBars();
+	void endRaid(Raid &raid, int state);
 
 public:
 	RaidManager(Level *level);

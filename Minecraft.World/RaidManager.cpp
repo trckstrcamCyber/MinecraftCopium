@@ -37,20 +37,79 @@ void RaidManager::tick()
 {
 	if (level->isClientSide || level->dimension->id != 0) return;
 
+	if (level->getGameTime() % 20 == 0) detectBadOmen();	// on Peaceful this only tells the player why nothing happens
+
 	if (level->difficulty == 0)
 	{
 		raids.clear();
+		if (level->getGameTime() % 10 == 0) updateRaidBars();
 		return;
 	}
 
 	tickPatrols();
 
-	if (level->getGameTime() % 20 == 0) detectBadOmen();
-
 	for (size_t i = 0; i < raids.size(); i++) tickRaid(raids[i]);
 	for (size_t i = raids.size(); i > 0; i--)
 	{
-		if (raids[i - 1].finished) raids.erase(raids.begin() + (i - 1));
+		if (raids[i - 1].finished && raids[i - 1].endTicks <= 0) raids.erase(raids.begin() + (i - 1));
+	}
+
+	if (level->getGameTime() % 10 == 0) updateRaidBars();
+}
+
+// A raid stops: the bar stays for five seconds showing how it ended (state 1 victory, 2 defeat, 0 simply called off).
+void RaidManager::endRaid(Raid &raid, int state)
+{
+	raid.finished = true;
+	raid.endState = state;
+	raid.endTicks = (state != 0) ? 100 : 0;
+}
+
+// The raid bar: each player near a raid gets the nearest one's progress through the Player's synched data, and the HUD draws it with the boss bar.
+// It starts full when a wave appears and empties as its raiders fall.
+void RaidManager::updateRaidBars()
+{
+	for (size_t p = 0; p < level->players.size(); p++)
+	{
+		shared_ptr<Player> player = level->players[p];
+		if (player == nullptr || player->removed) continue;
+
+		const Raid *best = nullptr;
+		double bestDist = 128.0 * 128.0;
+		for (size_t i = 0; i < raids.size(); i++)
+		{
+			double dx = player->x - raids[i].centerX, dz = player->z - raids[i].centerZ;
+			double d = dx * dx + dz * dz;
+			if (d < bestDist) { bestDist = d; best = &raids[i]; }
+		}
+
+		int packed = 0;
+		if (best != nullptr)
+		{
+			int percent = 100;
+			if (best->endState == 1) percent = 100;
+			else if (best->endState == 2) percent = 0;
+			else if (best->waveOut && best->waveSize > 0)
+			{
+				int alive = 0;
+				for (size_t r = 0; r < best->raiders.size(); r++)
+				{
+					shared_ptr<Mob> m = best->raiders[r].lock();
+					if (m != nullptr && !m->removed && m->isAlive()) alive++;
+				}
+				percent = alive * 100 / best->waveSize;
+				if (percent > 100) percent = 100;
+			}
+
+			int wave = best->wavesSpawned > 0 ? best->wavesSpawned : 1;
+			if (wave > 15) wave = 15;
+			int total = best->totalWaves > 15 ? 15 : best->totalWaves;
+			packed = 1 | (percent << 1) | (wave << 8) | (total << 12) | (best->endState << 16);
+		}
+		if (player->getEntityData()->getInteger(Player::DATA_RAID_BAR_ID) != packed)
+		{
+			player->getEntityData()->set(Player::DATA_RAID_BAR_ID, packed);
+		}
 	}
 }
 
@@ -127,11 +186,27 @@ void RaidManager::detectBadOmen()
 		shared_ptr<Village> village = level->villages->getClosestVillage(px, py, pz, 16);
 		bool inVillage = village != nullptr && village->isInside(px, py, pz);
 
+		bool hasOmen = player->hasEffect(MobEffect::badOmen) || player->hasEffect(MobEffect::raidOmen);
+
+		// raids do not happen on Peaceful: say so once, instead of leaving the Bad Omen to do nothing
+		if (level->difficulty == 0)
+		{
+			bool warned = false;
+			for (size_t i = 0; i < warnedPeaceful.size(); i++) if (warnedPeaceful[i] == player->entityId) warned = true;
+			if (inVillage && hasOmen && !warned)
+			{
+				warnedPeaceful.push_back(player->entityId);
+				player->sendMessage(L"Raids do not happen on Peaceful. Raise the difficulty to start one.");
+			}
+			continue;
+		}
+
 		if (inVillage && player->hasEffect(MobEffect::badOmen))
 		{
 			int amplifier = player->getEffect(MobEffect::badOmen)->getAmplifier();
 			player->removeEffect(MobEffect::badOmen->id);
 			player->addEffect(new MobEffectInstance(MobEffect::raidOmen->id, 600, amplifier));
+			player->sendMessage(L"Raid Omen: a raid begins in 30 seconds.");
 		}
 
 		// keep track of the Raid Omen
@@ -181,6 +256,7 @@ void RaidManager::startOrRaiseRaid(shared_ptr<Village> village, int badOmenLevel
 	Pos *center = village->getCenter();
 	for (size_t i = 0; i < raids.size(); i++)
 	{
+		if (raids[i].finished) continue;
 		double dx = raids[i].centerX - center->x, dz = raids[i].centerZ - center->z;
 		if (dx * dx + dz * dz < static_cast<double>(raids[i].radius + 32) * (raids[i].radius + 32))
 		{
@@ -210,6 +286,9 @@ void RaidManager::startRaid(int cx, int cy, int cz, int radius, int badOmenLevel
 	raid.quietTicks = 0;
 	raid.waveOut = false;
 	raid.finished = false;
+	raid.waveSize = 0;
+	raid.endState = 0;
+	raid.endTicks = 0;
 	raids.push_back(raid);
 
 	tell(raids.back(), L"A raid is coming!");
@@ -240,7 +319,11 @@ int RaidManager::aliveRaiders(Raid &raid)
 
 void RaidManager::tickRaid(Raid &raid)
 {
-	if (raid.finished) return;
+	if (raid.finished)
+	{
+		if (raid.endTicks > 0) raid.endTicks--;
+		return;
+	}
 
 	// nobody near for two minutes: the raid is called off
 	bool playerNearby = false;
@@ -252,7 +335,7 @@ void RaidManager::tickRaid(Raid &raid)
 		if (dx * dx + dz * dz < 112.0 * 112.0) { playerNearby = true; break; }
 	}
 	if (playerNearby) raid.quietTicks = 0;
-	else if (++raid.quietTicks > 2400) { raid.finished = true; return; }
+	else if (++raid.quietTicks > 2400) { endRaid(raid, 0); return; }
 	if (!playerNearby) return;	// the chunks around the village are not necessarily loaded
 
 	int alive = aliveRaiders(raid);
@@ -262,7 +345,7 @@ void RaidManager::tickRaid(Raid &raid)
 	if (raid.wavesSpawned > 0 && (village == nullptr || village->getPopulationSize() == 0))
 	{
 		tell(raid, L"The village has fallen.");
-		raid.finished = true;
+		endRaid(raid, 2);
 		return;
 	}
 
@@ -274,7 +357,7 @@ void RaidManager::tickRaid(Raid &raid)
 		if (raid.wavesSpawned >= raid.totalWaves)
 		{
 			tell(raid, L"Victory! The raid has been defeated.");
-			raid.finished = true;
+			endRaid(raid, 1);
 			return;
 		}
 		tell(raid, L"Wave cleared.");
@@ -362,6 +445,7 @@ void RaidManager::spawnWave(Raid &raid)
 	}
 
 	raid.waveOut = true;
+	raid.waveSize = static_cast<int>(raid.raiders.size());
 
 	wchar_t text[64];
 	swprintf(text, 64, L"Raid - wave %d of %d", raid.wavesSpawned, raid.totalWaves);

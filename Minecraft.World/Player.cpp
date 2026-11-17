@@ -206,6 +206,7 @@ void Player::defineSynchedData()
 	entityData->define(DATA_PLAYER_FLAGS_ID, static_cast<byte>(0));
 	entityData->define(DATA_PLAYER_ABSORPTION_ID, static_cast<float>(0));
 	entityData->define(DATA_SCORE_ID, (int) 0);
+	entityData->define(DATA_RAID_BAR_ID, (int) 0);
 }
 
 shared_ptr<ItemInstance> Player::getUseItem()

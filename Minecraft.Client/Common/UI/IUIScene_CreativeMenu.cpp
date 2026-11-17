@@ -848,6 +848,8 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::sandai_kitetsu_Id)
 		ITEM(Item::enma_Id)
 		ITEM(Item::shusui_Id)
+		ITEM(Item::jdemon_sword_Id)		// neoLegacy - JDemon sword
+		ITEM(Item::cmonster_sword_Id)	// neoLegacy - CMonster sword
 		ITEM(Item::mace_Id)		// neoLegacy - Mace
 		ITEM(Item::cursed_hilt_Id)
         ITEM(Item::flint_and_steel_Id)

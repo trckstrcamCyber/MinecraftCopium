@@ -174,6 +174,13 @@ void UIScene_HUD::tick()
 			m_ticksWithNoBoss = 0;			
 		    SetDragonHealth(BossMobGuiInfo::healthProgress[idx]);
 
+			// neoLegacy - the label is normally only set when the bar appears; the raid bar's changes with the wave
+			if (m_bossLabel != BossMobGuiInfo::name[idx])
+			{
+				m_bossLabel = BossMobGuiInfo::name[idx];
+				SetDragonLabel(m_bossLabel);
+			}
+
 			if (!m_showDragonHealth)
 			{
 			    SetDragonLabel(BossMobGuiInfo::name[idx]);

@@ -53,6 +53,10 @@ public:
 
 	// 4J-PB - added for a red death fade in the gui
 	static const int DEATHFADE_DURATION = 21;
+
+	// neoLegacy - the raid bar for the HUD, set by RaidManager and read by the local player. Bit 0 shown, bits 1-7 percent left, 8-11 wave,
+	// 12-15 waves in all, 16-17 how it ended (0 under way, 1 victory, 2 defeat). Public because both of those are outside this class.
+	static const int DATA_RAID_BAR_ID = 19;
 private:
 	static const int FLY_ACHIEVEMENT_SPEED = 25;
 
