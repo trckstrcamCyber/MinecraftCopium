@@ -33,7 +33,7 @@ public:
 
     static constexpr int64_t INVALID_SEED = 0LL;
 
-    MesaBiome(int id, bool isMesaPlateau, bool hasTrees);
+    MesaBiome(int id, bool isBryce, bool hasTrees);
     virtual ~MesaBiome();
 
     virtual void      decorate(Level* level, Random* random, int xo, int zo) override;
@@ -50,13 +50,13 @@ private:
     void      generateBands(int64_t seed);
     BandEntry getBand(int x, int y, int z);
 
-    bool    isMesaPlateau;  //0x104
+    bool    isBryce;        //0x104
     bool    hasTrees;       //0x105
 
     int64_t lastSeed;       //0xF0/0xF4
 
     BandEntry*          clayBands;            //0xE8
-    PerlinSimplexNoise* pillarNoise;          //0xF8 
-    PerlinSimplexNoise* pillarRoofNoise;      //0xFC
+    PerlinSimplexNoise* cliffNoise;
+    PerlinSimplexNoise* pillarNoise;
     PerlinSimplexNoise* clayBandsOffsetNoise; //0x100
 };

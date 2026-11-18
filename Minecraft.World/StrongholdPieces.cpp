@@ -209,7 +209,7 @@ StructurePiece *StrongholdPieces::generateAndAddPiece(StartPiece *startPiece, li
 	{
 		return nullptr;
 	}
-	if (abs(footX - startPiece->getBoundingBox()->x0) > 3 * 16 || abs(footZ - startPiece->getBoundingBox()->z0) > 3 * 16)
+	if (abs(footX - startPiece->getBoundingBox()->x0) > 7 * 16 || abs(footZ - startPiece->getBoundingBox()->z0) > 7 * 16)
 	{
 		// Force attempt at spawning a portal room
 		if(startPiece->m_level->getOriginalSaveVersion() >= SAVE_FILE_VERSION_MOVED_STRONGHOLD && !startPiece->m_level->getLevelData()->getHasStrongholdEndPortal())
@@ -482,27 +482,9 @@ bool StrongholdPieces::FillerCorridor::postProcess(Level *level, Random *random,
 	// filler corridor
 	for (int i = 0; i < steps; i++)
 	{
-		// row 0
-		placeBlock(level, Tile::stonebrick_Id, 0, 0, 0, i, chunkBB);
-		placeBlock(level, Tile::stonebrick_Id, 0, 1, 0, i, chunkBB);
-		placeBlock(level, Tile::stonebrick_Id, 0, 2, 0, i, chunkBB);
-		placeBlock(level, Tile::stonebrick_Id, 0, 3, 0, i, chunkBB);
-		placeBlock(level, Tile::stonebrick_Id, 0, 4, 0, i, chunkBB);
-		// row 1-3
-		for (int y = 1; y <= 3; y++)
-		{
-			placeBlock(level, Tile::stonebrick_Id, 0, 0, y, i, chunkBB);
-			placeBlock(level, 0, 0, 1, y, i, chunkBB);
-			placeBlock(level, 0, 0, 2, y, i, chunkBB);
-			placeBlock(level, 0, 0, 3, y, i, chunkBB);
-			placeBlock(level, Tile::stonebrick_Id, 0, 4, y, i, chunkBB);
-		}
-		// row 4
-		placeBlock(level, Tile::stonebrick_Id, 0, 0, 4, i, chunkBB);
-		placeBlock(level, Tile::stonebrick_Id, 0, 1, 4, i, chunkBB);
-		placeBlock(level, Tile::stonebrick_Id, 0, 2, 4, i, chunkBB);
-		placeBlock(level, Tile::stonebrick_Id, 0, 3, 4, i, chunkBB);
-		placeBlock(level, Tile::stonebrick_Id, 0, 4, 4, i, chunkBB);
+		generateBox(level, chunkBB, 0, 0, i, 4, 4, i,
+			Tile::stonebrick_Id, Tile::stonebrick_Id, CHECK_AIR);
+		generateBox(level, chunkBB, 1, 1, i, 3, 3, i, 0, 0, false);
 	}
 
 	return true;

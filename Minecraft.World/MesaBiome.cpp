@@ -18,9 +18,9 @@
 #undef max
 #undef min
 
-MesaBiome::MesaBiome(int id, bool mesaPlateau, bool hasTrees) : Biome(id)
+MesaBiome::MesaBiome(int id, bool isBryce, bool hasTrees) : Biome(id)
 {
-    this->isMesaPlateau = mesaPlateau;
+    this->isBryce       = isBryce;
     this->hasTrees      = hasTrees;
 
     this->setNoRain();
@@ -36,8 +36,8 @@ MesaBiome::MesaBiome(int id, bool mesaPlateau, bool hasTrees) : Biome(id)
 
     this->lastSeed             = INVALID_SEED;
     this->clayBands            = nullptr;
+    this->cliffNoise           = nullptr;
     this->pillarNoise          = nullptr;
-    this->pillarRoofNoise      = nullptr;
     this->clayBandsOffsetNoise = nullptr;
 
     if (decorator)
@@ -55,10 +55,10 @@ MesaBiome::~MesaBiome()
     delete[] clayBands;
     clayBands = nullptr;
 
+    delete cliffNoise;
+    cliffNoise = nullptr;
     delete pillarNoise;
     pillarNoise = nullptr;
-    delete pillarRoofNoise;
-    pillarRoofNoise = nullptr;
     delete clayBandsOffsetNoise;
     clayBandsOffsetNoise = nullptr;
 }
@@ -218,49 +218,36 @@ void MesaBiome::buildSurfaceAtDefault(Level* level, Random* random,
     if (!clayBands || lastSeed != seed)
         generateBands(seed);
 
-    if (!pillarNoise || !pillarRoofNoise || lastSeed != seed)
+    if (!cliffNoise || !pillarNoise || lastSeed != seed)
     {
         Random noiseRand(seed);
+        delete cliffNoise;
         delete pillarNoise;
-        delete pillarRoofNoise;
-        
-        pillarNoise     = new PerlinSimplexNoise(&noiseRand, 4);
-        pillarRoofNoise = new PerlinSimplexNoise(&noiseRand, 1);
+        cliffNoise = new PerlinSimplexNoise(&noiseRand, 4);
+        pillarNoise = new PerlinSimplexNoise(&noiseRand, 1);
     }
 
     lastSeed = seed;
 
-    const int localX = x & 0xF;
-    const int localZ = z & 0xF;
-
     double pillarHeight = 0.0;
 
-    
-    if (isMesaPlateau&& id == Biome::mesaBryce->id)
-{
-    double nx = static_cast<double>((x & ~0xF) + localZ);
-    double nz = static_cast<double>((z & ~0xF) + localX);
-
-    
-    double roofVal = pillarNoise->getValue(nx * 0.25, nz * 0.25);
-    double d0      = std::abs(noiseVal) - roofVal;
-
-    
-    if (d0 > 0.0)
+    if (isBryce)
     {
-        
-        double pillarScale = pillarRoofNoise->getValue(
-            nx * 0.001953125,
-            nz * 0.001953125);
+        const double nx = static_cast<double>((z & ~0xF) + (x & 0xF));
+        const double nz = static_cast<double>((x & ~0xF) + (z & 0xF));
+        double cliff = std::min(
+            std::abs(noiseVal),
+            cliffNoise->getValue(nx * 0.25, nz * 0.25));
 
-        
-        double scaled = std::ceil(std::abs(pillarScale) * 50.0);
-        double height = d0 * d0 * 2.5;
-        double cap    = scaled + 14.0;
-        if (height > cap) height = cap;
-        pillarHeight = height + 64.0;
+        if (cliff > 0.0)
+        {
+            double pillarScale = std::abs(
+                pillarNoise->getValue(nx * 0.001953125, nz * 0.001953125));
+            double height = cliff * cliff * 2.5;
+            double cap = std::ceil(pillarScale * 50.0) + 14.0;
+            pillarHeight = std::min(height, cap) + 64.0;
+        }
     }
-}
 
     const int localX2 = x & 0xF;
     const int localZ2 = z & 0xF;
@@ -395,7 +382,7 @@ MesaBiome* MesaBiome::createMutatedCopy(int newId)
 
     bool isMesaBase = (this->id == Biome::mesa->id);
 
-    MesaBiome* copy = new MesaBiome(newId, isMesaBase, this->hasTrees);
+    MesaBiome* copy = new MesaBiome(newId, newId == Biome::mesaBryce->id, this->hasTrees);
 
     if (!isMesaBase)
     {
