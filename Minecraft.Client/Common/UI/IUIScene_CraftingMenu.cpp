@@ -7,6 +7,7 @@
 #include "../../../Minecraft.World/ComplexCraftingMenu.h"
 #include "../../../Minecraft.World/BannerItem.h"
 #include "../../../Minecraft.World/BannerPatterns.h"
+#include "../../../Minecraft.World/DyePowderItem.h"
 #include "IUIScene_CraftingMenu.h"
 
 #include "UI.h"
