@@ -27,6 +27,8 @@ UIScene_CraftingMenu::UIScene_CraftingMenu(int iPad, void *_initData, UILayer *p
 	m_hSlotSpacing = 0;
 #endif
 	m_bIgnoreKeyPresses = false;
+	m_bCraftingTabsReissueArmed = false;
+	m_bCraftingTabsReissued = false;
 
 	CraftingPanelScreenInput* initData = static_cast<CraftingPanelScreenInput *>(_initData);
 	m_iContainerType=initData->iContainerType;
@@ -476,6 +478,13 @@ bool UIScene_CraftingMenu::handleMouseClick(F32 x, F32 y)
 
 void UIScene_CraftingMenu::handleReload()
 {
+	// The movie was just reloaded and its frame scripts have not run yet, so
+	// the tab setup below can race exactly like the constructor-time one.
+	// Re-arm the tick-time re-issue so the tabs are re-asserted once the
+	// new movie is live.
+	m_bCraftingTabsReissueArmed = false;
+	m_bCraftingTabsReissued = false;
+
 	m_slotListInventory.addSlots(CRAFTING_INVENTORY_SLOT_START,CRAFTING_INVENTORY_SLOT_END - CRAFTING_INVENTORY_SLOT_START);
 	m_slotListHotBar.addSlots(CRAFTING_HOTBAR_SLOT_START, CRAFTING_HOTBAR_SLOT_END - CRAFTING_HOTBAR_SLOT_START);
 
@@ -719,6 +728,28 @@ void UIScene_CraftingMenu::customDraw(IggyCustomDrawCallbackRegion *region)
 void UIScene_CraftingMenu::tick()
 {
 	UIScene::tick();
+
+	// One-shot re-issue of the tab setup once the movie is live. The
+	// constructor/handleReload calls can land before the movie's frame
+	// scripts have run, leaving the AS3 iggy-slot placeholder sprites
+	// visible (floating blue boxes). m_hasTickedOnce is set only after
+	// IggyPlayerTickRS has run, and the arming tick guarantees a full tick
+	// has elapsed since the movie was (re)loaded, so this fires strictly
+	// after the movie is settled. Idempotent: AS3 SetupIggySlot handles
+	// re-runs, and both calls re-assert the current group indices.
+	if (!m_bCraftingTabsReissued && m_hasTickedOnce && hasMovie())
+	{
+		if (m_bCraftingTabsReissueArmed)
+		{
+			m_bCraftingTabsReissued = true;
+			initializeCraftingTabs();
+			UpdateCraftingPanels();
+		}
+		else
+		{
+			m_bCraftingTabsReissueArmed = true;
+		}
+	}
 }
 
 int UIScene_CraftingMenu::getPad()

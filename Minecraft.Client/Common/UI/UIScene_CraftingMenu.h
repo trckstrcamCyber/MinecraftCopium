@@ -61,6 +61,14 @@ private:
 	int m_iMenuInventoryStart;
 	int m_iMenuHotBarStart;
 
+	// One-shot tab re-issue state (see tick()): the tab setup issued from the
+	// constructor/handleReload can land before the movie's frame scripts have
+	// run, leaving the AS3 iggy-slot placeholders visible as blue boxes.
+	// m_bCraftingTabsReissueArmed marks that a full tick has elapsed with the
+	// movie live; m_bCraftingTabsReissued marks the re-issue as done.
+	bool m_bCraftingTabsReissueArmed;
+	bool m_bCraftingTabsReissued;
+
 public:
 	UIScene_CraftingMenu(int iPad, void *initData, UILayer *parentLayer);
 
