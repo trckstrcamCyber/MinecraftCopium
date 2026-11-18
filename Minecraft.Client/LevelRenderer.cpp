@@ -3173,12 +3173,20 @@ shared_ptr<Particle> LevelRenderer::addParticleInternal(ePARTICLE_TYPE eParticle
 		case eParticleType_mobAppearance:
         particle = std::make_shared<MobAppearanceParticle>(lev, x, y, z);
         break;
+	case eParticleType_thrownegg:
+		particle = std::make_shared<BreakingItemParticle>(lev, x, y, z, Item::egg, textures);
+		break;
 
 	default:
 		if( ( eParticleType >= eParticleType_iconcrack_base ) &&  ( eParticleType <= eParticleType_iconcrack_last )  )
 		{
 			int id = PARTICLE_CRACK_ID(eParticleType), data = PARTICLE_CRACK_DATA(eParticleType);
 			particle = std::make_shared<BreakingItemParticle>(lev, x, y, z, xa, ya, za, Item::items[id], textures, data);
+		}
+		else if( ( eParticleType >= eParticleType_blockdust_base ) &&  ( eParticleType <= eParticleType_blockdust_last )  )
+		{
+			int id = PARTICLE_CRACK_ID(eParticleType), data = PARTICLE_CRACK_DATA(eParticleType);
+			particle = dynamic_pointer_cast<Particle>(std::make_shared<TerrainParticle>(lev, x, y, z, xa, ya, za, Tile::tiles[id], 0, data, textures, false)->init(data) );
 		}
 		else if( ( eParticleType >= eParticleType_tilecrack_base ) &&  ( eParticleType <= eParticleType_tilecrack_last )  )
 		{

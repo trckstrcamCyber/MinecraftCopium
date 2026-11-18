@@ -43,6 +43,7 @@ enum ePARTICLE_TYPE
 	eParticleType_fireworksspark,
 	eParticleType_mobAppearance,
 	eParticleType_jelly,		// neoLegacy - pink blobs from a Jelly Slime (tinted snowball icon)
+	eParticleType_thrownegg,
 
 	// 4J-JEV: In the java, the particle name was used to sneak parameters in for the Terrain and IconCrack particle constructors.
 	
@@ -50,6 +51,8 @@ enum ePARTICLE_TYPE
 	eParticleType_iconcrack_last = 0x1FFFFF,
 	eParticleType_tilecrack_base = 0x200000,	// There's a range of tilecrack particle types based on tile id and data.
 	eParticleType_tilecrack_last = 0x2FFFFF,
+	eParticleType_blockdust_base = 0x300000,
+	eParticleType_blockdust_last = 0x3FFFFF,
 								// 0x0000FF, <- these bits are for storing the data value.
 								// 0x0FFF00, <- these bits are for encoding tile/item id.
 								// 0x300000, <- these bits show if its an icon/tile or not.
@@ -57,6 +60,7 @@ enum ePARTICLE_TYPE
 };
 
 #define PARTICLE_TILECRACK(id,data) ( (ePARTICLE_TYPE) ( ((int) eParticleType_tilecrack_base) | ((0x0FFF & id) << 8) | (0x0FF & data)) )
+#define PARTICLE_BLOCKDUST(id,data) ( (ePARTICLE_TYPE) ( ((int) eParticleType_blockdust_base) | ((0x0FFF & id) << 8) | (0x0FF & data)) )
 #define PARTICLE_ICONCRACK(id,data) ( (ePARTICLE_TYPE) ( ((int) eParticleType_iconcrack_base) | ((0x0FFF & id) << 8) | (0x0FF & data)) )
 
 #define PARTICLE_CRACK_ID(ePType)   ((0x0FFF00 & (int)ePType) >> 8)
