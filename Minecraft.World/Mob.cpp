@@ -23,6 +23,7 @@
 #include "../Minecraft.Client/EntityTracker.h"
 #include "com.mojang.nbt.h"
 #include "Mob.h"
+#include "LootTableManager.h"
 #include "../Minecraft.Client/Textures.h"
 #include "SoundTypes.h"
 #include "BasicTypeContainers.h"
@@ -257,16 +258,59 @@ int Mob::getDeathLoot()
 
 void Mob::dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel)
 {
-	int loot = getDeathLoot();
-	if (loot > 0)
+	const wstring entityName = getName();
+	const wstring encodedId = getEncodeId();
+	const wchar_t* nameToPrint = entityName.empty()
+		? (encodedId.empty() ? L"unknown" : encodedId.c_str())
+		: entityName.c_str();
+
+	wstring loweredName = nameToPrint;
+	std::transform(loweredName.begin(), loweredName.end(), loweredName.begin(), ::towlower);
+	std::replace(loweredName.begin(), loweredName.end(), L' ', L'_');
+
+	const std::string loweredNameNarrow(loweredName.begin(), loweredName.end());
+	const std::string lootTableName = "entities/" + loweredNameNarrow;
+
+    LootTableManager &lootTables = LootTableManager::Get();
+    if (!lootTables.HasLoadedTables())
+    {
+        lootTables.LoadFromDisk();
+    }
+
+    const LootTableDefinition *table = lootTables.GetTable(lootTableName);
+    if (table != nullptr)
+    {
+        const std::vector<LootTableDropResult> drops = lootTables.ResolveDrops(
+            lootTableName,
+            wasKilledByPlayer,
+            playerBonusLevel,
+            [this](int maxExclusive) -> int { return random->nextInt(maxExclusive); },
+			isOnFire());
+			
+
+        if (!drops.empty())
+        {
+            for (auto it = drops.begin(); it != drops.end(); ++it)
+            {
+                spawnAtLocation(it->itemId, it->count);
+            }
+            return;
+        }
+    }
+
+	if (table == nullptr)
 	{
-		int count = random->nextInt(3);
-		if (playerBonusLevel > 0)
+		int loot = getDeathLoot();
+		if (loot > 0)
 		{
-			count += random->nextInt(playerBonusLevel + 1);
+			int count = random->nextInt(3);
+			if (playerBonusLevel > 0)
+			{
+				count += random->nextInt(playerBonusLevel + 1);
+			}
+			for (int i = 0; i < count; i++)
+				spawnAtLocation(loot, 1);
 		}
-		for (int i = 0; i < count; i++)
-			spawnAtLocation(loot, 1);
 	}
 }
 
