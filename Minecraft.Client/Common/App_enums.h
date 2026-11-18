@@ -80,6 +80,7 @@ enum eXuiAction
 	eAppAction_OptionsSaveNoSpace,
 #endif
 	eAppAction_DebugText,
+	eAppAction_AutosaveComplete,
 
 };
 
