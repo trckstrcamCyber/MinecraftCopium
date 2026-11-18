@@ -23,6 +23,12 @@ public:
 		eGroupType_Mechanism,
 		eGroupType_Transport,
 		eGroupType_Decoration,
+		eGroupType_Banner_CustomLogic,
+		eGroupType_Banner_Stripes,
+		eGroupType_Banner_Halves,
+		eGroupType_Banner_Shapes,
+		eGroupType_Banner_BBG, //borders backgrounds and gradients
+		eGroupType_Banner_Symbols,
 		eGroupType_Max
 	}
 	eGroupType; // to class the item produced by the recipe

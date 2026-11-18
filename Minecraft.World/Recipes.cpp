@@ -58,6 +58,20 @@ void Recipes::_init()
 
 void Recipes::_compileRecipes()
 {
+	// neoLegacy - plain banners: 6 wool of one color + 1 stick. Wool aux is
+	// standard (0 = white); banner aux is dye order, so banner aux = 15 - wool aux.
+	for (int i = 0; i < 16; i++) {
+		addShapedRecipy(new ItemInstance(Tile::standing_banner_Id, 1, 15 - i), //
+			L"sssczcig",
+			L"###", //
+			L"###", //
+			L" I ", //
+
+			L'#', new ItemInstance(Tile::wool_Id, 1, i),
+			L'I', Item::stick,
+			L'B');
+	}
+
 	addShapedRecipy(new ItemInstance(Tile::wood, 4, 0), //
 		L"sczg",
 		L"#", //
@@ -1889,6 +1903,9 @@ ShapedRecipy *Recipes::addShapedRecipy(ItemInstance *result, ...)
 			case L'F':
 				group=ShapedRecipy::eGroupType_Food;
 				break;
+			case L'B':
+				group=ShapedRecipy::eGroupType_Banner_CustomLogic;
+				break;
 			case L'D':
 			default:
 				group=ShapedRecipy::eGroupType_Decoration;
@@ -1984,6 +2001,9 @@ void Recipes::addShapelessRecipy(ItemInstance *result,... )
 				break;
 			case L'F':
 				group=Recipy::eGroupType_Food;
+				break;
+			case L'B':
+				group=Recipy::eGroupType_Banner_CustomLogic;
 				break;
 			case L'D':
 			default:

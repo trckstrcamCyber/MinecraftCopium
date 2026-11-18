@@ -5337,6 +5337,10 @@
 		<value>Change Group</value>
 	</data>
 
+	<data name="IDS_TOOLTIPS_CHANGE_TYPE">
+		<value>Type</value>
+	</data>
+
 	<data name="IDS_TOOLTIPS_SHOW_INVENTORY">
 		<value>Show Inventory</value>
 	</data>
@@ -5355,6 +5359,14 @@
 
 	<data name="IDS_TOOLTIPS_CREATE">
 		<value>Create</value>
+	</data>
+
+	<data name="IDS_TOOLTIPS_ADD">
+		<value>Add</value>
+	</data>
+
+	<data name="IDS_TOOLTIPS_REMOVE">
+		<value>Remove</value>
 	</data>
 
 	<data name="IDS_TOOLTIPS_PICKUPPLACE">
