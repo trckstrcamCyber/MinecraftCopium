@@ -521,6 +521,11 @@ unordered_map<int, EnchantmentInstance *> *EnchantmentHelper::getAvailableEnchan
 			continue;
 		}
 
+		if (e->isTreasureOnly())
+		{
+			continue;
+		}
+
 		// Only picks "normal" enchantments, no specialcases
 		// neoLegacy - Mace: Unbreaking fits it too, and the weapon set is cut down to Smite / Bane / Fire Aspect (see Enchantment::canEnchant)
 		const bool isMace = dynamic_cast<MaceItem *>(item) != nullptr;

@@ -42,6 +42,7 @@
 #include "Dimension.h"
 #include "GenericStats.h"
 #include "ItemEntity.h"
+#include "BlockPos.h"
 #if defined(_WINDOWS64) && defined(MINECRAFT_SERVER_BUILD)
 #include "../Minecraft.Server/FourKitBridge.h"
 #endif
@@ -200,6 +201,44 @@ void LivingEntity::checkFallDamage(double ya, bool onGround)
 			{
 				auto ent = shared_from_this();
 				Tile::tiles[t]->fallOn(level, xt, yt, zt, ent, fallDistance);
+				if (t == Tile::slimeBlock->id && !isSneaking())
+				{
+					m_clearFallDamageThisTick = true;
+				}
+			}
+		}
+
+		// landing particles
+		if (!level->isClientSide && fallDistance > 3.0f)
+		{
+			Material* material = level->getMaterial(xt, yt, zt);
+			if (material != Material::air)
+			{
+				float adjusted = ceilf(fallDistance - 3.0f);
+				float scaled = (adjusted / 15.0f) + 0.2f;
+
+				float speed = 10.0f;
+				if (scaled < 10.0f) speed = scaled;
+				if (speed > 2.5f)   speed = 2.5f;
+
+				int particleCount = (int)(speed * 150.0f);
+				int blockIdWithData = t | (level->getData(xt, yt, zt) << Tile::TILE_NUM_SHIFT);
+				arrayWithLength<int> extraData(1, false);
+				extraData[0] = blockIdWithData;
+				ServerLevel *serverLevel = dynamic_cast<ServerLevel *>(level);
+
+				if (serverLevel != nullptr)
+				{
+					serverLevel->sendParticles(
+						ParticleType::blockdust,
+						false,
+						x, y, z,
+						particleCount,
+						0, 0, 0,
+						0.15,
+						extraData
+					);
+				}
 			}
 		}
 	}
@@ -226,9 +265,9 @@ void LivingEntity::baseTick()
 	{
 		int tileBelow = level->getTile(Mth::floor(x), Mth::floor(bb->y0) - 1, Mth::floor(z));
 		bool hasFrostWalker = EnchantmentHelper::getEnchantmentLevel(Enchantment::frostWalker->id, getEquipmentSlots()) > 0;
-		if (tileBelow == Tile::magma_Id && !hasFrostWalker && !isFireImmune())
+		if (tileBelow == Tile::magma_block_Id && !hasFrostWalker && !isFireImmune())
 		{
-			hurt(DamageSource::inFire, 1);
+			hurt(DamageSource::hotFloor, 1);
 		}
 	}
 
@@ -337,15 +376,8 @@ void LivingEntity::baseTick()
 			if (level->getTile(bx, by, bz) == Tile::flowing_lava_Id ||
 				level->getTile(bx, by, bz) == Tile::lava_Id)
 			{
-				level->setTileAndData(bx, by, bz, Tile::magma_Id, 0, Tile::UPDATE_ALL);
+				level->setTileAndData(bx, by, bz, Tile::magma_block_Id, 0, Tile::UPDATE_ALL);
 			}
-		}
-
-		int frostWalkerLevel = EnchantmentHelper::getFrostWalker(dynamic_pointer_cast<LivingEntity>(shared_from_this()));
-		if (frostWalkerLevel > 0)
-		{
-			FrostWalkerEnchantment::freezeNearby(dynamic_pointer_cast<LivingEntity>(shared_from_this()), level,
-				Mth::floor(x), Mth::floor(y), Mth::floor(z), frostWalkerLevel);
 		}
 
 		// neoLegacy Added - Adrenaline / Sonic movement speed, re-evaluated every tick
@@ -1124,6 +1156,21 @@ int LivingEntity::getCriticalSound()
 int LivingEntity::getDeathSound()
 {
 	return eSoundType_DAMAGE_HURT;
+}
+
+// frost walker-specific
+
+void LivingEntity::onChangedBlock(BlockPos pos)
+{
+	shared_ptr<LivingEntity> self = dynamic_pointer_cast<LivingEntity>(shared_from_this());
+
+	int frostWalkerLevel = EnchantmentHelper::getEnchantmentLevel(Enchantment::frostWalker->id, getEquipmentSlots());
+	if (frostWalkerLevel < 1)
+	{
+		return;
+	}
+
+	FrostWalkerEnchantment::onEntityMoved(self, level, pos, frostWalkerLevel);
 }
 
 /**

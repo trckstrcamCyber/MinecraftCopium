@@ -206,7 +206,7 @@ void Enchantment::staticCtor()
 	for(unsigned int i = 0; i < 256; ++i)
 	{
 		Enchantment *enchantment = enchantments[i];
-		if (enchantment != nullptr && !enchantment->isTreasureEnchantment() && !enchantment->isCurse())
+		if (enchantment != nullptr && !enchantment->isTreasureOnly() && !enchantment->isCurse())
 		{
 			validEnchantments.push_back(enchantment);
 		}

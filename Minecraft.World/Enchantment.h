@@ -137,6 +137,10 @@ public:
 	virtual float getDamageBonus(int level, shared_ptr<LivingEntity> target);
 	virtual bool isCompatibleWith(Enchantment *other) const;
 	virtual bool isTreasureEnchantment() const { return false; }
+	// Upstream renamed this to isTreasureOnly (525b894). The legacy name is kept because
+	// EnchantmentEncyclopedia still queries it, and isTreasureOnly delegates to it so
+	// subclasses overriding either name are honoured by the enchanting-table gating.
+	virtual bool isTreasureOnly() { return isTreasureEnchantment(); }
 
 	// neoLegacy: true for curses (Hook of Muddy Waters, Curse of Binding, Curse of Vanishing). Curses are shown in red, survive
 	// the grindstone (GrindstoneMenu) and are never offered by the enchanting table or put on random books.

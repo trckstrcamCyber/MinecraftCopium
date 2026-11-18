@@ -8,6 +8,7 @@ using namespace std;
 #include "PlayerEnderChestContainer.h"
 #include "CommandSender.h"
 #include "ScoreHolder.h"
+#include "BlockPos.h"
 #include "ArcadeSaveData.h"	// neoLegacy - Arcade Machines progress
 
 class AbstractContainerMenu;
@@ -93,17 +94,22 @@ public:
 	float rotateElytraX; 
 	float rotateElytraY;
 	float rotateElytraZ;
-	float m_elytraImpactYd;    
-	bool  m_wasElytraFlying;   
-	int   m_elytraFallProtectTicks; 
+	float m_elytraImpactYd;
+	bool  m_wasElytraFlying;
+	int   m_elytraFallProtectTicks;
+	float m_elytraMaxY;
+	int   m_fireworkBoostTicks;
+	int   m_elytraRocketCooldown;
 	// neoLegacy - Mace: after a smash attack (and Wind Burst launch) fall damage is ignored above the point of impact.
 	// See MaceItem::applySmashToAttacker and Player::causeFallDamage.
 	bool  ignoreFallFromImpulse;
 	float impulseImpactY;
+	void startFireworkBoost(shared_ptr<ItemInstance> firework);
 	bool isElytraFlying();
 	virtual void setElytraFlying(bool flying);
 
 	virtual void onElytraKineticDamage(float damage);
+	virtual void onElytraFallDamage(int amount);
 
 public:
 
@@ -159,6 +165,7 @@ public:
 private:
 	int sleepCounter; // animation timer
 	int deathFadeCounter; // animation timer
+	BlockPos lastChangedBlockPos;
 
 public:
 	float bedOffsetX, bedOffsetY, bedOffsetZ;
@@ -233,6 +240,7 @@ protected:
 
 public:
 	virtual void handleEntityEvent(byte id);
+	void onChangedBlock(BlockPos pos);
 
 protected:
 	bool isImmobile();

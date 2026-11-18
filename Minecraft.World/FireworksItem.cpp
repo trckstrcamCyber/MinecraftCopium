@@ -29,7 +29,10 @@ bool FireworksItem::TestUse(shared_ptr<ItemInstance> instance, Level *level, sha
 // the same split every other throwable item uses.
 shared_ptr<ItemInstance> FireworksItem::use(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player)
 {
-	if (player == nullptr || !player->isElytraFlying()) return instance;	// only boosts while gliding; on the ground the rocket launches via useOn as before
+	if (player == nullptr || !player->isElytraFlying() || player->m_elytraRocketCooldown != 0) return instance;	// only boosts while gliding; on the ground the rocket launches via useOn as before
+	player->m_elytraRocketCooldown = 20;
+	player->startFireworkBoost(instance);
+	player->playSound(eSoundType_FIREWORKS_LAUNCH, 3.0f, 1.0f);
 
 	if (!level->isClientSide)
 	{

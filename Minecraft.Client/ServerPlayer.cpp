@@ -93,6 +93,8 @@ static std::wstring FormatDeathMessage(const shared_ptr<ChatPacket>& packet)
 		message = app.GetString(IDS_DEATH_FALLING_ANVIL); replacePlayer = true; break;
 	case ChatPacket::e_ChatDeathFallingBlock:
 		message = app.GetString(IDS_DEATH_FALLING_TILE); replacePlayer = true; break;
+	case ChatPacket::e_ChatDeathFlyIntoWall:
+		message = app.GetString(IDS_DEATH_FLY_INTO_WALL); replacePlayer = true; break;
 	case ChatPacket::e_ChatDeathFellAccidentLadder:
 		message = app.GetString(IDS_DEATH_FELL_ACCIDENT_LADDER); replacePlayer = true; break;
 	case ChatPacket::e_ChatDeathFellAccidentVines:
@@ -147,6 +149,10 @@ static std::wstring FormatDeathMessage(const shared_ptr<ChatPacket>& packet)
 		message = app.GetString(IDS_DEATH_FELL_ASSIST_ITEM); replacePlayer = true; replaceEntitySource = true; replaceItem = true; break;
 	case ChatPacket::e_ChatDeathFellFinishItem:
 		message = app.GetString(IDS_DEATH_FELL_FINISH_ITEM); replacePlayer = true; replaceEntitySource = true; replaceItem = true; break;
+	case ChatPacket::e_ChatDeathHotFloor:
+		message = app.GetString(IDS_DEATH_HOT_FLOOR); replacePlayer = true; break;
+	case ChatPacket::e_ChatDeathHotFloorPlayer:
+		message = app.GetString(IDS_DEATH_HOT_FLOOR_PLAYER); replacePlayer = true; replaceEntitySource = true; break;
 	default:
 		message = app.GetString(IDS_DEATH_GENERIC); replacePlayer = true; break;
 	}
@@ -396,6 +402,14 @@ float ServerPlayer::getHeadHeight()
 		return 1.22f;
 	}
 	return 1.62f;
+}
+
+void ServerPlayer::onChangedBlock(BlockPos pos)
+{
+	if (true /*!isSpectator()*/) // we dont have true spectator mode yet
+	{
+		LivingEntity::onChangedBlock(pos);
+	}
 }
 
 void ServerPlayer::tick()
