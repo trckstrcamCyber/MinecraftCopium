@@ -2213,8 +2213,7 @@ bool UIController::NavigateToScene(int iPad, EUIScene scene, void *initData, EUI
 		switch(scene)
 		{
 		case eUIScene_PauseMenu:
-		case eUIScene_Crafting2x2Menu:
-		case eUIScene_Crafting3x3Menu:
+		case eUIScene_CraftingMenu:
 		case eUIScene_FurnaceMenu:
 		case eUIScene_ContainerMenu:
 		case eUIScene_LargeContainerMenu:

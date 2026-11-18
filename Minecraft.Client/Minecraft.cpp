@@ -1545,7 +1545,7 @@ void Minecraft::run_middle()
 
 							if(g_KBMInput.IsKeyPressed(KeyboardMouseInput::KEY_CRAFTING) || g_KBMInput.IsKeyPressed(KeyboardMouseInput::KEY_CRAFTING_ALT))
 							{
-								if ((ui.IsSceneInStack(i, eUIScene_Crafting2x2Menu) || ui.IsSceneInStack(i, eUIScene_Crafting3x3Menu) || ui.IsSceneInStack(i, eUIScene_CreativeMenu) || ui.IsSceneInStack(i, eUIScene_ClassicCraftingMenu) || isClosableByEitherKey) && !isEditing)
+								if ((ui.IsSceneInStack(i, eUIScene_CraftingMenu) || ui.IsSceneInStack(i, eUIScene_CreativeMenu) || ui.IsSceneInStack(i, eUIScene_ClassicCraftingMenu) || isClosableByEitherKey) && !isEditing)
 							{
 								ui.CloseUIScenes(i);
 							}

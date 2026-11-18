@@ -4,6 +4,11 @@
 #include "../../MultiPlayerLocalPlayer.h"
 #include "../../../Minecraft.World/net.minecraft.world.inventory.h"
 #include "../../../Minecraft.World/ComplexCraftingMenu.h"	// neoLegacy - Complex Table
+#include "../../../Minecraft.World/BannerItem.h"
+#include "../../../Minecraft.World/BannerPatterns.h"
+#include "../../../Minecraft.World/DyePowderItem.h"
+#include "../../../Minecraft.World/Tile.h"
+#include "../../../Minecraft.World/BannerPatternRecipe.h"
 #include "UIScene_CraftingMenu.h"
 #ifdef _WINDOWS64
 #include "../../Windows64/Iggy/gdraw/gdraw_d3d11.h"
@@ -31,13 +36,17 @@ UIScene_CraftingMenu::UIScene_CraftingMenu(int iPad, void *_initData, UILayer *p
 
 	// Setup all the Iggy references we need for this scene
 	initialiseMovie();
-
+	
 	for(unsigned int i = 0; i < 9; ++i)	m_labelIngredientsDesc[i].init(L"");
-	m_labelDescription.init(L"");
+	m_labelDescriptionText.init(L"");
+	m_labelDescriptionTextTop.init(L"");
 	m_labelGroupName.init(L"");
+	m_labelSpinnerTitle.init(L"");
 	m_labelItemName.init(L"");
+	m_labelItemNameSmall.init(L"");
 	m_labelInventory.init( app.GetString(IDS_INVENTORY) );
-	m_labelIngredients.init( app.GetString(IDS_INGREDIENTS) );
+	m_labelPreview.init(L"Preview");
+	m_labelIngredients.init(app.GetString(IDS_INGREDIENTS));
 
 	if(m_iContainerType==RECIPE_TYPE_2x2)
 	{
@@ -60,6 +69,61 @@ UIScene_CraftingMenu::UIScene_CraftingMenu(int iPad, void *_initData, UILayer *p
 	m_slotListInventory.addSlots(CRAFTING_INVENTORY_SLOT_START,CRAFTING_INVENTORY_SLOT_END - CRAFTING_INVENTORY_SLOT_START);
 	m_slotListHotBar.addSlots(CRAFTING_HOTBAR_SLOT_START, CRAFTING_HOTBAR_SLOT_END - CRAFTING_HOTBAR_SLOT_START);
 
+	{
+		int maxGroupVLimit = ((m_iContainerType == RECIPE_TYPE_2x2) ? m_iMaxGroupV2x2 : m_iMaxGroupV3x3);
+		{
+			m_vGroupIconCache[0].VSlot.item = make_shared<ItemInstance>(Tile::workBench, 1);
+			m_vGroupIconCache[0].VSlot.show = (1 <= maxGroupVLimit);
+		}
+		{
+			m_vGroupIconCache[1].VSlot.item = make_shared<ItemInstance>(Tile::standing_banner_Id, 1, 15);
+			m_vGroupIconCache[1].VSlot.show = (2 <= maxGroupVLimit);
+
+			{
+				m_vGroupIconCache[1].HSlots.push_back(SlotInfo(make_shared<ItemInstance>(Tile::standing_banner_Id, 1, 15)));
+			}
+
+			{
+				SlotInfo slotInfo = SlotInfo(make_shared<ItemInstance>(Tile::standing_banner_Id, 1, 15));
+				BannerItem::addPattern(slotInfo.item, L"cr", DyePowderItem::BLACK);
+
+				m_vGroupIconCache[1].HSlots.push_back(slotInfo);
+			}
+			{
+				SlotInfo slotInfo = SlotInfo(make_shared<ItemInstance>(Tile::standing_banner_Id, 1, 15));
+				BannerItem::addPattern(slotInfo.item, L"ld", DyePowderItem::BLACK);
+
+				m_vGroupIconCache[1].HSlots.push_back(slotInfo);
+			}
+			{
+				SlotInfo slotInfo = SlotInfo(make_shared<ItemInstance>(Tile::standing_banner_Id, 1, 15));
+				BannerItem::addPattern(slotInfo.item, L"mc", DyePowderItem::BLACK);
+
+				m_vGroupIconCache[1].HSlots.push_back(slotInfo);
+			}
+			{
+				SlotInfo slotInfo = SlotInfo(make_shared<ItemInstance>(Tile::standing_banner_Id, 1, 15));
+				BannerItem::addPattern(slotInfo.item, L"bo", DyePowderItem::BLACK);
+
+				m_vGroupIconCache[1].HSlots.push_back(slotInfo);
+			}
+			{
+				SlotInfo slotInfo = SlotInfo(make_shared<ItemInstance>(Tile::standing_banner_Id, 1, 15));
+				BannerItem::addPattern(slotInfo.item, L"cre", DyePowderItem::BLACK);
+
+				m_vGroupIconCache[1].HSlots.push_back(slotInfo);
+			}
+		}
+		{
+			m_vGroupIconCache[2].VSlot.item = make_shared<ItemInstance>(Item::fireworks_Id, 1, 0);
+			m_vGroupIconCache[2].VSlot.show = (3 <= maxGroupVLimit);
+		}
+		{
+			m_vGroupIconCache[3].VSlot.item = make_shared<ItemInstance>(Item::dye_Id, 1, DyePowderItem::CYAN);
+			m_vGroupIconCache[3].VSlot.show = (4 <= maxGroupVLimit);
+		}
+	}
+
 #if TO_BE_IMPLEMENTED
 	// if we are in splitscreen, then we need to figure out if we want to move this scene
 	if(m_bSplitscreen)
@@ -71,53 +135,29 @@ UIScene_CraftingMenu::UIScene_CraftingMenu(int iPad, void *_initData, UILayer *p
 	XuiElementSetShow(m_hPanel,TRUE);
 #endif
 
+	m_pGroupA = new Recipy::_eGroupType*[m_iMaxGroupV3x3];
+
 	if(m_iContainerType==RECIPE_TYPE_3x3)
 	{
 		m_iIngredientsMaxSlotC = m_iIngredients3x3SlotC;
-		m_pGroupA = m_GroupTypeMapping9GridA;
 		m_pGroupTabA=(_eGroupTab *)&m_GroupTabBkgMapping3x3A;
-		m_iCraftablesMaxHSlotC=m_iMaxHSlot3x3C;
+
+		m_pGroupA[eGroupVType::eGroupVType_Workbench] = (Recipy::_eGroupType*)&m_GroupTypeMapping9GridA;
+		m_pGroupA[eGroupVType::eGroupVType_Banner] = (Recipy::_eGroupType*)&m_GroupTypeBannerMapping9GridA;
 	}
 	else
 	{
 		m_iIngredientsMaxSlotC = m_iIngredients2x2SlotC;
-		m_pGroupA=(Recipy::_eGroupType *)&m_GroupTypeMapping4GridA;
 		m_pGroupTabA=(_eGroupTab *)&m_GroupTabBkgMapping2x2A;
-		m_iCraftablesMaxHSlotC=m_iMaxHSlot2x2C;
+
+		m_pGroupA[eGroupVType::eGroupVType_Workbench] = (Recipy::_eGroupType*)&m_GroupTypeMapping4GridA;
 	}
+	m_iCraftablesMaxHSlotC = m_iMaxHSlot;
 
-#if TO_BE_IMPLEMENTED
-
-
-	// display the first group tab 
-	m_hTabGroupA[m_iGroupIndex].SetShow(TRUE);
-
-	// store the slot 0 position
-	m_pHSlotsBrushImageControl[0]->GetPosition(&m_vSlot0Pos);
-	m_pHSlotsBrushImageControl[1]->GetPosition(&vec);
-	m_fSlotSize=vec.x-m_vSlot0Pos.x;
-
-	// store the slot 0 highlight position
-	m_hHighlight.GetPosition(&m_vSlot0HighlightPos);
-	// Store the V slot position
-	m_hScrollBar2.GetPosition(&m_vSlot0V2ScrollPos);
-	m_hScrollBar3.GetPosition(&m_vSlot0V3ScrollPos);
-
-	// get the position of the slot from the xui, and apply any offset needed
-	for(int i=0;i<m_iCraftablesMaxHSlotC;i++)
-	{
-		m_pHSlotsBrushImageControl[i]->SetShow(FALSE);
-	}
-
-	XuiElementSetShow(m_hGridInventory,FALSE);
-
-	m_hScrollBar2.SetShow(FALSE);
-	m_hScrollBar3.SetShow(FALSE);
-
-#endif
+	initializeCraftingTabs();
 
 	app.SetRichPresenceContext(m_iPad,CONTEXT_GAME_STATE_CRAFTING);
-	setGroupText(GetGroupNameText(m_pGroupA[m_iGroupIndex]));
+	setGroupText(GetGroupNameText(m_pGroupA[m_iGroupVIndex][m_iGroupHIndex]));
 
 	// Update the tutorial state
 	Minecraft *pMinecraft = Minecraft::GetInstance();
@@ -145,7 +185,22 @@ UIScene_CraftingMenu::UIScene_CraftingMenu(int iPad, void *_initData, UILayer *p
 		m_slotListIngredients[i].addSlot(CRAFTING_INGREDIENTS_DESCRIPTION_START + i);
 	}
 	m_slotListCraftingOutput.addSlot(CRAFTING_OUTPUT_SLOT_START);
-	m_slotListIngredientsLayout.addSlots(CRAFTING_INGREDIENTS_LAYOUT_START, m_iIngredientsMaxSlotC);
+	if (m_iContainerType == RECIPE_TYPE_3x3) {
+		m_slotListIngredientsLayout.addSlots(CRAFTING_INGREDIENTS_LAYOUT_START, m_iIngredientsMaxSlotC);
+		m_slotListIngredientsLayoutSmall.setVisible(false);
+	} else {
+		m_slotListIngredientsLayoutSmall.addSlots(CRAFTING_INGREDIENTS_LAYOUT_START, m_iIngredientsMaxSlotC);
+		m_slotListIngredientsLayout.setVisible(false);
+	}
+
+	m_Slot2_1.addSlot(CRAFTING_SLOT_EXTRA_START + 0);
+	m_Slot2_2.addSlot(CRAFTING_SLOT_EXTRA_START + 1);
+
+	m_Slot3_1.addSlot(CRAFTING_SLOT_EXTRA_START + 0);
+	m_Slot3_2.addSlot(CRAFTING_SLOT_EXTRA_START + 1);
+	m_Slot3_3.addSlot(CRAFTING_SLOT_EXTRA_START + 2);
+
+	m_slotPreviewSlot.addSlot(CRAFTING_SLOT_EXTRA_START + 0);
 
 	// 3 Slot vertical scroll
 	m_slotListCrafting3VSlots[0].addSlot(CRAFTING_V_SLOT_START + 0);
@@ -189,6 +244,8 @@ UIScene_CraftingMenu::UIScene_CraftingMenu(int iPad, void *_initData, UILayer *p
 	// 4J-PB - Must be after the CanBeMade list has been set up with CheckRecipesAvailable
 	UpdateTooltips();
 
+	UpdateCraftingPanels();
+
 #ifdef __PSVITA__
 	// initialise vita touch controls with ids
 	for(unsigned int i = 0; i < ETouchInput_Count; ++i)
@@ -230,14 +287,7 @@ void UIScene_CraftingMenu::handleDestroy()
 
 EUIScene UIScene_CraftingMenu::getSceneType()
 {
-	if(m_iContainerType==RECIPE_TYPE_3x3)
-	{
-		return eUIScene_Crafting3x3Menu;
-	}
-	else
-	{
-		return eUIScene_Crafting2x2Menu;
-	}
+	return eUIScene_CraftingMenu;
 }
 
 wstring UIScene_CraftingMenu::getMoviePath()
@@ -245,25 +295,11 @@ wstring UIScene_CraftingMenu::getMoviePath()
 	if(app.GetLocalPlayerCount() > 1)
 	{
 		m_bSplitscreen = true;
-		if(m_iContainerType==RECIPE_TYPE_3x3)
-		{
-			return L"Crafting3x3MenuSplit";
-		}
-		else
-		{
-			return L"Crafting2x2MenuSplit";
-		}
+		return L"CraftingMenuSplit";
 	}
 	else
 	{
-		if(m_iContainerType==RECIPE_TYPE_3x3)
-		{
-			return L"Crafting3x3Menu";
-		}
-		else
-		{
-			return L"Crafting2x2Menu";
-		}
+		return L"CraftingMenu";
 	}
 }
 
@@ -274,203 +310,164 @@ UIControl* UIScene_CraftingMenu::GetMainPanel()
 }
 #endif
 
-#ifdef __PSVITA__
-void UIScene_CraftingMenu::handleTouchInput(unsigned int iPad, S32 x, S32 y, int iId, bool bPressed, bool bRepeat, bool bReleased)
-{
-	// perform action on release
-	if(bPressed)
-	{
-		if(iId == ETouchInput_CraftingHSlots)
-		{
-			m_iCraftingSlotTouchStartY = y;
-		}
-	}
-	else if(bRepeat)
-	{
-		if(iId == ETouchInput_CraftingHSlots)
-		{
-			if(y >= m_iCraftingSlotTouchStartY + m_TouchInput[ETouchInput_CraftingHSlots].getHeight())			// scroll list down
-			{
-				if(iVSlotIndexA[1]==(CanBeMadeA[m_iCurrentSlotHIndex].iCount-1))
-				{
-					iVSlotIndexA[1]=0;
-				}
-				else
-				{
-					iVSlotIndexA[1]++;
-				}
-				ui.PlayUISFX(eSFX_Focus);
-
-				UpdateVerticalSlots();
-				UpdateHighlight();
-
-				m_iCraftingSlotTouchStartY = y;
-			}
-			else if(y <= m_iCraftingSlotTouchStartY - m_TouchInput[ETouchInput_CraftingHSlots].getHeight())		// scroll list up
-			{
-				if(iVSlotIndexA[1]==0)
-				{
-					iVSlotIndexA[1]=CanBeMadeA[m_iCurrentSlotHIndex].iCount-1;
-				}
-				else
-				{
-					iVSlotIndexA[1]--;
-				}		
-				ui.PlayUISFX(eSFX_Focus);
-
-				UpdateVerticalSlots();
-				UpdateHighlight();
-
-				m_iCraftingSlotTouchStartY = y;
-			}
-		}
-	}
-	else if(bReleased)
-	{
-		if(iId >= ETouchInput_TouchPanel_0 && iId <= ETouchInput_TouchPanel_6)		// Touch Change Group
-		{
-			m_iGroupIndex = iId;
-			// turn on the new group
-			showTabHighlight(m_iGroupIndex,true);
-
-			m_iCurrentSlotHIndex=0;
-			m_iCurrentSlotVIndex=1;
-			CheckRecipesAvailable();
-			// reset the vertical slots
-			iVSlotIndexA[0]=CanBeMadeA[m_iCurrentSlotHIndex].iCount-1;
-			iVSlotIndexA[1]=0;
-			iVSlotIndexA[2]=1;
-			ui.PlayUISFX(eSFX_Focus);
-			UpdateVerticalSlots();
-			UpdateHighlight();
-			setGroupText(GetGroupNameText(m_pGroupA[m_iGroupIndex]));
-		}
-		else if(iId == ETouchInput_CraftingHSlots)									// Touch Change Slot
-		{
-			int iMaxHSlots = 0;
-			if(m_iContainerType==RECIPE_TYPE_3x3)
-			{
-				iMaxHSlots = m_iMaxHSlot3x3C;
-			}
-			else
-			{
-				iMaxHSlots = m_iMaxHSlot2x2C;
-			}
-
-			int iNewSlot = (x - m_TouchInput[ETouchInput_CraftingHSlots].getXPos() - m_controlMainPanel.getXPos()) / m_TouchInput[ETouchInput_CraftingHSlots].getHeight();
-
-			int iOldHSlot=m_iCurrentSlotHIndex;
-
-			m_iCurrentSlotHIndex = iNewSlot;
-			if(m_iCurrentSlotHIndex>=m_iCraftablesMaxHSlotC) m_iCurrentSlotHIndex=0;
-			m_iCurrentSlotVIndex=1;
-			// clear the indices
-			iVSlotIndexA[0]=CanBeMadeA[m_iCurrentSlotHIndex].iCount-1;
-			iVSlotIndexA[1]=0;
-			iVSlotIndexA[2]=1;	
-
-			UpdateVerticalSlots();
-			UpdateHighlight();
-			// re-enable the old hslot
-			if(CanBeMadeA[iOldHSlot].iCount>0)
-			{
-				setShowCraftHSlot(iOldHSlot,true);
-			}
-			ui.PlayUISFX(eSFX_Focus);
-		}
-	}
-}
-
-void UIScene_CraftingMenu::handleTouchBoxRebuild()
-{
-	addTimer(GAME_CRAFTING_TOUCHUPDATE_TIMER_ID,GAME_CRAFTING_TOUCHUPDATE_TIMER_TIME);
-}
-
-void UIScene_CraftingMenu::handleTimerComplete(int id)
-{
-	if(id == GAME_CRAFTING_TOUCHUPDATE_TIMER_ID)
-	{
-		// we cannot rebuild touch boxes in an iggy callback because it requires further iggy calls
-		GetMainPanel()->UpdateControl();
-		ui.TouchBoxRebuild(this);
-		killTimer(GAME_CRAFTING_TOUCHUPDATE_TIMER_ID);
-	}
-}
-#endif
-
 #ifdef _WINDOWS64
+void UIScene_CraftingMenu::handleCraftingGroupSwitch() {
+	m_iCurrentSlotHIndex = 0;
+	m_iCurrentSlotVIndex = 1;
+	UpdateCraftingPanels();
+	CheckRecipesAvailable();
+	if (m_iGroupVIndex == eGroupVType_Banner && m_iGroupHIndex > 0) {
+	int patternId = m_aBannerCraftPatterns[m_iGroupHIndex - 1][m_iCurrentSlotHIndex];
+	const BannerPatternDef *specialDef = BannerPatterns::get(patternId);
+	bool specialPattern = specialDef != nullptr && specialDef->itemId != 0;
+	iVSlotIndexA[0] = 15;
+	iVSlotIndexA[1] = specialPattern ? -1 : 0;
+	iVSlotIndexA[2] = specialPattern ? 0 : 1;
+    } else {
+        iVSlotIndexA[0] = CanBeMadeA[m_iCurrentSlotHIndex].iCount - 1;
+        iVSlotIndexA[1] = 0;
+        iVSlotIndexA[2] = 1;
+    }
+	ui.PlayUISFX(eSFX_Focus);
+	UpdateVerticalSlots();
+	UpdateHighlight();
+	setGroupText(GetGroupNameText(m_pGroupA[m_iGroupVIndex][m_iGroupHIndex]));
+	UpdateTooltips();
+}
+
+void UIScene_CraftingMenu::handleCraftingSlotClick(int iIndex) {
+	if (iIndex == m_iCurrentSlotHIndex) {
+		// Click on already-selected slot — craft the item
+
+		if (m_iGroupVIndex == eGroupVType_Banner && m_iGroupHIndex > 0) {
+			handleKeyDown(m_iPad, ACTION_MENU_Y, false);
+		} else {
+			handleKeyDown(m_iPad, ACTION_MENU_A, false);
+		}
+	} else {
+		int iOldHSlot = m_iCurrentSlotHIndex;
+		m_iCurrentSlotHIndex = iIndex;
+		m_iCurrentSlotVIndex = 1;
+		if (m_iGroupVIndex == eGroupVType_Banner && m_iGroupHIndex > 0) {
+            iVSlotIndexA[0] = 15; // White
+            iVSlotIndexA[1] = 0;  // Black (center)
+            iVSlotIndexA[2] = 1;  // Red
+        } else {
+            iVSlotIndexA[0] = CanBeMadeA[m_iCurrentSlotHIndex].iCount - 1;
+            iVSlotIndexA[1] = 0;
+            iVSlotIndexA[2] = 1;
+        }
+		UpdateVerticalSlots();
+		UpdateHighlight();
+		//if (CanBeMadeA[iOldHSlot].iCount > 0) {
+			setShowCraftHSlot(iOldHSlot, true);
+		//}
+		ui.PlayUISFX(eSFX_Focus);
+	}
+}
+
+bool isClickInsideControl(F32 x, F32 y, UIControl& control) {
+	F32 rectX = control.getXPos();
+	F32 rectY = control.getYPos();
+
+	return x >= rectX && x < rectX + control.getWidth() && y >= rectY && y < rectY + control.getHeight();
+}
+
+void UIScene_CraftingMenu::handleLeftMouseClick(F32 x, F32 y, F32 sceneX, F32 sceneY) {
+	{
+		int maxHorizontalTabs = (m_iContainerType == RECIPE_TYPE_3x3) ? m_iMaxGroupH3x3 : m_iMaxGroupH2x2;
+
+		F32 groupRowX1 = m_GroupH[0].getXPos();
+		F32 groupRowWidth = m_GroupH[0].getWidth();
+
+		F32 tabStep = groupRowWidth + (m_GroupH[1].getXPos() - (groupRowX1 + groupRowWidth));
+		F32 rowY = m_GroupH[0].getYPos();
+		F32 rowHeight = m_GroupH[0].getHeight();
+
+		if (sceneY >= rowY && sceneY < rowY + rowHeight && sceneX >= groupRowX1 && tabStep > 0.0f) {
+			F32 offsetX = sceneX - groupRowX1;
+			int tabIndex = static_cast<int>(offsetX / tabStep);
+
+			if (tabIndex >= 0 && tabIndex < maxHorizontalTabs && tabIndex != m_iGroupHIndex) {
+				F32 tabOffset = offsetX - tabIndex * tabStep;
+
+				if (tabOffset < groupRowWidth) {
+					if (iHSlotState[tabIndex]) {
+						m_iGroupHIndex = tabIndex;
+						setHGroupHighlight(m_iGroupHIndex);
+
+						handleCraftingGroupSwitch();
+					}
+					return;
+				}
+			}
+		}
+	}
+	{
+		int maxVerticalTabs = (m_iContainerType == RECIPE_TYPE_3x3) ? m_iMaxGroupV3x3 : m_iMaxGroupV2x2;
+
+		F32 groupRowY1 = m_GroupV[0].getYPos();
+		F32 groupRowHeight = m_GroupV[0].getHeight();
+
+		F32 tabStep = groupRowHeight + (m_GroupV[1].getYPos() - (groupRowY1 + groupRowHeight));
+		F32 rowX = m_GroupV[0].getXPos();
+		F32 rowWidth = m_GroupV[0].getWidth();
+
+		if (sceneY >= groupRowY1 && sceneX >= rowX && sceneX < rowX + rowWidth && tabStep > 0.0f) {
+			F32 offsetY = sceneY - groupRowY1;
+			int tabIndex = static_cast<int>(offsetY / tabStep);
+
+			if (tabIndex >= 0 && tabIndex < maxVerticalTabs && tabIndex != m_iGroupVIndex) {
+				F32 tabOffset = offsetY - tabIndex * tabStep;
+
+				if (tabOffset < groupRowHeight) {
+					m_iGroupHIndex = 0;
+					m_iGroupVIndex = tabIndex;
+					setVGroupHighlight(m_iGroupVIndex);
+
+					handleCraftingGroupSwitch();
+					return;
+				}
+			}
+		}
+	}
+
+	bool showingSpecial3 = (m_iGroupVIndex == eGroupVType_Banner && m_iGroupHIndex == 0);
+	bool showingSpecial2 = false;
+	bool showingNormalSlots = (!showingSpecial3 && !showingSpecial2);
+
+	if (showingSpecial3) {
+		if (isClickInsideControl(sceneX, sceneY, m_Slot3_1)) {
+			handleCraftingSlotClick(0);
+			UpdateCraftingPanels();
+		} else if (isClickInsideControl(sceneX, sceneY, m_Slot3_2)) {
+			handleCraftingSlotClick(1);
+			UpdateCraftingPanels();
+		} else if (isClickInsideControl(sceneX, sceneY, m_Slot3_3)) {
+			handleCraftingSlotClick(2);
+			UpdateCraftingPanels();
+		}
+	} else if (showingSpecial2) {
+
+	} else if (showingNormalSlots) {
+		if (m_hSlotBoundsValid && m_hSlotSpacing > 0) {
+			F32 rowWidth = m_hSlotSpacing * m_iCraftablesMaxHSlotC;
+			if (x >= m_hSlotX0 && x < m_hSlotX0 + rowWidth && y >= m_hSlotY0 && y < m_hSlotY1) {
+				int iNewSlot = (int)((x - m_hSlotX0) / m_hSlotSpacing);
+				if (iNewSlot >= 0 && iNewSlot < m_iCraftablesMaxHSlotC) {
+					// Only interact with populated slots
+					//if (CanBeMadeA[iNewSlot].iCount != 0) {
+						handleCraftingSlotClick(iNewSlot);
+					//}
+				}
+			}
+		}
+	}
+	
+}
+
 bool UIScene_CraftingMenu::handleMouseClick(F32 x, F32 y)
 {
-	if (!m_hSlotBoundsValid || m_hSlotSpacing <= 0)
-		return false;
-
-	// Tab click — tabs sit directly above the H slot row. We derive their
-	// bounds from the H slot positions cached in customDraw, since the Vita
-	// TouchPanel controls are full-screen overlays with unusable bounds.
-	int maxTabs = (m_iContainerType == RECIPE_TYPE_3x3) ? m_iMaxGroup3x3 : m_iMaxGroup2x2;
-	F32 slotHeight = m_hSlotY1 - m_hSlotY0;
-	F32 tabRowY0 = (m_hSlotY0 * 0.75f) - slotHeight * 1.55f;
-	F32 tabRowY1 = tabRowY0 + (slotHeight * 1.7f);
-	F32 tabRowWidth = m_hSlotSpacing * m_iCraftablesMaxHSlotC;
-	F32 tabWidth = tabRowWidth / maxTabs;
-
-	if (tabWidth > 0 && x >= m_hSlotX0 && x < m_hSlotX0 + tabRowWidth &&
-		y >= tabRowY0 && y < tabRowY1)
-	{
-		int iTab = (int)((x - m_hSlotX0) / tabWidth);
-		if (iTab >= 0 && iTab < maxTabs && iTab != m_iGroupIndex)
-		{
-			showTabHighlight(m_iGroupIndex, false);
-			m_iGroupIndex = iTab;
-			showTabHighlight(m_iGroupIndex, true);
-			m_iCurrentSlotHIndex = 0;
-			m_iCurrentSlotVIndex = 1;
-			CheckRecipesAvailable();
-			iVSlotIndexA[0] = CanBeMadeA[m_iCurrentSlotHIndex].iCount - 1;
-			iVSlotIndexA[1] = 0;
-			iVSlotIndexA[2] = 1;
-			ui.PlayUISFX(eSFX_Focus);
-			UpdateVerticalSlots();
-			UpdateHighlight();
-			setGroupText(GetGroupNameText(m_pGroupA[m_iGroupIndex]));
-		}
-		return true;
-	}
-
-	// H slot click — select or craft
-	F32 rowWidth = m_hSlotSpacing * m_iCraftablesMaxHSlotC;
-	if (x >= m_hSlotX0 && x < m_hSlotX0 + rowWidth &&
-		y >= m_hSlotY0 && y < m_hSlotY1)
-	{
-		int iNewSlot = (int)((x - m_hSlotX0) / m_hSlotSpacing);
-		if (iNewSlot >= 0 && iNewSlot < m_iCraftablesMaxHSlotC)
-		{
-			// Only interact with populated slots
-			if (CanBeMadeA[iNewSlot].iCount == 0)
-				return true;
-
-			if (iNewSlot == m_iCurrentSlotHIndex)
-			{
-				// Click on already-selected slot — craft the item
-				handleKeyDown(m_iPad, ACTION_MENU_A, false);
-			}
-			else
-			{
-				int iOldHSlot = m_iCurrentSlotHIndex;
-				m_iCurrentSlotHIndex = iNewSlot;
-				m_iCurrentSlotVIndex = 1;
-				iVSlotIndexA[0] = CanBeMadeA[m_iCurrentSlotHIndex].iCount - 1;
-				iVSlotIndexA[1] = 0;
-				iVSlotIndexA[2] = 1;
-				UpdateVerticalSlots();
-				UpdateHighlight();
-				if (CanBeMadeA[iOldHSlot].iCount > 0)
-					setShowCraftHSlot(iOldHSlot, true);
-				ui.PlayUISFX(eSFX_Focus);
-			}
-			return true;
-		}
-	}
 	// Consume all mouse clicks so misses don't generate ACTION_MENU_A
 	// and accidentally craft. Only blocks mouse-originated presses.
 	return true;
@@ -487,7 +484,22 @@ void UIScene_CraftingMenu::handleReload()
 		m_slotListIngredients[i].addSlot(CRAFTING_INGREDIENTS_DESCRIPTION_START + i);
 	}
 	m_slotListCraftingOutput.addSlot(CRAFTING_OUTPUT_SLOT_START);
-	m_slotListIngredientsLayout.addSlots(CRAFTING_INGREDIENTS_LAYOUT_START, m_iIngredientsMaxSlotC);
+	if (m_iContainerType == RECIPE_TYPE_3x3) {
+		m_slotListIngredientsLayout.addSlots(CRAFTING_INGREDIENTS_LAYOUT_START, m_iIngredientsMaxSlotC);
+		m_slotListIngredientsLayoutSmall.setVisible(false);
+	} else {
+		m_slotListIngredientsLayoutSmall.addSlots(CRAFTING_INGREDIENTS_LAYOUT_START, m_iIngredientsMaxSlotC);
+		m_slotListIngredientsLayout.setVisible(false);
+	}
+
+	m_Slot2_1.addSlot(CRAFTING_SLOT_EXTRA_START + 0);
+	m_Slot2_2.addSlot(CRAFTING_SLOT_EXTRA_START + 1);
+
+	m_Slot3_1.addSlot(CRAFTING_SLOT_EXTRA_START + 0);
+	m_Slot3_2.addSlot(CRAFTING_SLOT_EXTRA_START + 1);
+	m_Slot3_3.addSlot(CRAFTING_SLOT_EXTRA_START + 2);
+
+	m_slotPreviewSlot.addSlot(CRAFTING_SLOT_EXTRA_START + 0);
 
 	// 3 Slot vertical scroll
 	m_slotListCrafting3VSlots[0].addSlot(CRAFTING_V_SLOT_START + 0);
@@ -503,6 +515,8 @@ void UIScene_CraftingMenu::handleReload()
 	m_slotListCrafting1VSlots.addSlot(CRAFTING_V_SLOT_START);
 
 	m_slotListCraftingHSlots.addSlots(CRAFTING_H_SLOT_START,m_iCraftablesMaxHSlotC);
+
+	initializeCraftingTabs();
 
 	app.DebugPrintf(app.USER_SR,"Reloading MultiPanel\n");
 	int temp = m_iDisplayDescription;
@@ -523,8 +537,8 @@ void UIScene_CraftingMenu::handleReload()
 	UpdateHighlight();
 
 	app.DebugPrintf(app.USER_SR,"Reloading tabs\n");
-	showTabHighlight(0,false);
-	showTabHighlight(m_iGroupIndex,true);
+	setVGroupHighlight(m_iGroupVIndex);
+	UpdateCraftingPanels();
 }
 
 void UIScene_CraftingMenu::customDraw(IggyCustomDrawCallbackRegion *region)
@@ -533,122 +547,178 @@ void UIScene_CraftingMenu::customDraw(IggyCustomDrawCallbackRegion *region)
 	if(pMinecraft->localplayers[m_iPad] == nullptr || pMinecraft->localgameModes[m_iPad] == nullptr) return;
 
 	shared_ptr<ItemInstance> item = nullptr;
-	int slotId = -1;
 	float alpha = 1.0f;
-	bool decorations = true;
 	bool inventoryItem = false;
-	swscanf(static_cast<wchar_t *>(region->name),L"slot_%d",&slotId);
-	if (slotId == -1)
-	{
-		app.DebugPrintf("This is not the control we are looking for\n");
-	}
-	else if(slotId >= CRAFTING_INVENTORY_SLOT_START && slotId < CRAFTING_INVENTORY_SLOT_END)
-	{
-		int iIndex = slotId - CRAFTING_INVENTORY_SLOT_START;
-		iIndex += m_iMenuInventoryStart;
-		Slot *slot = m_menu->getSlot(iIndex);
-		item = slot->getItem();
-		inventoryItem = true;
-	}
-	else if(slotId >= CRAFTING_HOTBAR_SLOT_START && slotId < CRAFTING_HOTBAR_SLOT_END)
-	{
-		int iIndex = slotId - CRAFTING_HOTBAR_SLOT_START;
-		iIndex += m_iMenuHotBarStart;
-		Slot *slot = m_menu->getSlot(iIndex);
-		item = slot->getItem();
-		inventoryItem = true;
-	}
-	else if(slotId >= CRAFTING_V_SLOT_START && slotId < CRAFTING_V_SLOT_END )
-	{
-		decorations = false;
-		int iIndex = slotId - CRAFTING_V_SLOT_START;
-		if(m_vSlotsInfo[iIndex].show)
+	bool decorations = true;
+
+	int slotId = -1;
+	int iTabV = -1;
+	int iTabH = -1;
+
+	if (swscanf(static_cast<wchar_t*>(region->name), L"slot_%d", &slotId) == 1) {
+		//if (m_iGroupVIndex != eGroupVType_Workbench) return;
+
+		if (slotId == -1)
 		{
-			item = m_vSlotsInfo[iIndex].item;
-			alpha = static_cast<float>(m_vSlotsInfo[iIndex].alpha)/31.0f;
+			app.DebugPrintf("This is not the control we are looking for\n");
 		}
-	}
-	else if(slotId >= CRAFTING_H_SLOT_START && slotId < (CRAFTING_H_SLOT_START + m_iCraftablesMaxHSlotC) )
-	{
-		decorations = false;
-		int iIndex = slotId - CRAFTING_H_SLOT_START;
-#ifdef _WINDOWS64
-		// Cache H slot SWF-space positions from the custom draw transform matrix
-		if (iIndex == 0 || iIndex == 1)
+		else if(slotId >= CRAFTING_INVENTORY_SLOT_START && slotId < CRAFTING_INVENTORY_SLOT_END)
 		{
-			F32 mat[16];
-			gdraw_D3D11_CalculateCustomDraw_4J(region, mat);
-			// Matrix to SWF coords (same formula as setupCustomDrawMatrices)
-			F32 sw = (F32)getRenderWidth();
-			F32 sh = (F32)getRenderHeight();
-			F32 swfX = sw * (1.0f + mat[3]) / 2.0f;
-			F32 swfY = sh * (1.0f - mat[7]) / 2.0f;
-			if (iIndex == 0)
+			int iIndex = slotId - CRAFTING_INVENTORY_SLOT_START;
+			iIndex += m_iMenuInventoryStart;
+			Slot *slot = m_menu->getSlot(iIndex);
+			item = slot->getItem();
+			inventoryItem = true;
+		}
+		else if(slotId >= CRAFTING_HOTBAR_SLOT_START && slotId < CRAFTING_HOTBAR_SLOT_END)
+		{
+			int iIndex = slotId - CRAFTING_HOTBAR_SLOT_START;
+			iIndex += m_iMenuHotBarStart;
+			Slot *slot = m_menu->getSlot(iIndex);
+			item = slot->getItem();
+			inventoryItem = true;
+		}
+		else if(slotId >= CRAFTING_V_SLOT_START && slotId < CRAFTING_V_SLOT_END )
+		{
+			decorations = false;
+			int iIndex = slotId - CRAFTING_V_SLOT_START;
+			if(m_vSlotsInfo[iIndex].show)
 			{
-				m_hSlotX0 = swfX;
-				m_hSlotY0 = swfY;
-				// Slot visual height from matrix scale and region height
-				F32 slotH = sh * (-mat[5]) / 2.0f * region->y1;
-				m_hSlotY1 = swfY + slotH;
-			}
-			else
-			{
-				m_hSlotSpacing = swfX - m_hSlotX0;
-				m_hSlotBoundsValid = (m_hSlotSpacing > 0);
+				item = m_vSlotsInfo[iIndex].item;
+				alpha = static_cast<float>(m_vSlotsInfo[iIndex].alpha)/31.0f;
 			}
 		}
-#endif
-		if(m_hSlotsInfo[iIndex].show)
+		else if(slotId >= CRAFTING_H_SLOT_START && slotId < (CRAFTING_H_SLOT_START + m_iCraftablesMaxHSlotC) )
 		{
-			item = m_hSlotsInfo[iIndex].item;
-			alpha = static_cast<float>(m_hSlotsInfo[iIndex].alpha)/31.0f;
+			decorations = false;
+			int iIndex = slotId - CRAFTING_H_SLOT_START;
+	#ifdef _WINDOWS64
+			// Cache H slot SWF-space positions from the custom draw transform matrix
+			if (iIndex == 0 || iIndex == 1)
+			{
+				F32 mat[16];
+				gdraw_D3D11_CalculateCustomDraw_4J(region, mat);
+				// Matrix to SWF coords (same formula as setupCustomDrawMatrices)
+				F32 sw = (F32)getRenderWidth();
+				F32 sh = (F32)getRenderHeight();
+				F32 swfX = sw * (1.0f + mat[3]) / 2.0f;
+				F32 swfY = sh * (1.0f - mat[7]) / 2.0f;
+				if (iIndex == 0)
+				{
+					m_hSlotX0 = swfX;
+					m_hSlotY0 = swfY;
+					// Slot visual height from matrix scale and region height
+					F32 slotH = sh * (-mat[5]) / 2.0f * region->y1;
+					m_hSlotY1 = swfY + slotH;
+				}
+				else
+				{
+					m_hSlotSpacing = swfX - m_hSlotX0;
+					m_hSlotBoundsValid = (m_hSlotSpacing > 0);
+				}
+			}
+	#endif
+			if(m_hSlotsInfo[iIndex].show)
+			{
+				item = m_hSlotsInfo[iIndex].item;
+				alpha = static_cast<float>(m_hSlotsInfo[iIndex].alpha)/31.0f;
+			}
 		}
-	}
-	else if(slotId >= CRAFTING_INGREDIENTS_LAYOUT_START && slotId < (CRAFTING_INGREDIENTS_LAYOUT_START + m_iIngredientsMaxSlotC) )
-	{
-		int iIndex = slotId - CRAFTING_INGREDIENTS_LAYOUT_START;
-		if(m_ingredientsSlotsInfo[iIndex].show)
+		else if(slotId >= CRAFTING_INGREDIENTS_LAYOUT_START && slotId < (CRAFTING_INGREDIENTS_LAYOUT_START + m_iIngredientsMaxSlotC) )
 		{
-			item = m_ingredientsSlotsInfo[iIndex].item;
-			alpha = static_cast<float>(m_ingredientsSlotsInfo[iIndex].alpha)/31.0f;
+			int iIndex = slotId - CRAFTING_INGREDIENTS_LAYOUT_START;
+			if(m_ingredientsSlotsInfo[iIndex].show)
+			{
+				item = m_ingredientsSlotsInfo[iIndex].item;
+				alpha = static_cast<float>(m_ingredientsSlotsInfo[iIndex].alpha)/31.0f;
+			}
 		}
-	}
-	else if(slotId >= CRAFTING_INGREDIENTS_DESCRIPTION_START && slotId < (CRAFTING_INGREDIENTS_DESCRIPTION_START + 9) )
-	{
-		int iIndex = slotId - CRAFTING_INGREDIENTS_DESCRIPTION_START;
-		if(m_ingredientsInfo[iIndex].show)
+		else if (slotId >= CRAFTING_SLOT_EXTRA_START && slotId < CRAFTING_SLOT_EXTRA_END) {
+			int iIndex = (slotId - CRAFTING_SLOT_EXTRA_START);
+			if (iIndex == 0) {
+				if (m_iGroupHIndex > 0) {
+					item = m_bannerPreviewHolder;
+					alpha = 1.0f;
+				} else {
+					if (m_hSlotsInfo[0].show) {
+						item = m_hSlotsInfo[0].item;
+						alpha = static_cast<float>(m_hSlotsInfo[0].alpha) / 31.0f;
+					} else {
+						if (m_craftingOutputSlotInfo.show)
+						{
+							item = m_craftingOutputSlotInfo.item;
+							alpha = static_cast<float>(m_hSlotsInfo[0].alpha) / 31.0f;
+						}
+					}
+				}
+			} else if (iIndex == 1) {
+				if (CurrentInventoryBanners.size() > 0) {
+					if (m_iCurrentSlotHIndex == 1) {
+						item = CurrentInventoryBanners[m_iCurrentSlotVIndex-1];
+					} else {
+						item = CurrentInventoryBanners[0];
+					}
+				}
+			}
+		}
+		else if (slotId >= CRAFTING_INGREDIENTS_DESCRIPTION_START && slotId < (CRAFTING_INGREDIENTS_DESCRIPTION_START + 9))
 		{
-			item = m_ingredientsInfo[iIndex].item;
-			alpha = static_cast<float>(m_ingredientsInfo[iIndex].alpha)/31.0f;
+			int iIndex = slotId - CRAFTING_INGREDIENTS_DESCRIPTION_START;
+			if(m_ingredientsInfo[iIndex].show)
+			{
+				item = m_ingredientsInfo[iIndex].item;
+				alpha = static_cast<float>(m_ingredientsInfo[iIndex].alpha)/31.0f;
+			}
 		}
-	}
-	else if(slotId == CRAFTING_OUTPUT_SLOT_START )
-	{
-		if(m_craftingOutputSlotInfo.show)
+		else if(slotId == CRAFTING_OUTPUT_SLOT_START )
 		{
-			item = m_craftingOutputSlotInfo.item;
-			alpha = static_cast<float>(m_craftingOutputSlotInfo.alpha)/31.0f;
+			if(m_craftingOutputSlotInfo.show)
+			{
+				item = m_craftingOutputSlotInfo.item;
+				alpha = static_cast<float>(m_craftingOutputSlotInfo.alpha)/31.0f;
+			}
 		}
+	} else if (swscanf(static_cast<wchar_t*>(region->name), L"TabV_%d", &iTabV) == 1) {
+		GroupIcons& vGroupIconInfo = m_vGroupIconCache[iTabV - 1];
+
+		if (vGroupIconInfo.VSlot.show) {
+			item = vGroupIconInfo.VSlot.item;
+			alpha = static_cast<float>(vGroupIconInfo.VSlot.alpha)/31.0f;
+		}
+	} else if (swscanf(static_cast<wchar_t*>(region->name), L"TabH_%d", &iTabH) == 1) {
+		GroupIcons& vGroupIconInfo = m_vGroupIconCache[m_iGroupVIndex];
+
+		if (m_selectedBannerEdit == nullptr) {
+			if (vGroupIconInfo.HSlots.size() >= iTabH && iTabH == 1) {
+				item = vGroupIconInfo.HSlots[iTabH - 1].item;
+			}
+		} else {
+			if (vGroupIconInfo.HSlots.size() >= iTabH && iTabH != 1) {
+				item = vGroupIconInfo.HSlots[iTabH - 1].item;
+			}
+		}
+
+		//alpha = static_cast<float>(vGroupIconInfo.HSlots[iTabH - 1].alpha)/31.0f;
 	}
 
-	if(item != nullptr)
-	{
-		if(!inventoryItem)
-		{
-			if( item->id == Item::clock_Id || item->id == Item::compass_Id )
-			{
+	if(item != nullptr) {
+		if(!inventoryItem) {
+			if( item->id == Item::clock_Id || item->id == Item::compass_Id ) {
 				// 4J Stu - For clocks and compasses we set the aux value to a special one that signals we should use a default texture
 				// rather than the dynamic one for the player
 				item->setAuxValue(0xFF);
-			}
-			else if( (item->getAuxValue() & 0xFF) == 0xFF)
-			{
+			} else if( (item->getAuxValue() & 0xFF) == 0xFF) {
 				// 4J Stu - If the aux value is set to match any
 				item->setAuxValue(0);
 			}
 		}
 		customDrawSlotControl(region,m_iPad,item,alpha,item->isFoil(),decorations);
 	}
+}
+
+void UIScene_CraftingMenu::tick()
+{
+	UIScene::tick();
 }
 
 int UIScene_CraftingMenu::getPad()
@@ -672,19 +742,25 @@ void UIScene_CraftingMenu::handleInput(int iPad, int key, bool repeat, bool pres
 	//app.DebugPrintf("UIScene_InventoryMenu handling input for pad %d, key %d, down- %s, pressed- %s, released- %s\n", iPad, key, down?"TRUE":"FALSE", pressed?"TRUE":"FALSE", released?"TRUE":"FALSE");
 	ui.AnimateKeyPress(m_iPad, key, repeat, pressed, released);
 
-	switch(key)
-	{
-	case ACTION_MENU_OTHER_STICK_UP:
-	case ACTION_MENU_OTHER_STICK_DOWN:
-		sendInputToMovie(key,repeat,pressed,released);
-		break;
-	default:
-		if(pressed)
+	//if (m_iGroupVIndex == eGroupVType_Banner && m_iCurrentSlotHIndex == 1) {
+
+	//} else {
+		switch(key)
 		{
-			handled = handleKeyDown(m_iPad, key, repeat);
-		}
-		break;
-	};
+		case ACTION_MENU_OTHER_STICK_UP:
+		case ACTION_MENU_OTHER_STICK_DOWN:
+			sendInputToMovie(key,repeat,pressed,released);
+			break;
+		default:
+			if(pressed)
+			{
+				handled = handleKeyDown(m_iPad, key, repeat);
+			}
+			break;
+		};
+	//}
+
+
 }
 
 void UIScene_CraftingMenu::hideAllHSlots()
@@ -745,6 +821,9 @@ void UIScene_CraftingMenu::setCraftVSlotItem(int iPad, int iIndex, shared_ptr<It
 
 void UIScene_CraftingMenu::setCraftingOutputSlotItem(int iPad, shared_ptr<ItemInstance> item)
 {
+	if (m_iGroupVIndex == eGroupVType_Banner && m_iGroupHIndex == 0) {
+		setDescriptionTextTop(item->getHoverName().c_str());
+	}
 	m_craftingOutputSlotInfo.item = item;
 	m_craftingOutputSlotInfo.alpha = 31;
 	m_craftingOutputSlotInfo.show = item != nullptr;
@@ -800,18 +879,25 @@ void UIScene_CraftingMenu::setShowCraftHSlot(int iIndex, bool show)
 	m_hSlotsInfo[iIndex].show = show;
 }
 
-void UIScene_CraftingMenu::showTabHighlight(int iIndex, bool show)
+void UIScene_CraftingMenu::setHGroupHighlight(int iIndex)
 {
-	if(show)
-	{	
-		IggyDataValue result;
-		IggyDataValue value[1];
+	IggyDataValue result;
+	IggyDataValue value[2];
+		
+	value[0].type = IGGY_DATATYPE_number;
+	value[0].number = iIndex;
+	value[1].type = IGGY_DATATYPE_number;
+	value[1].number = m_iGroupVIndex;
 
-		value[0].type = IGGY_DATATYPE_number;
-		value[0].number = iIndex;
-		IggyResult out = IggyPlayerCallMethodRS ( getMovie() , &result, IggyPlayerRootPath( getMovie() ) , m_funcSetActiveTab , 1 , value );
-	}
+	IggyResult out = IggyPlayerCallMethodRS(getMovie(), &result, IggyPlayerRootPath(getMovie()), m_funcSetActiveTab, 2, value);
 }
+
+void UIScene_CraftingMenu::setVGroupHighlight(int iIndex) {
+	setHGroupHighlight(m_iGroupHIndex);
+	m_selectedBannerEdit = nullptr;
+	m_bannerPreviewHolder = nullptr;
+}
+
 
 void UIScene_CraftingMenu::setGroupText(LPCWSTR text)
 {
@@ -820,12 +906,23 @@ void UIScene_CraftingMenu::setGroupText(LPCWSTR text)
 
 void UIScene_CraftingMenu::setDescriptionText(LPCWSTR text)
 {
-	m_labelDescription.setLabel(text);
+	m_labelDescriptionText.setLabel(text);
+}
+
+void UIScene_CraftingMenu::setDescriptionTextTop(LPCWSTR text)
+{
+	m_labelDescriptionTextTop.setLabel(text);
 }
 
 void UIScene_CraftingMenu::setItemText(LPCWSTR text)
 {
-	m_labelItemName.setLabel(text);
+	//if (m_iContainerType == RECIPE_TYPE_2x2) {
+	//	m_labelItemNameSmall.setLabel(text);
+	//	m_labelItemName.setLabel(L"");
+	//} else {
+		m_labelItemName.setLabel(text);
+		m_labelItemNameSmall.setLabel(L"");
+	//}
 }
 
 void UIScene_CraftingMenu::UpdateMultiPanel()
@@ -860,13 +957,21 @@ void UIScene_CraftingMenu::updateHighlightAndScrollPositions()
 		value[0].number = m_iCurrentSlotHIndex;
 
 		int selectorType = 0;
-		if(CanBeMadeA[m_iCurrentSlotHIndex].iCount  == 2)
-		{
-			selectorType = 1;
-		}
-		else if( CanBeMadeA[m_iCurrentSlotHIndex].iCount  > 2)
-		{
+
+		if (m_iGroupVIndex == eGroupVType_Banner && m_iGroupHIndex == 0 && m_iCurrentSlotHIndex == 1) {
+			if (CurrentInventoryBanners.size() == 2) {
+				selectorType = 1;
+			} else if (CurrentInventoryBanners.size() > 2) {
+				selectorType = 2;
+			}
+		} else if (m_iGroupVIndex == eGroupVType_Banner && m_iGroupHIndex > 0) {
 			selectorType = 2;
+		} else {
+			if(CanBeMadeA[m_iCurrentSlotHIndex].iCount == 2) {
+				selectorType = 1;
+			} else if( CanBeMadeA[m_iCurrentSlotHIndex].iCount > 2) {
+				selectorType = 2;
+			}
 		}
 
 		value[1].type = IGGY_DATATYPE_number;
@@ -886,6 +991,18 @@ void UIScene_CraftingMenu::updateHighlightAndScrollPositions()
 	}
 }
 
+void UIScene_CraftingMenu::initializeCraftingTabs() {
+	IggyDataValue result;
+	IggyDataValue value[1];
+
+	value[0].type = IGGY_DATATYPE_number;
+	value[0].number = (m_iContainerType == RECIPE_TYPE_3x3) ? 1 : 0;
+	IggyResult out = IggyPlayerCallMethodRS(getMovie(), &result, IggyPlayerRootPath(getMovie()), m_funcInitCraftingMenu, 1, value);
+
+	SetCraftingMenu();
+	setHGroupHighlight(m_iGroupHIndex);
+}
+
 void UIScene_CraftingMenu::HandleMessage(EUIMessage message, void *data)
 {
 	switch(message)
@@ -899,9 +1016,132 @@ void UIScene_CraftingMenu::HandleMessage(EUIMessage message, void *data)
 void UIScene_CraftingMenu::handleInventoryUpdated(LPVOID data)
 {
 	HandleInventoryUpdated();
+
+	if (m_selectedBannerEdit != nullptr) {
+		bool stillHasEditingBanner = false;
+		for (unsigned int i = 0; i < CurrentInventoryBanners.size(); i++) {
+			if (CurrentInventoryBanners[i] == nullptr) continue;
+			if (CurrentInventoryBanners[i].get() == m_selectedBannerEdit.get()) {
+				stillHasEditingBanner = true;
+				break;
+			}
+		}
+
+		if (!stillHasEditingBanner) setSelectedBannerEdit(nullptr);
+	}
 }
 
 void UIScene_CraftingMenu::updateVSlotPositions(int iSlots, int i)
 {
 	// Not needed
+}
+
+void UIScene_CraftingMenu::ShowSuperCraftingSlots(int iIndex) {
+	IggyDataValue result;
+	IggyDataValue value[1];
+
+	value[0].type = IGGY_DATATYPE_number;
+	value[0].number = iIndex;
+	IggyResult out = IggyPlayerCallMethodRS(getMovie(), &result, IggyPlayerRootPath(getMovie()), m_funcShowSuperCraftingSlots, 1, value);
+}
+
+void UIScene_CraftingMenu::SetCraftingMenu() {
+	IggyDataValue result;
+	IggyDataValue value[3];
+
+	int currentHGroups = (m_iContainerType == RECIPE_TYPE_3x3 ? m_iMaxGroupH3x3 : m_iMaxGroupH2x2);
+	if (m_iGroupVIndex == eGroupVType_Banner) {
+		currentHGroups = m_iMaxBannerGroupH3x3;
+	}
+
+	value[0].type = IGGY_DATATYPE_number;
+	value[0].number = currentHGroups;
+	value[1].type = IGGY_DATATYPE_number;
+	value[1].number = (m_iContainerType == RECIPE_TYPE_3x3 ? m_iMaxGroupV3x3 : m_iMaxGroupV2x2);
+	value[2].type = IGGY_DATATYPE_boolean;
+	value[2].boolval = (m_iGroupVIndex == eGroupVType::eGroupVType_Banner);	// false = static icons, true = iggy custom draw ("TabH_N" regions)
+	IggyResult out = IggyPlayerCallMethodRS(getMovie(), &result, IggyPlayerRootPath(getMovie()), m_funcSetCraftingMenu, 3, value);
+}
+
+
+void UIScene_CraftingMenu::UpdateCraftingPanels() {
+	UpdateEnabledTabs();
+
+	if (m_iGroupVIndex == eGroupVType_Workbench) {
+		m_iDisplayDescription = DISPLAY_INVENTORY;
+		ShowSuperCraftingSlots(0);
+		ShowDescriptionPanel(false);
+	} else if (m_iGroupVIndex == eGroupVType_Banner) {
+		ShowDescriptionPanel(m_iGroupHIndex == 0);
+
+		if (m_iGroupHIndex == 0) {
+			ShowSuperCraftingSlots(3);
+			m_iDisplayDescription = DISPLAY_INVENTORY;
+
+			if (m_iCurrentSlotHIndex == 0) {
+				m_labelSpinnerTitle.setLabel(L"Create Banner");
+			} else if (m_iCurrentSlotHIndex == 1) {
+				m_labelSpinnerTitle.setLabel(L"Select Banner");
+			}
+		} else {
+			ShowSuperCraftingSlots(0);
+			m_iDisplayDescription = DISPLAY_PREVIEW;
+		}
+
+		
+	}
+
+	SetCraftingMenu();
+	UpdateMultiPanel();
+	updateHighlightAndScrollPositions();
+}
+
+void UIScene_CraftingMenu::UpdateEnabledTabs() {
+	int maxHGroups = (m_iContainerType == RECIPE_TYPE_2x2) ? m_iMaxGroupH2x2 : m_iMaxGroupH3x3;
+	for (int i = 0; i < maxHGroups; i++) {
+		EnableTab(i, true);
+	}
+
+	if (m_iGroupVIndex == eGroupVType_Banner) {
+		if (m_selectedBannerEdit == nullptr) {
+			for (int i = 1; i < maxHGroups; i++) {
+				EnableTab(i, false);
+			}
+		} else {
+			EnableTab(0, false);
+		}
+	}
+}
+
+void UIScene_CraftingMenu::EnableTab(int iIndex, bool enabled) {
+	IggyDataValue result;
+	IggyDataValue value[2];
+
+	value[0].type = IGGY_DATATYPE_number;
+	value[0].number = iIndex;
+	value[1].type = IGGY_DATATYPE_boolean;
+	value[1].boolval = enabled;
+	IggyResult out = IggyPlayerCallMethodRS(getMovie(), &result, IggyPlayerRootPath(getMovie()), m_funcEnableTab, 2, value);
+
+	iHSlotState[iIndex] = enabled;
+
+}
+
+void UIScene_CraftingMenu::ShowDescriptionPanel(bool show) {
+	m_controlDescriptionPanel.setVisible(show);
+	m_labelDescriptionTextTop.setVisible(show);
+}
+
+void UIScene_CraftingMenu::setSelectedBannerEdit(shared_ptr<ItemInstance> banner) {
+	m_selectedBannerEdit = banner;
+
+	if (m_selectedBannerEdit == nullptr) {
+		m_iGroupHIndex = 0;
+		m_bannerPreviewHolder = nullptr;
+	} else {
+		m_iGroupHIndex = 1;
+		m_bannerPreviewHolder = ItemInstance::clone(m_selectedBannerEdit);
+	}
+	setHGroupHighlight(m_iGroupHIndex);
+	handleCraftingGroupSwitch();
 }

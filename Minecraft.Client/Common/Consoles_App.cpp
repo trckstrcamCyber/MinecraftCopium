@@ -557,12 +557,12 @@ bool CMinecraftApp::LoadCrafting2x2Menu(int iPad,shared_ptr<LocalPlayer> player)
 	if(app.GetLocalPlayerCount()>1)
 	{
 		initData->bSplitscreen=true;
-		success = ui.NavigateToScene(iPad,eUIScene_Crafting2x2Menu, initData);
+		success = ui.NavigateToScene(iPad,eUIScene_CraftingMenu, initData);
 	}
 	else
 	{
 		initData->bSplitscreen=false;
-		success = ui.NavigateToScene(iPad,eUIScene_Crafting2x2Menu, initData);
+		success = ui.NavigateToScene(iPad,eUIScene_CraftingMenu, initData);
 	}
 
 	return success;
@@ -589,7 +589,7 @@ bool CMinecraftApp::LoadCrafting3x3Menu(int iPad,shared_ptr<LocalPlayer> player,
 	if (app.GetGameSettings(iPad, eGameSetting_ClassicCrafting))
 		success = ui.NavigateToScene(iPad, eUIScene_ClassicCraftingMenu, initData);
 	else
-		success = ui.NavigateToScene(iPad, eUIScene_Crafting3x3Menu, initData);
+		success = ui.NavigateToScene(iPad, eUIScene_CraftingMenu, initData);
 
 	return success;
 }

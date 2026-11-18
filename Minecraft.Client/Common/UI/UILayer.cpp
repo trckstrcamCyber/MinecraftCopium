@@ -252,8 +252,7 @@ bool UILayer::NavigateToScene(int iPad, EUIScene scene, void *initData)
 	case eUIScene_FurnaceMenu:
 		newScene = new UIScene_FurnaceMenu(iPad, initData, this);
 		break;
-	case eUIScene_Crafting2x2Menu:
-	case eUIScene_Crafting3x3Menu:
+	case eUIScene_CraftingMenu:
 		newScene = new UIScene_CraftingMenu(iPad, initData, this);
 		break;
 	case eUIScene_ClassicCraftingMenu:
@@ -775,8 +774,7 @@ bool UILayer::updateFocusState(bool allowedFocus /* = false */)
 		case eUIScene_PauseMenu:
 			m_bPauseMenuDisplayed = true;
 			break;
-		case eUIScene_Crafting2x2Menu:
-		case eUIScene_Crafting3x3Menu:
+		case eUIScene_CraftingMenu:
 		case eUIScene_FurnaceMenu:
 		case eUIScene_ContainerMenu:
 		case eUIScene_LargeContainerMenu:

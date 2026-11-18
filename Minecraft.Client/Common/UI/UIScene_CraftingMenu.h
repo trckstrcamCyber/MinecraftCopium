@@ -21,7 +21,10 @@
 #define CRAFTING_INGREDIENTS_LAYOUT_START CRAFTING_OUTPUT_SLOT_END
 #define CRAFTING_INGREDIENTS_LAYOUT_END (CRAFTING_INGREDIENTS_LAYOUT_START+9)
 
-#define CRAFTING_V_SLOT_START CRAFTING_INGREDIENTS_LAYOUT_END
+#define CRAFTING_SLOT_EXTRA_START CRAFTING_INGREDIENTS_LAYOUT_END
+#define CRAFTING_SLOT_EXTRA_END (CRAFTING_SLOT_EXTRA_START+3)
+
+#define CRAFTING_V_SLOT_START CRAFTING_SLOT_EXTRA_END
 #define CRAFTING_V_SLOT_END (CRAFTING_V_SLOT_START+3)
 
 // H slots should go last in the count as it's dependent on which size of crafting panel we have
@@ -36,12 +39,8 @@ private:
 		unsigned int alpha;
 		bool show;
 
-		_SlotInfo()
-		{
-			item = nullptr;
-			alpha = 31;
-			show = true;
-		}
+		_SlotInfo() : item(nullptr), alpha(31), show(true) {}
+		_SlotInfo(shared_ptr<ItemInstance> _item) : item(_item), alpha(31), show(true) { }
 	} SlotInfo;
 
 	SlotInfo m_hSlotsInfo[m_iMaxHSlotC];
@@ -49,6 +48,13 @@ private:
 	SlotInfo m_ingredientsSlotsInfo[m_iIngredients3x3SlotC];
 	SlotInfo m_craftingOutputSlotInfo;
 	SlotInfo m_ingredientsInfo[9];
+
+	typedef struct _GroupIcons {
+		SlotInfo VSlot;
+		std::vector<SlotInfo> HSlots;
+	} GroupIcons;
+
+	GroupIcons m_vGroupIconCache[4];
 
 	AbstractContainerMenu *m_menu;
 
@@ -78,22 +84,34 @@ public:
 	F32 m_hSlotX0, m_hSlotY0, m_hSlotY1;
 	F32 m_hSlotSpacing; // x distance between slot 0 and slot 1
 	bool m_hSlotBoundsValid;
+
+	//cached from swf at startup
+	UIControl m_GroupH[2];
+	UIControl m_GroupV[2];
+	
+	void handleCraftingGroupSwitch();
+	void handleCraftingSlotClick(int iIndex);
+	void handleLeftMouseClick(F32 x, F32 y, F32 sceneX, F32 sceneY);
 #endif
 
 protected:
-	UIControl m_controlMainPanel;
+	UIControl m_controlMainPanel, m_controlDescriptionPanel;
 	UIControl m_control1Selector, m_control2Selector, m_control3Selector;
 	UIControl_SlotList m_slotListCraftingHSlots;
 	UIControl_SlotList m_slotListCrafting1VSlots, m_slotListCrafting2VSlots[2], m_slotListCrafting3VSlots[3];
-	UIControl_SlotList m_slotListIngredientsLayout, m_slotListCraftingOutput;
+	UIControl_SlotList m_slotListIngredientsLayout, m_slotListIngredientsLayoutSmall, m_slotListCraftingOutput;
 	UIControl_SlotList m_slotListIngredients[9];
-	UIControl_SlotList m_slotListInventory, m_slotListHotBar;
+	UIControl_SlotList m_Slot2_1, m_Slot2_2;
+	UIControl_SlotList m_Slot3_1, m_Slot3_2, m_Slot3_3;
+	UIControl_SlotList m_slotListInventory, m_slotListHotBar, m_slotPreviewSlot;
 	UIControl_Label m_labelIngredientsDesc[9];
-	UIControl_HTMLLabel m_labelDescription;
-	UIControl_Label m_labelGroupName, m_labelItemName, m_labelInventory, m_labelIngredients;
+	UIControl_HTMLLabel m_labelDescriptionText, m_labelDescriptionTextTop;
+	UIControl_Label m_labelGroupName, m_labelSpinnerTitle, m_labelItemName, m_labelItemNameSmall, m_labelInventory, m_labelPreview, m_labelIngredients;
 
 	IggyName m_funcMoveSelector, m_funcSelectVerticalItem, m_funcSetActiveTab;
 	IggyName m_funcShowPanelDisplay, m_funcShowIngredientSlot;
+
+	IggyName m_funcInitCraftingMenu, m_funcSetCraftingMenu, m_funcEnableTab, m_funcShowSuperCraftingSlots;
 
 #ifdef __PSVITA__
 	enum ETouchInput
@@ -137,6 +155,7 @@ protected:
 			UI_END_MAP_CHILD_ELEMENTS()
 
 			UI_MAP_ELEMENT( m_slotListIngredientsLayout, "IngredientsLayout")
+			UI_MAP_ELEMENT( m_slotListIngredientsLayoutSmall, "IngredientsLayout_Small")
 			UI_MAP_ELEMENT( m_slotListCraftingOutput, "CraftingOutput")
 
 			UI_MAP_ELEMENT( m_slotListIngredients[0], "Ingredient1")
@@ -159,22 +178,49 @@ protected:
 			UI_MAP_ELEMENT( m_labelIngredientsDesc[7], "Ingredient8Desc")
 			UI_MAP_ELEMENT( m_labelIngredientsDesc[8], "Ingredient9Desc")
 
+			UI_MAP_ELEMENT( m_controlDescriptionPanel, "DescriptionPanel" )
+
+			UI_MAP_ELEMENT( m_Slot2_1, "Slot2_1")
+			UI_MAP_ELEMENT( m_Slot2_2, "Slot2_2")
+
+			UI_MAP_ELEMENT( m_Slot3_1, "Slot3_1")
+			UI_MAP_ELEMENT( m_Slot3_2, "Slot3_2")
+			UI_MAP_ELEMENT( m_Slot3_3, "Slot3_3")
+
 			UI_MAP_ELEMENT( m_labelIngredients, "IngredientsLabel")
 
-			UI_MAP_ELEMENT( m_labelDescription, "DescriptionText")
+			UI_MAP_ELEMENT( m_labelDescriptionText, "DescriptionText")
+			UI_MAP_ELEMENT( m_labelDescriptionTextTop, "DescriptionTextTop")
 
 			UI_MAP_ELEMENT( m_slotListInventory, "Inventory")
 			UI_MAP_ELEMENT( m_slotListHotBar, "HotBar")
+			UI_MAP_ELEMENT( m_slotPreviewSlot, "PreviewSlot")
 
+			UI_MAP_ELEMENT( m_labelSpinnerTitle, "SpinnerTitle")
 			UI_MAP_ELEMENT( m_labelGroupName, "GroupName")
 			UI_MAP_ELEMENT( m_labelItemName, "ItemName")
+			UI_MAP_ELEMENT( m_labelItemNameSmall, "ItemNameSmall")
 			UI_MAP_ELEMENT( m_labelInventory, "InventoryLabel")
+			UI_MAP_ELEMENT( m_labelPreview, "PreviewLabel")
 
 			UI_MAP_NAME( m_funcMoveSelector, L"MoveSelector")
 			UI_MAP_NAME( m_funcSelectVerticalItem, L"SelectVerticalItem")
 			UI_MAP_NAME( m_funcSetActiveTab, L"SetActiveTab")
 			UI_MAP_NAME( m_funcShowPanelDisplay, L"showPanelDisplay")
 			UI_MAP_NAME( m_funcShowIngredientSlot, L"ShowIngredient")
+
+			UI_MAP_NAME( m_funcInitCraftingMenu, L"InitCraftingMenu" )
+			UI_MAP_NAME( m_funcSetCraftingMenu,  L"SetCraftingMenu" )
+			UI_MAP_NAME( m_funcEnableTab,        L"EnableTab" )
+			UI_MAP_NAME( m_funcShowSuperCraftingSlots, L"ShowSuperCraftingSlots" )
+
+#ifdef _WINDOWS64
+			UI_MAP_ELEMENT(m_GroupH[0], "TabH_1")
+			UI_MAP_ELEMENT(m_GroupH[1], "TabH_2")
+
+			UI_MAP_ELEMENT(m_GroupV[0], "TabV_1")
+			UI_MAP_ELEMENT(m_GroupV[1], "TabV_2")
+#endif
 
 #ifdef __PSVITA__
 			UI_MAP_ELEMENT( m_TouchInput[ETouchInput_TouchPanel_0], "TouchPanel_0" )
@@ -197,6 +243,8 @@ protected:
 	void handleInput(int iPad, int key, bool repeat, bool pressed, bool released, bool &handled);
 
 protected:
+	virtual void tick();
+
 	virtual int getPad();
 	virtual void hideAllHSlots();
 	virtual void hideAllVSlots();
@@ -208,19 +256,32 @@ protected:
 	virtual void setIngredientSlotItem(int iPad, int index, shared_ptr<ItemInstance> item);
 	virtual void setIngredientSlotRedBox(int index, bool show);
 	virtual void setIngredientDescriptionItem(int iPad, int index, shared_ptr<ItemInstance> item);
+	virtual void setSelectedBannerEdit(shared_ptr<ItemInstance> banner);
 	virtual void setIngredientDescriptionRedBox(int index, bool show);
 	virtual void setIngredientDescriptionText(int index, LPCWSTR text);
 	virtual void setShowCraftHSlot(int iIndex, bool show);
-	virtual void showTabHighlight(int iIndex, bool show);
+	virtual void setHGroupHighlight(int iIndex);
+	virtual void setVGroupHighlight(int iIndex);
 	virtual void setGroupText(LPCWSTR text);
 	virtual void setDescriptionText(LPCWSTR text);
+	virtual void setDescriptionTextTop(LPCWSTR text);
 	virtual void setItemText(LPCWSTR text);
 	virtual void scrollDescriptionUp();
 	virtual void scrollDescriptionDown();
 	virtual void updateHighlightAndScrollPositions();
 	virtual void updateVSlotPositions(int iSlots, int i);
 
+	virtual void initializeCraftingTabs();
+
 	virtual void UpdateMultiPanel();
+	virtual void UpdateCraftingPanels();
+	virtual void UpdateEnabledTabs();
+
+	virtual void ShowSuperCraftingSlots(int iIndex);
+	virtual void ShowDescriptionPanel(bool show);
+	virtual void SetCraftingMenu();
+
+	virtual void EnableTab(int iIndex, bool enabled);
 	
 	virtual void HandleMessage(EUIMessage message, void *data);
 	void handleInventoryUpdated(LPVOID data);
