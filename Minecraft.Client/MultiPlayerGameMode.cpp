@@ -519,6 +519,15 @@ bool MultiPlayerGameMode::handleCraftItem(int recipe, shared_ptr<Player> player)
     return true;
 }
 
+bool MultiPlayerGameMode::handleCraftBanner(shared_ptr<ItemInstance> craftingBanner, vector<IUIScene_CraftingMenu::PreviewBannerData>& data, shared_ptr<Player> player) {
+
+	short changeUid = player->containerMenu->backup(player->inventory);
+
+	connection->send(std::make_shared<CraftItemPacket>(craftingBanner, data, changeUid));
+
+	return true;
+}
+
 void MultiPlayerGameMode::handleDebugOptions(unsigned int uiVal, shared_ptr<Player> player)
 {
 	player->SetDebugOptions(uiVal);

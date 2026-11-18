@@ -140,6 +140,26 @@ void BannerItem::addPattern(shared_ptr<ItemInstance> item, const wstring &code, 
 	setPatterns(item, patterns);
 }
 
+vector<char> BannerItem::getPatternIndexs(shared_ptr<ItemInstance> item)
+{
+	vector<char> out;
+	for (const BannerPattern &bp : getPatterns(item))
+	{
+		out.push_back(static_cast<char>(BannerPatterns::indexOf(bp.pattern)));
+	}
+	return out;
+}
+
+vector<char> BannerItem::getPatternColors(shared_ptr<ItemInstance> item)
+{
+	vector<char> out;
+	for (const BannerPattern &bp : getPatterns(item))
+	{
+		out.push_back(static_cast<char>(bp.color));
+	}
+	return out;
+}
+
 // Java: a white banner with rhombus (cyan), bottom stripe (light grey), centre stripe (grey), border (light grey), middle stripe (black),
 // half horizontal (light grey), circle (light grey) and border (black). Colours here are dye numbers: 0 black, 6 cyan, 7 light grey, 8 grey.
 shared_ptr<ItemInstance> BannerItem::createOminousBanner()

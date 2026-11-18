@@ -1,5 +1,7 @@
 #pragma once
 #include "GameMode.h"
+#include "../Minecraft.Client/Common/UI/IUIScene_CraftingMenu.h"
+
 class ClientConnection;
 class GameType;
 class Vec3;
@@ -61,6 +63,7 @@ public:
 	
 	// 4J Stu - Added so we can send packets for this in the network game
 	virtual bool handleCraftItem(int recipe, shared_ptr<Player> player);
+	virtual bool handleCraftBanner(shared_ptr<ItemInstance> craftingBanner,vector<IUIScene_CraftingMenu::PreviewBannerData>& data, shared_ptr<Player> player);
 	virtual void handleDebugOptions(unsigned int uiVal, shared_ptr<Player> player);
 
 	// 4J Stu - Added for tutorial checks
