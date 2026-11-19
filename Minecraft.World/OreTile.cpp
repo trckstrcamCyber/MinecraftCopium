@@ -14,6 +14,7 @@ int OreTile::getResource(int data, Random *random, int playerBonusLevel)
     if (id == Tile::lapis_ore_Id) return Item::dye_Id;
 	if (id == Tile::emerald_ore_Id) return Item::emerald_Id;
 	if (id == Tile::quartz_ore_Id) return Item::quartz_Id;
+	if (id == Tile::copper_ore_Id) return Item::raw_copper_Id;	// neoLegacy - Copper Age (Phase 1)
     return id;
 }
 

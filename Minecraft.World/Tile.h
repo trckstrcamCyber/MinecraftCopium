@@ -550,6 +550,9 @@ public:
     static const int cookie_miner_powered_Id = 252;
     static const int flappy_craft_powered_Id = 253;
     static const int mine_snake_powered_Id = 254;
+    // neoLegacy - Copper Age (Phase 1). Extended tile ids (2304+); see EXT_TILE_ID_FIRST.
+    static const int copper_ore_Id = 2304;
+    static const int raw_copper_block_Id = 2305;
 
     // neoLegacy - Jelly Block (honey-block behaviour, see JellyBlockTile.h). Uses a free vanilla-range id: extended ids (2304+) have crashed before.
     static const int jelly_block_Id = 210;
@@ -575,6 +578,7 @@ public:
 	static Tile *gravel;
 	static Tile *goldOre;
 	static Tile *ironOre;
+	static Tile *copperOre;
 	static Tile *coalOre;
 	static Tile *treeTrunk;
 	static LeafTile *leaves;
@@ -603,6 +607,7 @@ public:
 	static Bush *mushroom_red;
 	static Tile *goldBlock;
 	static Tile *ironBlock;
+	static Tile *rawCopperBlock;
 	//     static Tile *stoneSlab;
 	//     static Tile *stoneSlabHalf;
 	static Tile *redBrick;

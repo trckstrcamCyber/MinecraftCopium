@@ -86,6 +86,7 @@ Tile *Tile::sand = nullptr;
 Tile *Tile::gravel = nullptr;
 Tile *Tile::goldOre = nullptr;
 Tile *Tile::ironOre = nullptr;
+Tile *Tile::copperOre = nullptr;
 Tile *Tile::slimeBlock = nullptr;
 Tile *Tile::coalOre = nullptr;
 Tile *Tile::treeTrunk = nullptr;
@@ -115,6 +116,7 @@ Bush *Tile::mushroom_brown = nullptr;
 Bush *Tile::mushroom_red = nullptr;
 Tile *Tile::goldBlock = nullptr;
 Tile *Tile::ironBlock = nullptr;
+Tile *Tile::rawCopperBlock = nullptr;
 HalfSlabTile *Tile::stoneSlab = nullptr;
 HalfSlabTile *Tile::stoneSlabHalf = nullptr;
 Tile *Tile::redBrick = nullptr;
@@ -460,6 +462,7 @@ void Tile::staticCtor()
 	Tile::gravel = (new GravelTile(13))							->setDestroyTime(0.6f)->setSoundType(Tile::SOUND_GRAVEL)->setIconName(L"gravel")->setDescriptionId(IDS_TILE_GRAVEL)->setUseDescriptionId(IDS_DESC_GRAVEL);
 	Tile::goldOre = (new OreTile(14))							->setDestroyTime(3.0f)->setExplodeable(5)->setSoundType(Tile::SOUND_STONE)->setIconName(L"gold_ore")->setDescriptionId(IDS_TILE_ORE_GOLD)->setUseDescriptionId(IDS_DESC_ORE_GOLD);
 	Tile::ironOre = (new OreTile(15))							->setDestroyTime(3.0f)->setExplodeable(5)->setSoundType(Tile::SOUND_STONE)->setIconName(L"iron_ore")->setDescriptionId(IDS_TILE_ORE_IRON)->setUseDescriptionId(IDS_DESC_ORE_IRON);
+	Tile::copperOre = (new OreTile(Tile::copper_ore_Id))					->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(3.0f)->setExplodeable(5)->setSoundType(Tile::SOUND_STONE)->setIconName(L"copper_ore")->setDescriptionId(IDS_TILE_COPPER_ORE)->setUseDescriptionId(IDS_DESC_ORE_COPPER);
 	Tile::coalOre = (new OreTile(16))							->setDestroyTime(3.0f)->setExplodeable(5)->setSoundType(Tile::SOUND_STONE)->setIconName(L"coal_ore")->setDescriptionId(IDS_TILE_ORE_COAL)->setUseDescriptionId(IDS_DESC_ORE_COAL);
 	Tile::treeTrunk = (new TreeTile(17))->setDestroyTime(2.0f)	->setSoundType(Tile::SOUND_WOOD)->setIconName(L"log")->setDescriptionId(IDS_TILE_LOG)->sendTileData()->setUseDescriptionId(IDS_DESC_LOG);
 	// 4J - for leaves, have specified that only the data bits that encode the type of leaf are important to be sent
@@ -492,6 +495,7 @@ void Tile::staticCtor()
 
 	Tile::goldBlock = (new MetalTile(41))														->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_gold)->setDestroyTime(3.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"gold_block")->setDescriptionId(IDS_TILE_BLOCK_GOLD)->setUseDescriptionId(IDS_DESC_BLOCK_GOLD);
 	Tile::ironBlock = (new MetalTile(42))														->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_iron)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"iron_block")->setDescriptionId(IDS_TILE_BLOCK_IRON)->setUseDescriptionId(IDS_DESC_BLOCK_IRON);
+	Tile::rawCopperBlock = (new MetalTile(Tile::raw_copper_block_Id))										->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"raw_copper_block")->setDescriptionId(IDS_TILE_RAW_COPPER_BLOCK)->setUseDescriptionId(IDS_DESC_BLOCK_RAW_COPPER);
 	Tile::stoneSlab = static_cast<HalfSlabTile *>((new FullStoneSlabTile(Tile::double_stone_slab_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_slab, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_STONE)->setIconName(L"stoneSlab")->setDescriptionId(IDS_TILE_STONESLAB)->setUseDescriptionId(IDS_DESC_SLAB));
 	Tile::stoneSlabHalf = static_cast<HalfSlabTile *>((new HalfStoneSlabTile(Tile::stone_slab_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_halfslab, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_STONE)->setIconName(L"stoneSlab")->setDescriptionId(IDS_TILE_STONESLAB)->setUseDescriptionId(IDS_DESC_HALFSLAB));
 	Tile::redBrick = (new Tile(45, Material::stone))											->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock,	Item::eMaterial_brick)->setDestroyTime(2.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_STONE)->setIconName(L"brick")->setDescriptionId(IDS_TILE_BRICK)->setUseDescriptionId(IDS_DESC_BRICK);
@@ -2154,6 +2158,7 @@ const int Tile::sand_Id;
 const int Tile::gravel_Id;
 const int Tile::gold_ore_Id;
 const int Tile::iron_ore_Id;
+const int Tile::copper_ore_Id;
 const int Tile::coal_ore_Id;
 const int Tile::log_Id;
 const int Tile::leaves_Id;
@@ -2181,6 +2186,7 @@ const int Tile::mushroom_brown_Id;
 const int Tile::mushroom_red_Id;
 const int Tile::gold_block_Id;
 const int Tile::iron_block_Id;
+const int Tile::raw_copper_block_Id;
 const int Tile::double_stone_slab_Id;
 const int Tile::stone_slab_Id;
 const int Tile::brick_block_Id;

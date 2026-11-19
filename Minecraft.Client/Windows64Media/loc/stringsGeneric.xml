@@ -10697,4 +10697,31 @@
 	<data name="IDS_PROVOKER">
 		<value>Provoker</value>
 	</data>
+	<data name="IDS_TILE_COPPER_ORE">
+		<value>Copper Ore</value>
+	</data>
+	<data name="IDS_TILE_RAW_COPPER_BLOCK">
+		<value>Block of Raw Copper</value>
+	</data>
+	<data name="IDS_ITEM_COPPER_INGOT">
+		<value>Copper Ingot</value>
+	</data>
+	<data name="IDS_ITEM_COPPER_NUGGET">
+		<value>Copper Nugget</value>
+	</data>
+	<data name="IDS_ITEM_RAW_COPPER">
+		<value>Raw Copper</value>
+	</data>
+	<data name="IDS_DESC_ORE_COPPER">
+		<value>Can be mined with a stone pickaxe or better, then smelted in a furnace to produce copper ingots.</value>
+	</data>
+	<data name="IDS_DESC_BLOCK_RAW_COPPER">
+		<value>A compact way of storing Raw Copper.</value>
+	</data>
+	<data name="IDS_DESC_COPPER_NUGGET">
+		<value>Nine copper nuggets can be crafted into a copper ingot.</value>
+	</data>
+	<data name="IDS_DESC_RAW_COPPER">
+		<value>Mined from copper ore, it can be smelted in a furnace to produce copper ingots.</value>
+	</data>
 </root>

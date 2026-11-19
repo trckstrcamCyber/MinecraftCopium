@@ -39,6 +39,7 @@ public:
 	Feature *coalOreFeature;
 	Feature *ironOreFeature;
 	Feature *goldOreFeature;
+	Feature *copperOreFeature;
 	Feature *redStoneOreFeature;
 	Feature *diamondOreFeature;
 	Feature *lapisOreFeature;

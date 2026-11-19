@@ -20,6 +20,8 @@ FurnaceRecipes *FurnaceRecipes::getInstance()
 FurnaceRecipes::FurnaceRecipes()
 {
 	addFurnaceRecipy(Tile::iron_ore_Id, new ItemInstance(Item::iron_ingot), .7f);
+	addFurnaceRecipy(Tile::copper_ore_Id, new ItemInstance(Item::copper_ingot), .7f);
+	addFurnaceRecipy(new ItemInstance(Item::raw_copper, 1, 0), new ItemInstance(Item::copper_ingot), .7f);
 	addFurnaceRecipy(Tile::gold_ore_Id, new ItemInstance(Item::gold_ingot), 1);
 	addFurnaceRecipy(Tile::diamond_ore_Id, new ItemInstance(Item::diamond), 1);
 	addFurnaceRecipy(Tile::sand_Id, new ItemInstance(Tile::glass), .1f);

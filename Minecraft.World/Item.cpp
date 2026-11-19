@@ -56,6 +56,9 @@ Item *Item::coal = nullptr;
 Item *Item::diamond = nullptr;
 Item *Item::iron_ingot = nullptr;
 Item *Item::gold_ingot = nullptr;
+Item *Item::copper_ingot = nullptr;
+Item *Item::copper_nugget = nullptr;
+Item *Item::raw_copper = nullptr;
 Item *Item::iron_sword = nullptr;
 
 Item *Item::wooden_sword = nullptr;
@@ -473,6 +476,9 @@ void Item::staticCtor()
 
 	Item::iron_ingot = ( new Item(9) )->setIconName(L"ingotIron")					->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_iron)->setDescriptionId(IDS_ITEM_INGOT_IRON)->setUseDescriptionId(IDS_DESC_INGOT);
 	Item::gold_ingot = ( new Item(10) )->setIconName(L"ingotGold")					->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_gold)->setDescriptionId(IDS_ITEM_INGOT_GOLD)->setUseDescriptionId(IDS_DESC_INGOT);
+	Item::copper_ingot = ( new Item(Item::copper_ingot_Id - 256) )->setIconName(L"copper_ingot")					->setBaseItemTypeAndMaterial(eBaseItemType_ingot,	eMaterial_copper)->setDescriptionId(IDS_ITEM_COPPER_INGOT)->setUseDescriptionId(IDS_DESC_INGOT);
+	Item::copper_nugget = ( new Item(Item::copper_nugget_Id - 256) )->setIconName(L"copper_nugget")					->setBaseItemTypeAndMaterial(eBaseItemType_ingot,	eMaterial_copper)->setDescriptionId(IDS_ITEM_COPPER_NUGGET)->setUseDescriptionId(IDS_DESC_COPPER_NUGGET);
+	Item::raw_copper = ( new Item(Item::raw_copper_Id - 256) )->setIconName(L"raw_copper")					->setBaseItemTypeAndMaterial(eBaseItemType_ingot,	eMaterial_copper)->setDescriptionId(IDS_ITEM_RAW_COPPER)->setUseDescriptionId(IDS_DESC_RAW_COPPER);
 
 
 	// 4J-PB - todo - add materials and base types to the ones below
@@ -1296,6 +1302,9 @@ const int Item::repeater_Id				;
 const int Item::cookie_Id			;
 const int Item::mace_Id;		// neoLegacy
 const int Item::jelly_ball_Id;	// neoLegacy
+const int Item::copper_ingot_Id;	// neoLegacy - Copper Age (Phase 1)
+const int Item::copper_nugget_Id;	// neoLegacy - Copper Age (Phase 1)
+const int Item::raw_copper_Id;	// neoLegacy - Copper Age (Phase 1)
 const int Item::map_Id				;
 const int Item::shears_Id			;
 const int Item::melon_block_Id				;

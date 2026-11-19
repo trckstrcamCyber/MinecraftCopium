@@ -93,7 +93,8 @@ public:
 		eMaterial_wheat,
 		eMaterial_acaciawood,
 		eMaterial_darkwood,
-		eMaterial_crossbow	// neoLegacy
+		eMaterial_crossbow,	// neoLegacy
+		eMaterial_copper	// neoLegacy - Copper Age (Phase 1)
 
 	}
 	eMaterial;
@@ -214,6 +215,9 @@ public:
 	static Item *diamond;
 	static Item *iron_ingot;
 	static Item *gold_ingot;
+	static Item *copper_ingot;
+	static Item *copper_nugget;
+	static Item *raw_copper;
 	static Item *iron_sword;
 
 	static Item *wooden_sword;
@@ -518,6 +522,9 @@ public:
 	static const int flintlock_copper_Id	= 469;	// neoLegacy - Flintlock Pistol (copper)
 	static const int flintlock_iron_Id		= 470;	// neoLegacy - Flintlock Pistol (iron)
 	static const int flintlock_gold_Id		= 471;	// neoLegacy - Flintlock Pistol (gold)
+	static const int copper_ingot_Id		= 472;	// neoLegacy - Copper Age (Phase 1)
+	static const int copper_nugget_Id		= 473;	// neoLegacy - Copper Age (Phase 1)
+	static const int raw_copper_Id		= 474;	// neoLegacy - Copper Age (Phase 1)
 	static const int mace_Id					= 601;	// neoLegacy - Mace
 	static const int jelly_ball_Id			= 602;	// neoLegacy - Jelly Ball
 	static const int ice_ball_Id			= 603;	// neoLegacy - Ice Ball

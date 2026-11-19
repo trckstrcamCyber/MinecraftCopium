@@ -446,6 +446,10 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(17,	0,	L"swordJDemon")
 		ADD_ICON(17,	1,	L"swordCMonster")
 		ADD_ICON(17,	2,	L"ominous_bottle")	// neoLegacy - Ominous Bottle
+		// neoLegacy - Copper Age (Phase 1): copper ingot / nugget / raw copper, row 18 of the extended item atlas.
+		ADD_ICON(18,	0,	L"copper_ingot")
+		ADD_ICON(18,	1,	L"copper_nugget")
+		ADD_ICON(18,	2,	L"raw_copper")
 		ADD_ICON(4,		5,	L"fishing_rod_uncast")
 		ADD_ICON(4,		6,	L"clock")
 		ADD_ICON(4,		7,	L"bowl")
@@ -1193,6 +1197,9 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(25, 1,  L"beetroots_stage_1");
 		ADD_ICON(25, 2,  L"beetroots_stage_2");
 		ADD_ICON(25, 3,  L"beetroots_stage_3");
+		// neoLegacy - Copper Age (Phase 1)
+		ADD_ICON(25, 4,  L"copper_ore");
+		ADD_ICON(25, 5,  L"raw_copper_block");
 		ADD_ICON(24, 11, L"red_nether_brick");
 
 		ADD_ICON(21, 1, L"tallgrass2_tall_grass_lower");

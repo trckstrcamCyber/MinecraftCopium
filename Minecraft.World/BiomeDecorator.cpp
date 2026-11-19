@@ -55,6 +55,7 @@ void BiomeDecorator::_init()
     coalOreFeature = new OreFeature(Tile::coal_ore_Id, 16);
     ironOreFeature = new OreFeature(Tile::iron_ore_Id, 8);
     goldOreFeature = new OreFeature(Tile::gold_ore_Id, 8);
+    copperOreFeature = new OreFeature(Tile::copper_ore_Id, 10);
     redStoneOreFeature = new OreFeature(Tile::redstone_ore_Id, 7);
     diamondOreFeature = new OreFeature(Tile::diamond_ore_Id, 7);
     lapisOreFeature = new OreFeature(Tile::lapis_ore_Id, 6);
@@ -417,6 +418,7 @@ void BiomeDecorator::decorateOres()
     decorateDepthSpan(8, redStoneOreFeature, 0, Level::genDepth / 8);
     decorateDepthSpan(1, diamondOreFeature, 0, Level::genDepth / 8);
     decorateDepthAverage(1, lapisOreFeature, Level::genDepth / 8, Level::genDepth / 8);
+    decorateDepthAverage(10, copperOreFeature, 48, 32);
 
     decorateDepthSpan(10, graniteOreFeature, 0, 80);
     decorateDepthSpan(10, dioriteOreFeature, 0, 80);
