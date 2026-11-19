@@ -859,7 +859,8 @@ void UIScene_CraftingMenu::setCraftVSlotItem(int iPad, int iIndex, shared_ptr<It
 void UIScene_CraftingMenu::setCraftingOutputSlotItem(int iPad, shared_ptr<ItemInstance> item)
 {
 	if (m_iGroupVIndex == eGroupVType_Banner && m_iGroupHIndex == 0) {
-		setDescriptionTextTop(item->getHoverName().c_str());
+		// neoLegacy - item can be nullptr when the Banner group has no recipes (e.g. Complex Table filters out the plain-banner recipes); never dereference it
+		setDescriptionTextTop(item ? item->getHoverName().c_str() : L"");
 	}
 	m_craftingOutputSlotInfo.item = item;
 	m_craftingOutputSlotInfo.alpha = 31;
