@@ -19,6 +19,7 @@
 #include "net.minecraft.world.level.h"
 #include "../Minecraft.Client/Textures.h"
 #include "Villager.h"
+#include "ItemEntity.h"
 #include "CurseLoot.h"
 #include "AbstractContainerMenu.h"
 
