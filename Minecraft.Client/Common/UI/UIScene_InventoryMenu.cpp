@@ -344,7 +344,8 @@ void UIScene_InventoryMenu::updateEffectsDisplay()
 					potencyString += app.GetString(IDS_POTION_POTENCY_3);
 					break;
 				default:
-					potencyString = app.GetString(IDS_POTION_POTENCY_0);
+					potencyString = L" ";
+					potencyString += app.GetString(IDS_POTION_POTENCY_0);
 					break;
 				}
 				effectString += potencyString;
