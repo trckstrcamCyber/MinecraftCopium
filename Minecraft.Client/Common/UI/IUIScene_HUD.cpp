@@ -208,6 +208,7 @@ void IUIScene_HUD::renderPlayerHealth()
     int oldHealth = static_cast<int>(ceil(pMinecraft->localplayers[iPad]->lastHealth));
 	bool bHasPoison = pMinecraft->localplayers[iPad]->hasEffect(MobEffect::poison);
 	bool bHasWither = pMinecraft->localplayers[iPad]->hasEffect(MobEffect::wither);
+	bool bFrozen = pMinecraft->localplayers[iPad]->hasEffect(MobEffect::freezing);
 	AttributeInstance *maxHealthAttribute = pMinecraft->localplayers[iPad]->getAttribute(SharedMonsterAttributes::MAX_HEALTH);
 	float maxHealth = static_cast<float>(maxHealthAttribute->getValue());
 	float totalAbsorption = pMinecraft->localplayers[iPad]->getAbsorptionAmount();
@@ -221,7 +222,7 @@ void IUIScene_HUD::renderPlayerHealth()
 		&& pMinecraft->level->getLevelData()->isHardcore();
 	SetHardcoreMode(bHardcore);
 
-	SetHealth(currentHealth, oldHealth, blink, bHasPoison || bHasWither, bHasWither);
+	SetHealth(currentHealth, oldHealth, blink, bHasPoison || bHasWither, bHasWither, bFrozen);
 	SetHealthAbsorb(totalAbsorption);
 
 	if(armor > 0)

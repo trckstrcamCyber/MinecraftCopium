@@ -130,7 +130,7 @@ private:
 	void SetExpLevel(int level);
 	void SetActiveSlot(int slot);
 
-	void SetHealth(int iHealth, int iLastHealth, bool bBlink, bool bPoison, bool bWither);
+	void SetHealth(int iHealth, int iLastHealth, bool bBlink, bool bPoison, bool bWither, bool bFrozen);
 	void SetFood(int iFood, int iLastFood, bool bPoison);
 	void SetAir(int iAir, int extra);
 	void SetArmour(int iArmour);

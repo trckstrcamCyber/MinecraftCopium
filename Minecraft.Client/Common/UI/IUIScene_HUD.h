@@ -10,7 +10,7 @@ protected:
 	int m_lastExpLevel;
 	int m_iCurrentHealth;
 	int m_lastMaxHealth;
-	bool m_lastHealthBlink, m_lastHealthPoison, m_lastHealthWither;
+	bool m_lastHealthBlink, m_lastHealthPoison, m_lastHealthWither, m_lastHealthFrozen;
 	bool m_lastHealthHardcore;
 	int m_iCurrentFood;
 	bool m_lastFoodPoison;
@@ -47,7 +47,7 @@ protected:
 	virtual void SetExpLevel(int level) = 0;
 	virtual void SetActiveSlot(int slot) = 0;
 
-	virtual void SetHealth(int iHealth, int iLastHealth, bool bBlink, bool bPoison, bool bWither) = 0;
+	virtual void SetHealth(int iHealth, int iLastHealth, bool bBlink, bool bPoison, bool bWither, bool bFrozen) = 0;
 	virtual void SetHardcoreMode(bool bHardcore) = 0;
 	virtual void SetFood(int iFood, int iLastFood, bool bPoison) = 0;
 	virtual void SetAir(int iAir, int extra) = 0;

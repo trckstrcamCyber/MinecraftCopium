@@ -251,6 +251,7 @@ void UIScene_HUD::handleReload()
 	m_lastMaxHealth = 20;
 	m_lastHealthBlink = false;
 	m_lastHealthPoison = false;
+	m_lastHealthFrozen = false;
 	m_iCurrentFood = -1;
 	m_lastFoodPoison = false;
 	m_lastAir = 10;
@@ -410,18 +411,19 @@ void UIScene_HUD::SetActiveSlot(int slot)
 	}
 }
 
-void UIScene_HUD::SetHealth(int iHealth, int iLastHealth, bool bBlink, bool bPoison, bool bWither)
+void UIScene_HUD::SetHealth(int iHealth, int iLastHealth, bool bBlink, bool bPoison, bool bWither, bool bFrozen)
 {
 	int maxHealth = max(iHealth, iLastHealth);
-	if(maxHealth != m_lastMaxHealth || bBlink != m_lastHealthBlink || bPoison != m_lastHealthPoison || bWither != m_lastHealthWither)
+	if(maxHealth != m_lastMaxHealth || bBlink != m_lastHealthBlink || bPoison != m_lastHealthPoison || bWither != m_lastHealthWither || bFrozen != m_lastHealthFrozen)
 	{
 		m_lastMaxHealth = maxHealth;
 		m_lastHealthBlink = bBlink;
 		m_lastHealthPoison = bPoison;
 		m_lastHealthWither = bWither;
+		m_lastHealthFrozen = bFrozen;
 
 		IggyDataValue result;
-		IggyDataValue value[4];
+		IggyDataValue value[5];
 		value[0].type = IGGY_DATATYPE_number;
 		value[0].number = maxHealth;
 		value[1].type = IGGY_DATATYPE_boolean;
@@ -430,7 +432,9 @@ void UIScene_HUD::SetHealth(int iHealth, int iLastHealth, bool bBlink, bool bPoi
 		value[2].boolval = bPoison;
 		value[3].type = IGGY_DATATYPE_boolean;
 		value[3].boolval = bWither;
-		IggyResult out = IggyPlayerCallMethodRS ( getMovie() , &result, IggyPlayerRootPath( getMovie() ), m_funcSetHealth , 4 , value );
+		value[4].type = IGGY_DATATYPE_boolean;
+		value[4].boolval = bFrozen;
+		IggyResult out = IggyPlayerCallMethodRS ( getMovie() , &result, IggyPlayerRootPath( getMovie() ), m_funcSetHealth , 5 , value );
 	}
 }
 

@@ -75,17 +75,17 @@ void MobEffect::staticCtor()
 	absorption =		(new AbsoptionMobEffect(22, false, eMinecraftColour_Effect_Absoprtion))		->setDescriptionId(IDS_POTION_ABSORPTION)		->setPostfixDescriptionId(IDS_POTION_ABSORPTION_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Absorption);
 	saturation =		(new InstantenousMobEffect(23, false, eMinecraftColour_Effect_Saturation))	->setDescriptionId(IDS_POTION_SATURATION)		->setPostfixDescriptionId(IDS_POTION_SATURATION_POSTFIX);
 	// neoLegacy - Freezing. All of its behaviour lives in LivingEntity::updateFreezing (slowdown, reduced jump, damage once fully frozen).
-	// Own icy colour; still borrows the Slowness HUD icon (the icons live inside the UI SWF). A brewed potion lasts a tenth of the usual time.
-	freezing =			(new MobEffect(24, true, eMinecraftColour_Effect_Freezing))		->setDescriptionId(IDS_POTION_FREEZING)		->setPostfixDescriptionId(IDS_POTION_FREEZING_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Slowness)->setDurationModifier(.1);
+	// Own icy colour and HUD icon (the icons live inside the UI SWF). A brewed potion lasts a tenth of the usual time.
+	freezing =			(new MobEffect(24, true, eMinecraftColour_Effect_Freezing))		->setDescriptionId(IDS_POTION_FREEZING)		->setPostfixDescriptionId(IDS_POTION_FREEZING_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Freezing)->setDurationModifier(.1);
 	reserved_24 = nullptr;
 	// neoLegacy - Bad Omen. It does nothing itself; RaidManager looks for it on players in a village.
-	badOmen =			(new MobEffect(25, true, eMinecraftColour_Effect_BadOmen))			->setDescriptionId(IDS_POTION_BADOMEN)			->setPostfixDescriptionId(IDS_POTION_BADOMEN_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Weakness);
+	badOmen =			(new MobEffect(25, true, eMinecraftColour_Effect_BadOmen))			->setDescriptionId(IDS_POTION_BADOMEN)			->setPostfixDescriptionId(IDS_POTION_BADOMEN_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_BadOmen);
 	reserved_25 = nullptr;
-	raidOmen =			(new MobEffect(26, true, eMinecraftColour_Effect_RaidOmen))		->setDescriptionId(IDS_POTION_RAIDOMEN)		->setPostfixDescriptionId(IDS_POTION_RAIDOMEN_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Weakness);
+	raidOmen =			(new MobEffect(26, true, eMinecraftColour_Effect_RaidOmen))		->setDescriptionId(IDS_POTION_RAIDOMEN)		->setPostfixDescriptionId(IDS_POTION_RAIDOMEN_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_BadOmen);
 	reserved_26 = nullptr;
 	// neoLegacy - Hero of the Village. It does nothing itself: Villager::getOffers lowers the trade prices and Villager gives gifts while a player has it.
-	// Borrows the Resistance HUD icon (the icons live inside the UI SWF).
-	heroOfTheVillage =	(new MobEffect(27, false, eMinecraftColour_Effect_HeroOfTheVillage))	->setDescriptionId(IDS_POTION_HEROOFTHEVILLAGE)	->setPostfixDescriptionId(IDS_POTION_HEROOFTHEVILLAGE_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Resistance);
+	// Own HUD icon (the icons live inside the UI SWF).
+	heroOfTheVillage =	(new MobEffect(27, false, eMinecraftColour_Effect_HeroOfTheVillage))	->setDescriptionId(IDS_POTION_HEROOFTHEVILLAGE)	->setPostfixDescriptionId(IDS_POTION_HEROOFTHEVILLAGE_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_HeroOfTheVillage);
 	reserved_27 = nullptr;
 	reserved_28 = nullptr;
 	reserved_29 = nullptr;

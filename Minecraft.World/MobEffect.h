@@ -33,6 +33,9 @@ public:
 		e_MobEffectIcon_Wither,
 		e_MobEffectIcon_HealthBoost,
 		e_MobEffectIcon_Absorption,
+		e_MobEffectIcon_HeroOfTheVillage,
+		e_MobEffectIcon_BadOmen,
+		e_MobEffectIcon_Freezing,
 
 		e_MobEffectIcon_COUNT,
 	};
