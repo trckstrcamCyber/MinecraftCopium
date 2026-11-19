@@ -657,7 +657,11 @@ bool IUIScene_CraftingMenu::handleKeyDown(int iPad, int iAction, bool bRepeat)
 		if (m_iGroupVIndex == 0) {
 			m_iGroupVIndex = (m_iContainerType == RECIPE_TYPE_3x3 ? m_iMaxGroupV3x3 - 1 : m_iMaxGroupV2x2);
 		} else {
-			m_iGroupHIndex--;
+			// Already in Banner: step the V index back down to Workbench.
+			// (Was m_iGroupHIndex--: a copy-paste of the H-switch that
+			// silently moved H instead of leaving Banner.)
+			m_iGroupVIndex--;
+			if (m_iGroupVIndex < 0) m_iGroupVIndex = 0;
 		}
 
 		setVGroupHighlight(m_iGroupVIndex);

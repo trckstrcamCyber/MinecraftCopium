@@ -470,6 +470,12 @@ void UIScene_CraftingMenu::handleLeftMouseClick(F32 x, F32 y, F32 sceneX, F32 sc
 
 bool UIScene_CraftingMenu::handleMouseClick(F32 x, F32 y)
 {
+	// Route the click to the tab/slot hit-testing. handleMouseClick only
+	// receives scene coords (UIController passes sceneMouseX/Y), and both
+	// coordinate pairs in handleLeftMouseClick are in that same scene
+	// render space (tab controls + cached H-slot bounds), so pass the
+	// same coords for both pairs.
+	handleLeftMouseClick(x, y, x, y);
 	// Consume all mouse clicks so misses don't generate ACTION_MENU_A
 	// and accidentally craft. Only blocks mouse-originated presses.
 	return true;
