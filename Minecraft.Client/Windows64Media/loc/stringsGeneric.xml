@@ -10724,4 +10724,103 @@
 	<data name="IDS_DESC_RAW_COPPER">
 		<value>Mined from copper ore, it can be smelted in a furnace to produce copper ingots.</value>
 	</data>
+	<data name="IDS_ITEM_SWORD_COPPER">
+		<value>Copper Sword</value>
+	</data>
+	<data name="IDS_ITEM_PICKAXE_COPPER">
+		<value>Copper Pickaxe</value>
+	</data>
+	<data name="IDS_ITEM_HATCHET_COPPER">
+		<value>Copper Axe</value>
+	</data>
+	<data name="IDS_ITEM_SHOVEL_COPPER">
+		<value>Copper Shovel</value>
+	</data>
+	<data name="IDS_ITEM_HOE_COPPER">
+		<value>Copper Hoe</value>
+	</data>
+	<data name="IDS_ITEM_HELMET_COPPER">
+		<value>Copper Helmet</value>
+	</data>
+	<data name="IDS_DESC_HELMET_COPPER">
+		<value>Gives the user 2 Armor when worn.</value>
+	</data>
+	<data name="IDS_ITEM_CHESTPLATE_COPPER">
+		<value>Copper Chestplate</value>
+	</data>
+	<data name="IDS_DESC_CHESTPLATE_COPPER">
+		<value>Gives the user 4 Armor when worn.</value>
+	</data>
+	<data name="IDS_ITEM_LEGGINGS_COPPER">
+		<value>Copper Leggings</value>
+	</data>
+	<data name="IDS_DESC_LEGGINGS_COPPER">
+		<value>Gives the user 3 Armor when worn.</value>
+	</data>
+	<data name="IDS_ITEM_BOOTS_COPPER">
+		<value>Copper Boots</value>
+	</data>
+	<data name="IDS_DESC_BOOTS_COPPER">
+		<value>Gives the user 1 Armor when worn.</value>
+	</data>
+	<data name="IDS_ITEM_COPPER_HORSE_ARMOR">
+		<value>Copper Horse Armor</value>
+	</data>
+	<data name="IDS_DESC_COPPER_HORSE_ARMOR">
+		<value>A special type of Armor that can be equipped to a horse. Provides 5 Armor.</value>
+	</data>
+	<data name="IDS_ITEM_RAW_ROSE_GOLD">
+		<value>Raw Rose Gold</value>
+	</data>
+	<data name="IDS_DESC_RAW_ROSE_GOLD">
+		<value>Crafted from copper and gold ingots, it can be smelted in a furnace to produce rose gold ingots.</value>
+	</data>
+	<data name="IDS_ITEM_ROSE_GOLD_INGOT">
+		<value>Rose Gold Ingot</value>
+	</data>
+	<data name="IDS_ITEM_ROSE_GOLD_NUGGET">
+		<value>Rose Gold Nugget</value>
+	</data>
+	<data name="IDS_DESC_ROSE_GOLD_NUGGET">
+		<value>Nine rose gold nuggets can be crafted into a rose gold ingot.</value>
+	</data>
+	<data name="IDS_ITEM_SWORD_ROSE_GOLD">
+		<value>Rose Gold Sword</value>
+	</data>
+	<data name="IDS_ITEM_PICKAXE_ROSE_GOLD">
+		<value>Rose Gold Pickaxe</value>
+	</data>
+	<data name="IDS_ITEM_HATCHET_ROSE_GOLD">
+		<value>Rose Gold Axe</value>
+	</data>
+	<data name="IDS_ITEM_SHOVEL_ROSE_GOLD">
+		<value>Rose Gold Shovel</value>
+	</data>
+	<data name="IDS_ITEM_HOE_ROSE_GOLD">
+		<value>Rose Gold Hoe</value>
+	</data>
+	<data name="IDS_ITEM_HELMET_ROSE_GOLD">
+		<value>Rose Gold Helmet</value>
+	</data>
+	<data name="IDS_DESC_HELMET_ROSE_GOLD">
+		<value>Gives the user 3 Armor when worn.</value>
+	</data>
+	<data name="IDS_ITEM_CHESTPLATE_ROSE_GOLD">
+		<value>Rose Gold Chestplate</value>
+	</data>
+	<data name="IDS_DESC_CHESTPLATE_ROSE_GOLD">
+		<value>Gives the user 7 Armor when worn.</value>
+	</data>
+	<data name="IDS_ITEM_LEGGINGS_ROSE_GOLD">
+		<value>Rose Gold Leggings</value>
+	</data>
+	<data name="IDS_DESC_LEGGINGS_ROSE_GOLD">
+		<value>Gives the user 5 Armor when worn.</value>
+	</data>
+	<data name="IDS_ITEM_BOOTS_ROSE_GOLD">
+		<value>Rose Gold Boots</value>
+	</data>
+	<data name="IDS_DESC_BOOTS_ROSE_GOLD">
+		<value>Gives the user 2 Armor when worn.</value>
+	</data>
 </root>

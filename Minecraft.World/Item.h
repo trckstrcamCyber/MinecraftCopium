@@ -94,7 +94,8 @@ public:
 		eMaterial_acaciawood,
 		eMaterial_darkwood,
 		eMaterial_crossbow,	// neoLegacy
-		eMaterial_copper	// neoLegacy - Copper Age (Phase 1)
+		eMaterial_copper,	// neoLegacy - Copper Age (Phase 1)
+		eMaterial_rose_gold	// neoLegacy - Copper Age (Phase 2)
 
 	}
 	eMaterial;
@@ -173,6 +174,8 @@ public:
 		static const Tier *ZORO;
 		static const Tier *JDMON;	// neoLegacy - JDemon sword tier
 		static const Tier *CMON;	// neoLegacy - CMonster sword tier
+		static const Tier *COPPER;	// neoLegacy - Copper Age (Phase 2)
+		static const Tier *ROSE_GOLD;	// neoLegacy - Copper Age (Phase 2)
 
 	private:
 		const int level;
@@ -218,6 +221,9 @@ public:
 	static Item *copper_ingot;
 	static Item *copper_nugget;
 	static Item *raw_copper;
+	static Item *raw_rose_gold;
+	static Item *rose_gold_ingot;
+	static Item *rose_gold_nugget;
 	static Item *iron_sword;
 
 	static Item *wooden_sword;
@@ -274,6 +280,16 @@ public:
 	static Item *golden_pickaxe;
 	static Item *golden_axe;
 
+	static Item *copper_sword;
+	static Item *copper_shovel;
+	static Item *copper_pickaxe;
+	static Item *copper_axe;
+
+	static Item *rose_gold_sword;
+	static Item *rose_gold_shovel;
+	static Item *rose_gold_pickaxe;
+	static Item *rose_gold_axe;
+
 	static Item *string;
 	static Item *feather;
 	static Item *gunpowder;
@@ -283,6 +299,9 @@ public:
 	static Item *iron_hoe;
 	static Item *diamond_hoe;
 	static Item *golden_hoe;
+
+	static Item *copper_hoe;
+	static Item *rose_gold_hoe;
 
 	static Item *wheat_seeds;
 	static Item *wheat;
@@ -312,6 +331,16 @@ public:
 	static ArmorItem *golden_chestplate;
 	static ArmorItem *golden_leggings;
 	static ArmorItem *golden_boots;
+
+	static ArmorItem *copper_helmet;
+	static ArmorItem *copper_chestplate;
+	static ArmorItem *copper_leggings;
+	static ArmorItem *copper_boots;
+
+	static ArmorItem *rose_gold_helmet;
+	static ArmorItem *rose_gold_chestplate;
+	static ArmorItem *rose_gold_leggings;
+	static ArmorItem *rose_gold_boots;
 
 	static Item *flint;
 	static Item *raw_porkchop;
@@ -458,6 +487,7 @@ public:
 	static Item *iron_horse_armor;
 	static Item *golden_horse_armor;
 	static Item *diamond_horse_armor;
+	static Item *copper_horse_armor;
 	static Item *lead;
 	static Item *name_tag;
 
@@ -525,6 +555,28 @@ public:
 	static const int copper_ingot_Id		= 472;	// neoLegacy - Copper Age (Phase 1)
 	static const int copper_nugget_Id		= 473;	// neoLegacy - Copper Age (Phase 1)
 	static const int raw_copper_Id		= 474;	// neoLegacy - Copper Age (Phase 1)
+	static const int copper_sword_Id		= 475;	// neoLegacy - Copper Age (Phase 2)
+	static const int copper_pickaxe_Id		= 476;	// neoLegacy - Copper Age (Phase 2)
+	static const int copper_axe_Id		= 477;	// neoLegacy - Copper Age (Phase 2)
+	static const int copper_shovel_Id		= 478;	// neoLegacy - Copper Age (Phase 2)
+	static const int copper_hoe_Id		= 479;	// neoLegacy - Copper Age (Phase 2)
+	static const int copper_helmet_Id		= 480;	// neoLegacy - Copper Age (Phase 2)
+	static const int copper_chestplate_Id		= 481;	// neoLegacy - Copper Age (Phase 2)
+	static const int copper_leggings_Id		= 482;	// neoLegacy - Copper Age (Phase 2)
+	static const int copper_boots_Id		= 483;	// neoLegacy - Copper Age (Phase 2)
+	static const int copper_horse_armor_Id		= 484;	// neoLegacy - Copper Age (Phase 2)
+	static const int raw_rose_gold_Id		= 485;	// neoLegacy - Copper Age (Phase 2)
+	static const int rose_gold_ingot_Id		= 486;	// neoLegacy - Copper Age (Phase 2)
+	static const int rose_gold_nugget_Id		= 487;	// neoLegacy - Copper Age (Phase 2)
+	static const int rose_gold_sword_Id		= 488;	// neoLegacy - Copper Age (Phase 2)
+	static const int rose_gold_pickaxe_Id		= 489;	// neoLegacy - Copper Age (Phase 2)
+	static const int rose_gold_axe_Id		= 490;	// neoLegacy - Copper Age (Phase 2)
+	static const int rose_gold_shovel_Id		= 491;	// neoLegacy - Copper Age (Phase 2)
+	static const int rose_gold_hoe_Id		= 492;	// neoLegacy - Copper Age (Phase 2)
+	static const int rose_gold_helmet_Id		= 493;	// neoLegacy - Copper Age (Phase 2)
+	static const int rose_gold_chestplate_Id	= 494;	// neoLegacy - Copper Age (Phase 2)
+	static const int rose_gold_leggings_Id		= 495;	// neoLegacy - Copper Age (Phase 2)
+	static const int rose_gold_boots_Id		= 496;	// neoLegacy - Copper Age (Phase 2)
 	static const int mace_Id					= 601;	// neoLegacy - Mace
 	static const int jelly_ball_Id			= 602;	// neoLegacy - Jelly Ball
 	static const int ice_ball_Id			= 603;	// neoLegacy - Ice Ball

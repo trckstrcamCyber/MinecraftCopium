@@ -271,6 +271,13 @@ const WCHAR *ConsoleSoundEngine::wchSoundNames[eSoundType_MAX]=
 	L"item.armor.equip_generic5",
 	L"item.armor.equip_generic6",
 
+	L"item.armor.equip_copper1",
+	L"item.armor.equip_copper2",
+	L"item.armor.equip_copper3",
+	L"item.armor.equip_copper4",
+	L"item.armor.equip_copper5",
+	L"item.armor.equip_copper5",			// neoLegacy - Copper Age (Phase 2): equip_copper6.ogg does not exist in jar1201 (orphan); the 6th slot reuses the copper5 sound
+
 	L"damage.critical",				//eSoundType_DAMAGE_CRITICAL,
 	L"item.elytra.flying",			// eSoundType_ITEM_ELYTRA_FLYING
 

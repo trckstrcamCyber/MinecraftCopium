@@ -268,11 +268,11 @@ void Recipes::_compileRecipes()
         L'T');
 
     // neoLegacy - Flintlock Pistols (Complex Table only, machine category). One shape, three metals: barrel (M M), flint lock (F), redstone trigger work (R), iron-block grip (S).
-    //   Copper   - clay bricks stand in for the copper (there is no copper ingot in this version; swap the id here when there is one)
+    //   Copper   - copper ingots
     //   Iron     - iron ingots
     //   Gold     - gold ingots
     {
-        const int pistolMetals[3] = { Item::brick_Id, Item::iron_ingot_Id, Item::gold_ingot_Id };
+        const int pistolMetals[3] = { Item::copper_ingot_Id, Item::iron_ingot_Id, Item::gold_ingot_Id };
         Item *pistols[3] = { Item::flintlock_copper, Item::flintlock_iron, Item::flintlock_gold };
         for (int v = 0; v < 3; ++v)
         {

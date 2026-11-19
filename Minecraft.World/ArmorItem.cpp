@@ -66,11 +66,15 @@ const int _ArmorMaterial::chainArray[] = {2, 5, 4, 1};
 const int _ArmorMaterial::ironArray[] = {2, 6, 5, 2};
 const int _ArmorMaterial::goldArray[] = {2, 5, 3, 1};
 const int _ArmorMaterial::diamondArray[] = {3, 8, 6, 3};
+const int _ArmorMaterial::copperArray[] = {2, 4, 3, 1};
+const int _ArmorMaterial::roseGoldArray[] = {3, 7, 5, 2};
 const _ArmorMaterial *_ArmorMaterial::CLOTH = new _ArmorMaterial(5, _ArmorMaterial::clothArray, 15);
 const _ArmorMaterial *_ArmorMaterial::CHAIN = new _ArmorMaterial(15, _ArmorMaterial::chainArray, 12);
 const _ArmorMaterial *_ArmorMaterial::IRON = new _ArmorMaterial(15, _ArmorMaterial::ironArray, 9);
 const _ArmorMaterial *_ArmorMaterial::GOLD = new _ArmorMaterial(7, _ArmorMaterial::goldArray, 25);
 const _ArmorMaterial *_ArmorMaterial::DIAMOND = new _ArmorMaterial(33, _ArmorMaterial::diamondArray, 10);
+const _ArmorMaterial *_ArmorMaterial::COPPER = new _ArmorMaterial(11, _ArmorMaterial::copperArray, 8);
+const _ArmorMaterial *_ArmorMaterial::ROSE_GOLD = new _ArmorMaterial(20, _ArmorMaterial::roseGoldArray, 45);
 
 _ArmorMaterial::ArmorMaterial(int durabilityMultiplier, const int slotProtections[], int enchantmentValue)
 {
@@ -121,6 +125,14 @@ int _ArmorMaterial::getTierItemId() const
 	{
 		return Item::diamond_Id;
 	}
+	else if (this == COPPER)
+	{
+		return Item::copper_ingot_Id;
+	}
+	else if (this == ROSE_GOLD)
+	{
+		return Item::rose_gold_ingot_Id;
+	}
 	return 0;
 }
 
@@ -153,6 +165,8 @@ shared_ptr<ItemInstance> ArmorItem::use(shared_ptr<ItemInstance> instance, Level
 	case Item::eMaterial_iron:    lo = 206; hi = 211; break;
 	case Item::eMaterial_gold:    lo = 212; hi = 217; break;
 	case Item::eMaterial_diamond: lo = 218; hi = 223; break;
+	case Item::eMaterial_copper:    lo = 230; hi = 235; break;
+	case Item::eMaterial_rose_gold: lo = 212; hi = 217; break;
 	default:                      lo = 224; hi = 229; break;
 	}
 

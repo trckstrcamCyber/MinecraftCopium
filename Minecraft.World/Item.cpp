@@ -40,6 +40,8 @@ const _Tier *_Tier::GOLD = new _Tier(0, 32, 12, 0, 22);
 const _Tier *_Tier::ZORO = new _Tier(4, 2031, 9, 5, 18); // neoLegacy - Zoro sword tier
 const _Tier *_Tier::JDMON = new _Tier(5, 2500, 10, 4, 30); // neoLegacy - JDemon sword tier (damage 4: one above diamond)
 const _Tier *_Tier::CMON = new _Tier(5, 2500, 10, 4, 30); // neoLegacy - CMonster sword tier (damage 4: one above diamond)
+const _Tier *_Tier::COPPER = new _Tier(1, 190, 5, 1, 13); // neoLegacy - Copper Age (Phase 2)
+const _Tier *_Tier::ROSE_GOLD = new _Tier(2, 466, 10, 2, 45); // neoLegacy - Copper Age (Phase 2): level 2 = mines what iron can
 
 Random *Item::random = new Random();
 
@@ -59,6 +61,9 @@ Item *Item::gold_ingot = nullptr;
 Item *Item::copper_ingot = nullptr;
 Item *Item::copper_nugget = nullptr;
 Item *Item::raw_copper = nullptr;
+Item *Item::raw_rose_gold = nullptr;
+Item *Item::rose_gold_ingot = nullptr;
+Item *Item::rose_gold_nugget = nullptr;
 Item *Item::iron_sword = nullptr;
 
 Item *Item::wooden_sword = nullptr;
@@ -112,6 +117,16 @@ Item *Item::golden_shovel = nullptr;
 Item *Item::golden_pickaxe = nullptr;
 Item *Item::golden_axe = nullptr;
 
+Item *Item::copper_sword = nullptr;
+Item *Item::copper_shovel = nullptr;
+Item *Item::copper_pickaxe = nullptr;
+Item *Item::copper_axe = nullptr;
+
+Item *Item::rose_gold_sword = nullptr;
+Item *Item::rose_gold_shovel = nullptr;
+Item *Item::rose_gold_pickaxe = nullptr;
+Item *Item::rose_gold_axe = nullptr;
+
 Item *Item::string = nullptr;
 Item *Item::feather = nullptr;
 Item *Item::gunpowder = nullptr;
@@ -121,6 +136,9 @@ Item *Item::stone_hoe = nullptr;
 Item *Item::iron_hoe = nullptr;
 Item *Item::diamond_hoe = nullptr;
 Item *Item::golden_hoe = nullptr;
+
+Item *Item::copper_hoe = nullptr;
+Item *Item::rose_gold_hoe = nullptr;
 
 Item *Item::wheat_seeds = nullptr;
 Item *Item::wheat = nullptr;
@@ -150,6 +168,16 @@ ArmorItem *Item::golden_helmet = nullptr;
 ArmorItem *Item::golden_chestplate = nullptr;
 ArmorItem *Item::golden_leggings = nullptr;
 ArmorItem *Item::golden_boots = nullptr;
+
+ArmorItem *Item::copper_helmet = nullptr;
+ArmorItem *Item::copper_chestplate = nullptr;
+ArmorItem *Item::copper_leggings = nullptr;
+ArmorItem *Item::copper_boots = nullptr;
+
+ArmorItem *Item::rose_gold_helmet = nullptr;
+ArmorItem *Item::rose_gold_chestplate = nullptr;
+ArmorItem *Item::rose_gold_leggings = nullptr;
+ArmorItem *Item::rose_gold_boots = nullptr;
 
 Item *Item::flint = nullptr;
 Item *Item::raw_porkchop = nullptr;
@@ -292,6 +320,7 @@ Item *Item::diamond_minecart = nullptr;
 Item *Item::iron_horse_armor = nullptr;
 Item *Item::golden_horse_armor = nullptr;
 Item *Item::diamond_horse_armor = nullptr;
+Item *Item::copper_horse_armor = nullptr;
 Item *Item::lead = nullptr;
 Item *Item::name_tag = nullptr;
 
@@ -327,6 +356,8 @@ void Item::staticCtor()
 	Item::iron_sword		= ( new WeaponItem(11, _Tier::IRON) )		->setBaseItemTypeAndMaterial(eBaseItemType_sword,	eMaterial_iron)		->setIconName(L"swordIron")->setDescriptionId(IDS_ITEM_SWORD_IRON)->setUseDescriptionId(IDS_DESC_SWORD);
 	Item::diamond_sword		= ( new WeaponItem(20, _Tier::DIAMOND) )	->setBaseItemTypeAndMaterial(eBaseItemType_sword,	eMaterial_diamond)	->setIconName(L"swordDiamond")->setDescriptionId(IDS_ITEM_SWORD_DIAMOND)->setUseDescriptionId(IDS_DESC_SWORD);
 	Item::golden_sword		= ( new WeaponItem(27, _Tier::GOLD) )		->setBaseItemTypeAndMaterial(eBaseItemType_sword,	eMaterial_gold)		->setIconName(L"swordGold")->setDescriptionId(IDS_ITEM_SWORD_GOLD)->setUseDescriptionId(IDS_DESC_SWORD);
+	Item::copper_sword		= ( new WeaponItem(copper_sword_Id - 256, _Tier::COPPER) )	->setBaseItemTypeAndMaterial(eBaseItemType_sword,	eMaterial_copper)	->setIconName(L"copper_sword")->setDescriptionId(IDS_ITEM_SWORD_COPPER)->setUseDescriptionId(IDS_DESC_SWORD);
+	Item::rose_gold_sword	= ( new WeaponItem(rose_gold_sword_Id - 256, _Tier::ROSE_GOLD) )	->setBaseItemTypeAndMaterial(eBaseItemType_sword,	eMaterial_rose_gold)	->setIconName(L"rose_gold_sword")->setDescriptionId(IDS_ITEM_SWORD_ROSE_GOLD)->setUseDescriptionId(IDS_DESC_SWORD);
 
 	// neoLegacy - Zoro swords.  They use diamond-tier attack damage for balance;
 	// their custom combat feel comes from timing, reach, angle and animation.
@@ -427,24 +458,32 @@ void Item::staticCtor()
 	Item::iron_shovel		= ( new ShovelItem(0, _Tier::IRON) )		->setBaseItemTypeAndMaterial(eBaseItemType_shovel,	eMaterial_iron)		->setIconName(L"shovelIron")->setDescriptionId(IDS_ITEM_SHOVEL_IRON)->setUseDescriptionId(IDS_DESC_SHOVEL);
 	Item::diamond_shovel	= ( new ShovelItem(21, _Tier::DIAMOND) )	->setBaseItemTypeAndMaterial(eBaseItemType_shovel,	eMaterial_diamond)	->setIconName(L"shovelDiamond")->setDescriptionId(IDS_ITEM_SHOVEL_DIAMOND)->setUseDescriptionId(IDS_DESC_SHOVEL);
 	Item::golden_shovel		= ( new ShovelItem(28, _Tier::GOLD) )		->setBaseItemTypeAndMaterial(eBaseItemType_shovel,	eMaterial_gold)		->setIconName(L"shovelGold")->setDescriptionId(IDS_ITEM_SHOVEL_GOLD)->setUseDescriptionId(IDS_DESC_SHOVEL);
+	Item::copper_shovel		= ( new ShovelItem(copper_shovel_Id - 256, _Tier::COPPER) )	->setBaseItemTypeAndMaterial(eBaseItemType_shovel,	eMaterial_copper)	->setIconName(L"copper_shovel")->setDescriptionId(IDS_ITEM_SHOVEL_COPPER)->setUseDescriptionId(IDS_DESC_SHOVEL);
+	Item::rose_gold_shovel	= ( new ShovelItem(rose_gold_shovel_Id - 256, _Tier::ROSE_GOLD) )	->setBaseItemTypeAndMaterial(eBaseItemType_shovel,	eMaterial_rose_gold)	->setIconName(L"rose_gold_shovel")->setDescriptionId(IDS_ITEM_SHOVEL_ROSE_GOLD)->setUseDescriptionId(IDS_DESC_SHOVEL);
 
 	Item::wooden_pickaxe		= ( new PickaxeItem(14, _Tier::WOOD) )		->setBaseItemTypeAndMaterial(eBaseItemType_pickaxe,	eMaterial_wood)		->setIconName(L"pickaxeWood")->setDescriptionId(IDS_ITEM_PICKAXE_WOOD)->setUseDescriptionId(IDS_DESC_PICKAXE);
 	Item::stone_pickaxe		= ( new PickaxeItem(18, _Tier::STONE) )		->setBaseItemTypeAndMaterial(eBaseItemType_pickaxe,	eMaterial_stone)	->setIconName(L"pickaxeStone")->setDescriptionId(IDS_ITEM_PICKAXE_STONE)->setUseDescriptionId(IDS_DESC_PICKAXE);
 	Item::iron_pickaxe		= ( new PickaxeItem(1, _Tier::IRON) )		->setBaseItemTypeAndMaterial(eBaseItemType_pickaxe,	eMaterial_iron)		->setIconName(L"pickaxeIron")->setDescriptionId(IDS_ITEM_PICKAXE_IRON)->setUseDescriptionId(IDS_DESC_PICKAXE);
 	Item::diamond_pickaxe	= ( new PickaxeItem(22, _Tier::DIAMOND) )	->setBaseItemTypeAndMaterial(eBaseItemType_pickaxe,	eMaterial_diamond)	->setIconName(L"pickaxeDiamond")->setDescriptionId(IDS_ITEM_PICKAXE_DIAMOND)->setUseDescriptionId(IDS_DESC_PICKAXE);
 	Item::golden_pickaxe		= ( new PickaxeItem(29, _Tier::GOLD) )		->setBaseItemTypeAndMaterial(eBaseItemType_pickaxe,	eMaterial_gold)		->setIconName(L"pickaxeGold")->setDescriptionId(IDS_ITEM_PICKAXE_GOLD)->setUseDescriptionId(IDS_DESC_PICKAXE);
+	Item::copper_pickaxe		= ( new PickaxeItem(copper_pickaxe_Id - 256, _Tier::COPPER) )	->setBaseItemTypeAndMaterial(eBaseItemType_pickaxe,	eMaterial_copper)	->setIconName(L"copper_pickaxe")->setDescriptionId(IDS_ITEM_PICKAXE_COPPER)->setUseDescriptionId(IDS_DESC_PICKAXE);
+	Item::rose_gold_pickaxe	= ( new PickaxeItem(rose_gold_pickaxe_Id - 256, _Tier::ROSE_GOLD) )	->setBaseItemTypeAndMaterial(eBaseItemType_pickaxe,	eMaterial_rose_gold)	->setIconName(L"rose_gold_pickaxe")->setDescriptionId(IDS_ITEM_PICKAXE_ROSE_GOLD)->setUseDescriptionId(IDS_DESC_PICKAXE);
 
 	Item::wooden_axe		= ( new HatchetItem(15, _Tier::WOOD) )		->setBaseItemTypeAndMaterial(eBaseItemType_hatchet,	eMaterial_wood)		->setIconName(L"hatchetWood")->setDescriptionId(IDS_ITEM_HATCHET_WOOD)->setUseDescriptionId(IDS_DESC_HATCHET);
 	Item::stone_axe		= ( new HatchetItem(19, _Tier::STONE) )		->setBaseItemTypeAndMaterial(eBaseItemType_hatchet,	eMaterial_stone)	->setIconName(L"hatchetStone")->setDescriptionId(IDS_ITEM_HATCHET_STONE)->setUseDescriptionId(IDS_DESC_HATCHET);
 	Item::iron_axe		= ( new HatchetItem(2, _Tier::IRON) )		->setBaseItemTypeAndMaterial(eBaseItemType_hatchet,	eMaterial_iron)		->setIconName(L"hatchetIron")->setDescriptionId(IDS_ITEM_HATCHET_IRON)->setUseDescriptionId(IDS_DESC_HATCHET);
 	Item::diamond_axe	= ( new HatchetItem(23, _Tier::DIAMOND) )	->setBaseItemTypeAndMaterial(eBaseItemType_hatchet,	eMaterial_diamond)	->setIconName(L"hatchetDiamond")->setDescriptionId(IDS_ITEM_HATCHET_DIAMOND)->setUseDescriptionId(IDS_DESC_HATCHET);
 	Item::golden_axe		= ( new HatchetItem(30, _Tier::GOLD) )		->setBaseItemTypeAndMaterial(eBaseItemType_hatchet,	eMaterial_gold)		->setIconName(L"hatchetGold")->setDescriptionId(IDS_ITEM_HATCHET_GOLD)->setUseDescriptionId(IDS_DESC_HATCHET);
+	Item::copper_axe		= ( new HatchetItem(copper_axe_Id - 256, _Tier::COPPER) )	->setBaseItemTypeAndMaterial(eBaseItemType_hatchet,	eMaterial_copper)	->setIconName(L"copper_axe")->setDescriptionId(IDS_ITEM_HATCHET_COPPER)->setUseDescriptionId(IDS_DESC_HATCHET);
+	Item::rose_gold_axe	= ( new HatchetItem(rose_gold_axe_Id - 256, _Tier::ROSE_GOLD) )	->setBaseItemTypeAndMaterial(eBaseItemType_hatchet,	eMaterial_rose_gold)	->setIconName(L"rose_gold_axe")->setDescriptionId(IDS_ITEM_HATCHET_ROSE_GOLD)->setUseDescriptionId(IDS_DESC_HATCHET);
 
 	Item::wooden_hoe			= ( new HoeItem(34, _Tier::WOOD) )			->setBaseItemTypeAndMaterial(eBaseItemType_hoe,	eMaterial_wood)		->setIconName(L"hoeWood")->setDescriptionId(IDS_ITEM_HOE_WOOD)->setUseDescriptionId(IDS_DESC_HOE);
 	Item::stone_hoe			= ( new HoeItem(35, _Tier::STONE) )			->setBaseItemTypeAndMaterial(eBaseItemType_hoe,	eMaterial_stone)	->setIconName(L"hoeStone")->setDescriptionId(IDS_ITEM_HOE_STONE)->setUseDescriptionId(IDS_DESC_HOE);
 	Item::iron_hoe			= ( new HoeItem(36, _Tier::IRON) )			->setBaseItemTypeAndMaterial(eBaseItemType_hoe,	eMaterial_iron)		->setIconName(L"hoeIron")->setDescriptionId(IDS_ITEM_HOE_IRON)->setUseDescriptionId(IDS_DESC_HOE);
 	Item::diamond_hoe		= ( new HoeItem(37, _Tier::DIAMOND) )		->setBaseItemTypeAndMaterial(eBaseItemType_hoe,	eMaterial_diamond)	->setIconName(L"hoeDiamond")->setDescriptionId(IDS_ITEM_HOE_DIAMOND)->setUseDescriptionId(IDS_DESC_HOE);
 	Item::golden_hoe			= ( new HoeItem(38, _Tier::GOLD) )			->setBaseItemTypeAndMaterial(eBaseItemType_hoe,	eMaterial_gold)		->setIconName(L"hoeGold")->setDescriptionId(IDS_ITEM_HOE_GOLD)->setUseDescriptionId(IDS_DESC_HOE);
+	Item::copper_hoe			= ( new HoeItem(copper_hoe_Id - 256, _Tier::COPPER) )		->setBaseItemTypeAndMaterial(eBaseItemType_hoe,	eMaterial_copper)	->setIconName(L"copper_hoe")->setDescriptionId(IDS_ITEM_HOE_COPPER)->setUseDescriptionId(IDS_DESC_HOE);
+	Item::rose_gold_hoe		= ( new HoeItem(rose_gold_hoe_Id - 256, _Tier::ROSE_GOLD) )	->setBaseItemTypeAndMaterial(eBaseItemType_hoe,	eMaterial_rose_gold)	->setIconName(L"rose_gold_hoe")->setDescriptionId(IDS_ITEM_HOE_ROSE_GOLD)->setUseDescriptionId(IDS_DESC_HOE);
 
 	Item::wooden_door			= ( new DoorItem(68, Material::wood, L"doorWood"))->setBaseItemTypeAndMaterial(eBaseItemType_door, eMaterial_wood)->setIconName(L"doorWood")->setDescriptionId(IDS_ITEM_DOOR_WOOD)->setUseDescriptionId(IDS_DESC_DOOR_WOOD);
 	Item::iron_door			= ( new DoorItem(74, Material::metal, L"doorIron"))->setBaseItemTypeAndMaterial(eBaseItemType_door, eMaterial_iron)->setIconName(L"doorIron")->setDescriptionId(IDS_ITEM_DOOR_IRON)->setUseDescriptionId(IDS_DESC_DOOR_IRON);
@@ -453,16 +492,22 @@ void Item::staticCtor()
 	Item::iron_helmet		= static_cast<ArmorItem *>((new ArmorItem(50, ArmorItem::ArmorMaterial::IRON, 2, ArmorItem::SLOT_HEAD))->setBaseItemTypeAndMaterial(eBaseItemType_helmet, eMaterial_iron)->setIconName(L"helmetIron")->setDescriptionId(IDS_ITEM_HELMET_IRON)->setUseDescriptionId(IDS_DESC_HELMET_IRON));
 	Item::diamond_helmet	= static_cast<ArmorItem *>((new ArmorItem(54, ArmorItem::ArmorMaterial::DIAMOND, 3, ArmorItem::SLOT_HEAD))->setBaseItemTypeAndMaterial(eBaseItemType_helmet, eMaterial_diamond)->setIconName(L"helmetDiamond")->setDescriptionId(IDS_ITEM_HELMET_DIAMOND)->setUseDescriptionId(IDS_DESC_HELMET_DIAMOND));
 	Item::golden_helmet		= static_cast<ArmorItem *>((new ArmorItem(58, ArmorItem::ArmorMaterial::GOLD, 4, ArmorItem::SLOT_HEAD))->setBaseItemTypeAndMaterial(eBaseItemType_helmet, eMaterial_gold)->setIconName(L"helmetGold")->setDescriptionId(IDS_ITEM_HELMET_GOLD)->setUseDescriptionId(IDS_DESC_HELMET_GOLD));
+	Item::copper_helmet		= static_cast<ArmorItem *>((new ArmorItem(copper_helmet_Id - 256, ArmorItem::ArmorMaterial::COPPER, 5, ArmorItem::SLOT_HEAD))->setBaseItemTypeAndMaterial(eBaseItemType_helmet, eMaterial_copper)->setIconName(L"copper_helmet")->setDescriptionId(IDS_ITEM_HELMET_COPPER)->setUseDescriptionId(IDS_DESC_HELMET_COPPER));
+	Item::rose_gold_helmet	= static_cast<ArmorItem *>((new ArmorItem(rose_gold_helmet_Id - 256, ArmorItem::ArmorMaterial::ROSE_GOLD, 6, ArmorItem::SLOT_HEAD))->setBaseItemTypeAndMaterial(eBaseItemType_helmet, eMaterial_rose_gold)->setIconName(L"rose_gold_helmet")->setDescriptionId(IDS_ITEM_HELMET_ROSE_GOLD)->setUseDescriptionId(IDS_DESC_HELMET_ROSE_GOLD));
 
 	Item::leather_chestplate	= static_cast<ArmorItem *>((new ArmorItem(43, ArmorItem::ArmorMaterial::CLOTH, 0, ArmorItem::SLOT_TORSO))->setBaseItemTypeAndMaterial(eBaseItemType_chestplate, eMaterial_cloth)->setIconName(L"chestplateCloth")->setDescriptionId(IDS_ITEM_CHESTPLATE_CLOTH)->setUseDescriptionId(IDS_DESC_CHESTPLATE_LEATHER));
 	Item::iron_chestplate		= static_cast<ArmorItem *>((new ArmorItem(51, ArmorItem::ArmorMaterial::IRON, 2, ArmorItem::SLOT_TORSO))->setBaseItemTypeAndMaterial(eBaseItemType_chestplate, eMaterial_iron)->setIconName(L"chestplateIron")->setDescriptionId(IDS_ITEM_CHESTPLATE_IRON)->setUseDescriptionId(IDS_DESC_CHESTPLATE_IRON));
 	Item::diamond_chestplate	= static_cast<ArmorItem *>((new ArmorItem(55, ArmorItem::ArmorMaterial::DIAMOND, 3, ArmorItem::SLOT_TORSO))->setBaseItemTypeAndMaterial(eBaseItemType_chestplate, eMaterial_diamond)->setIconName(L"chestplateDiamond")->setDescriptionId(IDS_ITEM_CHESTPLATE_DIAMOND)->setUseDescriptionId(IDS_DESC_CHESTPLATE_DIAMOND));
 	Item::golden_chestplate		= static_cast<ArmorItem *>((new ArmorItem(59, ArmorItem::ArmorMaterial::GOLD, 4, ArmorItem::SLOT_TORSO))->setBaseItemTypeAndMaterial(eBaseItemType_chestplate, eMaterial_gold)->setIconName(L"chestplateGold")->setDescriptionId(IDS_ITEM_CHESTPLATE_GOLD)->setUseDescriptionId(IDS_DESC_CHESTPLATE_GOLD));
+	Item::copper_chestplate	= static_cast<ArmorItem *>((new ArmorItem(copper_chestplate_Id - 256, ArmorItem::ArmorMaterial::COPPER, 5, ArmorItem::SLOT_TORSO))->setBaseItemTypeAndMaterial(eBaseItemType_chestplate, eMaterial_copper)->setIconName(L"copper_chestplate")->setDescriptionId(IDS_ITEM_CHESTPLATE_COPPER)->setUseDescriptionId(IDS_DESC_CHESTPLATE_COPPER));
+	Item::rose_gold_chestplate	= static_cast<ArmorItem *>((new ArmorItem(rose_gold_chestplate_Id - 256, ArmorItem::ArmorMaterial::ROSE_GOLD, 6, ArmorItem::SLOT_TORSO))->setBaseItemTypeAndMaterial(eBaseItemType_chestplate, eMaterial_rose_gold)->setIconName(L"rose_gold_chestplate")->setDescriptionId(IDS_ITEM_CHESTPLATE_ROSE_GOLD)->setUseDescriptionId(IDS_DESC_CHESTPLATE_ROSE_GOLD));
 
 	Item::leather_leggings	= static_cast<ArmorItem *>((new ArmorItem(44, ArmorItem::ArmorMaterial::CLOTH, 0, ArmorItem::SLOT_LEGS))->setBaseItemTypeAndMaterial(eBaseItemType_leggings, eMaterial_cloth)->setIconName(L"leggingsCloth")->setDescriptionId(IDS_ITEM_LEGGINGS_CLOTH)->setUseDescriptionId(IDS_DESC_LEGGINGS_LEATHER));
 	Item::iron_leggings		= static_cast<ArmorItem *>((new ArmorItem(52, ArmorItem::ArmorMaterial::IRON, 2, ArmorItem::SLOT_LEGS))->setBaseItemTypeAndMaterial(eBaseItemType_leggings, eMaterial_iron)->setIconName(L"leggingsIron")->setDescriptionId(IDS_ITEM_LEGGINGS_IRON)->setUseDescriptionId(IDS_DESC_LEGGINGS_IRON));
 	Item::diamond_leggings	= static_cast<ArmorItem *>((new ArmorItem(56, ArmorItem::ArmorMaterial::DIAMOND, 3, ArmorItem::SLOT_LEGS))->setBaseItemTypeAndMaterial(eBaseItemType_leggings, eMaterial_diamond)->setIconName(L"leggingsDiamond")->setDescriptionId(IDS_ITEM_LEGGINGS_DIAMOND)->setUseDescriptionId(IDS_DESC_LEGGINGS_DIAMOND));
 	Item::golden_leggings		= static_cast<ArmorItem *>((new ArmorItem(60, ArmorItem::ArmorMaterial::GOLD, 4, ArmorItem::SLOT_LEGS))->setBaseItemTypeAndMaterial(eBaseItemType_leggings, eMaterial_gold)->setIconName(L"leggingsGold")->setDescriptionId(IDS_ITEM_LEGGINGS_GOLD)->setUseDescriptionId(IDS_DESC_LEGGINGS_GOLD));
+	Item::copper_leggings	= static_cast<ArmorItem *>((new ArmorItem(copper_leggings_Id - 256, ArmorItem::ArmorMaterial::COPPER, 5, ArmorItem::SLOT_LEGS))->setBaseItemTypeAndMaterial(eBaseItemType_leggings, eMaterial_copper)->setIconName(L"copper_leggings")->setDescriptionId(IDS_ITEM_LEGGINGS_COPPER)->setUseDescriptionId(IDS_DESC_LEGGINGS_COPPER));
+	Item::rose_gold_leggings	= static_cast<ArmorItem *>((new ArmorItem(rose_gold_leggings_Id - 256, ArmorItem::ArmorMaterial::ROSE_GOLD, 6, ArmorItem::SLOT_LEGS))->setBaseItemTypeAndMaterial(eBaseItemType_leggings, eMaterial_rose_gold)->setIconName(L"rose_gold_leggings")->setDescriptionId(IDS_ITEM_LEGGINGS_ROSE_GOLD)->setUseDescriptionId(IDS_DESC_LEGGINGS_ROSE_GOLD));
 
 	Item::chainmail_helmet		= static_cast<ArmorItem *>((new ArmorItem(46, ArmorItem::ArmorMaterial::CHAIN, 1, ArmorItem::SLOT_HEAD))->setBaseItemTypeAndMaterial(eBaseItemType_helmet, eMaterial_chain)->setIconName(L"helmetChain")->setDescriptionId(IDS_ITEM_HELMET_CHAIN)->setUseDescriptionId(IDS_DESC_HELMET_CHAIN));
 	Item::chainmail_chestplate	= static_cast<ArmorItem *>((new ArmorItem(47, ArmorItem::ArmorMaterial::CHAIN, 1, ArmorItem::SLOT_TORSO))->setBaseItemTypeAndMaterial(eBaseItemType_chestplate, eMaterial_chain)->setIconName(L"chestplateChain")->setDescriptionId(IDS_ITEM_CHESTPLATE_CHAIN)->setUseDescriptionId(IDS_DESC_CHESTPLATE_CHAIN));
@@ -473,12 +518,17 @@ void Item::staticCtor()
 	Item::iron_boots		= static_cast<ArmorItem *>((new ArmorItem(53, ArmorItem::ArmorMaterial::IRON, 2, ArmorItem::SLOT_FEET))->setBaseItemTypeAndMaterial(eBaseItemType_boots, eMaterial_iron)->setIconName(L"bootsIron")->setDescriptionId(IDS_ITEM_BOOTS_IRON)->setUseDescriptionId(IDS_DESC_BOOTS_IRON));
 	Item::diamond_boots		= static_cast<ArmorItem *>((new ArmorItem(57, ArmorItem::ArmorMaterial::DIAMOND, 3, ArmorItem::SLOT_FEET))->setBaseItemTypeAndMaterial(eBaseItemType_boots, eMaterial_diamond)->setIconName(L"bootsDiamond")->setDescriptionId(IDS_ITEM_BOOTS_DIAMOND)->setUseDescriptionId(IDS_DESC_BOOTS_DIAMOND));
 	Item::golden_boots		= static_cast<ArmorItem *>((new ArmorItem(61, ArmorItem::ArmorMaterial::GOLD, 4, ArmorItem::SLOT_FEET))->setBaseItemTypeAndMaterial(eBaseItemType_boots, eMaterial_gold)->setIconName(L"bootsGold")->setDescriptionId(IDS_ITEM_BOOTS_GOLD)->setUseDescriptionId(IDS_DESC_BOOTS_GOLD));
+	Item::copper_boots		= static_cast<ArmorItem *>((new ArmorItem(copper_boots_Id - 256, ArmorItem::ArmorMaterial::COPPER, 5, ArmorItem::SLOT_FEET))->setBaseItemTypeAndMaterial(eBaseItemType_boots, eMaterial_copper)->setIconName(L"copper_boots")->setDescriptionId(IDS_ITEM_BOOTS_COPPER)->setUseDescriptionId(IDS_DESC_BOOTS_COPPER));
+	Item::rose_gold_boots	= static_cast<ArmorItem *>((new ArmorItem(rose_gold_boots_Id - 256, ArmorItem::ArmorMaterial::ROSE_GOLD, 6, ArmorItem::SLOT_FEET))->setBaseItemTypeAndMaterial(eBaseItemType_boots, eMaterial_rose_gold)->setIconName(L"rose_gold_boots")->setDescriptionId(IDS_ITEM_BOOTS_ROSE_GOLD)->setUseDescriptionId(IDS_DESC_BOOTS_ROSE_GOLD));
 
 	Item::iron_ingot = ( new Item(9) )->setIconName(L"ingotIron")					->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_iron)->setDescriptionId(IDS_ITEM_INGOT_IRON)->setUseDescriptionId(IDS_DESC_INGOT);
 	Item::gold_ingot = ( new Item(10) )->setIconName(L"ingotGold")					->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_gold)->setDescriptionId(IDS_ITEM_INGOT_GOLD)->setUseDescriptionId(IDS_DESC_INGOT);
 	Item::copper_ingot = ( new Item(Item::copper_ingot_Id - 256) )->setIconName(L"copper_ingot")					->setBaseItemTypeAndMaterial(eBaseItemType_ingot,	eMaterial_copper)->setDescriptionId(IDS_ITEM_COPPER_INGOT)->setUseDescriptionId(IDS_DESC_INGOT);
 	Item::copper_nugget = ( new Item(Item::copper_nugget_Id - 256) )->setIconName(L"copper_nugget")					->setBaseItemTypeAndMaterial(eBaseItemType_ingot,	eMaterial_copper)->setDescriptionId(IDS_ITEM_COPPER_NUGGET)->setUseDescriptionId(IDS_DESC_COPPER_NUGGET);
 	Item::raw_copper = ( new Item(Item::raw_copper_Id - 256) )->setIconName(L"raw_copper")					->setBaseItemTypeAndMaterial(eBaseItemType_ingot,	eMaterial_copper)->setDescriptionId(IDS_ITEM_RAW_COPPER)->setUseDescriptionId(IDS_DESC_RAW_COPPER);
+	Item::raw_rose_gold = ( new Item(Item::raw_rose_gold_Id - 256) )->setIconName(L"raw_rose_gold")					->setBaseItemTypeAndMaterial(eBaseItemType_ingot,	eMaterial_rose_gold)->setDescriptionId(IDS_ITEM_RAW_ROSE_GOLD)->setUseDescriptionId(IDS_DESC_RAW_ROSE_GOLD);
+	Item::rose_gold_ingot = ( new Item(Item::rose_gold_ingot_Id - 256) )->setIconName(L"rose_gold_ingot")					->setBaseItemTypeAndMaterial(eBaseItemType_ingot,	eMaterial_rose_gold)->setDescriptionId(IDS_ITEM_ROSE_GOLD_INGOT)->setUseDescriptionId(IDS_DESC_INGOT);
+	Item::rose_gold_nugget = ( new Item(Item::rose_gold_nugget_Id - 256) )->setIconName(L"rose_gold_nugget")					->setBaseItemTypeAndMaterial(eBaseItemType_ingot,	eMaterial_rose_gold)->setDescriptionId(IDS_ITEM_ROSE_GOLD_NUGGET)->setUseDescriptionId(IDS_DESC_ROSE_GOLD_NUGGET);
 
 
 	// 4J-PB - todo - add materials and base types to the ones below
@@ -666,6 +716,7 @@ void Item::staticCtor()
 	Item::iron_horse_armor = (new Item(161))															->setIconName(L"iron_horse_armor")->setMaxStackSize(1)->setDescriptionId(IDS_ITEM_IRON_HORSE_ARMOR)->setUseDescriptionId(IDS_DESC_IRON_HORSE_ARMOR);
 	Item::golden_horse_armor = (new Item(162))															->setIconName(L"golden_horse_armor")->setMaxStackSize(1)->setDescriptionId(IDS_ITEM_GOLD_HORSE_ARMOR)->setUseDescriptionId(IDS_DESC_GOLD_HORSE_ARMOR);
 	Item::diamond_horse_armor = (new Item(163))														->setIconName(L"diamond_horse_armor")->setMaxStackSize(1)->setDescriptionId(IDS_ITEM_DIAMOND_HORSE_ARMOR)->setUseDescriptionId(IDS_DESC_DIAMOND_HORSE_ARMOR);
+	Item::copper_horse_armor = (new Item(copper_horse_armor_Id - 256))															->setIconName(L"copper_horse_armor")->setMaxStackSize(1)->setDescriptionId(IDS_ITEM_COPPER_HORSE_ARMOR)->setUseDescriptionId(IDS_DESC_COPPER_HORSE_ARMOR);
 	Item::lead = (new LeashItem(164))																->setBaseItemTypeAndMaterial(eBaseItemType_pockettool,	eMaterial_undefined)->setIconName(L"lead")->setDescriptionId(IDS_ITEM_LEAD)->setUseDescriptionId(IDS_DESC_LEAD);
 	Item::name_tag = (new NameTagItem(165))															->setIconName(L"name_tag")->setDescriptionId(IDS_ITEM_NAME_TAG)->setUseDescriptionId(IDS_DESC_NAME_TAG);
 
@@ -768,6 +819,14 @@ int _Tier::getTierItemId() const
 	else if (this == Tier::CMON)
 	{
 		return Item::diamond_Id;
+	}
+	else if (this == Tier::COPPER)
+	{
+		return Item::copper_ingot_Id;
+	}
+	else if (this == Tier::ROSE_GOLD)
+	{
+		return Item::rose_gold_ingot_Id;
 	}
 	return 0;
 }
