@@ -22,6 +22,7 @@ public:
 	virtual bool isInRaid() { return inRaid; }
 	virtual void getRaidCenter(int *x, int *y, int *z) { *x = raidX; *y = raidY; *z = raidZ; }
 	virtual void joinRaid(int x, int y, int z) { inRaid = true; raidX = x; raidY = y; raidZ = z; }
+	virtual void leaveRaid() { inRaid = false; }
 
 	int getAttackTick() { return attackTick; }	// 10 down to 0 while it bites (the model lunges its head and opens its mouth)
 

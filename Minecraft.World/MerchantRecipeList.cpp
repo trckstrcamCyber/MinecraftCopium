@@ -1,5 +1,8 @@
 #include "stdafx.h"
 #include "net.minecraft.world.item.trading.h"
+#include "net.minecraft.world.entity.player.h"
+#include "MobEffect.h"
+#include "MobEffectInstance.h"
 #include "MerchantRecipeList.h"
 
 MerchantRecipeList::MerchantRecipeList()
@@ -9,6 +12,17 @@ MerchantRecipeList::MerchantRecipeList()
 MerchantRecipeList::MerchantRecipeList(CompoundTag *tag)
 {
 	load(tag);
+}
+
+void MerchantRecipeList::applyHeroDiscount(shared_ptr<Player> player)
+{
+	int amplifier = -1;
+	if (player != nullptr && player->hasEffect(MobEffect::heroOfTheVillage))
+	{
+		MobEffectInstance *hero = player->getEffect(MobEffect::heroOfTheVillage);
+		if (hero != nullptr) amplifier = hero->getAmplifier();
+	}
+	for (auto& recipe : m_recipes) recipe->setHeroDiscount(amplifier);
 }
 
 MerchantRecipeList::~MerchantRecipeList()

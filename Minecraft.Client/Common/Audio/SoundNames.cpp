@@ -378,6 +378,10 @@ const WCHAR *ConsoleSoundEngine::wchSoundNames[eSoundType_MAX]=
 	L"mob.ravager.roar",
 	L"mob.ravager.stun",
 	L"mob.ravager.celebrate",
+	L"mob.provoker.idle",
+	L"mob.provoker.hurt",
+	L"mob.provoker.death",
+	L"mob.provoker.celebrate",
 
 	L"item.mace.smash_air",
 	L"item.mace.smash_ground",

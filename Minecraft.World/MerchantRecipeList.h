@@ -6,6 +6,7 @@ class CompoundTag;
 class ItemInstance;
 class DataOutputStream;
 class DataInputStream;
+class Player;
 
 class MerchantRecipeList
 {
@@ -24,6 +25,9 @@ public:
 	static MerchantRecipeList *createFromStream(DataInputStream *stream);
 	void load(CompoundTag *tag);
 	CompoundTag *createTag();
+
+	// neoLegacy - prices as the given player sees them: cheaper for a Hero of the Village (call it with whoever is about to look at the trades)
+	void applyHeroDiscount(shared_ptr<Player> player);
 
 	void push_back(MerchantRecipe *recipe);
 	MerchantRecipe *at(size_t index);

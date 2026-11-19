@@ -9180,6 +9180,8 @@ wstring CMinecraftApp::getEntityName(eINSTANCEOF type)
 		return app.GetString(IDS_PILLAGER);
 	case eTYPE_RAVAGER:
 		return app.GetString(IDS_RAVAGER);
+	case eTYPE_PROVOKER:
+		return app.GetString(IDS_PROVOKER);
 	case eTYPE_WANDERING_TRADER:
 		return app.GetString(IDS_WANDERING_TRADER);
 	

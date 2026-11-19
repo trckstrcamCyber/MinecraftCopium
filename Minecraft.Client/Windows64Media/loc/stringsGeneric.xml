@@ -10688,7 +10688,13 @@
 	<data name="IDS_DESC_OMINOUS_BOTTLE">
 		<value>Drink it to get Bad Omen. Take Bad Omen into a village to start a raid.</value>
 	</data>
-
-
-
+	<data name="IDS_POTION_HEROOFTHEVILLAGE">
+		<value>Hero of the Village</value>
+	</data>
+	<data name="IDS_POTION_HEROOFTHEVILLAGE_POSTFIX">
+		<value>Hero of the Village</value>
+	</data>
+	<data name="IDS_PROVOKER">
+		<value>Provoker</value>
+	</data>
 </root>

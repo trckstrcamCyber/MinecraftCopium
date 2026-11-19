@@ -67,6 +67,7 @@ public:
 	static MobEffect *raidOmen;	// neoLegacy - id 26: the 30 second countdown Bad Omen turns into inside a village; when it ends the raid starts
 	static MobEffect *badOmen;	// neoLegacy - id 25: given for killing a raid captain; starts a raid when the player is in a village, see RaidManager
 	static MobEffect *freezing;	// neoLegacy - id 24: Frostbite hits, see LivingEntity::updateFreezing
+	static MobEffect *heroOfTheVillage;	// neoLegacy - id 27: given by RaidManager to the players who helped defeat a raid; cheaper trades and villager gifts (see Villager)
 	static MobEffect *reserved_24;
 	static MobEffect *reserved_25;
 	static MobEffect *reserved_26;

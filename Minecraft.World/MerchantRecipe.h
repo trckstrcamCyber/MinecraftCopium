@@ -9,6 +9,11 @@ private:
 	int uses;
 	int maxUses;
 
+	// neoLegacy - Hero of the Village: while a Hero is the one looking at the trade the first cost shows (and takes) a smaller stack.
+	// heroLevel is the effect's amplifier, -1 for no discount. The real price (buyA) is what gets saved and compared.
+	int heroLevel;
+	shared_ptr<ItemInstance> discountedBuyA;
+
 	void _init(shared_ptr<ItemInstance> buyA, shared_ptr<ItemInstance> buyB, shared_ptr<ItemInstance> sell);
 
 public:
@@ -19,6 +24,7 @@ public:
 	MerchantRecipe(shared_ptr<ItemInstance> buy, Tile *sell);
 
 	shared_ptr<ItemInstance> getBuyAItem();
+	void setHeroDiscount(int amplifier);	// -1 clears it
 	shared_ptr<ItemInstance> getBuyBItem();
 	bool hasSecondaryBuyItem();
 	shared_ptr<ItemInstance> getSellItem();

@@ -13,13 +13,15 @@ public:
 	enum ArmPose { CROSSED, ATTACKING, SPELLCASTING, CELEBRATING, NEUTRAL, BOW_AND_ARROW, CROSSBOW_HOLD, CROSSBOW_CHARGE };
 
 protected:
-	static const int DATA_FLAGS_ID = 16;	// bit 0 (1): aggressive; bits 1 and 2 (2, 4): the Pillager's crossbow is being drawn / is loaded; bit 3 (8): captain
+	static const int DATA_FLAGS_ID = 16;	// bit 0 (1): aggressive; bits 1 and 2 (2, 4): the Pillager's crossbow is being drawn / is loaded; bit 3 (8): captain; bit 4 (16): celebrating
 	static const int FLAG_AGGRESSIVE = 1;
 	static const int FLAG_CAPTAIN = 8;
+	static const int FLAG_CELEBRATING = 16;
 
 	// server side only (nothing here is synched or saved): raid and patrol membership
 	bool inRaid;
 	int raidX, raidY, raidZ;
+	bool celebrateRaid;		// the raid it was in was lost: cheer while there is nothing to hunt
 	bool patrolling;
 	bool patrolTargetSet;
 	int patrolX, patrolZ;
@@ -39,6 +41,11 @@ public:
 	virtual bool isInRaid() { return inRaid; }
 	virtual void getRaidCenter(int *x, int *y, int *z) { *x = raidX; *y = raidY; *z = raidZ; }
 	virtual void joinRaid(int x, int y, int z) { inRaid = true; raidX = x; raidY = y; raidZ = z; }
+	virtual void leaveRaid() { inRaid = false; }
+
+	// celebrating (arms up, jumping, cheering): set by RaidManager when the village fell. Only shows while the illager has no target.
+	bool isCelebrating();
+	void setCelebrating(bool celebrate) { celebrateRaid = celebrate; }
 
 	// patrols (a captain with followers, see RaidManager)
 	void startPatrol(shared_ptr<Illager> leader, int targetX, int targetZ);	// leader == nullptr for the captain itself
@@ -56,6 +63,8 @@ public:
 	virtual bool isAlliedTo(shared_ptr<LivingEntity> other);
 
 protected:
+	int getCelebrateSoundId();	// by type: the Vindicator, Pillager and Provoker have their own, everyone else cheers like an Evoker
+
 	// Without this the mob falls back to the old pre-goal AI: it just walks up and hits, never casts, and getTarget() stays empty
 	// (so the aggressive flag / arm pose never changes). Zombie does the same.
 	virtual bool useNewAi();

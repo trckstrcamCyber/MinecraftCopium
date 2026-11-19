@@ -10,6 +10,9 @@
 #include "MobEffect.h"
 #include "MobEffectInstance.h"
 #include "BannerItem.h"
+#include "SoundTypes.h"
+#include "Random.h"
+#include "JumpControl.h"
 #include "OminousBottleItem.h"
 
 Illager::Illager(Level *level) : Monster(level)
@@ -19,6 +22,7 @@ Illager::Illager(Level *level) : Monster(level)
 
 	inRaid = false;
 	raidX = raidY = raidZ = 0;
+	celebrateRaid = false;
 	patrolling = false;
 	patrolTargetSet = false;
 	patrolX = patrolZ = 0;
@@ -28,12 +32,36 @@ void Illager::tick()
 {
 	if (!level->isClientSide)
 	{
-		// only the aggressive bit is the target's business; the captain bit must survive
+		// only the aggressive and celebrating bits are decided here; the captain and crossbow bits must survive
 		byte flags = getEntityData()->getByte(DATA_FLAGS_ID);
 		byte wanted = (getTarget() != nullptr) ? (flags | FLAG_AGGRESSIVE) : (flags & ~FLAG_AGGRESSIVE);
+		bool cheer = celebrateRaid && getTarget() == nullptr && isAlive();
+		wanted = cheer ? static_cast<byte>(wanted | FLAG_CELEBRATING) : static_cast<byte>(wanted & ~FLAG_CELEBRATING);
 		if (flags != wanted) getEntityData()->set(DATA_FLAGS_ID, wanted);
+
+		if (cheer)
+		{
+			if (onGround && random->nextInt(50) == 0) getJumpControl()->jump();
+			if (random->nextInt(100) == 0) playSound(getCelebrateSoundId(), getSoundVolume(), getVoicePitch());
+		}
 	}
 	Monster::tick();
+}
+
+bool Illager::isCelebrating()
+{
+	return (getEntityData()->getByte(DATA_FLAGS_ID) & FLAG_CELEBRATING) != 0;
+}
+
+int Illager::getCelebrateSoundId()
+{
+	switch (GetType())
+	{
+	case eTYPE_VINDICATOR:	return eSoundType_MOB_VINDICATOR_CELEBRATE;
+	case eTYPE_PILLAGER:	return eSoundType_MOB_PILLAGER_CELEBRATE;
+	case eTYPE_PROVOKER:	return eSoundType_MOB_PROVOKER_CELEBRATE;
+	default:				return eSoundType_MOB_EVOKER_CELEBRATE;
+	}
 }
 
 bool Illager::isAggressive()

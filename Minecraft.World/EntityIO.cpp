@@ -149,6 +149,7 @@ void EntityIO::staticCtor()
 	setId(Illusioner::create, eTYPE_ILLUSIONER, L"Illusioner", 123, eMinecraftColour_Mob_Illusioner_Colour1, eMinecraftColour_Mob_Illusioner_Colour2, IDS_ILLUSIONER);	// neoLegacy
 	setId(Pillager::create, eTYPE_PILLAGER, L"Pillager", 124, eMinecraftColour_Mob_Pillager_Colour1, eMinecraftColour_Mob_Pillager_Colour2, IDS_PILLAGER);	// neoLegacy
 	setId(Ravager::create, eTYPE_RAVAGER, L"Ravager", 125, eMinecraftColour_Mob_Ravager_Colour1, eMinecraftColour_Mob_Ravager_Colour2, IDS_RAVAGER);	// neoLegacy
+	setId(Provoker::create, eTYPE_PROVOKER, L"Provoker", 126, eMinecraftColour_Mob_Provoker_Colour1, eMinecraftColour_Mob_Provoker_Colour2, IDS_PROVOKER);	// neoLegacy
 	setId(EvokerFangs::create, eTYPE_EVOKER_FANGS, L"EvokerFangs", 121);
 	setId(IceCube::create, eTYPE_ICE_CUBE, L"IceCube", 122);
 	setId(WanderingTrader::create, eTYPE_WANDERING_TRADER, L"WanderingTrader", 113,

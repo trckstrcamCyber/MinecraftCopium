@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "RaidGoals.h"
 #include "Random.h"
 #include "PathNavigation.h"
 #include "AttributeInstance.h"
@@ -60,6 +61,8 @@ Iceologer::Iceologer(Level *level) : SpellcasterIllager(level)
 	goalSelector.addGoal(1, new SpellcasterCastingSpellGoal(this));
 	goalSelector.addGoal(2, new AvoidPlayerGoal(this, typeid(Player), 8.0f, 0.6, 1.0));
 	goalSelector.addGoal(4, new IceSpellGoal(this));
+	goalSelector.addGoal(7, new RaidMoveGoal(this, this, 1.0));	// raids and patrols can send an Iceologer too
+	goalSelector.addGoal(7, new PatrolGoal(this, 0.5));
 	goalSelector.addGoal(8, new RandomStrollGoal(this, 0.6));
 	goalSelector.addGoal(9, new LookAtPlayerGoal(this, typeid(Player), 3.0f, 1.0f));
 	goalSelector.addGoal(10, new LookAtPlayerGoal(this, typeid(Mob), 8.0f));

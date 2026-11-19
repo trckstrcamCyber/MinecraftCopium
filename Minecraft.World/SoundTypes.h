@@ -381,6 +381,12 @@ enum eSOUND_TYPE
 	eSoundType_MOB_RAVAGER_STUN,
 	eSoundType_MOB_RAVAGER_CELEBRATE,
 
+	// neoLegacy - provoker (files under Windows64Media/Sound/Minecraft/mob/provoker)
+	eSoundType_MOB_PROVOKER_IDLE,
+	eSoundType_MOB_PROVOKER_HURT,
+	eSoundType_MOB_PROVOKER_DEATH,
+	eSoundType_MOB_PROVOKER_CELEBRATE,
+
 	// neoLegacy - mace smash (files: Windows64Media/Sound/Minecraft/item/mace/*)
 	eSoundType_ITEM_MACE_SMASH_AIR,			// target was in the air: smash_air1-3
 	eSoundType_ITEM_MACE_SMASH_GROUND,		// target on the ground: smash_ground1-4

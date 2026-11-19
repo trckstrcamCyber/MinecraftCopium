@@ -224,6 +224,7 @@ void WanderingTrader::updateTrades()
 MerchantRecipeList *WanderingTrader::getOffers(shared_ptr<Player> forPlayer)
 {
 	updateTrades();
+	if (offers != nullptr) offers->applyHeroDiscount(forPlayer);	// neoLegacy - Hero of the Village
 	return offers;
 }
 

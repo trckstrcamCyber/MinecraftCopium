@@ -175,6 +175,7 @@ EntityRenderDispatcher::EntityRenderDispatcher()
 	renderers[eTYPE_ILLUSIONER] = new IllusionerRenderer();
 	renderers[eTYPE_PILLAGER] = new IllagerRenderer();	// neoLegacy
 	renderers[eTYPE_RAVAGER] = new RavagerRenderer();	// neoLegacy
+	renderers[eTYPE_PROVOKER] = new IllagerRenderer();	// neoLegacy
 	renderers[eTYPE_DROWNED] = new DrownedRenderer();
 	renderers[eTYPE_WANDERING_TRADER] = new WanderingTraderRenderer();
 	

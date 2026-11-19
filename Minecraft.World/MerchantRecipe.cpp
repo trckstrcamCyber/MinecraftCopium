@@ -9,6 +9,8 @@ void MerchantRecipe::_init(shared_ptr<ItemInstance> buyA, shared_ptr<ItemInstanc
 	this->sell = sell;
 	uses = 0;
 	maxUses = 7;
+	heroLevel = -1;
+	discountedBuyA = nullptr;
 }
 
 MerchantRecipe::MerchantRecipe(CompoundTag *tag)
@@ -17,6 +19,8 @@ MerchantRecipe::MerchantRecipe(CompoundTag *tag)
 	buyB = nullptr;
 	sell = nullptr;
 	uses = 0;
+	heroLevel = -1;
+	discountedBuyA = nullptr;
 	load(tag);
 }
 
@@ -44,7 +48,25 @@ MerchantRecipe::MerchantRecipe(shared_ptr<ItemInstance> buy, Tile *sell)
 
 shared_ptr<ItemInstance> MerchantRecipe::getBuyAItem()
 {
+	if (heroLevel >= 0 && discountedBuyA != nullptr) return discountedBuyA;
 	return buyA;
+}
+
+// Java's rule: 30% off the base price, plus 6.25% for every level of Hero of the Village above I, but at least one off and never below one.
+void MerchantRecipe::setHeroDiscount(int amplifier)
+{
+	heroLevel = amplifier;
+	discountedBuyA = nullptr;
+	if (amplifier < 0 || buyA == nullptr) { heroLevel = -1; return; }
+
+	int reduction = static_cast<int>((0.3 + 0.0625 * amplifier) * buyA->count);
+	if (reduction < 1) reduction = 1;
+	int count = buyA->count - reduction;
+	if (count < 1) count = 1;
+	if (count >= buyA->count) { heroLevel = -1; return; }	// already as cheap as it gets
+
+	discountedBuyA = buyA->copy();
+	discountedBuyA->count = count;
 }
 
 shared_ptr<ItemInstance> MerchantRecipe::getBuyBItem()

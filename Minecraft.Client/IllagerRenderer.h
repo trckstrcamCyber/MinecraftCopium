@@ -8,6 +8,7 @@ private:
 	static ResourceLocation VINDICATOR_LOCATION;
 	static ResourceLocation EVOKER_LOCATION;
 	static ResourceLocation PILLAGER_LOCATION;
+	static ResourceLocation PROVOKER_LOCATION;
 
 public:
 	IllagerRenderer();

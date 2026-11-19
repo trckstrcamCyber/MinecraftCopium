@@ -9,4 +9,5 @@ public:
 	virtual bool isInRaid() = 0;
 	virtual void getRaidCenter(int *x, int *y, int *z) = 0;
 	virtual void joinRaid(int x, int y, int z) = 0;
+	virtual void leaveRaid() = 0;		// the raid is over (won, lost or called off): stop heading for the village
 };

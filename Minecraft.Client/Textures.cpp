@@ -216,6 +216,7 @@ const wchar_t *Textures::preLoaded[TN_COUNT] =
 	L"mob/illusioner",
 	L"mob/pillager",
 	L"mob/ravager",
+	L"mob/provoker",
 	L"mob/wandering_trader",
 	L"item/cart_diamond",
 	L"item/boat_spruce",

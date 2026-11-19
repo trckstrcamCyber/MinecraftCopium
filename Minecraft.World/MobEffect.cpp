@@ -38,6 +38,7 @@ MobEffect *MobEffect::saturation;
 MobEffect *MobEffect::freezing;	// neoLegacy
 MobEffect *MobEffect::badOmen;	// neoLegacy
 MobEffect *MobEffect::raidOmen;	// neoLegacy
+MobEffect *MobEffect::heroOfTheVillage;	// neoLegacy
 MobEffect *MobEffect::reserved_24;
 MobEffect *MobEffect::reserved_25;
 MobEffect *MobEffect::reserved_26;
@@ -82,6 +83,9 @@ void MobEffect::staticCtor()
 	reserved_25 = nullptr;
 	raidOmen =			(new MobEffect(26, true, eMinecraftColour_Effect_RaidOmen))		->setDescriptionId(IDS_POTION_RAIDOMEN)		->setPostfixDescriptionId(IDS_POTION_RAIDOMEN_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Weakness);
 	reserved_26 = nullptr;
+	// neoLegacy - Hero of the Village. It does nothing itself: Villager::getOffers lowers the trade prices and Villager gives gifts while a player has it.
+	// Borrows the Resistance HUD icon (the icons live inside the UI SWF).
+	heroOfTheVillage =	(new MobEffect(27, false, eMinecraftColour_Effect_HeroOfTheVillage))	->setDescriptionId(IDS_POTION_HEROOFTHEVILLAGE)	->setPostfixDescriptionId(IDS_POTION_HEROOFTHEVILLAGE_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Resistance);
 	reserved_27 = nullptr;
 	reserved_28 = nullptr;
 	reserved_29 = nullptr;

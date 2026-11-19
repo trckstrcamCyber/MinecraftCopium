@@ -3,6 +3,9 @@
 #include "net.minecraft.world.entity.ai.attributes.h"
 #include "net.minecraft.world.entity.ai.goal.h"
 #include "net.minecraft.world.entity.ai.navigation.h"
+#include "net.minecraft.world.entity.ai.control.h"
+#include "MobEffect.h"
+#include "MobEffectInstance.h"
 #include "net.minecraft.world.entity.ai.village.h"
 #include "net.minecraft.world.entity.monster.h"
 #include "net.minecraft.world.entity.player.h"
@@ -21,6 +24,175 @@
 
 unordered_map<int, pair<int,int> > Villager::MIN_MAX_VALUES;
 unordered_map<int, pair<int,int> > Villager::MIN_MAX_PRICES;
+
+namespace
+{
+	// neoLegacy - Hero of the Village gifts (as in modern Minecraft). A villager that can see a player with the effect walks up to them and,
+	// once within five blocks, throws them a gift picked by profession. It then waits 30 seconds to 5 minutes before it can do so again.
+	// Babies throw a poppy; villagers without a trade throw wheat seeds.
+	class GiveGiftToHeroGoal : public Goal
+	{
+	private:
+		Villager *villager;
+		weak_ptr<Player> hero;
+		int64_t nextGiftTime;	// game time; 0 = a hero has not been seen yet
+		int64_t startTime;
+		bool gaveGift;
+
+		static const int SEE_DISTANCE = 16;
+		static const int THROW_DISTANCE = 5;
+
+		shared_ptr<Player> findHero()
+		{
+			Level *lvl = villager->level;
+			shared_ptr<Player> best = nullptr;
+			double bestDist = static_cast<double>(SEE_DISTANCE) * SEE_DISTANCE;
+			for (size_t i = 0; i < lvl->players.size(); i++)
+			{
+				shared_ptr<Player> p = lvl->players[i];
+				if (p == nullptr || p->removed || !p->isAlive()) continue;
+				if (!p->hasEffect(MobEffect::heroOfTheVillage)) continue;
+				double d = villager->distanceToSqr(p);
+				if (d < bestDist && villager->canSee(p)) { bestDist = d; best = p; }
+			}
+			return best;
+		}
+
+		shared_ptr<ItemInstance> pickGift()
+		{
+			Random *r = villager->getRandom();
+			if (villager->isBaby()) return std::make_shared<ItemInstance>(Tile::red_flower_Id, 1, 0);	// a poppy
+
+			int id = Item::wheat_seeds_Id, aux = 0;
+			switch (villager->getProfession())
+			{
+			case Villager::PROFESSION_FARMER:
+			{
+				static const int gifts[3] = { Item::bread_Id, Item::pumpkin_pie_Id, Item::cookie_Id };
+				id = gifts[r->nextInt(3)];
+				break;
+			}
+			case Villager::PROFESSION_LIBRARIAN:
+			{
+				// there is no Cartographer here, so the Librarian throws the Cartographer's gifts (an empty map or paper) as well as Java's book
+				static const int gifts[3] = { Item::map_Id, Item::paper_Id, Item::book_Id };
+				id = gifts[r->nextInt(3)];
+				break;
+			}
+			case Villager::PROFESSION_PRIEST:
+				if (r->nextInt(2) == 0) id = Item::redstone_Id;
+				else { id = Item::dye_Id; aux = 4; }	// lapis lazuli
+				break;
+			case Villager::PROFESSION_SMITH:
+			{
+				// the Java armorer, toolsmith and weaponsmith gifts together
+				static const int gifts[12] = {
+					Item::chainmail_helmet_Id, Item::chainmail_chestplate_Id, Item::chainmail_leggings_Id, Item::chainmail_boots_Id,
+					Item::stone_pickaxe_Id, Item::stone_axe_Id, Item::stone_hoe_Id, Item::stone_shovel_Id,
+					Item::golden_axe_Id, Item::iron_axe_Id, Item::diamond_axe_Id, Item::stone_axe_Id };
+				id = gifts[r->nextInt(12)];
+				break;
+			}
+			case Villager::PROFESSION_BUTCHER:
+			{
+				static const int gifts[5] = { Item::cooked_rabbit_Id, Item::cooked_chicken_Id, Item::cooked_porkchop_Id, Item::cooked_beef_Id, Item::cooked_mutton_Id };
+				id = gifts[r->nextInt(5)];
+				break;
+			}
+			default:
+			{
+				// no trade at all: wheat seeds most of the time, otherwise another basic seed
+				static const int gifts[5] = { Item::wheat_seeds_Id, Item::wheat_seeds_Id, Item::pumpkin_seeds_Id, Item::melon_seeds_Id, Item::beetroot_seeds_Id };
+				id = gifts[r->nextInt(5)];
+				break;
+			}
+			}
+			return std::make_shared<ItemInstance>(id, 1, aux);
+		}
+
+		// Java: the item is dropped at the villager's chest and tossed gently towards the player
+		void throwGift(shared_ptr<Player> player)
+		{
+			Level *lvl = villager->level;
+			shared_ptr<ItemInstance> gift = pickGift();
+			shared_ptr<ItemEntity> item = std::make_shared<ItemEntity>(lvl, villager->x, villager->y + villager->getHeadHeight() - 0.3, villager->z, gift);
+
+			double dx = player->x - villager->x, dy = player->y - villager->y, dz = player->z - villager->z;
+			double len = sqrt(dx * dx + dy * dy + dz * dz);
+			if (len < 0.0001) len = 1.0;
+			item->xd = dx / len * 0.3;
+			item->yd = dy / len * 0.3;
+			item->zd = dz / len * 0.3;
+			item->throwTime = 10;
+			lvl->addEntity(item);
+		}
+
+	public:
+		GiveGiftToHeroGoal(Villager *villager)
+		{
+			this->villager = villager;
+			nextGiftTime = 0;
+			startTime = 0;
+			gaveGift = false;
+			setRequiredControlFlags(Control::MoveControlFlag | Control::LookControlFlag);
+		}
+
+		virtual bool canUse()
+		{
+			if (villager->level->isClientSide || villager->isTrading()) return false;
+			shared_ptr<Player> p = findHero();
+			if (p == nullptr) return false;
+
+			int64_t now = villager->level->getGameTime();
+			if (nextGiftTime == 0) nextGiftTime = now + 600;	// the first gift comes half a minute after it first notices the hero
+			if (now < nextGiftTime) return false;
+
+			hero = p;
+			return true;
+		}
+
+		virtual bool canContinueToUse()
+		{
+			shared_ptr<Player> p = hero.lock();
+			if (gaveGift || p == nullptr || p->removed || !p->isAlive() || villager->isTrading()) return false;
+			if (!p->hasEffect(MobEffect::heroOfTheVillage)) return false;
+			return villager->level->getGameTime() - startTime < 400;	// gives up after 20 seconds of chasing
+		}
+
+		virtual void start()
+		{
+			startTime = villager->level->getGameTime();
+			gaveGift = false;
+		}
+
+		virtual void tick()
+		{
+			shared_ptr<Player> p = hero.lock();
+			if (p == nullptr) return;
+			villager->getLookControl()->setLookAt(p, 30, 30);
+
+			if (villager->distanceToSqr(p) <= static_cast<double>(THROW_DISTANCE) * THROW_DISTANCE)
+			{
+				if (villager->level->getGameTime() - startTime > 20)	// lets the head finish turning first
+				{
+					throwGift(p);
+					gaveGift = true;
+				}
+			}
+			else
+			{
+				villager->getNavigation()->moveTo(p, 0.5);
+			}
+		}
+
+		virtual void stop()
+		{
+			hero.reset();
+			villager->getNavigation()->stop();
+			if (gaveGift) nextGiftTime = villager->level->getGameTime() + 600 + villager->getRandom()->nextInt(6001);
+		}
+	};
+}
 
 void Villager::_init(int profession)
 {
@@ -56,6 +228,7 @@ void Villager::_init(int profession)
 	goalSelector.addGoal(1, new LookAtTradingPlayerGoal(this));
 	goalSelector.addGoal(2, new MoveIndoorsGoal(this));
 	goalSelector.addGoal(3, new RestrictOpenDoorGoal(this));
+	goalSelector.addGoal(4, new GiveGiftToHeroGoal(this));	// neoLegacy - Hero of the Village
 	goalSelector.addGoal(4, new OpenDoorGoal(this, true));
 	goalSelector.addGoal(5, new MoveTowardsRestrictionGoal(this, 0.6));
 	goalSelector.addGoal(6, new MakeLoveGoal(this));
@@ -388,6 +561,7 @@ MerchantRecipeList *Villager::getOffers(shared_ptr<Player> forPlayer)
 	{
 		addOffers(1);
 	}
+	offers->applyHeroDiscount(forPlayer);	// neoLegacy - Hero of the Village
 	return offers;
 }
 

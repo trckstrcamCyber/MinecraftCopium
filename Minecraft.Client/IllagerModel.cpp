@@ -75,6 +75,8 @@ void IllagerModel::setupAnim(float time, float r, float bob, float yRot, float x
 
 	shared_ptr<Illager> illager = dynamic_pointer_cast<Illager>(entity);
 	Illager::ArmPose pose = (illager != nullptr) ? illager->getArmPose() : Illager::CROSSED;
+	// a lost raid's survivors cheer whenever they are not busy (arms folded or hanging)
+	if (illager != nullptr && illager->isCelebrating() && (pose == Illager::CROSSED || pose == Illager::NEUTRAL)) pose = Illager::CELEBRATING;
 
 	// arms always return to their resting pivots first (the casting pose moves them)
 	arm0->setPos(-5, 2, 0);
@@ -108,6 +110,19 @@ void IllagerModel::setupAnim(float time, float r, float bob, float yRot, float x
 		arm0->xRot = Mth::cos(bob * 0.6662f) * 0.25f;
 		arm1->xRot = Mth::cos(bob * 0.6662f) * 0.25f;
 		arm0->zRot = 2.3561945f;
+		arm1->zRot = -2.3561945f;
+		arm0->yRot = 0;
+		arm1->yRot = 0;
+	}
+
+	if (pose == Illager::CELEBRATING)
+	{
+		// both arms thrown up in the air, waving a little (Java: AnimationUtils for the CELEBRATING pose)
+		arm0->setPos(-5, 2, 0);
+		arm1->setPos(5, 2, 0);
+		arm0->xRot = Mth::cos(bob * 0.6662f) * 0.05f;
+		arm1->xRot = Mth::cos(bob * 0.6662f) * 0.05f;
+		arm0->zRot = 2.670354f;
 		arm1->zRot = -2.3561945f;
 		arm0->yRot = 0;
 		arm1->yRot = 0;

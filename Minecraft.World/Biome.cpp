@@ -158,6 +158,17 @@ void Biome::staticCtor()
     Biome::bambooJungleHills = (new JungleBiome(169, false, true))->setColor(0x3b470a)->setName(L"Bamboo Jungle Hills")->setLeafColor(0x537b09)->setTemperatureAndDownfall(0.95f, 0.9f)->setDepthAndScale(0.45f, 0.3f)->setLeafFoliageWaterSkyColor(eMinecraftColour_Grass_JungleHills, eMinecraftColour_Foliage_JungleHills, eMinecraftColour_Water_JungleHills, eMinecraftColour_Sky_JungleHills);
     Biome::mesaPlateauM = (new MesaBiome(167, true, false))->setColor(0xca5936)->setName(L"Mesa Plateau M")->setLeafFoliageWaterSkyColor(eMinecraftColour_Grass_Mesa, eMinecraftColour_Foliage_Mesa, eMinecraftColour_Water_Mesa, eMinecraftColour_Sky_Desert);
     
+    // neoLegacy - the Iceologer haunts every snowy or icy biome: snowy taiga (and its hills), snowy beaches, frozen oceans and rivers, ice plains,
+    // ice spikes and ice mountains. Ice biomes and the mountains already list it; this adds it everywhere else the snow falls. Weight 5, single
+    // mobs, so it stays rare next to the Frostbites.
+    for (int i = 0; i < 256; i++)
+    {
+        Biome *b = Biome::biomes[i];
+        if (b == nullptr || !b->hasSnow()) continue;
+        bool listed = false;
+        for (size_t m = 0; m < b->enemies.size(); m++) if (b->enemies[m]->mobClass == eTYPE_ICEOLOGER) listed = true;
+        if (!listed) b->enemies.push_back(new MobSpawnerData(eTYPE_ICEOLOGER, 5, 1, 1));
+    }
 
 }
 Biome::Biome(int id) : id(id)

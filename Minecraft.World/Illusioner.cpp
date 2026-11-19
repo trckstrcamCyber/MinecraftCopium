@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "RaidGoals.h"
 #include "Random.h"
 #include "PathNavigation.h"
 #include "AttributeInstance.h"
@@ -104,6 +105,8 @@ Illusioner::Illusioner(Level *level) : SpellcasterIllager(level)
 	goalSelector.addGoal(4, new IllusionerMirrorSpellGoal(this));
 	goalSelector.addGoal(5, new IllusionerBlindnessSpellGoal(this));
 	goalSelector.addGoal(6, new RangedAttackGoal(this, this, 0.5, 20, 15.0f));
+	goalSelector.addGoal(7, new RaidMoveGoal(this, this, 1.0));	// raids and patrols can send an Illusioner too
+	goalSelector.addGoal(7, new PatrolGoal(this, 0.5));
 	goalSelector.addGoal(8, new RandomStrollGoal(this, 0.6));
 	goalSelector.addGoal(9, new LookAtPlayerGoal(this, typeid(Player), 3.0f, 1.0f));
 	goalSelector.addGoal(10, new LookAtPlayerGoal(this, typeid(Mob), 8.0f));
