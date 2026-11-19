@@ -29,6 +29,7 @@
 #include "FirearmEnchantment.h"
 #include "MaceEnchantments.h"
 #include "MaceItem.h"
+#include "CrossbowItem.h"
 
 //Enchantment *Enchantment::enchantments[256];
 EnchantmentArray Enchantment::enchantments = EnchantmentArray( 256 );
@@ -56,6 +57,10 @@ Enchantment *Enchantment::veinminer = nullptr;
 Enchantment *Enchantment::autoSmelt = nullptr;
 Enchantment *Enchantment::treeCapitator = nullptr;
 Enchantment *Enchantment::explosive = nullptr;
+Enchantment *Enchantment::quickCharge = nullptr;	// neoLegacy - crossbow
+Enchantment *Enchantment::multishot = nullptr;
+Enchantment *Enchantment::piercing = nullptr;
+Enchantment *Enchantment::torched = nullptr;
 Enchantment *Enchantment::airJump = nullptr;
 Enchantment *Enchantment::critStacking = nullptr;
 Enchantment *Enchantment::rageStacking = nullptr;
@@ -156,6 +161,12 @@ void Enchantment::staticCtor()
 	// neoLegacy custom bow enchantments
 	explosive = new ExplosiveEnchantment(52, FREQ_VERY_RARE);
 
+	// neoLegacy - crossbow enchantments (ids 53-56 are the free slots right after the bow block)
+	quickCharge = new QuickChargeEnchantment(53, FREQ_UNCOMMON);
+	multishot = new MultishotEnchantment(54, FREQ_RARE);
+	piercing = new PiercingEnchantment(55, FREQ_COMMON);
+	torched = new TorchedEnchantment(56, FREQ_RARE);
+
 	// fishing rod
 	lure = new LureEnchantment(64, FREQ_RARE);
 	luckOfTheSea = new LuckOfTheSeaEnchantment(65, FREQ_RARE);
@@ -195,7 +206,7 @@ void Enchantment::staticCtor()
 	for(unsigned int i = 0; i < 256; ++i)
 	{
 		Enchantment *enchantment = enchantments[i];
-		if (enchantment != nullptr && !enchantment->isTreasureEnchantment() && !enchantment->isCurse())
+		if (enchantment != nullptr && !enchantment->isTreasureOnly() && !enchantment->isCurse())
 		{
 			validEnchantments.push_back(enchantment);
 		}
@@ -288,6 +299,11 @@ bool Enchantment::canEnchant(shared_ptr<ItemInstance> item)
 {
 	// neoLegacy - the Mace can only take the enchantments in MaceItem::isEnchantmentAllowed (Java's list).
 	if (MaceItem::isMace(item) && !MaceItem::isEnchantmentAllowed(this))
+	{
+		return false;
+	}
+	// neoLegacy - the Crossbow only takes the enchantments in CrossbowItem::isEnchantmentAllowed
+	if (CrossbowItem::isCrossbow(item) && !CrossbowItem::isEnchantmentAllowed(this))
 	{
 		return false;
 	}

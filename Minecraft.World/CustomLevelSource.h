@@ -13,6 +13,7 @@ class StrongholdFeature;
 class VillageFeature;
 class MineShaftFeature;
 class RandomScatteredLargeFeature;
+class PillagerOutpostFeature;
 class OceanMonumentFeature;
 
 class CustomLevelSource : public ChunkSource
@@ -35,6 +36,7 @@ private:
  	VillageFeature *villageFeature;
  	MineShaftFeature *mineShaftFeature;
 	RandomScatteredLargeFeature *scatteredFeature;
+	PillagerOutpostFeature *outpostFeature;	// neoLegacy
     OceanMonumentFeature* oceanMonument;
  	LargeFeature *canyonFeature;
 	Level *level;

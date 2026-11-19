@@ -52,6 +52,9 @@
 #include "../Minecraft.World/ToggleDownfallCommand.h"
 #include "../Minecraft.World/LargeFeature.h"	// neoLegacy - /locate
 #include "../Minecraft.World/ComplexCraftingMenu.h"	// neoLegacy - Complex Table
+#include "../Minecraft.World/BannerItem.h"	// neoLegacy - banner editor (server craft branch)
+#include "../Minecraft.World/BannerPatterns.h"	// neoLegacy - banner editor (server craft branch)
+#include "../Minecraft.World/DyePowderItem.h"	// neoLegacy - banner editor (server craft branch)
 
 #include <sstream>
 
@@ -649,6 +652,7 @@ void PlayerConnection::handleUseItem(shared_ptr<UseItemPacket> packet)
 	ServerLevel *level = server->getLevel(player->dimension);
 	shared_ptr<ItemInstance> item = player->inventory->getSelected();
 	bool informClient = false;
+	bool blockHandled = false;
 	int x = packet->getX();
 	int y = packet->getY();
 	int z = packet->getZ();
@@ -738,7 +742,7 @@ void PlayerConnection::handleUseItem(shared_ptr<UseItemPacket> packet)
 				int savedItemCount = item ? item->count : 0;
 #endif
 
-				player->gameMode->useItemOn(player, level, item, x, y, z, face, packet->getClickX(), packet->getClickY(), packet->getClickZ());
+				player->gameMode->useItemOn(player, level, item, x, y, z, face, packet->getClickX(), packet->getClickY(), packet->getClickZ(), false, &blockHandled);
 
 #if defined(_WINDOWS64) && defined(MINECRAFT_SERVER_BUILD)
 				if (validFace)
@@ -858,7 +862,8 @@ skipUseItemOn:
 	}
 
 	//Migrate QuickEquip packet here instead
-	if (item != nullptr && (item->getItem()->getBaseItemType() == Item::eBaseItemType_helmet
+	if (item != nullptr && !blockHandled
+		&& (item->getItem()->getBaseItemType() == Item::eBaseItemType_helmet
 		|| item->getItem()->getBaseItemType() == Item::eBaseItemType_chestplate
 		|| item->getItem()->getBaseItemType() == Item::eBaseItemType_leggings
 		|| item->getItem()->getBaseItemType() == Item::eBaseItemType_boots)) {
@@ -1494,7 +1499,7 @@ if (cmd == L"tp" || cmd == L"teleport")
 		if (structureArg.empty())
 		{
 			warn(L"Usage: /locate <structure>");
-			warn(L"Available: village, stronghold, mineshaft, monument, temple");
+			warn(L"Available: village, stronghold, mineshaft, monument, temple, outpost");
 			return;
 		}
 
@@ -1525,10 +1530,15 @@ if (cmd == L"tp" || cmd == L"teleport")
 			featureKey = LargeFeature::TEMPLE;
 			displayName = L"Temple";
 		}
+		else if (structureArg == L"outpost")
+		{
+			featureKey = LargeFeature::OUTPOST;
+			displayName = L"Pillager Outpost";
+		}
 		else
 		{
 			warn(L"Unknown structure: " + structureArg);
-			warn(L"Available: village, stronghold, mineshaft, monument, temple");
+			warn(L"Available: village, stronghold, mineshaft, monument, temple, outpost");
 			return;
 		}
 
@@ -2805,6 +2815,142 @@ void PlayerConnection::handleDebugOptions(shared_ptr<DebugOptionsPacket> packet)
 
 void PlayerConnection::handleCraftItem(shared_ptr<CraftItemPacket> packet)
 {
+	if (packet->isBanner) {
+		if (dynamic_cast<CraftingMenu*>(player->containerMenu) == nullptr) {
+			server->warn(L"Player " + player->getName() + L" tried to craft a 3x3 banner recipe without a crafting bench");
+			return;
+		}
+
+		if (packet->patternColors.size() != packet->patternIndexs.size() || packet->patternIndexs.empty() || packet->patternIndexs.size() > 6) return;
+
+		shared_ptr<ItemInstance> foundBannerItem = nullptr;
+		for (int i = 0; i < player->inventory->items.length && foundBannerItem == nullptr; i++) {
+			shared_ptr<ItemInstance>& item = player->inventory->items[i];
+			if (item == nullptr || item->id != Tile::standing_banner_Id) continue;
+			if (item->getAuxValue() != packet->findBannerAux) continue;
+
+			std::vector<char> bannerPatternIndexs = BannerItem::getPatternIndexs(item);
+			if (bannerPatternIndexs.size() != packet->findPatternIndexs.size()) continue;
+
+			bool failedPatternMatches = false;
+			for (int j = 0; j < bannerPatternIndexs.size(); j++) {
+				if (packet->findPatternIndexs[j] != bannerPatternIndexs[j]) {
+					failedPatternMatches = true;
+					break;
+				}
+			}
+			if (failedPatternMatches) continue;
+
+			std::vector<char> bannerPatternColors = BannerItem::getPatternColors(item);
+			if (bannerPatternColors.size() != packet->findPatternColors.size()) continue;
+
+			for (int j = 0; j < bannerPatternColors.size(); j++) {
+				if (packet->findPatternColors[j] != bannerPatternColors[j]) {
+					failedPatternMatches = true;
+					break;
+				}
+			}
+			if (failedPatternMatches) continue;
+
+			foundBannerItem = item;
+		}
+
+		if (foundBannerItem == nullptr) return;
+
+		// neoLegacy - ADDED vs upstream: his BannerItem::addPattern enforces no layer cap (upstream's
+		// addBannerPattern refuses at >= 6), so reject any packet that would take the banner past 6 total.
+		if (BannerItem::getPatterns(foundBannerItem).size() + packet->patternIndexs.size() > 6) return;
+
+		bool craftAnything = app.DebugSettingsOn() && (player->GetDebugOptions() & (1L << eDebugSetting_CraftAnything));
+		bool canCraft = true;
+
+		//forward wrappers from IUIScene_CraftingMenu
+		auto hasItem = [&](int id, int requiredCount = 1, int aux = -1) {
+			int count = 0;
+			for (int i = 0; i < player->inventory->items.length; i++) {
+				const shared_ptr<ItemInstance>& item = player->inventory->items[i];
+				if (item == nullptr || item->id != id) continue;
+				if (aux != -1 && item->getAuxValue() != aux) continue;
+				count += item->count;
+				if (count >= requiredCount) return true;
+			}
+			return false;
+		};
+
+		auto hasItemCounts = [&](int id, int aux = -1) {
+			int count = 0;
+			for (int i = 0; i < player->inventory->items.length; i++) {
+				const shared_ptr<ItemInstance>& item = player->inventory->items[i];
+				if (item == nullptr || item->id != id) continue;
+				if (aux != -1 && item->getAuxValue() != aux) continue;
+				count += item->count;
+			}
+			return count;
+		};
+
+		if (canCraft && !craftAnything) {
+			int requiredDyes[16] = {};
+			for (int i = 0; i < packet->patternIndexs.size(); i++) {
+				int patternIndex = static_cast<unsigned char>(packet->patternIndexs[i]);
+				const BannerPatternDef *pattern = BannerPatterns::get(patternIndex);
+				if (pattern == nullptr) return;
+				if (pattern->itemId != 0) continue;
+
+				int color = static_cast<unsigned char>(packet->patternColors[i]) & 15;
+				for (int row = 0; row < 3; row++)
+					for (int col = 0; col < 3; col++)
+						if (pattern->rows[row][col] != ' ') ++requiredDyes[color];
+			}
+
+			for (int color = 0; color < 16; color++) {
+				if (hasItemCounts(Item::dye_Id, color) < requiredDyes[color]) {
+					canCraft = false;
+					break;
+				}
+			}
+		}
+
+		if (!canCraft) return;
+
+		shared_ptr<ItemInstance> newBanner = ItemInstance::clone(foundBannerItem);
+		for (int i = 0; i < packet->patternIndexs.size(); i++) {
+			int patternIndex = static_cast<unsigned char>(packet->patternIndexs[i]);
+			const BannerPatternDef *pattern = BannerPatterns::get(patternIndex);
+			if (pattern == nullptr) return;
+			int color = packet->patternColors[i];
+			BannerItem::addPattern(newBanner, pattern->code, color < 0 ? DyePowderItem::BLACK : color);
+		}
+
+		if (!craftAnything) {
+			for (int i = 0; i < packet->patternIndexs.size(); i++) {
+				int patternIndex = static_cast<unsigned char>(packet->patternIndexs[i]);
+				const BannerPatternDef *pattern = BannerPatterns::get(patternIndex);
+				if (pattern == nullptr) return;
+
+				if (pattern->itemId != 0) {
+					// neoLegacy - itemAux -1 means "any aux" (cbo/bri/flo); removeResource(id, -1) never
+					// matches (getSlot requires an exact aux), so use the any-aux overload for those.
+					if (pattern->itemAux < 0) player->inventory->removeResource(pattern->itemId);
+					else player->inventory->removeResource(pattern->itemId, pattern->itemAux);
+				} else {
+					int color = static_cast<unsigned char>(packet->patternColors[i]) & 15;
+					int dyeCount = 0;
+					for (int row = 0; row < 3; row++)
+						for (int col = 0; col < 3; col++)
+							if (pattern->rows[row][col] != ' ') ++dyeCount;
+
+					for (int j = 0; j < dyeCount; j++)
+						player->inventory->removeResource(Item::dye_Id, color);
+				}
+			}
+
+			player->inventory->removeResources(foundBannerItem);
+		}
+
+		if (!player->inventory->add(newBanner)) player->drop(newBanner);
+		return;
+	}
+
 	int iRecipe = packet->recipe;
 
 	if(iRecipe == -1)

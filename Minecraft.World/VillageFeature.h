@@ -22,6 +22,10 @@ public:
 	VillageFeature(unordered_map<wstring, wstring> options, int iXZSize);
 	wstring getFeatureName();
 
+public:
+	// neoLegacy - lets the Pillager Outpost keep its distance from villages
+	bool isVillageChunk(int x, int z) { return isFeatureChunk(x, z); }
+
 protected:
 	virtual bool isFeatureChunk(int x, int z, bool bIsSuperflat=false);
 	virtual StructureStart *createStructureStart(int x, int z);

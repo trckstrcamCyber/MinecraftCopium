@@ -47,6 +47,7 @@ class LevelSettings;
 class Biome;
 class Villages;
 class VillageSiege;
+class RaidManager;
 class Tickable;
 class Minecart;
 class EntitySelector;
@@ -161,6 +162,7 @@ public:
 	SavedDataStorage *savedDataStorage;
 	shared_ptr<Villages> villages;
 	VillageSiege *villageSiege;
+	RaidManager *raidManager;	// neoLegacy - patrols and raids
 
 private:
 	// 4J - Calendar is now static
@@ -332,6 +334,7 @@ public:
 	Vec3 *getFogColor(float a);
 	int getTopRainBlock(int x, int z);
 	int getTopSolidBlock(int x, int z);
+	int getTopSolidOrLiquidBlock(int x, int z);
 	bool biomeHasRain(int x, int z);	// 4J added
 	bool biomeHasSnow(int x, int z);	// 4J added
 	int getLightDepth(int x, int z);

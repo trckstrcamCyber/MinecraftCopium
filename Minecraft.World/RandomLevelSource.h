@@ -10,6 +10,7 @@ class VillageFeature;
 class MineShaftFeature;
 class PerlinNoise;
 class RandomScatteredLargeFeature;
+class PillagerOutpostFeature;
 class OceanMonumentFeature;
 
 class RandomLevelSource : public ChunkSource
@@ -68,6 +69,7 @@ private:
 	VillageFeature *villageFeature;
 	MineShaftFeature *mineShaftFeature;
 	RandomScatteredLargeFeature *scatteredFeature;
+	PillagerOutpostFeature *outpostFeature;	// neoLegacy
 	LargeFeature *canyonFeature;
 	OceanMonumentFeature *oceanMonument;
 private:

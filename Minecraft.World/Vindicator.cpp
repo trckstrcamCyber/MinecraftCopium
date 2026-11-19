@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "RaidGoals.h"
 #include "Random.h"
 #include "PathNavigation.h"
 #include "AttributeInstance.h"
@@ -32,6 +33,7 @@ Vindicator::Vindicator(Level *level) : Illager(level)
 	goalSelector.addGoal(3, new MeleeAttackGoal(this, eTYPE_VILLAGER, 1.0, true));
 	goalSelector.addGoal(3, new MeleeAttackGoal(this, eTYPE_VILLAGERGOLEM, 1.0, true));
 	goalSelector.addGoal(4, new MoveTowardsRestrictionGoal(this, 1.0));
+	goalSelector.addGoal(4, new RaidMoveGoal(this, this, 1.0));
 	goalSelector.addGoal(8, new RandomStrollGoal(this, 0.6));
 	goalSelector.addGoal(9, new LookAtPlayerGoal(this, typeid(Player), 3.0f, 1.0f));
 	goalSelector.addGoal(10, new LookAtPlayerGoal(this, typeid(Mob), 8.0f));

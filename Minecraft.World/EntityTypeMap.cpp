@@ -23,6 +23,7 @@ static const unordered_map<wstring, eINSTANCEOF> s_nameToType = {
     { L"iceologer",        eTYPE_ICEOLOGER        },
     { L"illusioner",       eTYPE_ILLUSIONER       },
     { L"pillager",         eTYPE_PILLAGER         },
+    { L"ravager",          eTYPE_RAVAGER          },
     { L"wandering_trader", eTYPE_WANDERING_TRADER },
     { L"mooshroom",        eTYPE_MUSHROOMCOW      },
     { L"squid",            eTYPE_SQUID            },

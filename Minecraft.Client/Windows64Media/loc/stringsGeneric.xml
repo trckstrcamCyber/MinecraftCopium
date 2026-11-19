@@ -1307,6 +1307,26 @@
 		<value>Causes players and mobs to bounce when they jump on it.</value>
 	</data>
 
+	<data name="IDS_DESC_MAGMA">
+		<value>Causes fire damage when you stand on it.</value>
+	</data>
+
+	<data name="IDS_DESC_NETHER_WART_BLOCK">
+		<value>A decorative block crafted from Nether Wart.</value>
+	</data>
+
+	<data name="IDS_DESC_RED_NETHER_BRICK">
+		<value>Crafted from Nether Wart and Nether Brick. Can be used as decoration.</value>
+	</data>
+
+	<data name="IDS_DESC_BONE_BLOCK">
+		<value>Crafted from Bone Meal, or found underground in fossils. Can be used as decoration.</value>
+	</data>
+
+	<data name="IDS_DESC_GRASS_PATH">
+		<value>A decorative block that can be created by using a shovel on a Grass Block.</value>
+	</data>
+
 	<data name="IDS_DESC_DIRT">
 		<value>Collected using a shovel. Can be used for construction.</value>
 	</data>
@@ -5317,6 +5337,10 @@
 		<value>Change Group</value>
 	</data>
 
+	<data name="IDS_TOOLTIPS_CHANGE_TYPE">
+		<value>Type</value>
+	</data>
+
 	<data name="IDS_TOOLTIPS_SHOW_INVENTORY">
 		<value>Show Inventory</value>
 	</data>
@@ -5335,6 +5359,14 @@
 
 	<data name="IDS_TOOLTIPS_CREATE">
 		<value>Create</value>
+	</data>
+
+	<data name="IDS_TOOLTIPS_ADD">
+		<value>Add</value>
+	</data>
+
+	<data name="IDS_TOOLTIPS_REMOVE">
+		<value>Remove</value>
 	</data>
 
 	<data name="IDS_TOOLTIPS_PICKUPPLACE">
@@ -5787,6 +5819,10 @@
 
 	<data name="IDS_CONFIRM_EXIT_GAME">
 		<value>Are you sure you want to exit to the main menu? Any unsaved progress will be lost.</value>
+	</data>
+
+	<data name="IDS_CONFIRM_EXIT_GAME_AUTOSAVE">
+		<value>Are you sure you want to exit to the main menu?</value>
 	</data>
 
 	<data name="IDS_CONFIRM_EXIT_GAME_PROGRESS_LOST">
@@ -6768,6 +6804,10 @@
 		<value>{*PLAYER*} burned to death</value>
 	</data>
 
+	<data name="IDS_DEATH_HOT_FLOOR">
+		<value>{*PLAYER*} discovered the floor was lava</value>
+	</data>
+
 	<data name="IDS_DEATH_LAVA">
 		<value>{*PLAYER*} tried to swim in lava</value>
 	</data>
@@ -6878,6 +6918,10 @@
 
 	<data name="IDS_DEATH_ONFIRE_PLAYER">
 		<value>{*PLAYER*} was burnt to a crisp whilst fighting {*SOURCE*}</value>
+	</data>
+
+	<data name="IDS_DEATH_HOT_FLOOR_PLAYER">
+		<value>{*PLAYER*} walked into the danger zone due to {*SOURCE*}</value>
 	</data>
 
 	<data name="IDS_DEATH_LAVA_PLAYER">
@@ -7445,6 +7489,94 @@
 
 	<data name="IDS_JOIN_GAME">
 		<value>Join Game</value>
+	</data>
+
+	<data name="IDS_MINIGAMES">
+		<value>Mini Games</value>
+	</data>
+
+	<data name="IDS_BATTLE">
+		<value>Battle</value>
+	</data>
+
+	<data name="IDS_BATTLE_MODE_CASUAL">
+		<value>Game Type: Casual</value>
+	</data>
+
+	<data name="IDS_BATTLE_MODE_COMPETITIVE">
+		<value>Game Type: Competitive</value>
+	</data>
+
+	<data name="IDS_BATTLE_MODE_CUSTOM">
+		<value>Game Type: Custom</value>
+	</data>
+
+	<data name="IDS_BATTLE_MODE_ANY">
+		<value>Game Type: Any</value>
+	</data>
+
+	<data name="IDS_BATTLE_MODE_CASUAL_DESC">
+		<value>Create a Casual game, which allows all player skins and spectators appear as Bats.</value>
+	</data>
+
+	<data name="IDS_BATTLE_MODE_COMPETITIVE_DESC">
+		<value>Create a Competitive game, which doesn't allow player skins that provide an advantage (e.g. being smaller than normal, or not displaying all armor), and spectators are invisible.</value>
+	</data>
+
+	<data name="IDS_BATTLE_MODE_CUSTOM_DESC">
+		<value>Create a custom game and modify a variety of settings to create a new game experience.</value>
+	</data>
+
+	<data name="IDS_BATTLE_JOIN_CASUAL_DESC">
+		<value>Join a Casual game, which allows all player skins and spectators appear as Bats.</value>
+	</data>
+
+	<data name="IDS_BATTLE_JOIN_COMPETITIVE_DESC">
+		<value>Join a Competitive game, which doesn't allow player skins that provide an advantage (e.g. being smaller than normal, or not displaying all armor), and spectators are invisible.</value>
+	</data>
+
+	<data name="IDS_BATTLE_JOIN_CUSTOM_DESC">
+		<value>Join a Custom game with your selected Round Length.</value>
+	</data>
+
+	<data name="IDS_BATTLE_JOIN_ANY_DESC">
+		<value>Join any Casual or Competitive game with your selected Round Length.</value>
+	</data>
+
+	<data name="IDS_GAMEOPTION_SELECTMAPS">
+		<value>Select Maps</value>
+	</data>
+
+	<data name="IDS_CHECKBOX_PUBLIC_GAME">
+		<value>Public Game</value>
+	</data>
+
+	<data name="IDS_GAMEOPTION_PUBLIC">
+		<value>When enabled, Allows players that are not your friends to find and join your game.</value>
+	</data>
+
+	<data name="IDS_CREATE">
+		<value>Create</value>
+	</data>
+
+	<data name="IDS_JOIN">
+		<value>Join</value>
+	</data>
+
+	<data name="IDS_FRIENDS">
+		<value>Friends</value>
+	</data>
+
+	<data name="IDS_GAMEOPTION_FRIENDSOFRIENDS">
+		<value>Allow friends of friends</value>
+	</data>
+
+	<data name="IDS_GAMEOPTION_MOREOPTIONS">
+		<value>More Options</value>
+	</data>
+
+	<data name="IDS_GAMEOPTION_CREATEGAME">
+		<value>Create Game</value>
 	</data>
 
 	<data name="IDS_START_GAME">
@@ -8446,6 +8578,10 @@
 
 	<data name="IDS_DEATH_FALLING_TILE">
 		<value>{*PLAYER*} was squashed by a falling block.</value>
+	</data>
+
+	<data name="IDS_DEATH_FLY_INTO_WALL">
+		<value>{*PLAYER*} experienced kinetic energy.</value>
 	</data>
 
 	<data name="IDS_COMMAND_TELEPORT_SUCCESS">
@@ -9695,6 +9831,10 @@
 		<value>Swap</value>
 	</data>
 
+	<data name="IDS_SWAP_KBM">
+		<value>Swap A &amp; B</value>
+	</data>
+
 	<data name="IDS_COPYSAVE">
 		<value>Copy Save</value>
 	</data>
@@ -10184,6 +10324,12 @@
 	<data name="IDS_ITEM_SWORD_SHUSUI">
 		<value>Shusui</value>
 	</data>
+	<data name="IDS_ITEM_SWORD_JDEMON">
+		<value>JDemon Sword</value>
+	</data>
+	<data name="IDS_ITEM_SWORD_CMONSTER">
+		<value>CMonster Sword</value>
+	</data>
 
 	<data name="IDS_ITEM_BOAT_SPRUCE">
 		<value>Spruce Boat</value>
@@ -10521,5 +10667,28 @@
 	<data name="IDS_DESC_CROSSBOW">
 		<value>A ranged weapon. Hold right-click to draw it and release to load an arrow, then right-click again to fire.</value>
 	</data>
+	<data name="IDS_RAVAGER">
+	<value>Ravager</value>
+	</data>
+	<data name="IDS_POTION_BADOMEN">
+		<value>Bad Omen</value>
+	</data>
+	<data name="IDS_POTION_BADOMEN_POSTFIX">
+		<value>Bad Omen</value>
+	</data>
+	<data name="IDS_POTION_RAIDOMEN">
+		<value>Raid Omen</value>
+	</data>
+	<data name="IDS_POTION_RAIDOMEN_POSTFIX">
+		<value>Raid Omen</value>
+	</data>
+	<data name="IDS_ITEM_OMINOUS_BOTTLE">
+		<value>Ominous Bottle</value>
+	</data>
+	<data name="IDS_DESC_OMINOUS_BOTTLE">
+		<value>Drink it to get Bad Omen. Take Bad Omen into a village to start a raid.</value>
+	</data>
+
+
 
 </root>

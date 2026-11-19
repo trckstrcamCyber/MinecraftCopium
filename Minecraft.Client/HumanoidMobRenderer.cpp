@@ -1,5 +1,8 @@
 #include "stdafx.h"
 #include "CrossbowHold.h"
+#include "BannerHold.h"
+#include "BannerRenderer.h"
+#include "../Minecraft.World/BannerItem.h"
 #include "HumanoidMobRenderer.h"
 #include "SkullTileRenderer.h"
 #include "HumanoidModel.h"
@@ -198,7 +201,18 @@ void HumanoidMobRenderer::additionalRendering(shared_ptr<LivingEntity> mob, floa
 			glPushMatrix();
 			humanoidModel->head->translateTo(1 / 16.0f);
 
-			if (Tile::isTileItemId(headGear->getItem()->id))
+			if (dynamic_cast<BannerItem *>(headGear->getItem()) != nullptr)
+			{
+				// neoLegacy - a raid captain's banner: the pole stands on the top of the head (the head's top is 8 pixels above its centre)
+				// (a mob is already drawn upside down and mirrored, which is how the banner model is built, so no flip like the held banner's)
+				float s = BANNER_HEAD_SCALE;
+				glTranslatef(-BANNER_HEAD_X / 16.0f, (-8.0f - BANNER_HEAD_Y) / 16.0f, BANNER_HEAD_Z / 16.0f);
+				glRotatef(BANNER_HEAD_YAW, 0, 1, 0);
+				glScalef(s, s, s);
+				vector<BannerPattern> bannerPatterns = BannerItem::getPatterns(headGear);
+				BannerRenderer::instance->renderBannerForHand(1.0f, headGear->getAuxValue() & 15, &bannerPatterns);
+			}
+			else if (Tile::isTileItemId(headGear->getItem()->id))
 			{
 				if (Tile::tiles[headGear->id] != nullptr && TileRenderer::canRender(Tile::tiles[headGear->id]->getRenderShape()))
 				{
@@ -260,7 +274,22 @@ void HumanoidMobRenderer::additionalRendering(shared_ptr<LivingEntity> mob, floa
 			glRotatef(-100, 1, 0, 0);
 			glRotatef(45, 0, 1, 0);
 		}
-		else if (item->id == Item::crossbow_Id || item->id == Item::crossbow_loaded_Id)
+		else if (mob->GetType() == eTYPE_PILLAGER && (item->id == Item::crossbow_Id || item->id == Item::crossbow_loaded_Id || item->id == Item::crossbow_loaded_firework_Id))
+		{
+			// neoLegacy - the Pillager's crossbow, held like Java: lying flat on its side with the front (the readable side of the sprite) up, the
+			// muzzle along the way the arm points, and the grip in the hand. We are in the arm's own frame here (+y runs down the arm toward the
+			// fingers, -z is up while the arm is raised, +x is the creature's left), so the hold follows both arm poses. The numbers below were
+			// solved against the sprite (stock at its bottom right, muzzle at its top left) for the raised-and-aiming pose, where they put the
+			// crossbow level and pointing straight ahead. Knobs: CrossbowHold.h.
+			glTranslatef(CROSSBOW_TP_LEFT, CROSSBOW_TP_FORWARD, -CROSSBOW_TP_UP);
+			glRotatef(CROSSBOW_TP_YAW, 0, 0, -1);		// about the way up
+			glRotatef(CROSSBOW_TP_PITCH, -1, 0, 0);		// about the creature's left, so + raises the muzzle
+			glRotatef(CROSSBOW_TP_ROLL, 0, 1, 0);		// about the length of the arm
+			glTranslatef(0.2545f, 0.4633f, -0.1f);		// the grip sits in the hand, a little above the arm
+			glRotatef(97.95f, 0.3863f, -0.4057f, 0.8284f);
+			glScalef(0.5333f, 0.5333f, 0.5333f);		// about 0.8 of a block long
+		}
+		else if (item->id == Item::crossbow_Id || item->id == Item::crossbow_loaded_Id || item->id == Item::crossbow_loaded_firework_Id)
 		{
 			// neoLegacy - a crossbow is held on its side with the muzzle pointing forward, not like a sword
 			float s = 10 / 16.0f;

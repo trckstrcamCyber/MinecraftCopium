@@ -8,6 +8,7 @@
 #include "net.minecraft.h"
 #include "net.minecraft.world.h"
 #include "net.minecraft.world.entity.ai.village.h"
+#include "RaidManager.h"
 #include "net.minecraft.world.entity.h"
 #include "net.minecraft.world.entity.global.h"
 #include "net.minecraft.world.entity.player.h"
@@ -588,6 +589,7 @@ void Level::_init()
 	updatingTileEntities = false;
 
 	villageSiege = new VillageSiege(this);
+	raidManager = new RaidManager(this);
 	scoreboard = new Scoreboard();
 
 	toCheckLevel = new int[ 32 * 32 * 32];	// 4J - brought forward from 1.8.2
@@ -732,6 +734,7 @@ Level::~Level()
 	delete toCheckLevel;
 	delete scoreboard;
 	delete villageSiege;
+	delete raidManager;
 
 	if( !isClientSide )
 	{
@@ -2213,6 +2216,31 @@ int Level::getTopSolidBlock(int x, int z)
 }
 
 
+int Level::getTopSolidOrLiquidBlock(int x, int z)
+{
+	LevelChunk *levelChunk = getChunkAt(x, z);
+
+	int y = levelChunk->getHighestSectionPosition() + 15;
+
+	x &= 15;
+	z &= 15;
+
+	while (y > 0)
+	{
+		int t = levelChunk->getTile(x, y, z);
+		if (t == 0 || Tile::tiles[t]->material == Material::leaves)
+		{
+			y--;
+		}
+		else
+		{
+			return y + 1;
+		}
+	}
+	return -1;
+}
+
+
 int Level::getLightDepth(int x, int z)
 {
 	return getChunkAt(x, z)->getHeightmap(x & 15, z & 15);
@@ -3045,7 +3073,7 @@ bool Level::isSolidRenderTile(int x, int y, int z)
 	// textures exist already for non-fancy graphics). Note: this tile-specific code is here rather than making some new virtual method in the tiles,
 	// for the sake of efficiency - I don't imagine we'll be doing much more of this sort of thing
 
-	if( tile->id == Tile::leaves_Id )
+	if (tile->id == Tile::leaves_Id || tile->id == Tile::leaves2_Id)
 	{
 		int axo[6] = { 1,-1, 0, 0, 0, 0};
 		int ayo[6] = { 0, 0, 1,-1, 0, 0};
@@ -3053,7 +3081,7 @@ bool Level::isSolidRenderTile(int x, int y, int z)
 		for( int i = 0; i < 6; i++ )
 		{
 			int t = getTile(x + axo[i], y + ayo[i] , z + azo[i]);
-			if( ( t != Tile::leaves_Id ) && ( ( Tile::tiles[t] == nullptr ) || !Tile::tiles[t]->isSolidRender() ) )
+            if ((t != Tile::leaves_Id && t != Tile::leaves2_Id) && ((Tile::tiles[t] == nullptr) || !Tile::tiles[t]->isSolidRender()))
 			{
 				return false;
 			}

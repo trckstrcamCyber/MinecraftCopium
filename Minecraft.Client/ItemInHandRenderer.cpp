@@ -19,6 +19,8 @@
 #include "../Minecraft.World/WeaponItem.h"
 #include "../Minecraft.World/Mac10Item.h"
 #include "../Minecraft.World/MaceItem.h"
+#include "../Minecraft.World/CrossbowItem.h"
+#include "CrossbowHold.h"
 #include "MaceModel.h"
 #include "../Minecraft.World/net.minecraft.world.level.tile.h"
 #include "../Minecraft.World/net.minecraft.world.entity.h"
@@ -349,7 +351,8 @@ void ItemInHandRenderer::renderItem(shared_ptr<LivingEntity> mob, shared_ptr<Ite
 	if (dynamic_cast<BannerItem*>(item->getItem()) != nullptr && BannerRenderer::instance != nullptr)
 	{
 		int baseColor = item->getAuxValue() & 15;
-		BannerRenderer::instance->renderBannerForHand(1.0f, baseColor);
+		vector<BannerPattern> bannerPatterns = BannerItem::getPatterns(item);
+		BannerRenderer::instance->renderBannerForHand(1.0f, baseColor, &bannerPatterns);
 		glPopMatrix();
 		return;
 	}
@@ -864,6 +867,36 @@ void ItemInHandRenderer::render(float a)
         }
 
 
+		// neoLegacy - a crossbow lies on its side: stock at the lower right of the screen, muzzle pointing forward and a little up toward the
+		// crosshair. The same pose for the empty, the drawing and the loaded crossbow (before, it was drawn like a sword: upright, with its
+		// limbs reaching across the middle of the screen). The sprite has its stock at the bottom right and its muzzle at the top left, the
+		// opposite of a sword, so the base pose below is worked out for that. The face of an item sprite that reads the right way round is the
+		// one on its -z side (that is the side the camera sees in the normal held pose), and the base pose turns exactly that face up.
+		// Tuning knobs live in CrossbowHold.h.
+		if (dynamic_cast<CrossbowItem *>(item->getItem()) != nullptr)
+		{
+			float pull = 0.0f;
+			if (player->getUseItemDuration() > 0)
+			{
+				float timeHeld = (item->getUseDuration() - (player->getUseItemDuration() - a + 1));
+				pull = timeHeld / static_cast<float>(CrossbowItem::getChargeTicks(item));
+				if (pull < 0.0f) pull = 0.0f;
+				if (pull > 1.0f) pull = 1.0f;
+			}
+
+			// the nudge and the draw slide, given in screen directions
+			float lx, ly, lz;
+			crossbowViewToHeldFrame(CROSSBOW_FP_NUDGE_X - CROSSBOW_FP_PULL_LEFT * pull, CROSSBOW_FP_NUDGE_Y, CROSSBOW_FP_NUDGE_Z + CROSSBOW_FP_PULL_BACK * pull, lx, ly, lz);
+			glTranslatef(lx, ly, lz);
+			glRotatef(CROSSBOW_FP_YAW, 0, 1, 0);									// about screen up
+			glRotatef(CROSSBOW_FP_PITCH, 0.70710678f, 0, 0.70710678f);			// about screen right
+			glRotatef(CROSSBOW_FP_ROLL, -0.70710678f, 0, 0.70710678f);			// about the line of sight
+
+			// the base pose (solved against the sprite's stock and muzzle corners)
+			glTranslatef(-0.5337f, 0.2429f, -0.9085f);
+			glRotatef(93.1f, 0.4971f, 0.3575f, -0.7906f);
+		}
+
         if (item->getItem()->isMirroredArt())
 		{
             glRotatef(180, 0, 1, 0);
@@ -903,7 +936,8 @@ void ItemInHandRenderer::render(float a)
 			glTranslatef(0.0f, 0.05f, 0.0f);
 			const float bs = 0.6f;
 			glScalef(bs, -bs, -bs);
-			BannerRenderer::instance->renderBannerForHand(1.0f, baseColor);
+			vector<BannerPattern> bannerPatterns = BannerItem::getPatterns(item);
+			BannerRenderer::instance->renderBannerForHand(1.0f, baseColor, &bannerPatterns);
 			glPopMatrix();
 			return;
 		}

@@ -33,6 +33,7 @@ class ToolRecipies;
 class WeaponRecipies;
 class ShapedRecipy;
 class FireworksRecipe;
+class BannerPatternRecipe;
 
 typedef unordered_map<wchar_t, ItemInstance *> myMap;
 
@@ -126,4 +127,5 @@ public:
 	static ClothDyeRecipes		*pClothDyeRecipes;
 	static ArmorRecipes			*pArmorRecipes;
 	static FireworksRecipe		*pFireworksRecipes;
+	static BannerPatternRecipe	*pBannerPatternRecipe;	// neoLegacy - adding a pattern to a banner, free-form
 };

@@ -4,19 +4,34 @@
 #include "SynchedEntityData.h"
 #include "Illager.h"
 #include "Vex.h"
+#include "net.minecraft.world.entity.player.h"
+#include "net.minecraft.world.damagesource.h"
+#include "net.minecraft.world.item.h"
+#include "MobEffect.h"
+#include "MobEffectInstance.h"
+#include "BannerItem.h"
+#include "OminousBottleItem.h"
 
 Illager::Illager(Level *level) : Monster(level)
 {
 	// Monster's constructor can't reach this class's synched data, so it is defined here
 	getEntityData()->define(DATA_FLAGS_ID, static_cast<byte>(0));
+
+	inRaid = false;
+	raidX = raidY = raidZ = 0;
+	patrolling = false;
+	patrolTargetSet = false;
+	patrolX = patrolZ = 0;
 }
 
 void Illager::tick()
 {
 	if (!level->isClientSide)
 	{
-		byte aggressive = (getTarget() != nullptr) ? 1 : 0;
-		if (getEntityData()->getByte(DATA_FLAGS_ID) != aggressive) getEntityData()->set(DATA_FLAGS_ID, aggressive);
+		// only the aggressive bit is the target's business; the captain bit must survive
+		byte flags = getEntityData()->getByte(DATA_FLAGS_ID);
+		byte wanted = (getTarget() != nullptr) ? (flags | FLAG_AGGRESSIVE) : (flags & ~FLAG_AGGRESSIVE);
+		if (flags != wanted) getEntityData()->set(DATA_FLAGS_ID, wanted);
 	}
 	Monster::tick();
 }
@@ -42,4 +57,39 @@ bool Illager::isAlliedTo(shared_ptr<LivingEntity> other)
 	if (other.get() == this) return true;
 	if (dynamic_cast<Illager *>(other.get()) != nullptr || dynamic_cast<Vex *>(other.get()) != nullptr) return true;
 	return Monster::isAlliedTo(other);
+}
+
+bool Illager::isCaptain()
+{
+	return (getEntityData()->getByte(DATA_FLAGS_ID) & FLAG_CAPTAIN) != 0;
+}
+
+void Illager::makeCaptain()
+{
+	byte flags = getEntityData()->getByte(DATA_FLAGS_ID);
+	getEntityData()->set(DATA_FLAGS_ID, static_cast<byte>(flags | FLAG_CAPTAIN));
+
+	setEquippedSlot(SLOT_HELM, BannerItem::createOminousBanner());
+	dropChances[SLOT_HELM] = 1.0f;
+}
+
+void Illager::startPatrol(shared_ptr<Illager> leader, int targetX, int targetZ)
+{
+	patrolling = true;
+	if (leader != nullptr && leader.get() != this) patrolLeaderRef = leader;
+	if (leader == nullptr || leader.get() == this) setPatrolTarget(targetX, targetZ);
+}
+
+// A captain killed by a player drops an Ominous Bottle of a random level I-V (as in modern Minecraft; the banner it wears drops as well).
+void Illager::die(DamageSource *source)
+{
+	if (!level->isClientSide && isCaptain() && source != nullptr)
+	{
+		shared_ptr<Entity> killer = source->getEntity();
+		if (killer != nullptr && killer->instanceof(eTYPE_PLAYER))
+		{
+			spawnAtLocation(OminousBottleItem::create(1 + random->nextInt(OminousBottleItem::MAX_LEVEL)), 0.0f);
+		}
+	}
+	Monster::die(source);
 }

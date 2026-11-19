@@ -7,6 +7,8 @@
 #include "../Minecraft.World/net.minecraft.world.level.tile.h"
 #include "../Minecraft.World/net.minecraft.world.level.h"
 #include "../Minecraft.World/DyePowderItem.h"
+#include "../Minecraft.World/BannerTileEntity.h"
+#include "../Minecraft.World/BannerPatterns.h"
 #include "../Minecraft.World/Entity.h"
 #include "../Minecraft.World/Level.h"
 #include "Lighting.h"
@@ -42,12 +44,80 @@ static void applyBannerColor(int baseColor, float alpha, float brightness = 1.0f
 	}
 }
 
-void BannerRenderer::renderModelColoured(int baseColor, float alpha, bool useCompiled, float brightness)
+// The picture of each pattern (a white mask, see mob/banner_layers), in the order of BannerPatterns' table.
+static ResourceLocation *patternLocation(int index)
+{
+	static ResourceLocation locations[BANNER_PATTERN_COUNT] = {
+		ResourceLocation(TN_MOB_BANNER_SQUARE_BOTTOM_LEFT),
+		ResourceLocation(TN_MOB_BANNER_SQUARE_BOTTOM_RIGHT),
+		ResourceLocation(TN_MOB_BANNER_SQUARE_TOP_LEFT),
+		ResourceLocation(TN_MOB_BANNER_SQUARE_TOP_RIGHT),
+		ResourceLocation(TN_MOB_BANNER_STRIPE_BOTTOM),
+		ResourceLocation(TN_MOB_BANNER_STRIPE_TOP),
+		ResourceLocation(TN_MOB_BANNER_STRIPE_LEFT),
+		ResourceLocation(TN_MOB_BANNER_STRIPE_RIGHT),
+		ResourceLocation(TN_MOB_BANNER_STRIPE_CENTER),
+		ResourceLocation(TN_MOB_BANNER_STRIPE_MIDDLE),
+		ResourceLocation(TN_MOB_BANNER_STRIPE_DOWNRIGHT),
+		ResourceLocation(TN_MOB_BANNER_STRIPE_DOWNLEFT),
+		ResourceLocation(TN_MOB_BANNER_SMALL_STRIPES),
+		ResourceLocation(TN_MOB_BANNER_CROSS),
+		ResourceLocation(TN_MOB_BANNER_STRAIGHT_CROSS),
+		ResourceLocation(TN_MOB_BANNER_TRIANGLE_BOTTOM),
+		ResourceLocation(TN_MOB_BANNER_TRIANGLE_TOP),
+		ResourceLocation(TN_MOB_BANNER_TRIANGLES_BOTTOM),
+		ResourceLocation(TN_MOB_BANNER_TRIANGLES_TOP),
+		ResourceLocation(TN_MOB_BANNER_DIAGONAL_LEFT),
+		ResourceLocation(TN_MOB_BANNER_DIAGONAL_RIGHT),
+		ResourceLocation(TN_MOB_BANNER_DIAGONAL_UP_LEFT),
+		ResourceLocation(TN_MOB_BANNER_DIAGONAL_UP_RIGHT),
+		ResourceLocation(TN_MOB_BANNER_CIRCLE),
+		ResourceLocation(TN_MOB_BANNER_RHOMBUS),
+		ResourceLocation(TN_MOB_BANNER_HALF_VERTICAL),
+		ResourceLocation(TN_MOB_BANNER_HALF_HORIZONTAL),
+		ResourceLocation(TN_MOB_BANNER_HALF_VERTICAL_RIGHT),
+		ResourceLocation(TN_MOB_BANNER_HALF_HORIZONTAL_BOTTOM),
+		ResourceLocation(TN_MOB_BANNER_BORDER),
+		ResourceLocation(TN_MOB_BANNER_CURLY_BORDER),
+		ResourceLocation(TN_MOB_BANNER_CREEPER),
+		ResourceLocation(TN_MOB_BANNER_GRADIENT),
+		ResourceLocation(TN_MOB_BANNER_GRADIENT_UP),
+		ResourceLocation(TN_MOB_BANNER_BRICKS),
+		ResourceLocation(TN_MOB_BANNER_SKULL),
+		ResourceLocation(TN_MOB_BANNER_FLOWER),
+		ResourceLocation(TN_MOB_BANNER_MOJANG)
+	};
+	return &locations[index];
+}
+
+void BannerRenderer::renderModelColoured(int baseColor, float alpha, bool useCompiled, float brightness, const vector<BannerPattern> *patterns)
 {
 	bindTexture(&BANNER_LOCATION);
 
 	applyBannerColor(baseColor, alpha, brightness);
 	bannerModel->bannerSlate->render(1.0f / 16.0f, false);
+
+	// neoLegacy - the patterns, one coloured mask over the cloth after another, each blended over what is already there
+	if (patterns != nullptr && !patterns->empty())
+	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glPolygonOffset(-0.3f, -0.3f);	// the layers lie exactly on the cloth: a z-bias (as the chest lid has) keeps them from flickering
+
+		for (size_t i = 0; i < patterns->size() && i < (size_t)BannerPatterns::MAX_LAYERS; i++)
+		{
+			int index = BannerPatterns::indexOf((*patterns)[i].pattern);
+			if (index < 0) continue;
+
+			bindTexture(patternLocation(index));
+			applyBannerColor((*patterns)[i].color, alpha, brightness);
+			bannerModel->bannerSlate->render(1.0f / 16.0f, false);
+		}
+
+		glPolygonOffset(0.0f, 0.0f);
+		if (alpha >= 1.0f) glDisable(GL_BLEND);
+		bindTexture(&BANNER_LOCATION);
+	}
 
 	glColor4f(brightness, brightness, brightness, alpha);
 	bannerModel->bannerStand->render(1.0f / 16.0f, useCompiled);
@@ -93,14 +163,14 @@ void BannerRenderer::render(shared_ptr<TileEntity> _banner, double x, double y, 
 	bannerModel->bannerSlate->xRot = (-0.0125f + 0.01f * cosf(f3 * 3.14159265f * 0.02f)) * 3.14159265f;
 
 	glScalef(f, -f, -f);
-	renderModelColoured(banner->getBaseColor(), alpha, useCompiled);
+	renderModelColoured(banner->getBaseColor(), alpha, useCompiled, 1.0f, &banner->getPatterns());
 
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glPopMatrix();
 	glEnable(GL_LIGHTING);
 }
 
-void BannerRenderer::renderBannerForGui(float x, float y, float scaleX, float scaleY, float alpha, int baseColor)
+void BannerRenderer::renderBannerForGui(float x, float y, float scaleX, float scaleY, float alpha, int baseColor, const vector<BannerPattern> *patterns)
 {
 	glPushMatrix();
 	glEnable(GL_COLOR_MATERIAL);
@@ -122,7 +192,7 @@ void BannerRenderer::renderBannerForGui(float x, float y, float scaleX, float sc
 	bannerModel->bannerStand->visible = true;
 
 	Lighting::setAmbient(0.6f);
-	renderModelColoured(baseColor, alpha, false);
+	renderModelColoured(baseColor, alpha, false, 1.0f, patterns);
 	Lighting::setAmbient(0.4f);
 
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
@@ -130,7 +200,7 @@ void BannerRenderer::renderBannerForGui(float x, float y, float scaleX, float sc
 	glPopMatrix();
 }
 
-void BannerRenderer::renderBannerForHand(float alpha, int baseColor)
+void BannerRenderer::renderBannerForHand(float alpha, int baseColor, const vector<BannerPattern> *patterns)
 {
 	glDisable(GL_LIGHTING);
 	glPushMatrix();
@@ -139,7 +209,7 @@ void BannerRenderer::renderBannerForHand(float alpha, int baseColor)
 	bannerModel->bannerSlate->xRot = 0.0f;
 	bannerModel->bannerStand->visible = true;
 
-	renderModelColoured(baseColor, alpha, false);
+	renderModelColoured(baseColor, alpha, false, 1.0f, patterns);
 
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glPopMatrix();

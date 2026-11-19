@@ -24,6 +24,7 @@ void FireworksRocketEntity::defineSynchedData()
 {
 	entityData->defineNULL(DATA_ID_FIREWORKS_ITEM, nullptr);
 	entityData->define(DATA_ID_ATTACHED, -1);
+	entityData->define(DATA_ID_SHOT, (byte) 0);
 }
 
 bool FireworksRocketEntity::shouldRenderAtSqrDistance(double distance)
@@ -100,6 +101,80 @@ FireworksRocketEntity::FireworksRocketEntity(Level *level, shared_ptr<ItemInstan
 	initFlight(sourceItem);
 }
 
+// neoLegacy - a rocket fired from a crossbow (Java: speed 1.6, straight line, bursts on the first block or mob it meets)
+FireworksRocketEntity::FireworksRocketEntity(Level *level, shared_ptr<ItemInstance> sourceItem, shared_ptr<LivingEntity> shooter, double x, double y, double z, double xd, double yd, double zd) : Entity(level)
+{
+	defineSynchedData();
+
+	life = 0;
+	lifetime = 0;
+
+	setSize(0.25f, 0.25f);
+	setPos(x, y, z);
+	heightOffset = 0;
+
+	this->xd = xd;
+	this->yd = yd;
+	this->zd = zd;
+	shooterId = (shooter != nullptr) ? shooter->entityId : -1;
+	entityData->set(DATA_ID_SHOT, (byte) 1);
+
+	double sd = Mth::sqrt(xd * xd + zd * zd);
+	yRotO = yRot = static_cast<float>(atan2(xd, zd) * 180 / PI);
+	xRotO = xRot = static_cast<float>(atan2(yd, sd) * 180 / PI);
+
+	initFlight(sourceItem);
+}
+
+bool FireworksRocketEntity::isShot()
+{
+	return entityData->getByte(DATA_ID_SHOT) != 0;
+}
+
+shared_ptr<Entity> FireworksRocketEntity::findEntityById(int id)
+{
+	if (id < 0) return nullptr;
+	shared_ptr<Entity> e = level->getEntity(id);
+	if (e != nullptr) return e;
+	for (size_t i = 0; i < level->players.size(); i++)
+	{
+		shared_ptr<Player> p = level->players[i];
+		if (p != nullptr && !p->removed && p->entityId == id) return p;
+	}
+	return nullptr;
+}
+
+// the stretch it flies this tick, tested like an arrow's: the first living thing whose box (a little fattened) it crosses
+bool FireworksRocketEntity::shotHitsSomething()
+{
+	Vec3 *from = Vec3::newTemp(x, y, z);
+	Vec3 *to = Vec3::newTemp(x + xd, y + yd, z + zd);
+	vector<shared_ptr<Entity> > *objects = level->getEntities(shared_from_this(), bb->expand(xd, yd, zd)->grow(1, 1, 1));
+	if (objects == nullptr) return false;
+
+	for (auto &e : *objects)
+	{
+		if (e == nullptr || e->removed || !e->isPickable()) continue;
+		if (e->entityId == shooterId && life < 5) continue;	// do not burst on the one who fired it
+
+		AABB *box = e->bb->grow(0.3f, 0.3f, 0.3f);
+		HitResult *p = box->clip(from, to);
+		if (p != nullptr)
+		{
+			delete p;
+			return true;
+		}
+	}
+	return false;
+}
+
+void FireworksRocketEntity::burst()
+{
+	dealExplosionDamage();
+	level->broadcastEntityEvent(shared_from_this(), EntityEvent::FIREWORKS_EXPLODE);
+	remove();
+}
+
 shared_ptr<Entity> FireworksRocketEntity::getAttachedEntity()
 {
 	int id = entityData->getInteger(DATA_ID_ATTACHED);
@@ -130,6 +205,7 @@ int FireworksRocketEntity::getExplosionCount()
 }
 
 // Java: 5 + 2 per star to the boosted entity, and the same damage (fading with distance) to every living thing within 5 blocks.
+// A crossbow rocket's damage is credited to whoever fired it (so their kills drop loot and experience).
 void FireworksRocketEntity::dealExplosionDamage()
 {
 	if (!FIREWORK_STAR_DAMAGE) return;
@@ -139,10 +215,13 @@ void FireworksRocketEntity::dealExplosionDamage()
 
 	float damage = 5.0f + static_cast<float>(stars * 2);
 
+	shared_ptr<Entity> shooter = findEntityById(shooterId);
+	DamageSource *shotSource = (shooter != nullptr) ? DamageSource::thrown(shared_from_this(), shooter) : nullptr;
+
 	shared_ptr<Entity> attached = getAttachedEntity();
 	if (attached != nullptr && attached->instanceof(eTYPE_LIVINGENTITY))
 	{
-		attached->hurt(DamageSource::explosion(nullptr), damage);
+		attached->hurt(shotSource != nullptr ? shotSource : DamageSource::explosion(nullptr), damage);
 	}
 
 	const double R = 5.0;
@@ -158,16 +237,18 @@ void FireworksRocketEntity::dealExplosionDamage()
 			if (d2 > R * R) continue;
 
 			float falloff = damage * static_cast<float>(sqrt((R - sqrt(d2)) / R));
-			if (falloff > 0.0f) e->hurt(DamageSource::explosion(nullptr), falloff);
+			if (falloff > 0.0f) e->hurt(shotSource != nullptr ? shotSource : DamageSource::explosion(nullptr), falloff);
 		}
 	}
+
+	delete shotSource;
 }
 
 void FireworksRocketEntity::lerpMotion(double xd, double yd, double zd)
 {
-	xd = xd;
-	yd = yd;
-	zd = zd;
+	this->xd = xd;	// (these used to assign the parameters to themselves, so a client never took the server's velocity)
+	this->yd = yd;
+	this->zd = zd;
 	if (xRotO == 0 && yRotO == 0)
 	{
 		double sd = Mth::sqrt(xd * xd + zd * zd);
@@ -211,6 +292,21 @@ void FireworksRocketEntity::tick()
 		// the flier is gone (logged out / died / changed dimension): drop the rocket without a bang
 		remove();
 		return;
+	}
+	else if (isShot())
+	{
+		// neoLegacy - fired from a crossbow: straight flight, bursting on the first thing it meets
+		if (!level->isClientSide && shotHitsSomething())
+		{
+			burst();
+			return;
+		}
+		move(xd, yd, zd);
+		if (!level->isClientSide && (horizontalCollision || verticalCollision))
+		{
+			burst();
+			return;
+		}
 	}
 	else
 	{

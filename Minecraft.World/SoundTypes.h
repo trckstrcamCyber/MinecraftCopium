@@ -371,10 +371,61 @@ enum eSOUND_TYPE
 	eSoundType_MOB_PILLAGER_DEATH,
 	eSoundType_MOB_PILLAGER_CELEBRATE,
 
+	// neoLegacy - ravager (mob/ravager). Roar, stun and celebrate are in place for when shields and raids arrive.
+	eSoundType_MOB_RAVAGER_IDLE,
+	eSoundType_MOB_RAVAGER_HURT,
+	eSoundType_MOB_RAVAGER_DEATH,
+	eSoundType_MOB_RAVAGER_STEP,
+	eSoundType_MOB_RAVAGER_BITE,
+	eSoundType_MOB_RAVAGER_ROAR,
+	eSoundType_MOB_RAVAGER_STUN,
+	eSoundType_MOB_RAVAGER_CELEBRATE,
+
 	// neoLegacy - mace smash (files: Windows64Media/Sound/Minecraft/item/mace/*)
 	eSoundType_ITEM_MACE_SMASH_AIR,			// target was in the air: smash_air1-3
 	eSoundType_ITEM_MACE_SMASH_GROUND,		// target on the ground: smash_ground1-4
 	eSoundType_ITEM_MACE_SMASH_GROUND_HEAVY,	// ...after a fall of more than 5 blocks: smash_ground_heavy
+
+	// tu43
+	// witch sounds
+	eSoundType_ENTITY_WITCH_AMBIENT,
+	eSoundType_ENTITY_WITCH_HURT,
+	eSoundType_ENTITY_WITCH_DEATH,
+	eSoundType_ENTITY_WITCH_THROW,
+
+	// squid sounds
+	eSoundType_ENTITY_SQUID_AMBIENT,
+	eSoundType_ENTITY_SQUID_HURT,
+	eSoundType_ENTITY_SQUID_DEATH,
+
+	// snowman sounds
+	eSoundType_ENTITY_SNOWMAN_HURT,
+	eSoundType_ENTITY_SNOWMAN_DEATH,
+
+	// armor stand sounds
+	eSoundType_ENTITY_ARMORSTAND_BREAK,
+	eSoundType_ENTITY_ARMORSTAND_HIT,
+
+	// cow sounds
+	eSoundType_ENTITY_COW_MILK,
+
+	// horse sounds
+	eSoundType_ENTITY_HORSE_EAT,
+
+	// item frame sounds
+	eSoundType_ENTITY_ITEMFRAME_ADD_ITEM,
+	eSoundType_ENTITY_ITEMFRAME_BREAK,
+	eSoundType_ENTITY_ITEMFRAME_PLACE,
+	eSoundType_ENTITY_ITEMFRAME_REMOVE_ITEM,
+	eSoundType_ENTITY_ITEMFRAME_ROTATE_ITEM,
+
+	// leash sounds
+	eSoundType_ENTITY_LEASHKNOT_BREAK,
+	eSoundType_ENTITY_LEASHKNOT_PLACE,
+
+	// painting sounds
+	eSoundType_ENTITY_PAINTING_PLACE,
+	eSoundType_ENTITY_PAINTING_BREAK,
 
 	eSoundType_MAX
 };
@@ -400,6 +451,7 @@ enum eMATERIALSOUND_TYPE
 	eMaterialSoundType_WOOD,	
 	eMaterialSoundType_GRAVEL,
 	eMaterialSoundType_GRASS,
+	eMaterialSoundType_SLIME,
 	eMaterialSoundType_METAL,
 	eMaterialSoundType_GLASS,
 	eMaterialSoundType_CLOTH,

@@ -232,6 +232,7 @@ typedef struct _UIFullscreenProgressCompletionData
 	BOOL bShowBackground;
 	BOOL bShowLogo;
 	BOOL bShowTips;
+	BOOL bIsMinigame;
 	ProgressionCompletionType type;
 	int iPad;
 	EUIScene scene;
@@ -242,6 +243,7 @@ typedef struct _UIFullscreenProgressCompletionData
 		bShowBackground = TRUE;
 		bShowLogo = TRUE;
 		bShowTips = TRUE;
+		bIsMinigame = FALSE;
 		type = e_ProgressCompletion_NoAction;
 	}
 } UIFullscreenProgressCompletionData;
@@ -301,6 +303,26 @@ typedef struct _LoadMenuInitData
 	SaveListDetails *saveDetails;
 } 
 LoadMenuInitData;
+
+enum EMiniGameType
+{
+	eMiniGame_Battle = 0,
+	eMiniGame_Tumble,
+	eMiniGame_Glide,
+};
+
+typedef struct _MiniGamesCreateMenuInitData
+{
+	int iPad;
+	int miniGameType;
+
+	_MiniGamesCreateMenuInitData()
+	{
+		iPad = 0;
+		miniGameType = eMiniGame_Battle;
+	}
+}
+MiniGamesCreateMenuInitData;
 
 // Join Games
 typedef struct _JoinMenuInitData

@@ -9,6 +9,7 @@ class Level;
 class Stat;
 class TileEntity;
 class Entity;
+class BlockPos;
 class BrewingStandTileEntity;
 class HopperTileEntity;
 class MinecartHopper;
@@ -62,6 +63,7 @@ public:
 	virtual float getHeadHeight();
 	virtual void tick();
 	void flushEntitiesToRemove();
+	void onChangedBlock(BlockPos pos);
 	virtual shared_ptr<ItemInstance> getCarried(int slot);
 	virtual void die(DamageSource *source);
 	virtual bool hurt(DamageSource *dmgSource, float dmg);

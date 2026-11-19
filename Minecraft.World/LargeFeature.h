@@ -11,6 +11,7 @@ public:
 	static const wstring MINESHAFT;	// neoLegacy - for /locate
 	static const wstring MONUMENT;		// neoLegacy - for /locate
 	static const wstring TEMPLE;		// neoLegacy - for /locate
+	static const wstring OUTPOST;		// neoLegacy - for /locate
 
 	// neoLegacy - /locate: how many chunks StructureFeature::searchForGeneratedFeature
 	// spirals outward before giving up. 64 chunks (1024 blocks) comfortably covers

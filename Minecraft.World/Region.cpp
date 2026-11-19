@@ -272,7 +272,7 @@ bool Region::isSolidRenderTile(int x, int y, int z)
 	// other leaves (or solid things). This is paired with another change in Tile::getTexture which makes such solid tiles actually visibly solid (these
 	// textures exist already for non-fancy graphics). Note: this tile-specific code is here rather than making some new virtual method in the tiles,
 	// for the sake of efficiency - I don't imagine we'll be doing much more of this sort of thing
-	if( tile->id == Tile::leaves_Id )
+    if (tile->id == Tile::leaves_Id || tile->id == Tile::leaves2_Id)
 	{
 		int axo[6] = { 1,-1, 0, 0, 0, 0};
 		int ayo[6] = { 0, 0, 1,-1, 0, 0};
@@ -280,7 +280,7 @@ bool Region::isSolidRenderTile(int x, int y, int z)
 		for( int i = 0; i < 6; i++ )
 		{
 			int t = getTile(x + axo[i], y + ayo[i] , z + azo[i]);
-			if( ( t != Tile::leaves_Id ) && ( ( Tile::tiles[t] == nullptr ) || !Tile::tiles[t]->isSolidRender() ) )
+            if ((t != Tile::leaves_Id && t != Tile::leaves2_Id) && ((Tile::tiles[t] == nullptr) || !Tile::tiles[t]->isSolidRender()))
 			{
 				return false;
 			}

@@ -28,7 +28,7 @@ bool IceWandItem::interactEnemy(shared_ptr<ItemInstance> itemInstance, shared_pt
 	if (!itemInstance->hasTag()) itemInstance->setTag(new CompoundTag());
 	itemInstance->getTag()->putInt(L"IceWandNext", now + COOLDOWN_TICKS);
 
-	level->addEntity(std::make_shared<IceCube>(level, dynamic_pointer_cast<LivingEntity>(player), mob, 24));
+	level->addEntity(std::make_shared<IceCube>(level, dynamic_pointer_cast<LivingEntity>(player), mob, 20, true));
 	itemInstance->hurtAndBreak(1, player);
 	level->playEntitySound(player, eSoundType_MOB_ICEOLOGER_PREPARE, 1.0f, 1.0f);
 	return true;

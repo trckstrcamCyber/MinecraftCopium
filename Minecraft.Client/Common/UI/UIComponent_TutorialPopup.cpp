@@ -430,7 +430,7 @@ void UIComponent_TutorialPopup::UpdateInteractScenePosition(bool visible)
 
 	// 4J-PB - check this players screen section to see if we should allow the animation
 	bool bAllowAnim=false;
-	bool isCraftingScene = (m_interactScene->getSceneType() == eUIScene_Crafting2x2Menu) || (m_interactScene->getSceneType() == eUIScene_Crafting3x3Menu);
+	bool isCraftingScene = (m_interactScene->getSceneType() == eUIScene_CraftingMenu);
 	bool isCreativeScene = (m_interactScene->getSceneType() == eUIScene_CreativeMenu);
 	bool isTradingScene = (m_interactScene->getSceneType() == eUIScene_TradingMenu);
 	switch(Minecraft::GetInstance()->localplayers[m_iPad]->m_iScreenSection)

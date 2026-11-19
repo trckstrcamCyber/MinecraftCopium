@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "IceWandItem.h"
+#include "OminousBottleItem.h"
 #include "CrossbowItem.h"
 
 #include "net.minecraft.locale.h"
@@ -84,6 +85,8 @@ Item *Item::ice_ball = nullptr;	// neoLegacy - Ice Ball
 Item *Item::ice_wand = nullptr;	// neoLegacy - Ice Wand
 Item *Item::crossbow = nullptr;	// neoLegacy
 Item *Item::crossbow_loaded = nullptr;
+Item *Item::crossbow_loaded_firework = nullptr;
+Item *Item::ominous_bottle = nullptr;
 Item *Item::bullet_9mm = nullptr;
 Item *Item::m16 = nullptr;
 Item *Item::bullet_556 = nullptr;
@@ -405,10 +408,16 @@ void Item::staticCtor()
 		->setIconName(L"ice_wand")->setMaxDamage(64)->setDescriptionId(IDS_ITEM_ICE_WAND)->setUseDescriptionId(IDS_DESC_ICE_WAND);
 
 	// neoLegacy - Crossbow: two ids, empty and loaded (the loaded one is only ever made by drawing the empty one). Icons: items.png (31,15) and (30,9).
+	// In the crafting menu the crossbow shares the bow's column (base type bow), right below the bow and above the arrow.
 	Item::crossbow = (new CrossbowItem(crossbow_Id - 256, false))->handEquipped()
+		->setBaseItemTypeAndMaterial(eBaseItemType_bow, eMaterial_crossbow)
 		->setIconName(L"crossbow_standby")->setMaxDamage(326)->setDescriptionId(IDS_ITEM_CROSSBOW)->setUseDescriptionId(IDS_DESC_CROSSBOW);
 	Item::crossbow_loaded = (new CrossbowItem(crossbow_loaded_Id - 256, true))->handEquipped()
 		->setIconName(L"crossbow_arrow")->setMaxDamage(326)->setDescriptionId(IDS_ITEM_CROSSBOW)->setUseDescriptionId(IDS_DESC_CROSSBOW);
+	Item::ominous_bottle = (new OminousBottleItem(ominous_bottle_Id - 256))
+		->setIconName(L"ominous_bottle")->setDescriptionId(IDS_ITEM_OMINOUS_BOTTLE)->setUseDescriptionId(IDS_DESC_OMINOUS_BOTTLE);
+	Item::crossbow_loaded_firework = (new CrossbowItem(crossbow_loaded_firework_Id - 256, true, true))->handEquipped()
+		->setIconName(L"crossbow_firework")->setMaxDamage(326)->setDescriptionId(IDS_ITEM_CROSSBOW)->setUseDescriptionId(IDS_DESC_CROSSBOW);
 
 	Item::wooden_shovel		= ( new ShovelItem(13, _Tier::WOOD) )		->setBaseItemTypeAndMaterial(eBaseItemType_shovel,	eMaterial_wood)		->setIconName(L"shovelWood")->setDescriptionId(IDS_ITEM_SHOVEL_WOOD)->setUseDescriptionId(IDS_DESC_SHOVEL);
 	Item::stone_shovel		= ( new ShovelItem(17, _Tier::STONE) )		->setBaseItemTypeAndMaterial(eBaseItemType_shovel,	eMaterial_stone)	->setIconName(L"shovelStone")->setDescriptionId(IDS_ITEM_SHOVEL_STONE)->setUseDescriptionId(IDS_DESC_SHOVEL);

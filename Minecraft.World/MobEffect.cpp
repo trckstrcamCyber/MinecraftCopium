@@ -36,6 +36,8 @@ MobEffect *MobEffect::healthBoost;
 MobEffect *MobEffect::absorption;
 MobEffect *MobEffect::saturation;
 MobEffect *MobEffect::freezing;	// neoLegacy
+MobEffect *MobEffect::badOmen;	// neoLegacy
+MobEffect *MobEffect::raidOmen;	// neoLegacy
 MobEffect *MobEffect::reserved_24;
 MobEffect *MobEffect::reserved_25;
 MobEffect *MobEffect::reserved_26;
@@ -75,7 +77,10 @@ void MobEffect::staticCtor()
 	// Own icy colour; still borrows the Slowness HUD icon (the icons live inside the UI SWF). A brewed potion lasts a tenth of the usual time.
 	freezing =			(new MobEffect(24, true, eMinecraftColour_Effect_Freezing))		->setDescriptionId(IDS_POTION_FREEZING)		->setPostfixDescriptionId(IDS_POTION_FREEZING_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Slowness)->setDurationModifier(.1);
 	reserved_24 = nullptr;
+	// neoLegacy - Bad Omen. It does nothing itself; RaidManager looks for it on players in a village.
+	badOmen =			(new MobEffect(25, true, eMinecraftColour_Effect_BadOmen))			->setDescriptionId(IDS_POTION_BADOMEN)			->setPostfixDescriptionId(IDS_POTION_BADOMEN_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Weakness);
 	reserved_25 = nullptr;
+	raidOmen =			(new MobEffect(26, true, eMinecraftColour_Effect_RaidOmen))		->setDescriptionId(IDS_POTION_RAIDOMEN)		->setPostfixDescriptionId(IDS_POTION_RAIDOMEN_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Weakness);
 	reserved_26 = nullptr;
 	reserved_27 = nullptr;
 	reserved_28 = nullptr;

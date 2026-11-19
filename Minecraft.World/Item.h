@@ -92,7 +92,8 @@ public:
 		eMaterial_bookshelf,
 		eMaterial_wheat,
 		eMaterial_acaciawood,
-		eMaterial_darkwood
+		eMaterial_darkwood,
+		eMaterial_crossbow	// neoLegacy
 
 	}
 	eMaterial;
@@ -251,6 +252,8 @@ public:
 	static Item *ice_wand;		// neoLegacy - Ice Wand (Iceologer drop)
 	static Item *crossbow;		// neoLegacy - Crossbow (empty)
 	static Item *crossbow_loaded;	// neoLegacy - Crossbow with an arrow drawn
+	static Item *crossbow_loaded_firework;	// neoLegacy - Crossbow with a firework rocket drawn
+	static Item *ominous_bottle;			// neoLegacy - Ominous Bottle (data 0-4 = level I-V)
 	static Item *bamboo;	// neoLegacy
 	static Item *bamboo_door;
 	static Item *diamond_shovel;
@@ -521,6 +524,8 @@ public:
 	static const int ice_wand_Id			= 604;	// neoLegacy - Ice Wand
 	static const int crossbow_Id			= 605;	// neoLegacy - Crossbow
 	static const int crossbow_loaded_Id		= 606;	// neoLegacy - loaded Crossbow
+	static const int crossbow_loaded_firework_Id = 607;	// neoLegacy - Crossbow loaded with a firework rocket
+	static const int ominous_bottle_Id		= 608;	// neoLegacy - Ominous Bottle
 	static const int enchantment_encyclopedia_Id = 600;	// neoLegacy - Enchantment Encyclopedia (kept well clear of the 472+ block for new wood items)
 	static const int diamond_shovel_Id		= 277;
 	static const int diamond_pickaxe_Id		= 278;

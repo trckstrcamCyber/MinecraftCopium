@@ -92,6 +92,7 @@
 #include "HuskRenderer.h"
 #include "FrostbiteRenderer.h"
 #include "IllagerRenderer.h"
+#include "RavagerRenderer.h"
 #include "VexRenderer.h"
 #include "EvokerFangsRenderer.h"
 #include "IceologerRenderer.h"
@@ -173,6 +174,7 @@ EntityRenderDispatcher::EntityRenderDispatcher()
 	renderers[eTYPE_ICE_CUBE] = new IceCubeRenderer();
 	renderers[eTYPE_ILLUSIONER] = new IllusionerRenderer();
 	renderers[eTYPE_PILLAGER] = new IllagerRenderer();	// neoLegacy
+	renderers[eTYPE_RAVAGER] = new RavagerRenderer();	// neoLegacy
 	renderers[eTYPE_DROWNED] = new DrownedRenderer();
 	renderers[eTYPE_WANDERING_TRADER] = new WanderingTraderRenderer();
 	

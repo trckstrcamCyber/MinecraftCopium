@@ -8,6 +8,7 @@ using namespace std;
 #include "PlayerEnderChestContainer.h"
 #include "CommandSender.h"
 #include "ScoreHolder.h"
+#include "BlockPos.h"
 #include "ArcadeSaveData.h"	// neoLegacy - Arcade Machines progress
 
 class AbstractContainerMenu;
@@ -53,6 +54,10 @@ public:
 
 	// 4J-PB - added for a red death fade in the gui
 	static const int DEATHFADE_DURATION = 21;
+
+	// neoLegacy - the raid bar for the HUD, set by RaidManager and read by the local player. Bit 0 shown, bits 1-7 percent left, 8-11 wave,
+	// 12-15 waves in all, 16-17 how it ended (0 under way, 1 victory, 2 defeat). Public because both of those are outside this class.
+	static const int DATA_RAID_BAR_ID = 19;
 private:
 	static const int FLY_ACHIEVEMENT_SPEED = 25;
 
@@ -89,17 +94,22 @@ public:
 	float rotateElytraX; 
 	float rotateElytraY;
 	float rotateElytraZ;
-	float m_elytraImpactYd;    
-	bool  m_wasElytraFlying;   
-	int   m_elytraFallProtectTicks; 
+	float m_elytraImpactYd;
+	bool  m_wasElytraFlying;
+	int   m_elytraFallProtectTicks;
+	float m_elytraMaxY;
+	int   m_fireworkBoostTicks;
+	int   m_elytraRocketCooldown;
 	// neoLegacy - Mace: after a smash attack (and Wind Burst launch) fall damage is ignored above the point of impact.
 	// See MaceItem::applySmashToAttacker and Player::causeFallDamage.
 	bool  ignoreFallFromImpulse;
 	float impulseImpactY;
+	void startFireworkBoost(shared_ptr<ItemInstance> firework);
 	bool isElytraFlying();
 	virtual void setElytraFlying(bool flying);
 
 	virtual void onElytraKineticDamage(float damage);
+	virtual void onElytraFallDamage(int amount);
 
 public:
 
@@ -155,6 +165,7 @@ public:
 private:
 	int sleepCounter; // animation timer
 	int deathFadeCounter; // animation timer
+	BlockPos lastChangedBlockPos;
 
 public:
 	float bedOffsetX, bedOffsetY, bedOffsetZ;
@@ -229,6 +240,7 @@ protected:
 
 public:
 	virtual void handleEntityEvent(byte id);
+	void onChangedBlock(BlockPos pos);
 
 protected:
 	bool isImmobile();

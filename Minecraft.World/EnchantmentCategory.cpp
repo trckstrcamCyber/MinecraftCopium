@@ -3,6 +3,7 @@
 #include "EnchantmentCategory.h"
 #include "Mac10Item.h"
 #include "MaceItem.h"
+#include "CrossbowItem.h"
 
 const EnchantmentCategory *EnchantmentCategory::all = new EnchantmentCategory();
 const EnchantmentCategory *EnchantmentCategory::armor = new EnchantmentCategory();
@@ -17,12 +18,17 @@ const EnchantmentCategory *EnchantmentCategory::fishing_rod = new EnchantmentCat
 const EnchantmentCategory *EnchantmentCategory::zoro_sword = new EnchantmentCategory();
 const EnchantmentCategory *EnchantmentCategory::firearm = new EnchantmentCategory();
 const EnchantmentCategory *EnchantmentCategory::mace = new EnchantmentCategory();
+const EnchantmentCategory *EnchantmentCategory::crossbow = new EnchantmentCategory();
 
 bool EnchantmentCategory::canEnchant(Item *item) const
 {
 	if (this == all) return true;
 	if (this == firearm) return dynamic_cast<Mac10Item *>(item) != nullptr;
 	if (this == mace) return dynamic_cast<MaceItem *>(item) != nullptr;
+	if (this == crossbow) return dynamic_cast<CrossbowItem *>(item) != nullptr;
+	// the Crossbow is not a Weapon, Digger or Bow. Which enchantments it really takes is decided by CrossbowItem::isEnchantmentAllowed
+	// (checked in Enchantment::canEnchant and the table roll), so the weapon / durability categories pass here (Looting, Unbreaking).
+	if (dynamic_cast<CrossbowItem *>(item) != nullptr) return this == weapon || this == digger;
 	// the Mace is not a WeaponItem. Which enchantments it really takes is decided by MaceItem::isEnchantmentAllowed (checked in
 	// Enchantment::canEnchant and the table roll), so the weapon / durability categories pass here.
 	if (dynamic_cast<MaceItem *>(item) != nullptr) return this == weapon || this == digger;

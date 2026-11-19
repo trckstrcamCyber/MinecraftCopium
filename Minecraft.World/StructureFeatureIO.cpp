@@ -28,6 +28,7 @@ void StructureFeatureIO::staticCtor()
 	setStartId(eStructureStart_StrongholdStart, StrongholdFeature::StrongholdStart::Create, L"Stronghold");
 	setStartId(eStructureStart_ScatteredFeatureStart, RandomScatteredLargeFeature::ScatteredFeatureStart::Create, L"Temple");
 	setStartId(eStructureStart_Monument, OceanMonumentFeature::MonumentStart::Create, L"Monument");
+	setStartId(eStructureStart_PillagerOutpostStart, PillagerOutpostFeature::OutpostStart::Create, L"Outpost");
 
 	OceanMonumentPieces::loadStatic();
 	MineShaftPieces::loadStatic();
@@ -35,6 +36,7 @@ void StructureFeatureIO::staticCtor()
 	NetherBridgePieces::loadStatic();
 	StrongholdPieces::loadStatic();
 	ScatteredFeaturePieces::loadStatic();
+	PillagerOutpostFeature::loadStatic();
 }
 
 wstring StructureFeatureIO::getEncodeId(StructureStart *start)

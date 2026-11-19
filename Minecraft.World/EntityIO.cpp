@@ -148,6 +148,7 @@ void EntityIO::staticCtor()
 	setId(Iceologer::create, eTYPE_ICEOLOGER, L"Iceologer", 119, eMinecraftColour_Mob_Iceologer_Colour1, eMinecraftColour_Mob_Iceologer_Colour2, IDS_ICEOLOGER);
 	setId(Illusioner::create, eTYPE_ILLUSIONER, L"Illusioner", 123, eMinecraftColour_Mob_Illusioner_Colour1, eMinecraftColour_Mob_Illusioner_Colour2, IDS_ILLUSIONER);	// neoLegacy
 	setId(Pillager::create, eTYPE_PILLAGER, L"Pillager", 124, eMinecraftColour_Mob_Pillager_Colour1, eMinecraftColour_Mob_Pillager_Colour2, IDS_PILLAGER);	// neoLegacy
+	setId(Ravager::create, eTYPE_RAVAGER, L"Ravager", 125, eMinecraftColour_Mob_Ravager_Colour1, eMinecraftColour_Mob_Ravager_Colour2, IDS_RAVAGER);	// neoLegacy
 	setId(EvokerFangs::create, eTYPE_EVOKER_FANGS, L"EvokerFangs", 121);
 	setId(IceCube::create, eTYPE_ICE_CUBE, L"IceCube", 122);
 	setId(WanderingTrader::create, eTYPE_WANDERING_TRADER, L"WanderingTrader", 113,
@@ -173,6 +174,7 @@ void EntityIO::staticCtor()
 
 	// 4J-PB - moved to allow the eggs to be named and coloured in the Creative Mode menu
 	// 4J Added for custom spawn eggs
+    setId(EntityHorse::create, eTYPE_HORSE, L"EntityHorse", 100 | ((EntityHorse::TYPE_HORSE + 1) << 12), eMinecraftColour_Mob_Horse_Colour1, eMinecraftColour_Mob_Horse_Colour2, IDS_HORSE);
 	setId(EntityHorse::create,	eTYPE_HORSE,	L"EntityHorse", 100 | ((EntityHorse::TYPE_DONKEY + 1) << 12),	eMinecraftColour_Mob_Horse_Colour1,		eMinecraftColour_Mob_Horse_Colour2,		IDS_DONKEY);
 	setId(EntityHorse::create,	eTYPE_HORSE,	L"EntityHorse", 100 | ((EntityHorse::TYPE_MULE + 1) << 12),		eMinecraftColour_Mob_Horse_Colour1,		eMinecraftColour_Mob_Horse_Colour2,		IDS_MULE);
 

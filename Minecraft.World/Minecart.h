@@ -77,6 +77,7 @@ public:
 protected:
 	virtual void comeOffTrack(double maxSpeed);
 	virtual void moveAlongTrack(int xt, int yt, int zt, double maxSpeed, double slideSpeed, int tile, int data);
+	virtual void checkFallDamage(double ya, bool onGround);
 	virtual void applyNaturalSlowdown();
 	virtual Vec3 *getPosOffs(double x, double y, double z, double offs);
 	virtual Vec3 *getPos(double x, double y, double z);

@@ -3173,12 +3173,20 @@ shared_ptr<Particle> LevelRenderer::addParticleInternal(ePARTICLE_TYPE eParticle
 		case eParticleType_mobAppearance:
         particle = std::make_shared<MobAppearanceParticle>(lev, x, y, z);
         break;
+	case eParticleType_thrownegg:
+		particle = std::make_shared<BreakingItemParticle>(lev, x, y, z, Item::egg, textures);
+		break;
 
 	default:
 		if( ( eParticleType >= eParticleType_iconcrack_base ) &&  ( eParticleType <= eParticleType_iconcrack_last )  )
 		{
 			int id = PARTICLE_CRACK_ID(eParticleType), data = PARTICLE_CRACK_DATA(eParticleType);
 			particle = std::make_shared<BreakingItemParticle>(lev, x, y, z, xa, ya, za, Item::items[id], textures, data);
+		}
+		else if( ( eParticleType >= eParticleType_blockdust_base ) &&  ( eParticleType <= eParticleType_blockdust_last )  )
+		{
+			int id = PARTICLE_CRACK_ID(eParticleType), data = PARTICLE_CRACK_DATA(eParticleType);
+			particle = dynamic_pointer_cast<Particle>(std::make_shared<TerrainParticle>(lev, x, y, z, xa, ya, za, Tile::tiles[id], 0, data, textures, false)->init(data) );
 		}
 		else if( ( eParticleType >= eParticleType_tilecrack_base ) &&  ( eParticleType <= eParticleType_tilecrack_last )  )
 		{
@@ -3631,8 +3639,9 @@ void LevelRenderer::levelEvent(shared_ptr<Player> source, int type, int x, int y
 			else
 			{
 				// 4J-PB - only play streaming music if there isn't already some playing - the CD playing may have finished, and game music started playing already
-				if(!mc->soundEngine->GetIsPlayingStreamingGameMusic())
+				if(mc->soundEngine->GetIsPlayingStreamingCDMusic())
 				{
+					mc->soundEngine->stopStreamingNow();
 					level[playerIndex]->playStreamingMusic(L"", x, y, z);	// 4J - used to pass nullptr, but using empty string here now instead
 				}
 			}

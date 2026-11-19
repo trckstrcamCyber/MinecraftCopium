@@ -226,6 +226,7 @@ StructurePiece *VillagePieces::generateAndAddPiece(StartPiece *startPiece, list<
 	StructurePiece *newPiece = generatePieceFromSmallDoor(startPiece, pieces, random, footX, footY, footZ, direction, depth + 1);
 	if (newPiece != nullptr)
 	{
+		/*
 		int x = (newPiece->boundingBox->x0 + newPiece->boundingBox->x1) / 2;
 		int z = (newPiece->boundingBox->z0 + newPiece->boundingBox->z1) / 2;
 		int xs = newPiece->boundingBox->x1 - newPiece->boundingBox->x0;
@@ -233,11 +234,12 @@ StructurePiece *VillagePieces::generateAndAddPiece(StartPiece *startPiece, list<
 		int r = xs > zs ? xs : zs;
 		if (startPiece->getBiomeSource()->containsOnly(x, z, r / 2 + 4, VillageFeature::allowedBiomes))
 		{
+		*/
 			pieces->push_back(newPiece);
 			startPiece->pendingHouses.push_back(newPiece);
 			return newPiece;
-		}
-		delete newPiece;
+//		}
+		// delete newPiece;
 	}
 	return nullptr;
 }
@@ -257,6 +259,7 @@ StructurePiece *VillagePieces::generateAndAddRoadPiece(StartPiece *startPiece, l
 	if (box != nullptr && box->y0 > LOWEST_Y_POSITION)
 	{
 		StructurePiece *newPiece = new StraightRoad(startPiece, depth, random, box, direction);
+		/*
 		int x = (newPiece->boundingBox->x0 + newPiece->boundingBox->x1) / 2;
 		int z = (newPiece->boundingBox->z0 + newPiece->boundingBox->z1) / 2;
 		int xs = newPiece->boundingBox->x1 - newPiece->boundingBox->x0;
@@ -264,12 +267,13 @@ StructurePiece *VillagePieces::generateAndAddRoadPiece(StartPiece *startPiece, l
 		int r = xs > zs ? xs : zs;
 		if (startPiece->getBiomeSource()->containsOnly(x, z, r / 2 + 4, VillageFeature::allowedBiomes))
 		{
+		*/
 			pieces->push_back(newPiece);
 			startPiece->pendingRoads.push_back(newPiece);
 			return newPiece;
-		}
+//		}
 		// 4J Stu - The dtor for newPiece will destroy box
-		delete newPiece;
+		// delete newPiece;
 	}
 	else if(box != nullptr)
 	{
@@ -528,6 +532,24 @@ void VillagePieces::VillagePiece::generateBox(Level *level, BoundingBox *chunkBB
 
 void VillagePieces::VillagePiece::fillColumnDown(Level *level, int block, int data, int x, int startY, int z, BoundingBox *chunkBB)
 {
+	// clear any and all plants
+	int worldX = getWorldX(x, z);
+	int worldZ = getWorldZ(x, z);
+	int worldY = getWorldY(startY);
+
+	for (int y = worldY; y > 0; y--)
+	{
+		int tile = level->getTile(worldX, y, worldZ);
+		if (tile == Tile::tallgrass_Id || tile == Tile::double_plant_Id || tile == Tile::deadbush_Id)
+		{
+			level->setTileAndData(worldX, y, worldZ, 0, 0, Tile::UPDATE_CLIENTS);
+		}
+		else if (tile != 0)
+		{
+			break;
+		}
+	}
+
 	int bblock = biomeBlock(block, data);
 	int bdata = biomeData(block, data);
 	StructurePiece::fillColumnDown(level, bblock, bdata, x, startY, z, chunkBB);
@@ -855,7 +877,7 @@ bool VillagePieces::StraightRoad::postProcess(Level *level, Random *random, Boun
 		{
 			if (chunkBB->isInside(x, 64, z))
 			{
-				int y = level->getTopSolidBlock(x, z) - 1;
+				int y = level->getTopSolidOrLiquidBlock(x, z) - 1; // was getTopSolidBlock
 				level->setTileAndData(x, y, z, roadTile, 0, Tile::UPDATE_CLIENTS);
 				// level->setTileAndData(x, y - 1, z, baseTile, 0, Tile::UPDATE_CLIENTS);
 			}

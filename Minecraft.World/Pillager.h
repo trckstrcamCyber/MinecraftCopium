@@ -22,6 +22,7 @@ public:
 	virtual void dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel);
 
 protected:
+	virtual void dropEquipment(bool byPlayer, int playerBonusLevel);	// the crossbow always drops as a plain crossbow
 	virtual void registerAttributes();
 	virtual int getAmbientSound();
 	virtual int getHurtSound();

@@ -173,6 +173,7 @@ enum eINSTANCEOF
 							eTYPE_ICEOLOGER		= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x15,	// neoLegacy
 							eTYPE_ILLUSIONER	= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x16,	// neoLegacy
 							eTYPE_PILLAGER		= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x17,	// neoLegacy
+							eTYPE_RAVAGER		= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x18,	// neoLegacy
 							eTYPE_EVOKER_FANGS	= eTYPE_MOB | 0x6,	// neoLegacy - harmless mob-based entities (see EvokerFangs / IceCube)
 							eTYPE_ICE_CUBE		= eTYPE_MOB | 0x7,	// neoLegacy
 
@@ -344,6 +345,7 @@ enum eINSTANCEOF
 		eTYPE_DRILLTILEENTITY				= eTYPE_TILEENTITY | 0x15,
 		eTYPE_PROCESSORTILEENTITY			= eTYPE_TILEENTITY | 0x16,
 		eTYPE_BEDTILEENTITY					= eTYPE_TILEENTITY | 0x17,
+		eTYPE_FLOWERPOTTILEENTITY			= eTYPE_TILEENTITY | 0x18,
 		
 		eTYPE_DISPENSERTILEENTITY			= eTYPE_TILEENTITY | BIT_DISPENSERTILEENTITY,
 			eTYPE_DROPPERTILEENTITY			= eTYPE_DISPENSERTILEENTITY | 0x1,
@@ -472,6 +474,7 @@ public:
 		classes->push_back( SUBCLASS(eTYPE_ICEOLOGER	)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
 		classes->push_back( SUBCLASS(eTYPE_ILLUSIONER	)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
 		classes->push_back( SUBCLASS(eTYPE_PILLAGER	)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
+		classes->push_back( SUBCLASS(eTYPE_RAVAGER	)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
 		classes->push_back( SUBCLASS(eTYPE_EVOKER_FANGS	)->addParent( eTYPE_MOB ) );
 		classes->push_back( SUBCLASS(eTYPE_ICE_CUBE		)->addParent( eTYPE_MOB ) );
 		classes->push_back( SUBCLASS(eTYPE_CREEPER		)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
@@ -594,6 +597,7 @@ public:
 		classes->push_back( SUBCLASS(eTYPE_DRILLTILEENTITY					)->addParent( eTYPE_TILEENTITY			) );
 		classes->push_back( SUBCLASS(eTYPE_PROCESSORTILEENTITY				)->addParent( eTYPE_TILEENTITY			) );
 		classes->push_back( SUBCLASS(eTYPE_BEDTILEENTITY					)->addParent( eTYPE_TILEENTITY			) );
+		classes->push_back( SUBCLASS(eTYPE_FLOWERPOTTILEENTITY			)->addParent( eTYPE_TILEENTITY			) );
 		classes->push_back( SUBCLASS(eTYPE_DISPENSERTILEENTITY			)->addParent( eTYPE_TILEENTITY			) );
 		classes->push_back( SUBCLASS(eTYPE_DROPPERTILEENTITY			)->addParent( eTYPE_DISPENSERTILEENTITY ) );
 		

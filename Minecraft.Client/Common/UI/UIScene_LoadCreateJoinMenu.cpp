@@ -3790,6 +3790,7 @@ void UIScene_LoadCreateJoinMenu::handleFocusChange(F64 controlId, F64 childId)
         m_activeTab = eTab_Load;
 
         m_iSaveListIndex = childId;
+        m_buttonListSaves.updateChildFocus(static_cast<int>(childId));
 
         m_bUpdateSaveSize = true;
 

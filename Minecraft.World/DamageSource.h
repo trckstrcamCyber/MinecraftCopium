@@ -29,6 +29,8 @@ public:
     static DamageSource *wither;
     static DamageSource *anvil;
     static DamageSource *fallingBlock;
+    static DamageSource *flyIntoWall;
+    static DamageSource *hotFloor;
     static DamageSource *freeze;	// neoLegacy
 
     static DamageSource *mobAttack(shared_ptr<LivingEntity> mob);

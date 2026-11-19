@@ -431,7 +431,7 @@ void Tile::staticCtor()
 	Tile::SOUND_GRAVEL = new Tile::SoundType(eMaterialSoundType_GRAVEL, 1, 1);
 	Tile::SOUND_GRASS = new Tile::SoundType(eMaterialSoundType_GRASS, 1, 1);
 	Tile::SOUND_STONE = new Tile::SoundType(eMaterialSoundType_STONE, 1, 1);
-	Tile::SOUND_SLIME = new Tile::SoundType(eMaterialSoundType_STONE, 1, 1, eSoundType_MOB_SLIME_BIG, eSoundType_MOB_SLIME_BIG);
+	Tile::SOUND_SLIME = new Tile::SoundType(eMaterialSoundType_SLIME, 1, 1, eSoundType_MOB_SLIME_BIG, eSoundType_MOB_SLIME_BIG);
 	Tile::SOUND_METAL = new Tile::SoundType(eMaterialSoundType_STONE, 1, 1.5f);
 	Tile::SOUND_GLASS = new Tile::SoundType(eMaterialSoundType_STONE, 1, 1, eSoundType_RANDOM_GLASS,eSoundType_STEP_STONE);
 	Tile::SOUND_CLOTH = new Tile::SoundType(eMaterialSoundType_CLOTH, 1, 1);
@@ -654,14 +654,14 @@ void Tile::staticCtor()
 	//
 	Tile::packedIce = (new PackedIceTile(174))->setDestroyTime(0.5f)->setSoundType(SOUND_GLASS)->setIconName(L"packed_ice")->setDescriptionId(IDS_TILE_PACKED_ICE)->setUseDescriptionId(IDS_DESC_PACKED_ICE);
 	Tile::beetroots = static_cast<BeetrootTile*>((new BeetrootTile(beetroots_Id))->setIconName(L"beetroots")->setDescriptionId(IDS_TILE_BEETROOTS)->setUseDescriptionId(IDS_DESC_BEETROOT_SEEDS)->disableMipmap());
-	Tile::grass_path = static_cast<GrassPathTile*>((new GrassPathTile(grass_path_Id))->setDestroyTime(0.65f)->setSoundType(SOUND_GRAVEL)->setIconName(L"grass_path_top")->setDescriptionId(IDS_TILE_GRASS_PATH)->setUseDescriptionId(IDS_DESC_DIRT)->sendTileData());
+	Tile::grass_path = static_cast<GrassPathTile*>((new GrassPathTile(grass_path_Id))->setDestroyTime(0.65f)->setSoundType(SOUND_GRAVEL)->setIconName(L"grass_path_top")->setDescriptionId(IDS_TILE_GRASS_PATH)->setUseDescriptionId(IDS_DESC_GRASS_PATH)->sendTileData());
 	Tile::frosted_ice = static_cast<FrostedIceTile*>((new FrostedIceTile(frosted_ice_Id))->setDestroyTime(0.5f)->setLightBlock(3)->setSoundType(Tile::SOUND_GLASS)->setIconName(L"ice")->setDescriptionId(IDS_TILE_FROSTED_ICE)->setUseDescriptionId(IDS_DESC_ICE)->setNotCollectStatistics());
 
 	Tile::end_bricks = (new Tile(end_bricks_Id, Material::stone))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(3.0f)->setExplodeable(9)->setSoundType(SOUND_STONE)->setIconName(L"end_bricks")->setDescriptionId(IDS_TILE_END_BRICKS)->setUseDescriptionId(IDS_DESC_STONE);
-	Tile::magma = static_cast<MagmaTile*>((new MagmaTile(magma_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_block, Item::eMaterial_stone)->setDestroyTime(0.5f)->setExplodeable(6)->setSoundType(SOUND_STONE)->setIconName(L"magma")->setDescriptionId(IDS_TILE_MAGMA)->setUseDescriptionId(IDS_DESC_STONE));
-	Tile::nether_wart_block = (new Tile(nether_wart_block_Id, Material::grass))->setBaseItemTypeAndMaterial(Item::eBaseItemType_block, Item::eMaterial_wheat)->setDestroyTime(0.5f)->setSoundType(SOUND_WOOD)->setIconName(L"nether_wart_block")->setDescriptionId(IDS_TILE_NETHER_WART_BLOCK)->setUseDescriptionId(IDS_DESC_STONE);
-	Tile::red_nether_brick = (new Tile(red_nether_brick_Id, Material::stone))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(6)->setSoundType(SOUND_STONE)->setIconName(L"red_nether_brick")->setDescriptionId(IDS_TILE_RED_NETHER_BRICK)->setUseDescriptionId(IDS_DESC_STONE);
-	Tile::bone_block = static_cast<BoneBlockTile*>((new BoneBlockTile(bone_block_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(1.5f)->setExplodeable(10)->setSoundType(SOUND_STONE)->setIconName(L"bone_block_side")->setDescriptionId(IDS_TILE_BONE_BLOCK)->setUseDescriptionId(IDS_DESC_STONE)->sendTileData());
+	Tile::magma = static_cast<MagmaTile*>((new MagmaTile(magma_block_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_block, Item::eMaterial_stone)->setDestroyTime(0.5f)->setExplodeable(6)->setSoundType(SOUND_STONE)->setIconName(L"magma")->setDescriptionId(IDS_TILE_MAGMA)->setUseDescriptionId(IDS_DESC_MAGMA));
+	Tile::nether_wart_block = (new Tile(nether_wart_block_Id, Material::grass))->setBaseItemTypeAndMaterial(Item::eBaseItemType_block, Item::eMaterial_wheat)->setDestroyTime(0.5f)->setSoundType(SOUND_WOOD)->setIconName(L"nether_wart_block")->setDescriptionId(IDS_TILE_NETHER_WART_BLOCK)->setUseDescriptionId(IDS_DESC_NETHER_WART_BLOCK);
+	Tile::red_nether_brick = (new Tile(red_nether_brick_Id, Material::stone))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(6)->setSoundType(SOUND_STONE)->setIconName(L"red_nether_brick")->setDescriptionId(IDS_TILE_RED_NETHER_BRICK)->setUseDescriptionId(IDS_DESC_RED_NETHER_BRICK);
+	Tile::bone_block = static_cast<BoneBlockTile*>((new BoneBlockTile(bone_block_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(1.5f)->setExplodeable(10)->setSoundType(SOUND_STONE)->setIconName(L"bone_block_side")->setDescriptionId(IDS_TILE_BONE_BLOCK)->setUseDescriptionId(IDS_DESC_BONE_BLOCK)->sendTileData());
 
 
 	Tile::daylight_detector_inverted = static_cast<DaylightDetectorTile*>((new DaylightDetectorTile(178, true))->setDestroyTime(0.2f)->setSoundType(SOUND_WOOD)->setIconName(L"daylight_detector")->setDescriptionId(IDS_TILE_DAYLIGHT_DETECTOR)->setUseDescriptionId(IDS_DESC_DAYLIGHT_DETECTOR));
@@ -1316,7 +1316,7 @@ Icon *Tile::getTexture(LevelSource *level, int x, int y, int z, int face)
 	int tileId = level->getTile(x, y, z);
 	int tileData = level->getData(x, y, z);
 
-	if( tileId == Tile::leaves_Id )
+	if (tileId == Tile::leaves_Id || tileId == Tile::leaves2_Id)
 	{
 		bool opaque = true;
 
@@ -1326,7 +1326,7 @@ Icon *Tile::getTexture(LevelSource *level, int x, int y, int z, int face)
 		for( int i = 0; (i < 6) && opaque; i++ )
 		{
 			int t = level->getTile(x + axo[i], y + ayo[i] , z + azo[i]);
-			if( ( t != Tile::leaves_Id ) && ( ( Tile::tiles[t] == nullptr ) || !Tile::tiles[t]->isSolidRender() ) )
+            if ((t != Tile::leaves_Id && t != Tile::leaves2_Id) && ((Tile::tiles[t] == nullptr) || !Tile::tiles[t]->isSolidRender()))
 			{
 				opaque = false;
 			}
@@ -1994,7 +1994,7 @@ void Tile::registerIcons(IconRegister *iconRegister)
 void Tile::updateEntityAfterFallOn(Level *level, shared_ptr<Entity> entity)
 {
 	if (!entity) return;
-	entity->fallDistance = 0.0f;
+	entity->yd = 0;
 }
 
 wstring Tile::getTileItemIconName()
@@ -2024,6 +2024,9 @@ Tile::SoundType::SoundType(eMATERIALSOUND_TYPE eMaterialSound, float volume, flo
 			break;
 		case eMaterialSoundType_GRASS:
 			this->iBreakSound=eSoundType_DIG_GRASS;
+			break;
+		case eMaterialSoundType_SLIME:
+			this->iStepSound=eSoundType_MOB_SLIME_SMALL;
 			break;
 		case eMaterialSoundType_METAL:
 			this->iBreakSound=eSoundType_DIG_STONE;
@@ -2073,6 +2076,9 @@ Tile::SoundType::SoundType(eMATERIALSOUND_TYPE eMaterialSound, float volume, flo
 		break;
 	case eMaterialSoundType_GRASS:
 		this->iStepSound=eSoundType_STEP_GRASS;
+		break;
+	case eMaterialSoundType_SLIME:
+		this->iStepSound=eSoundType_MOB_SLIME_SMALL;
 		break;
 	case eMaterialSoundType_METAL:
 		this->iStepSound=eSoundType_STEP_METAL;
@@ -2297,7 +2303,7 @@ const int Tile::slime_Id;
 const int Tile::beetroots_Id;
 const int Tile::grass_path_Id;
 const int Tile::end_bricks_Id;
-const int Tile::magma_Id;
+const int Tile::magma_block_Id;
 const int Tile::nether_wart_block_Id;
 const int Tile::red_nether_brick_Id;
 const int Tile::bone_block_Id;

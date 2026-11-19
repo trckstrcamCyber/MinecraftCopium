@@ -57,7 +57,7 @@ static const EncyDescriptionEntry kDescriptions[] =
 	{ 18, L"Extra damage to spiders, silverfish and other arthropods." },
 	{ 19, L"Knocks enemies back further." },
 	{ 20, L"Sets the target on fire." },
-	{ 21, L"Mobs drop more loot." },
+	{ 21, L"Mobs drop more loot. Works on swords and crossbows." },
 	{ 22, L"Heals you for 10, 20 or 30% of the melee damage you deal." },
 	{ 23, L"Each hit in a combo adds 5, 10 or 15% crit chance; landing a crit resets it." },
 	{ 24, L"Each hit in a combo makes the next hit 5, 10 or 15% stronger, up to +200%." },
@@ -80,6 +80,12 @@ static const EncyDescriptionEntry kDescriptions[] =
 	{ 50, L"Arrows set targets on fire." },
 	{ 51, L"Shoot without using up arrows." },
 	{ 52, L"Arrows burst on impact (radius about 1.75, 2.5 or 3.25) without breaking blocks." },
+
+	// crossbows
+	{ 53, L"Draws the crossbow 0.25 seconds faster per level." },
+	{ 54, L"Fires 3 arrows in a spread for the price of one." },
+	{ 55, L"Arrows fly through 1 to 4 extra mobs." },
+	{ 56, L"The crossbow loads torches, not arrows. A shot ignites mobs and plants the torch where it hits a block." },
 
 	// fishing
 	{ 64, L"Fish bite faster." },
@@ -137,6 +143,7 @@ enum EncyProbe
 	ENCY_PROBE_ROD,
 	ENCY_PROBE_FIREARM,
 	ENCY_PROBE_MACE,		// neoLegacy - Mace
+	ENCY_PROBE_CROSSBOW,	// neoLegacy - Crossbow
 	ENCY_PROBE_COUNT
 };
 
@@ -159,6 +166,7 @@ static int encyProbeItemId(int probe)
 	case ENCY_PROBE_ROD:			return Item::fishing_rod_Id;
 	case ENCY_PROBE_FIREARM:		return Item::mac10_Id;
 	case ENCY_PROBE_MACE:		return Item::mace_Id;
+	case ENCY_PROBE_CROSSBOW:	return Item::crossbow_Id;
 	}
 	return 0;
 }
@@ -210,6 +218,7 @@ static wstring encyDescribeFits(const bool fits[ENCY_PROBE_COUNT])
 	if (fits[ENCY_PROBE_ROD])			parts.push_back(L"Fishing Rod");
 	if (fits[ENCY_PROBE_FIREARM])		parts.push_back(L"Firearm");
 	if (fits[ENCY_PROBE_MACE])			parts.push_back(L"Mace");
+	if (fits[ENCY_PROBE_CROSSBOW])		parts.push_back(L"Crossbow");
 
 	wstring result;
 	for (size_t i = 0; i < parts.size(); ++i)
@@ -242,7 +251,7 @@ static const wchar_t *encySectionTitle(int section)
 	case ENCY_SECTION_ARMOR:		return L"Armor";
 	case ENCY_SECTION_MELEE:		return L"Melee";
 	case ENCY_SECTION_TOOLS:		return L"Tools";
-	case ENCY_SECTION_BOWS:		return L"Bows";
+	case ENCY_SECTION_BOWS:		return L"Bows & Crossbows";
 	case ENCY_SECTION_FISHING:	return L"Fishing";
 	case ENCY_SECTION_FIREARMS:	return L"Firearms";
 	case ENCY_SECTION_GENERAL:	return L"General";
@@ -264,7 +273,7 @@ static int encyChooseSection(Enchantment *e, const bool fits[ENCY_PROBE_COUNT])
 	if (fits[ENCY_PROBE_HELMET] || fits[ENCY_PROBE_CHESTPLATE] || fits[ENCY_PROBE_LEGGINGS] || fits[ENCY_PROBE_BOOTS]) return ENCY_SECTION_ARMOR;
 	if (fits[ENCY_PROBE_SWORD] || fits[ENCY_PROBE_ZORO] || fits[ENCY_PROBE_MACE]) return ENCY_SECTION_MELEE;
 	if (fits[ENCY_PROBE_AXE] || fits[ENCY_PROBE_PICKAXE] || fits[ENCY_PROBE_SHOVEL] || fits[ENCY_PROBE_HOE] || fits[ENCY_PROBE_SHEARS]) return ENCY_SECTION_TOOLS;
-	if (fits[ENCY_PROBE_BOW]) return ENCY_SECTION_BOWS;
+	if (fits[ENCY_PROBE_BOW] || fits[ENCY_PROBE_CROSSBOW]) return ENCY_SECTION_BOWS;
 	if (fits[ENCY_PROBE_ROD]) return ENCY_SECTION_FISHING;
 	if (fits[ENCY_PROBE_FIREARM]) return ENCY_SECTION_FIREARMS;
 	return ENCY_SECTION_OTHER;

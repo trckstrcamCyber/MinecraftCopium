@@ -12,7 +12,7 @@ LeafTileItem2::LeafTileItem2(int id) : LeafTileItem(id)
 
 int LeafTileItem2::getLevelDataForAuxValue(int auxValue) 
 {
-	return auxValue;
+	return auxValue | LeafTile::PERSISTENT_LEAF_BIT;
 }
 
 Icon *LeafTileItem2::getIcon(int itemAuxValue) 

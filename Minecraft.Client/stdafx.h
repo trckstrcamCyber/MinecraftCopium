@@ -351,6 +351,17 @@ typedef XUID GameSessionUID;
 
 
 
+#include "Windows64/CrashHandler.h"
+
+#ifndef _FINAL_BUILD
+#undef OutputDebugString
+#undef OutputDebugStringA
+#undef OutputDebugStringW
+#define OutputDebugStringA(s) CrashHandler::interceptA(s)
+#define OutputDebugStringW(s) CrashHandler::interceptW(s)
+#define OutputDebugString(s)  CrashHandler::interceptW(s)
+#endif
+
 #ifdef _FINAL_BUILD
 #define printf BREAKTHECOMPILE
 #define wprintf BREAKTHECOMPILE

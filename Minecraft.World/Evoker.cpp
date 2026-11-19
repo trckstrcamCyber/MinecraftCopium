@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "RaidGoals.h"
 #include "Random.h"
 #include "PathNavigation.h"
 #include "AttributeInstance.h"
@@ -208,6 +209,7 @@ Evoker::Evoker(Level *level) : SpellcasterIllager(level)
 	goalSelector.addGoal(4, new EvokerSummonSpellGoal(this));
 	goalSelector.addGoal(5, new EvokerAttackSpellGoal(this));
 	goalSelector.addGoal(6, new EvokerWololoSpellGoal(this));
+	goalSelector.addGoal(7, new RaidMoveGoal(this, this, 1.0));
 	goalSelector.addGoal(8, new RandomStrollGoal(this, 0.6));
 	goalSelector.addGoal(9, new LookAtPlayerGoal(this, typeid(Player), 3.0f, 1.0f));
 	goalSelector.addGoal(10, new LookAtPlayerGoal(this, typeid(Mob), 8.0f));

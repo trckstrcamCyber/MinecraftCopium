@@ -44,8 +44,7 @@ enum EUIScene
 	eUIScene_MainMenu,
 	eUIScene_FullscreenProgress,
 	eUIScene_PauseMenu,
-	eUIScene_Crafting2x2Menu,
-	eUIScene_Crafting3x3Menu,
+	eUIScene_CraftingMenu,
 	eUIScene_ClassicCraftingMenu,
 	eUIScene_FurnaceMenu,
 	eUIScene_ContainerMenu,
@@ -101,6 +100,10 @@ enum EUIScene
 	eUIScene_FireworksMenu,
 	eUIScene_BookMenu,
 	eUIScene_AchievementsMenu,
+	eUIScene_MinigamesMenu,
+	eUIScene_MinigamesCreateMenu,
+	eUIScene_MinigamesJoinMenu,
+	eUIScene_MinigamesMapSelectMenu,
 #ifdef _XBOX
 //	eUIScene_TransferToXboxOne,
 #endif

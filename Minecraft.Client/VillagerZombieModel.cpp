@@ -14,49 +14,63 @@ void VillagerZombieModel::_init(float g, float yOffset, bool isArmor)
 	}
 	else
 	{
-		delete pants0;
-		delete pants1;
-		delete jacket;
-		
 		head = new ModelPart(this);
 		head->setPos(0, 0 + yOffset, 0);
-		head->texOffs(0, 32)->addBox(-4, -10, -4, 8, 10, 8, g);
-		head->texOffs(24, 32)->addBox(-1, -3, -6, 2, 4, 2, g);
+		head->texOffs(0, 0)->addBox(-4, -10, -4, 8, 10, 8, g);
+		head->texOffs(24, 0)->addBox(-1, -3, -6, 2, 4, 2, g);
 
 		delete body;
-		body = new ModelPart(this, 16, 16);
-		body->addBox(-4, 0, -2, 8, 12, 4, g);
+		body = new ModelPart(this, 16, 20);
+		body->addBox(-4, 0, -3, 8, 12, 6, g);
 		body->setPos(0, 0 + yOffset, 0);
 
 		delete arm0;
-		arm0 = new ModelPart(this, 40, 16);
+		arm0 = new ModelPart(this, 44, 38);
 		arm0->addBox(-3, -2, -2, 4, 12, 4, g);
 		arm0->setPos(-5, 2 + yOffset, 0);
 
-		pants0 = new ModelPart(this, 40, 16);
-		pants0->addBox(0, 0, 0, 0, 0, 0, g);
-		pants0->setPos(0, 0 + yOffset, 0);
-
-		pants1 = new ModelPart(this, 40, 16);
-		pants1->addBox(0, 0, 0, 0, 0, 0, g);
-		pants1->setPos(0, 0 + yOffset, 0);
-
 		delete arm1;
-		arm1 = new ModelPart(this, 40, 16);
+		arm1 = new ModelPart(this, 44, 38);
 		arm1->bMirror = true;
 		arm1->addBox(-1, -2, -2, 4, 12, 4, g);
 		arm1->setPos(5, 2 + yOffset, 0);
 
 		delete leg0;
-		leg0 = new ModelPart(this, 0, 16);
+		leg0 = new ModelPart(this, 0, 22);
 		leg0->addBox(-2, 0, -2, 4, 12, 4, g);
 		leg0->setPos(-1.9f, 12 + yOffset, 0);
 
 		delete leg1;
-		leg1 = new ModelPart(this, 0, 16);
+		leg1 = new ModelPart(this, 0, 22);
 		leg1->bMirror = true;
 		leg1->addBox(-2, 0, -2, 4, 12, 4, g);
 		leg1->setPos(1.9f, 12 + yOffset, 0);
+
+		delete jacket;
+		jacket = new ModelPart(this, 0, 38);
+		jacket->addBox(-4, 0, -3, 8, 18, 6, g + 0.5f);
+		jacket->setPos(0, 0 + yOffset, 0);
+
+		delete sleeve0;
+		sleeve0 = new ModelPart(this, 44, 22);
+		sleeve0->addBox(-3, -2, -2, 4, 12, 4, g + 0.25f);
+		sleeve0->setPos(-5, 2 + yOffset, 0);
+
+		delete sleeve1;
+		sleeve1 = new ModelPart(this, 44, 22);
+		sleeve1->addBox(-1, -2, -2, 4, 12, 4, g + 0.25f);
+		sleeve1->setPos(5, 2 + yOffset, 0);
+
+		delete pants0;
+		pants0 = new ModelPart(this, 0, 22);
+		pants0->addBox(-2, 0, -2, 4, 12, 4, g + 0.25f);
+		pants0->setPos(-1.9f, 12 + yOffset, 0);
+
+		delete pants1;
+		pants1 = new ModelPart(this, 0, 22);
+		pants1->bMirror = true;
+		pants1->addBox(-2, 0, -2, 4, 12, 4, g + 0.25f);
+		pants1->setPos(1.9f, 12 + yOffset, 0);
 	}
 
 	// 4J added - compile now to avoid random performance hit first time cubes are rendered
@@ -68,6 +82,11 @@ void VillagerZombieModel::_init(float g, float yOffset, bool isArmor)
 		arm1->compile(1.0f/16.0f);
 		leg0->compile(1.0f/16.0f);
 		leg1->compile(1.0f/16.0f);
+		jacket->compile(1.0f/16.0f);
+		sleeve0->compile(1.0f/16.0f);
+		sleeve1->compile(1.0f/16.0f);
+		pants0->compile(1.0f/16.0f);
+		pants1->compile(1.0f/16.0f);
 	}
 }
 
@@ -83,7 +102,7 @@ VillagerZombieModel::VillagerZombieModel(float g, float yOffset, bool isArmor) :
 
 int VillagerZombieModel::version()
 {
-	return 10;
+	return 11;
 }
 
 void VillagerZombieModel::setupAnim(float time, float r, float bob, float yRot, float xRot, float scale, shared_ptr<Entity> entity, unsigned int uiBitmaskOverrideAnim)

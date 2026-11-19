@@ -16,6 +16,7 @@
 #include "../../../Minecraft.World/net.minecraft.world.entity.animal.h"
 #include "../../../Minecraft.World/net.minecraft.world.entity.monster.h"
 #include "../../../Minecraft.World/JavaMath.h"
+#include "../../../Minecraft.World/BannerItem.h"
 
 
 // 4J JEV - Images for each tab.
@@ -86,6 +87,7 @@ void IUIScene_CreativeMenu::staticCtor()
 	DEF(eCreativeInventory_BuildingBlocks)
 		ITEM(Tile::stone_Id)
 		ITEM(Tile::grass_Id)
+		ITEM(Tile::grass_path_Id)
 		ITEM_AUX(Tile::dirt_Id, 0)
 		ITEM(Tile::cobblestone_Id)
 		ITEM(Tile::sand_Id)
@@ -195,12 +197,11 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Tile::mycelium_Id)
 		ITEM_AUX(Tile::dirt_Id, DirtTile::COARSE_DIRT)
 		ITEM_AUX(Tile::dirt_Id, DirtTile::PODZOL)
-		ITEM(Tile::grass_path_Id)
 		ITEM(Tile::nether_brick_Id)
 		ITEM(Tile::red_nether_brick_Id)
 		ITEM(Tile::end_stone_Id)
 		ITEM(Tile::end_bricks_Id)
-		ITEM(Tile::magma_Id)
+		ITEM(Tile::magma_block_Id)
 		ITEM(Tile::nether_wart_block_Id)
 		ITEM(Tile::bone_block_Id)
 		ITEM_AUX(Tile::quartz_block_Id,QuartzBlockTile::TYPE_CHISELED)
@@ -448,6 +449,12 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Tile::standing_banner_Id, 8)	// Dark Grey
 		ITEM_AUX(Tile::standing_banner_Id, 7)	// Light Grey
 		ITEM_AUX(Tile::standing_banner_Id, 0)	// Black
+		list->push_back(BannerItem::createOminousBanner());	// neoLegacy - Ominous Banner
+		ITEM_AUX(Item::ominous_bottle_Id, 0)	// Ominous Bottle I
+		ITEM_AUX(Item::ominous_bottle_Id, 1)	// II
+		ITEM_AUX(Item::ominous_bottle_Id, 2)	// III
+		ITEM_AUX(Item::ominous_bottle_Id, 3)	// IV
+		ITEM_AUX(Item::ominous_bottle_Id, 4)	// V
 		ITEM_AUX(Tile::wool_Id,14)	// Red
 		ITEM_AUX(Tile::wool_Id,1)	// Orange
 		ITEM_AUX(Tile::wool_Id,4)	// Yellow
@@ -678,7 +685,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Item::spawn_egg_Id, 95); // Wolf
 		ITEM_AUX(Item::spawn_egg_Id, 96); // Mooshroom
 		ITEM_AUX(Item::spawn_egg_Id, 98); // Ozelot
-		ITEM_AUX(Item::spawn_egg_Id, 100); // Horse
+		ITEM_AUX(Item::spawn_egg_Id, 100 | ((EntityHorse::TYPE_HORSE + 1) << 12)); // Horse
 		
 		ITEM_AUX(Item::spawn_egg_Id, 100 | ((EntityHorse::TYPE_DONKEY + 1) << 12) ); // Donkey
 		ITEM_AUX(Item::spawn_egg_Id, 100 | ((EntityHorse::TYPE_MULE + 1) << 12)); // Mule
@@ -699,6 +706,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Item::spawn_egg_Id, 119); // Iceologer
 		ITEM_AUX(Item::spawn_egg_Id, 123); // Illusioner
 		ITEM_AUX(Item::spawn_egg_Id, 124); // Pillager
+		ITEM_AUX(Item::spawn_egg_Id, 125); // Ravager
 		ITEM_AUX(Item::spawn_egg_Id, 113); // Wandering Trader
 		ITEM(Item::record_13_Id)
 		ITEM(Item::record_cat_Id)
@@ -840,6 +848,8 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::sandai_kitetsu_Id)
 		ITEM(Item::enma_Id)
 		ITEM(Item::shusui_Id)
+		ITEM(Item::jdemon_sword_Id)		// neoLegacy - JDemon sword
+		ITEM(Item::cmonster_sword_Id)	// neoLegacy - CMonster sword
 		ITEM(Item::mace_Id)		// neoLegacy - Mace
 		ITEM(Item::cursed_hilt_Id)
         ITEM(Item::flint_and_steel_Id)

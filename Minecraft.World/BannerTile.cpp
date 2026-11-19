@@ -6,6 +6,7 @@
 #include "ItemInstance.h"
 #include "Random.h"
 #include "BannerTileEntity.h"
+#include "BannerItem.h"
 #include "BannerTile.h"
 
 BannerTile::BannerTile(int id, bool onGround) : BaseEntityTile(id, Material::wood, isSolidRender())
@@ -150,6 +151,8 @@ void BannerTile::spawnResources(Level *level, int x, int y, int z, int data, flo
 	for (int i = 0; i < count; i++)
 	{
 		if (level->random->nextFloat() > odds) continue;
-		popResource(level, x, y, z, std::make_shared<ItemInstance>(Tile::standing_banner_Id, 1, color));
+		shared_ptr<ItemInstance> drop = std::make_shared<ItemInstance>(Tile::standing_banner_Id, 1, color);
+		if (bte != nullptr) BannerItem::setPatterns(drop, bte->getPatterns());
+		popResource(level, x, y, z, drop);
 	}
 }

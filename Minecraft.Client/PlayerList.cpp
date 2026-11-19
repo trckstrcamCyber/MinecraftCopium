@@ -560,6 +560,14 @@ void PlayerList::validatePlayerSpawnPosition(shared_ptr<ServerPlayer> player)
 
 void PlayerList::add(shared_ptr<ServerPlayer> player)
 {
+	// Crash guard: a null player has been seen reaching here (server-thread
+	// page fault on a null+1 read). Drop it loudly instead of crashing;
+	// the caller in the server login/join path still needs auditing.
+	if(player == nullptr)
+	{
+		app.DebugPrintf("PlayerList::add called with null player\n");
+		return;
+	}
 	//broadcastAll(shared_ptr<PlayerInfoPacket>( new PlayerInfoPacket(player->name, true, 1000) ) );
 	if( player->connection->getNetworkPlayer() )
 	{
@@ -932,7 +940,7 @@ shared_ptr<ServerPlayer> PlayerList::respawn(shared_ptr<ServerPlayer> serverPlay
 
 	if(keepAllPlayerData)
 	{
-		vector<MobEffectInstance *> *activeEffects = player->getActiveEffects();
+		vector<MobEffectInstance *> *activeEffects = serverPlayer->getActiveEffects();
 		for(MobEffectInstance *effect : *activeEffects)
 		{
 			player->connection->send(std::make_shared<UpdateMobEffectPacket>( player->entityId, effect ) );

@@ -7,6 +7,7 @@
 #include "ItemInstance.h"
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.world.item.crafting.h"
+#include "BannerPatternRecipe.h"
 #include "DyePowderItem.h"
 #include "ObserverTile.h"
 #include "DrillTile.h"
@@ -25,6 +26,7 @@ StructureRecipies *Recipes::pStructureRecipies=nullptr;
 ToolRecipies *Recipes::pToolRecipies=nullptr;
 WeaponRecipies *Recipes::pWeaponRecipies=nullptr;
 FireworksRecipe *Recipes::pFireworksRecipes=nullptr;
+BannerPatternRecipe *Recipes::pBannerPatternRecipe=nullptr;	// neoLegacy
 
 void Recipes::staticCtor()
 {
@@ -51,10 +53,25 @@ void Recipes::_init()
 	//recipies->add(new MapExtendingRecipe());
 	//recipies->add(new FireworksRecipe());
 	pFireworksRecipes = new FireworksRecipe();
+	pBannerPatternRecipe = new BannerPatternRecipe();	// neoLegacy - not in the list either: asked directly by getItemFor
 }
 
 void Recipes::_compileRecipes()
 {
+	// neoLegacy - plain banners: 6 wool of one color + 1 stick. Wool aux is
+	// standard (0 = white); banner aux is dye order, so banner aux = 15 - wool aux.
+	for (int i = 0; i < 16; i++) {
+		addShapedRecipy(new ItemInstance(Tile::standing_banner_Id, 1, 15 - i), //
+			L"sssczcig",
+			L"###", //
+			L"###", //
+			L" I ", //
+
+			L'#', new ItemInstance(Tile::wool_Id, 1, i),
+			L'I', Item::stick,
+			L'B');
+	}
+
 	addShapedRecipy(new ItemInstance(Tile::wood, 4, 0), //
 		L"sczg",
 		L"#", //
@@ -1886,6 +1903,9 @@ ShapedRecipy *Recipes::addShapedRecipy(ItemInstance *result, ...)
 			case L'F':
 				group=ShapedRecipy::eGroupType_Food;
 				break;
+			case L'B':
+				group=ShapedRecipy::eGroupType_Banner_CustomLogic;
+				break;
 			case L'D':
 			default:
 				group=ShapedRecipy::eGroupType_Decoration;
@@ -1982,6 +2002,9 @@ void Recipes::addShapelessRecipy(ItemInstance *result,... )
 			case L'F':
 				group=Recipy::eGroupType_Food;
 				break;
+			case L'B':
+				group=Recipy::eGroupType_Banner_CustomLogic;
+				break;
 			case L'D':
 			default:
 				group=Recipy::eGroupType_Decoration;
@@ -2032,6 +2055,8 @@ shared_ptr<ItemInstance> Recipes::getItemFor(shared_ptr<CraftingContainer> craft
 			if (isComplexOnly(r)) continue;	// neoLegacy - Complex Table recipes only match at a Complex Table
 			if (r->matches(craftSlots, level)) return r->assemble(craftSlots);
 		}
+		// neoLegacy - a banner and dyes in a pattern add a pattern to the banner (free-form 3x3 grids)
+		if (pBannerPatternRecipe != nullptr && pBannerPatternRecipe->matches(craftSlots, level)) return pBannerPatternRecipe->assemble(craftSlots);
 	}
 	return nullptr;
 }

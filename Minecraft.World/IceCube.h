@@ -11,6 +11,7 @@ class IceCube : public Mob, public Creature
 {
 public:
 	static const int FLOAT_TICKS = 60;			// default hover time before it drops
+	static const int DATA_HOVER_ID = 16;		// synched: the hover time the server gave it, so the client's copy drops at the same moment
 	eINSTANCEOF GetType() { return eTYPE_ICE_CUBE; }
 	static Entity *create(Level *level) { return new IceCube(level); }
 
@@ -20,6 +21,8 @@ private:
 	int fallTime;
 	bool landed;
 	bool dropping;			// hover is over, it is now falling
+	bool homing;			// the Ice Wand's cubes slide after their target while they hover and fall, so they land on it
+	bool hoverSynced;		// (client) has read the hover time from the server
 	double dropStartY;		// where the fall began (the damage depends on how far it fell)
 	weak_ptr<LivingEntity> caster;
 	weak_ptr<LivingEntity> target;
@@ -27,7 +30,7 @@ private:
 public:
 	IceCube(Level *level);
 	// hoverTicks: how long it hovers over the target before dropping (the Iceologer's spell: 3 s, the Ice Wand: about 1.2 s)
-	IceCube(Level *level, shared_ptr<LivingEntity> caster, shared_ptr<LivingEntity> target, int hoverTicks = FLOAT_TICKS);
+	IceCube(Level *level, shared_ptr<LivingEntity> caster, shared_ptr<LivingEntity> target, int hoverTicks = FLOAT_TICKS, bool homing = false);
 
 	virtual void tick();
 	virtual void travel(float xa, float ya);
@@ -43,4 +46,5 @@ protected:
 
 private:
 	void damageEntity(shared_ptr<LivingEntity> victim, int blocksFallen);
+	void trackTarget();
 };

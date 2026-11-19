@@ -28,9 +28,12 @@ IceCube::IceCube(Level *level) : Mob(level)
 	landed = false;
 	dropping = false;
 	dropStartY = 0;
+	homing = false;
+	hoverSynced = false;
+	getEntityData()->define(DATA_HOVER_ID, static_cast<byte>(0));
 }
 
-IceCube::IceCube(Level *level, shared_ptr<LivingEntity> caster, shared_ptr<LivingEntity> target, int hoverTicks) : Mob(level)
+IceCube::IceCube(Level *level, shared_ptr<LivingEntity> caster, shared_ptr<LivingEntity> target, int hoverTicks, bool homing) : Mob(level)
 {
 	this->defineSynchedData();
 	registerAttributes();
@@ -44,8 +47,28 @@ IceCube::IceCube(Level *level, shared_ptr<LivingEntity> caster, shared_ptr<Livin
 	dropStartY = 0;
 	this->caster = caster;
 	this->target = target;
+	this->homing = homing;
+	hoverSynced = true;
 	xd = yd = zd = 0;
-	if (target != nullptr) setPos(target->x, target->y + 1.0 + 3.0 + (1.0f - bbHeight) / 2.0f, target->z);
+
+	// the clients need the hover time too: they simulate the fall themselves, and a copy that hovers for the default 60 ticks while the server's
+	// cube dropped after 24 shows a cube that never comes down
+	getEntityData()->define(DATA_HOVER_ID, static_cast<byte>(hoverTicks > 127 ? 127 : hoverTicks));
+
+	if (target != nullptr)
+	{
+		setPos(target->x, target->y + 1.0 + 3.0 + (1.0f - bbHeight) / 2.0f, target->z);
+		if (homing)
+		{
+			// under a low ceiling the cube would be conjured inside the rock: bring it down until it has room
+			for (double h = 3.0; h >= 1.0; h -= 0.5)
+			{
+				setPos(target->x, target->y + 1.0 + h + (1.0f - bbHeight) / 2.0f, target->z);
+				AABBList *cubes = level->getCubes(shared_ptr<Entity>(), bb, true);
+				if (cubes == nullptr || cubes->empty()) break;
+			}
+		}
+	}
 }
 
 void IceCube::registerAttributes()
@@ -62,9 +85,38 @@ bool IceCube::hurt(DamageSource *source, float dmg)
 // no walking, no swimming, no ordinary gravity: tick() moves the cube itself
 void IceCube::travel(float xa, float ya) {}
 
+// the Ice Wand's cube follows its target sideways (never faster than it can run) so that it comes down on it
+void IceCube::trackTarget()
+{
+	shared_ptr<LivingEntity> t = target.lock();
+	if (t == nullptr || !t->isAlive()) return;
+
+	double dx = t->x - x;
+	double dz = t->z - z;
+	double d = sqrt(dx * dx + dz * dz);
+	if (d < 0.05) return;
+
+	const double SPEED = 0.5;
+	double step = d < SPEED ? d : SPEED;
+	setPos(x + dx / d * step, y, z + dz / d * step);
+}
+
 void IceCube::tick()
 {
 	Entity::tick();
+
+	// (client) take the hover time the server chose
+	if (level->isClientSide && !hoverSynced)
+	{
+		int hover = getEntityData()->getByte(DATA_HOVER_ID);
+		if (hover > 0)
+		{
+			floatTicks = hover;
+			hoverSynced = true;
+		}
+	}
+
+	if (homing && !level->isClientSide) trackTarget();
 
 	if (floatTicks == 20 && !level->isClientSide) playSound(eSoundType_MOB_ICEOLOGER_CUBE_AMBIENT, 1.0f, 1.0f);
 
