@@ -10896,6 +10896,9 @@
 	<data name="IDS_ITEM_DOOR_ROSE_GOLD">
 		<value>Rose Gold Door</value>
 	</data>
+	<data name="IDS_ITEM_HONEYCOMB">
+		<value>Honeycomb</value>
+	</data>
 	<data name="IDS_DESC_BLOCK_COPPER">
 		<value>A decorative block made from copper. It oxidizes over time, changing color.</value>
 	</data>
@@ -10913,6 +10916,9 @@
 	</data>
 	<data name="IDS_DESC_DOOR_ROSE_GOLD">
 		<value>A door made from rose gold. It can be opened by hand, unlike an iron door.</value>
+	</data>
+	<data name="IDS_DESC_HONEYCOMB">
+		<value>Obtained from a Wandering Trader. Use it with a copper block to wax it and stop it from oxidizing further.</value>
 	</data>
 	<data name="IDS_DESC_COPPER_CHAIN">
 		<value>A decorative chain made from copper nuggets and ingots.</value>

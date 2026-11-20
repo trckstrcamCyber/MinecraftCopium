@@ -62,15 +62,30 @@ void CopperBulbTile::checkAndFlip(Level *level, int x, int y, int z)
 	{
 		if (!powered)
 		{
-			// Rising edge: toggle LIT and play the toggle sound.
+			// Rising edge: toggle LIT and play the toggle sound. The lit
+			// state is a SEPARATE tile id (copper_bulb_lit, 2329) so
+			// Level's light cache propagates the light (the furnace_lit
+			// pattern) — so the toggle swaps the tile id as well as
+			// flipping the LIT bit, keeping the two in sync. Oxidation
+			// and waxed (bits 0-2) are preserved by the swap.
 			data ^= LIT_BIT;
+			int newId = ((data & LIT_BIT) != 0) ? Tile::copper_bulb_lit_Id : Tile::copper_bulb_Id;
 			level->playSound(x + 0.5, y + 0.5, z + 0.5,
 				eSoundType_COPPER_BULB_TOGGLE, 0.5f, 1.0f);
+			data = signal ? (data | POWERED_BIT) : (data & ~POWERED_BIT);
+			level->setTileAndData(x, y, z, newId, data, Tile::UPDATE_ALL);
+			// The analog output and the light level may have changed —
+			// let comparators re-read and the light cache update.
+			level->updateNeighborsAt(x, y, z, newId);
 		}
-		data = signal ? (data | POWERED_BIT) : (data & ~POWERED_BIT);
-		level->setData(x, y, z, data, Tile::UPDATE_CLIENTS);
-		// The analog output may have changed — let comparators re-read.
-		level->updateNeighborsAt(x, y, z, id);
+		else
+		{
+			// Falling edge: LIT stays as it is; only POWERED is updated.
+			data = signal ? (data | POWERED_BIT) : (data & ~POWERED_BIT);
+			level->setData(x, y, z, data, Tile::UPDATE_CLIENTS);
+			// The analog output may have changed — let comparators re-read.
+			level->updateNeighborsAt(x, y, z, id);
+		}
 	}
 }
 
@@ -97,6 +112,14 @@ int CopperBulbTile::getAnalogOutputSignal(Level *level, int x, int y, int z, int
 {
 	int data = level->getData(x, y, z);
 	return ((data & LIT_BIT) != 0) ? 15 : 0;
+}
+
+int CopperBulbTile::getResource(int data, Random *random, int playerBonusLevel)
+{
+	// Both the unlit bulb (2310) and the lit bulb (2329) drop the unlit
+	// bulb item. The lit bulb has no item form of its own.
+	(void)data; (void)random; (void)playerBonusLevel;
+	return Tile::copper_bulb_Id;
 }
 
 int CopperBulbTile::getSpawnResourcesAuxValue(int data)

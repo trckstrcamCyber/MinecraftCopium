@@ -14,12 +14,18 @@ ResourceLocation ChestRenderer::CHEST_TRAP_LOCATION = ResourceLocation(TN_TILE_T
 //ResourceLocation ChestRenderer::CHEST_XMAS_LOCATION = ResourceLocation(TN_TILE_XMAS_CHEST);
 ResourceLocation ChestRenderer::CHEST_LOCATION = ResourceLocation(TN_TILE_CHEST);
 // neoLegacy - Copper Age (Phase 3). Copper chest entity textures, one per
-// oxidation state (waxed reuses the unwaxed texture). The double-chest
-// form reuses the single-chest texture in Phase 3 (see Textures.h note).
+// oxidation state (waxed reuses the unwaxed texture).
 ResourceLocation ChestRenderer::CHEST_COPPER_LOCATION = ResourceLocation(TN_TILE_COPPER_CHEST);
 ResourceLocation ChestRenderer::CHEST_COPPER_EXPOSED_LOCATION = ResourceLocation(TN_TILE_COPPER_CHEST_EXPOSED);
 ResourceLocation ChestRenderer::CHEST_COPPER_WEATHERED_LOCATION = ResourceLocation(TN_TILE_COPPER_CHEST_WEATHERED);
 ResourceLocation ChestRenderer::CHEST_COPPER_OXIDIZED_LOCATION = ResourceLocation(TN_TILE_COPPER_CHEST_OXIDIZED);
+// neoLegacy - Copper Age (Phase 4). Copper double-chest sheets (128x64),
+// combined from the jar1201 left/right textures. The two halves of a
+// double chest oxidize independently, so each half binds its own sheet.
+ResourceLocation ChestRenderer::CHEST_COPPER_LARGE_LOCATION = ResourceLocation(TN_TILE_COPPER_CHEST_LARGE);
+ResourceLocation ChestRenderer::CHEST_COPPER_LARGE_EXPOSED_LOCATION = ResourceLocation(TN_TILE_COPPER_CHEST_LARGE_EXPOSED);
+ResourceLocation ChestRenderer::CHEST_COPPER_LARGE_WEATHERED_LOCATION = ResourceLocation(TN_TILE_COPPER_CHEST_LARGE_WEATHERED);
+ResourceLocation ChestRenderer::CHEST_COPPER_LARGE_OXIDIZED_LOCATION = ResourceLocation(TN_TILE_COPPER_CHEST_LARGE_OXIDIZED);
 
 ChestRenderer::ChestRenderer() : TileEntityRenderer()
 {
@@ -74,13 +80,17 @@ void ChestRenderer::render(shared_ptr<TileEntity>  _chest, double x, double y, d
 
 	// neoLegacy - Copper Age (Phase 3). Copper chest texture by oxidation
 	// state (bits 3-5 of the data; waxed reuses the unwaxed texture).
-	// The double-chest form reuses the single-chest texture in Phase 3.
+	// neoLegacy - Copper Age (Phase 4). The double-chest form uses the
+	// combined 128x64 sheet (one per oxidation state); each half of a
+	// double chest binds its own sheet, since the halves oxidize
+	// independently. The single-chest texture is unchanged.
 	ResourceLocation *copperLocation = &CHEST_COPPER_LOCATION;
+	ResourceLocation *copperLargeLocation = &CHEST_COPPER_LARGE_LOCATION;
 	switch ((data >> 3) & 3)
 	{
-	case 1: copperLocation = &CHEST_COPPER_EXPOSED_LOCATION; break;
-	case 2: copperLocation = &CHEST_COPPER_WEATHERED_LOCATION; break;
-	case 3: copperLocation = &CHEST_COPPER_OXIDIZED_LOCATION; break;
+	case 1: copperLocation = &CHEST_COPPER_EXPOSED_LOCATION; copperLargeLocation = &CHEST_COPPER_LARGE_EXPOSED_LOCATION; break;
+	case 2: copperLocation = &CHEST_COPPER_WEATHERED_LOCATION; copperLargeLocation = &CHEST_COPPER_LARGE_WEATHERED_LOCATION; break;
+	case 3: copperLocation = &CHEST_COPPER_OXIDIZED_LOCATION; copperLargeLocation = &CHEST_COPPER_LARGE_OXIDIZED_LOCATION; break;
 	default: break;
 	}
 
@@ -91,7 +101,7 @@ void ChestRenderer::render(shared_ptr<TileEntity>  _chest, double x, double y, d
 
 		if (chest->getType() == ChestTile::TYPE_COPPER)
 		{
-			bindTexture(copperLocation);
+			bindTexture(copperLargeLocation);
 		}
 		else if (chest->getType() == ChestTile::TYPE_TRAP)
 		{

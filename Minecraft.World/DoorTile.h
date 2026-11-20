@@ -65,6 +65,12 @@ public:
 	void setOpen(Level *level, int x, int y, int z, bool shouldOpen);
 	virtual void neighborChanged(Level *level, int x, int y, int z, int type);
 	virtual int getResource(int data, Random *random, int playerBonusLevel);
+	// neoLegacy - Copper Age (Phase 4). The copper door's oxidation lives
+	// in the UPPER half (bits 5-7), but the drop is produced from the
+	// LOWER half, so the base spawnResources would always drop aux 0.
+	// This override reads the upper half so a broken weathered/waxed
+	// copper door drops a door item with the matching oxidation/waxed aux.
+	virtual void spawnResources(Level *level, int x, int y, int z, int data, float odds, int playerBonusLevel);
 	virtual HitResult *clip(Level *level, int xt, int yt, int zt, Vec3 *a, Vec3 *b);
 	virtual bool mayPlace(Level *level, int x, int y, int z);
 	static bool isOpen(int data);

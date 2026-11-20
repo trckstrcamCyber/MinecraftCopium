@@ -976,6 +976,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::copper_nugget_Id)
 		ITEM(Item::raw_copper_Id)
 		ITEM(Item::raw_rose_gold_Id)
+		ITEM(Item::honeycomb_Id)	// neoLegacy - Copper Age (Phase 4)
 		ITEM(Item::rose_gold_nugget_Id)
 		ITEM(Item::netherwart_seeds_Id)
 		ITEM_AUX(Item::dye_Id,1)		// Red

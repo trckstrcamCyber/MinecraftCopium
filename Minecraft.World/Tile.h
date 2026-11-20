@@ -581,6 +581,12 @@ public:
     // neoLegacy - Copper Age (Phase 3). A slab is 2 tile ids (half + full),
     // so the full cut-copper slab takes the next free extended id, 2328.
     static const int cut_copper_slab_full_Id = 2328;
+    // neoLegacy - Copper Age (Phase 4). The lit copper bulb: a separate
+    // tile id (the furnace_lit pattern) so Level's light cache, which reads
+    // the per-tile-id Tile::lightEmission[] array, propagates the light.
+    // Created only by toggling an unlit bulb; never placeable, never a
+    // creative entry, never a recipe result.
+    static const int copper_bulb_lit_Id = 2329;
 
     // neoLegacy - Jelly Block (honey-block behaviour, see JellyBlockTile.h). Uses a free vanilla-range id: extended ids (2304+) have crashed before.
     static const int jelly_block_Id = 210;
@@ -642,6 +648,7 @@ public:
 	static Tile *chiseledCopper;
 	static Tile *copperGrate;
 	static Tile *copperBulb;
+	static Tile *copperBulbLit;	// neoLegacy - Copper Age (Phase 4): lit bulb tile (2329)
 	static ChestTile *copperChest;
 	static Tile *copperDoor;
 	static Tile *copperTrapdoor;

@@ -353,6 +353,7 @@ public:
 	static Item *wooden_door;
 	static Item *copper_door;	// neoLegacy - Copper Age (Phase 3)
 	static Item *rose_gold_door;	// neoLegacy - Copper Age (Phase 3)
+	static Item *honeycomb;	// neoLegacy - Copper Age (Phase 4)
 
 	static Item *bucket;
 	static Item *water_bucket;
@@ -581,6 +582,7 @@ public:
 	static const int rose_gold_boots_Id		= 496;	// neoLegacy - Copper Age (Phase 2)
 	static const int copper_door_Id		= 497;	// neoLegacy - Copper Age (Phase 3)
 	static const int rose_gold_door_Id		= 498;	// neoLegacy - Copper Age (Phase 3)
+	static const int honeycomb_Id			= 499;	// neoLegacy - Copper Age (Phase 4)
 	static const int mace_Id					= 601;	// neoLegacy - Mace
 	static const int jelly_ball_Id			= 602;	// neoLegacy - Jelly Ball
 	static const int ice_ball_Id			= 603;	// neoLegacy - Ice Ball

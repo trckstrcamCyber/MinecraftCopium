@@ -390,6 +390,11 @@ const wchar_t *Textures::preLoaded[TN_COUNT] =
 	L"item/copper_chest_exposed",
 	L"item/copper_chest_weathered",
 	L"item/copper_chest_oxidized",
+	// neoLegacy - Copper Age (Phase 4). Copper double-chest sheets (128x64).
+	L"item/copper_chest_large",
+	L"item/copper_chest_large_exposed",
+	L"item/copper_chest_large_weathered",
+	L"item/copper_chest_large_oxidized",
 };
 
 Textures::Textures(TexturePackRepository *skins, Options *options)

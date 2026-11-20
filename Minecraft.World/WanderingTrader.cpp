@@ -64,6 +64,11 @@ static const TraderOffer SPECIAL_OFFERS[] =
 	{ EM, 0, 1,  Tile::log2_Id, 1, 8, 4 },		// dark oak log
 	{ EM, 0, 3,  Tile::dirt_Id, 2, 3, 6 },		// podzol
 	{ EM, 0, 5,  Item::potion_Id, 8206, 1, 1 },	// potion of invisibility
+	// neoLegacy - Copper Age (Phase 4). Honeycomb: there are no bees in
+	// this tree, so the Wandering Trader is the only source (Cameron's
+	// decision, 2026-11-19). 1 emerald -> 3 honeycomb, max 5 uses; it is
+	// the waxing ingredient, so it needs to be obtainable in bulk.
+	{ EM, 0, 1,  Item::honeycomb_Id, 0, 3, 5 },
 };
 static const int SPECIAL_COUNT = sizeof(SPECIAL_OFFERS) / sizeof(SPECIAL_OFFERS[0]);
 static const int SPECIAL_ENTRIES = SPECIAL_COUNT + 1;		// + the enchanted iron pickaxe

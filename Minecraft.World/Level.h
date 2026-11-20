@@ -414,6 +414,12 @@ protected:
 	virtual void buildAndPrepareChunksToPoll();
 	virtual void tickClientSideTiles(int xo, int zo, LevelChunk *lc);
 	virtual void tickTiles();
+	// neoLegacy - Copper Age (Phase 4). Weathering: oxidizable copper
+	// blocks near players advance one oxidation stage on a slow random
+	// schedule (see Level::tickCopperWeathering). There is no working
+	// block tick in this tree, so this is driven from Level::tick().
+	void tickCopperWeathering();
+	bool advanceCopperOxidation(int x, int y, int z, int tile);
 
 	// 4J - snow & ice checks brought forward from 1.2.3
 public:

@@ -17,6 +17,11 @@ private:
 	static ResourceLocation CHEST_COPPER_EXPOSED_LOCATION;
 	static ResourceLocation CHEST_COPPER_WEATHERED_LOCATION;
 	static ResourceLocation CHEST_COPPER_OXIDIZED_LOCATION;
+	// neoLegacy - Copper Age (Phase 4). Copper double-chest sheets (128x64).
+	static ResourceLocation CHEST_COPPER_LARGE_LOCATION;
+	static ResourceLocation CHEST_COPPER_LARGE_EXPOSED_LOCATION;
+	static ResourceLocation CHEST_COPPER_LARGE_WEATHERED_LOCATION;
+	static ResourceLocation CHEST_COPPER_LARGE_OXIDIZED_LOCATION;
 
 	ChestModel *chestModel;
 	ChestModel *largeChestModel;

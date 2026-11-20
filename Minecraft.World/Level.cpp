@@ -3177,6 +3177,12 @@ void Level::tick()
 	PIXBeginNamedEvent(0,"Weather tick");
 	tickWeather();
 	PIXEndNamedEvent();
+	// neoLegacy - Copper Age (Phase 4). Weathering (copper oxidation) is
+	// driven from the Level tick — there is no working block tick in this
+	// tree (Tile::tick is a dead virtual), and tickTiles() has no caller.
+	// Server-side only; the client just renders the result.
+	if (!isClientSide)
+		tickCopperWeathering();
 }
 
 void Level::prepareWeather()
@@ -3394,6 +3400,118 @@ void Level::tickClientSideTiles(int xo, int zo, LevelChunk *lc)
 void Level::tickTiles()
 {
 	buildAndPrepareChunksToPoll();
+}
+
+// neoLegacy - Copper Age (Phase 4). Weathering scan. Once per tick, one
+// random block position is sampled in each chunk near a player
+// (chunksToPoll, rebuilt here by buildAndPrepareChunksToPoll — the set is
+// only ever inserted into and never cleared, so it is cleared here first
+// to stop it growing without bound). If the sampled block is an unwaxed
+// oxidizable copper block at stage 0-2, it advances one stage with
+// probability 1/8. A chunk holds 16*256*16 = 65,536 positions, so the
+// expected time per stage for one block is 65,536 * 8 = 524,288 ticks
+// (~21.8 MC days), inside the 504,000-552,000-tick spec (the brief's
+// "~7-7.7 days" is a conversion error: 504,000 ticks / 24,000 ticks/day
+// is 21 days, not 7). Waxed blocks (field bit 2, values 4-7) never
+// advance; fully oxidized blocks (stage 3) never advance; rose-gold
+// blocks never oxidize. Cost is one getTile per polled chunk per tick.
+void Level::tickCopperWeathering()
+{
+	chunksToPoll.clear();
+	buildAndPrepareChunksToPoll();
+
+	for (auto &cp : chunksToPoll)
+	{
+		if (!hasChunk(cp.x, cp.z)) continue;
+		int x = cp.x * 16 + random->nextInt(16);
+		int y = random->nextInt(maxBuildHeight);
+		int z = cp.z * 16 + random->nextInt(16);
+		int tile = getTile(x, y, z);
+		if (tile == 0) continue;
+		advanceCopperOxidation(x, y, z, tile);
+	}
+}
+
+// Advance one oxidation stage for the copper block at (x, y, z), if it is
+// an unwaxed oxidizable copper block at stage 0-2. The oxidation field is
+// a 3-bit value (0-7: stage 0-3, +4 when waxed); only values 0-2 advance,
+// so a single `field >= 3` test covers both waxed (4-7) and fully
+// oxidized (3). The field lives in different data bits per tile, and the
+// door's field lives in its UPPER half, so each family is handled below.
+// Returns true if the block advanced.
+bool Level::advanceCopperOxidation(int x, int y, int z, int tile)
+{
+	int data = getData(x, y, z);
+	int field;
+	int newData;
+	int wx = x, wy = y, wz = z; // the block actually written (the door writes its upper half)
+	switch (tile)
+	{
+	// Field = data bits 0-2. CopperTile family (block, cut, chiseled,
+	// grate, lantern, rod, statue), CopperFenceTile (chain, bars), bulb
+	// (unlit and lit) and slab (half and full; bit 3 is TOP_SLOT_BIT and
+	// is preserved by the ~7 mask).
+	case Tile::copper_block_Id:
+	case Tile::cut_copper_Id:
+	case Tile::chiseled_copper_Id:
+	case Tile::copper_grate_Id:
+	case Tile::copper_lantern_Id:
+	case Tile::lightning_rod_Id:
+	case Tile::copper_golem_statue_Id:
+	case Tile::copper_chain_Id:
+	case Tile::copper_bars_Id:
+	case Tile::copper_bulb_Id:
+	case Tile::copper_bulb_lit_Id:
+	case Tile::cut_copper_slab_Id:
+	case Tile::cut_copper_slab_full_Id:
+		field = data & 7;
+		if (field >= 3) return false;
+		newData = (data & ~7) | (field + 1);
+		break;
+	// Chest: field = data bits 3-5 (facing is bits 0-2).
+	case Tile::copper_chest_Id:
+		field = (data >> 3) & 7;
+		if (field >= 3) return false;
+		newData = (data & ~(7 << 3)) | ((field + 1) << 3);
+		break;
+	// Door: the field lives in the UPPER half, bits 5-7. A sampled lower
+	// half advances the block above it; a sampled upper half advances
+	// itself. The upper half must still be a copper door (it could have
+	// been removed between the sample and this read).
+	case Tile::copper_door_Id:
+	{
+		bool isUpper = (data & 8) != 0;
+		int ux = x, uy = isUpper ? y : y + 1, uz = z;
+		if (getTile(ux, uy, uz) != Tile::copper_door_Id) return false;
+		int upperData = isUpper ? data : getData(ux, uy, uz);
+		field = (upperData >> 5) & 7;
+		if (field >= 3) return false;
+		newData = (upperData & ~(7 << 5)) | ((field + 1) << 5);
+		wx = ux; wy = uy; wz = uz;
+		break;
+	}
+	// Trapdoor: field = data bits 4-6.
+	case Tile::copper_trapdoor_Id:
+		field = (data >> 4) & 7;
+		if (field >= 3) return false;
+		newData = (data & ~(7 << 4)) | ((field + 1) << 4);
+		break;
+	// Stairs: field = data bits 3-5 (facing is bits 0-1, upside-down bit 2).
+	case Tile::cut_copper_stairs_Id:
+		field = (data >> 3) & 7;
+		if (field >= 3) return false;
+		newData = (data & ~(7 << 3)) | ((field + 1) << 3);
+		break;
+	default:
+		// Not an oxidizable copper block. (The copper torch and shelf do
+		// not oxidize, the copper button is a plain StoneButtonTile with
+		// no oxidation states, and rose-gold tiles never oxidize.)
+		return false;
+	}
+	// 1-in-8 chance per sampled oxidizable block.
+	if (random->nextInt(8) != 0) return false;
+	setTileAndData(wx, wy, wz, tile, newData, Tile::UPDATE_ALL);
+	return true;
 }
 
 bool Level::shouldFreezeIgnoreNeighbors(int x, int y, int z)

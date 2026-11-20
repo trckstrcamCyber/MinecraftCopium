@@ -55,7 +55,7 @@ bool DoorTile::isHandOpenable()
 
 Icon *DoorTile::getTexture(LevelSource *level, int x, int y, int z, int face)
 {
-	if (face == Facing::UP || face == Facing::DOWN) return iconBottom[getOxidation(level, x, y, z, (level->getData(x, y, z) & C_IS_UPPER_MASK) != 0)][TEXTURE_NORMAL];
+	if (face == Facing::UP || face == Facing::DOWN) return iconBottom[getOxidation(level, x, y, z, (level->getData(x, y, z) & C_IS_UPPER_MASK) != 0) & 3][TEXTURE_NORMAL];
 
 	int compositeData = getCompositeData(level, x, y, z);
 	int dir = compositeData & C_DIR_MASK;
@@ -331,6 +331,37 @@ int DoorTile::getResource(int data, Random *random, int playerBonusLevel)
 	return doorItemMap[doorType];
 }
 
+// neoLegacy - Copper Age (Phase 4). The copper door's oxidation lives in
+// bits 5-7 of the UPPER half's data, but the drop is produced from the
+// LOWER half (getResource returns 0 for the upper half), so the base
+// spawnResources would always drop an unaffected (aux 0) door item and a
+// weathered/waxed door would lose its oxidation when broken. When the
+// lower half is broken while the upper half is still present (the direct
+// destroyTile path — the common case), read the upper half's oxidation
+// and drop the door item with that aux, so the oxidation round-trips
+// (break -> wax -> place). If the upper half is already gone (it was
+// broken first, or the door lost its support), fall back to the base
+// behaviour (aux 0) — see the Phase 4 report for the residual gap.
+// Non-copper doors fall through to the base implementation unchanged.
+void DoorTile::spawnResources(Level *level, int x, int y, int z, int data, float odds, int playerBonusLevel)
+{
+	if (id == Tile::copper_door_Id && (data & UPPER_BIT) == 0 && level->getTile(x, y + 1, z) == id)
+	{
+		if (level->isClientSide) return;
+		int ox = (level->getData(x, y + 1, z) >> 5) & 7;
+		int count = getResourceCountForLootBonus(playerBonusLevel, level->random);
+		for (int i = 0; i < count; i++)
+		{
+			if (level->random->nextFloat() > odds) continue;
+			int type = getResource(data, level->random, playerBonusLevel);
+			if (type <= 0) continue;
+			popResource(level, x, y, z, std::make_shared<ItemInstance>(type, 1, ox));
+		}
+		return;
+	}
+	Tile::spawnResources(level, x, y, z, data, odds, playerBonusLevel);
+}
+
 HitResult *DoorTile::clip(Level *level, int xt, int yt, int zt, Vec3 *a, Vec3 *b)
 {
 	updateShape(level, xt, yt, zt);
@@ -372,8 +403,14 @@ int DoorTile::getCompositeData(LevelSource *level, int x, int y, int z)
 	}
 
 	// bits: dir, dir, open/closed, isUpper, isRightHinge
+	// neoLegacy - Copper Age (Phase 4): bits 5-7 carry the copper door's
+	// oxidation (upper half, bits 5-7 of its data), so the oxidation
+	// round-trips through BlockState. BlockState.value is a plain int
+	// (no width limit). Vanilla doors have 0 there, so this is a no-op
+	// for them. DoorTile::use(BlockState) only reads bits 0-3, so
+	// opening/closing still works and never wipes the oxidation.
 	bool isRightHinge = (upperData & 1) != 0;
-	return (lowerData & C_LOWER_DATA_MASK) | (isUpper ? 8 : 0) | (isRightHinge ? 16 : 0);
+	return (lowerData & C_LOWER_DATA_MASK) | (isUpper ? 8 : 0) | (isRightHinge ? 16 : 0) | (((upperData >> 5) & 7) << 5);
 }
 
 int DoorTile::cloneTileId(Level *level, int x, int y, int z)
@@ -421,6 +458,9 @@ int DoorTile::convertBlockStateToLegacyData(BlockState *state)
 	{
 		int base = (composite & C_RIGHT_HINGE_MASK) ? 9 : 8;
 		if (composite & C_OPEN_MASK) base |= 2;
+		// neoLegacy - Copper Age (Phase 4): restore the oxidation bits
+		// (5-7) the composite carries (see getCompositeData).
+		base |= ((composite >> 5) & 7) << 5;
 		return base;
 	}
 	else
@@ -439,6 +479,9 @@ Tile::BlockState DoorTile::getBlockState(int data)
 	} else {
 		composite = C_IS_UPPER_MASK;
 		if ((data & 1) != 0) composite |= C_RIGHT_HINGE_MASK;
+		// neoLegacy - Copper Age (Phase 4): carry the oxidation bits
+		// (5-7) into the BlockState (see getCompositeData).
+		composite |= ((data >> 5) & 7) << 5;
 	}
 	return Tile::BlockState(composite);
 }

@@ -190,6 +190,7 @@ Item *Item::sign = nullptr;
 Item *Item::wooden_door = nullptr;
 Item *Item::copper_door = nullptr;	// neoLegacy - Copper Age (Phase 3)
 Item *Item::rose_gold_door = nullptr;	// neoLegacy - Copper Age (Phase 3)
+Item *Item::honeycomb = nullptr;	// neoLegacy - Copper Age (Phase 4)
 
 Item *Item::bucket = nullptr;
 Item *Item::water_bucket = nullptr;
@@ -580,6 +581,11 @@ void Item::staticCtor()
 	// the Item ctor adds 256 back, so these land on ids 497 / 498.
 	Item::copper_door = (new DoorItem(copper_door_Id - 256, Material::metal, L"doorCopper"))->setBaseItemTypeAndMaterial(eBaseItemType_door, eMaterial_copper)->setIconName(L"doorCopper")->setDescriptionId(IDS_ITEM_DOOR_COPPER)->setUseDescriptionId(IDS_DESC_DOOR_COPPER);
 	Item::rose_gold_door = (new DoorItem(rose_gold_door_Id - 256, Material::metal, L"doorRoseGold"))->setBaseItemTypeAndMaterial(eBaseItemType_door, eMaterial_rose_gold)->setIconName(L"doorRoseGold")->setDescriptionId(IDS_ITEM_DOOR_ROSE_GOLD)->setUseDescriptionId(IDS_DESC_DOOR_ROSE_GOLD);
+	// neoLegacy - Copper Age (Phase 4). Honeycomb: a plain loose item like
+	// gunpowder (no base item type — it is never a Complex Table result,
+	// only a Wandering Trader good and a waxing ingredient), icon at
+	// items.png row 19 col 11.
+	Item::honeycomb = ( new Item(Item::honeycomb_Id - 256) )->setIconName(L"honeycomb")->setDescriptionId(IDS_ITEM_HONEYCOMB)->setUseDescriptionId(IDS_DESC_HONEYCOMB);
 	Item::bamboo = ( new BambooItem(461-256) )->setIconName(L"bamboo")->setDescriptionId(IDS_TILE_BAMBOO)->setUseDescriptionId(IDS_DESC_REEDS);
 
 

@@ -131,6 +131,7 @@ Tile *Tile::cutCopper = nullptr;
 Tile *Tile::chiseledCopper = nullptr;
 Tile *Tile::copperGrate = nullptr;
 Tile *Tile::copperBulb = nullptr;
+Tile *Tile::copperBulbLit = nullptr;	// neoLegacy - Copper Age (Phase 4): lit bulb tile (2329)
 ChestTile *Tile::copperChest = nullptr;
 Tile *Tile::copperDoor = nullptr;
 Tile *Tile::copperTrapdoor = nullptr;
@@ -546,6 +547,19 @@ void Tile::staticCtor()
 	// propagation needs a second "lit bulb" tile id (furnace_lit pattern) —
 	// a Phase 4 item.
 	Tile::copperBulb = (new CopperBulbTile(Tile::copper_bulb_Id))											->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(3.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_bulb")->setDescriptionId(IDS_TILE_COPPER_BULB)->setUseDescriptionId(IDS_DESC_COPPER_BULB);
+	// neoLegacy - Copper Age (Phase 4). The lit bulb (2329): the same
+	// CopperBulbTile class, but a separate tile id with lightEmission 15
+	// so Level's light cache propagates the light (the furnace_lit
+	// pattern). It is created only by toggling an unlit bulb via
+	// CopperBulbTile::checkAndFlip; it has no item form (see the TileItem
+	// exclusion below), no creative entry and no recipe, and it drops the
+	// unlit bulb (CopperBulbTile::getResource). LIMITATION: one lit tile
+	// id can only carry one lightEmission value, so the PROPAGATED light
+	// is 15 for every lit bulb regardless of oxidation; the RENDERED
+	// brightness still varies per oxidation (15/14/13/12) via
+	// getBrightness()/getLightColor(). A 4-id variant (one per oxidation
+	// state) would give exact per-state propagation — a possible follow-up.
+	Tile::copperBulbLit = (new CopperBulbTile(Tile::copper_bulb_lit_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_block, Item::eMaterial_copper)->setDestroyTime(3.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setLightEmission(1.0f)->setIconName(L"copper_bulb_lit")->setDescriptionId(IDS_TILE_COPPER_BULB)->setUseDescriptionId(IDS_DESC_COPPER_BULB);
 	Tile::copperChest = static_cast<ChestTile *>((new ChestTile(Tile::copper_chest_Id, ChestTile::TYPE_COPPER))->setBaseItemTypeAndMaterial(Item::eBaseItemType_chest, Item::eMaterial_copper)->setDestroyTime(2.5f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_chest")->setDescriptionId(IDS_TILE_COPPER_CHEST)->sendTileData()->setUseDescriptionId(IDS_DESC_CHEST));
 	Tile::copperDoor = (new DoorTile(Tile::copper_door_Id, Material::metal, L"doorCopper"))->setDestroyTime(5.0f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_door")->setDescriptionId(IDS_TILE_DOOR_COPPER)->setNotCollectStatistics()->sendTileData()->setUseDescriptionId(IDS_DESC_DOOR_COPPER);
 	Tile::copperTrapdoor = (new TrapDoorTile(Tile::copper_trapdoor_Id, Material::metal))->setBaseItemTypeAndMaterial(Item::eBaseItemType_door, Item::eMaterial_trap)->setDestroyTime(5.0f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_trapdoor")->setDescriptionId(IDS_TILE_COPPER_TRAPDOOR)->setUseDescriptionId(IDS_DESC_TRAPDOOR);
@@ -1102,7 +1116,7 @@ void Tile::staticCtor()
 		{
 			if( Item::items[i] == nullptr)
 			{
-                if (i != cookie_miner_powered_Id && i != flappy_craft_powered_Id && i != mine_snake_powered_Id && i != bamboo_Id && i != bamboo_shoot_Id)
+                if (i != cookie_miner_powered_Id && i != flappy_craft_powered_Id && i != mine_snake_powered_Id && i != bamboo_Id && i != bamboo_shoot_Id && i != copper_bulb_lit_Id)
                 {
                     Item::items[i] = new TileItem(i - 256);
                 }

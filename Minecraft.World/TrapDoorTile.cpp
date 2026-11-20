@@ -67,17 +67,21 @@ int TrapDoorTile::defaultBlockState()
 
 int TrapDoorTile::convertBlockStateToLegacyData(BlockState *state)
 {
-	return state ? (state->value & 0xF) : 0;
+	// neoLegacy - Copper Age (Phase 4): the oxidation field lives in bits
+	// 4-6, so mask to 0x7F (not 0xF) or the oxidation is lost when a
+	// trapdoor round-trips through BlockState. BlockState.value is a plain
+	// int (no width limit). Vanilla trapdoors have 0 in bits 4-6.
+	return state ? (state->value & 0x7F) : 0;
 }
 
 Tile::BlockState TrapDoorTile::getBlockState(int data)
 {
-	return Tile::BlockState(data & 0xF);
+	return Tile::BlockState(data & 0x7F);
 }
 
 Tile::BlockState TrapDoorTile::getBlockState(LevelSource *level, int x, int y, int z)
 {
-	return Tile::BlockState(level->getData(x, y, z) & 0xF);
+	return Tile::BlockState(level->getData(x, y, z) & 0x7F);
 }
 
 bool TrapDoorTile::blocksLight()

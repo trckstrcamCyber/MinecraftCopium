@@ -731,5 +731,399 @@ for (int i = 0; i < 16; i++)
 	// Adding a raw-gold item would change gold-ore drops game-wide and
 	// is a separate decision (Phase 4/6).
 
+	// =================================================================
+	// neoLegacy - Copper Age (Phase 4). Waxing: shapeless, one copper
+	// block/item + one honeycomb -> the same block/item waxed (aux | 4).
+	// 15 oxidizable families x 4 oxidation states = 60 recipes. The
+	// copper button is NOT waxed: the tree's copper button is a plain
+	// StoneButtonTile with no oxidation states (Phase 3), so there is
+	// nothing to wax; jar1201's 3 button waxings have no meaning here.
+	// Rose-gold tiles never oxidize. Torch/shelf do not oxidize.
+	// The results are the SAME tile/item ids Phase 3 already listed in
+	// Recipes::isComplexOnly (keyed on result->id, not aux), so every
+	// waxing recipe is Complex-Table-only automatically, and no new
+	// H-slot is added: block +24 (9 -> 33), door +8 (4 -> 12),
+	// torch +4 (3 -> 7), rod +8 (2 -> 10), fence +4 (1 -> 5),
+	// chest +4 (1 -> 5), halfslab +4 (1 -> 5), stairs +4 (1 -> 5).
+	// All V-slot counts stay under 99. The waxed result keeps its
+	// oxidation stage (aux = stage | 4); scraping with an axe removes
+	// the wax (aux - 4) or de-oxidizes one stage (aux - 1).
+	// =================================================================
+
+	// ---- waxing, block bucket (+24) ----
+	// Copper block (unaffected) + honeycomb -> waxed unaffected copper block.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperBlock, 1, 4), //
+		L"zig",
+		new ItemInstance(Tile::copperBlock, 1, 0),
+		Item::honeycomb,
+		L'S');
+	// Copper block (exposed) + honeycomb -> waxed exposed copper block.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperBlock, 1, 5), //
+		L"zig",
+		new ItemInstance(Tile::copperBlock, 1, 1),
+		Item::honeycomb,
+		L'S');
+	// Copper block (weathered) + honeycomb -> waxed weathered copper block.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperBlock, 1, 6), //
+		L"zig",
+		new ItemInstance(Tile::copperBlock, 1, 2),
+		Item::honeycomb,
+		L'S');
+	// Copper block (oxidized) + honeycomb -> waxed oxidized copper block.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperBlock, 1, 7), //
+		L"zig",
+		new ItemInstance(Tile::copperBlock, 1, 3),
+		Item::honeycomb,
+		L'S');
+	// Cut copper (unaffected) + honeycomb -> waxed unaffected cut copper.
+	r->addShapelessRecipy(new ItemInstance(Tile::cutCopper, 1, 4), //
+		L"zig",
+		new ItemInstance(Tile::cutCopper, 1, 0),
+		Item::honeycomb,
+		L'S');
+	// Cut copper (exposed) + honeycomb -> waxed exposed cut copper.
+	r->addShapelessRecipy(new ItemInstance(Tile::cutCopper, 1, 5), //
+		L"zig",
+		new ItemInstance(Tile::cutCopper, 1, 1),
+		Item::honeycomb,
+		L'S');
+	// Cut copper (weathered) + honeycomb -> waxed weathered cut copper.
+	r->addShapelessRecipy(new ItemInstance(Tile::cutCopper, 1, 6), //
+		L"zig",
+		new ItemInstance(Tile::cutCopper, 1, 2),
+		Item::honeycomb,
+		L'S');
+	// Cut copper (oxidized) + honeycomb -> waxed oxidized cut copper.
+	r->addShapelessRecipy(new ItemInstance(Tile::cutCopper, 1, 7), //
+		L"zig",
+		new ItemInstance(Tile::cutCopper, 1, 3),
+		Item::honeycomb,
+		L'S');
+	// Chiseled copper (unaffected) + honeycomb -> waxed unaffected chiseled copper.
+	r->addShapelessRecipy(new ItemInstance(Tile::chiseledCopper, 1, 4), //
+		L"zig",
+		new ItemInstance(Tile::chiseledCopper, 1, 0),
+		Item::honeycomb,
+		L'S');
+	// Chiseled copper (exposed) + honeycomb -> waxed exposed chiseled copper.
+	r->addShapelessRecipy(new ItemInstance(Tile::chiseledCopper, 1, 5), //
+		L"zig",
+		new ItemInstance(Tile::chiseledCopper, 1, 1),
+		Item::honeycomb,
+		L'S');
+	// Chiseled copper (weathered) + honeycomb -> waxed weathered chiseled copper.
+	r->addShapelessRecipy(new ItemInstance(Tile::chiseledCopper, 1, 6), //
+		L"zig",
+		new ItemInstance(Tile::chiseledCopper, 1, 2),
+		Item::honeycomb,
+		L'S');
+	// Chiseled copper (oxidized) + honeycomb -> waxed oxidized chiseled copper.
+	r->addShapelessRecipy(new ItemInstance(Tile::chiseledCopper, 1, 7), //
+		L"zig",
+		new ItemInstance(Tile::chiseledCopper, 1, 3),
+		Item::honeycomb,
+		L'S');
+	// Copper grate (unaffected) + honeycomb -> waxed unaffected copper grate.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperGrate, 1, 4), //
+		L"zig",
+		new ItemInstance(Tile::copperGrate, 1, 0),
+		Item::honeycomb,
+		L'S');
+	// Copper grate (exposed) + honeycomb -> waxed exposed copper grate.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperGrate, 1, 5), //
+		L"zig",
+		new ItemInstance(Tile::copperGrate, 1, 1),
+		Item::honeycomb,
+		L'S');
+	// Copper grate (weathered) + honeycomb -> waxed weathered copper grate.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperGrate, 1, 6), //
+		L"zig",
+		new ItemInstance(Tile::copperGrate, 1, 2),
+		Item::honeycomb,
+		L'S');
+	// Copper grate (oxidized) + honeycomb -> waxed oxidized copper grate.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperGrate, 1, 7), //
+		L"zig",
+		new ItemInstance(Tile::copperGrate, 1, 3),
+		Item::honeycomb,
+		L'S');
+	// Copper golem statue (unaffected) + honeycomb -> waxed unaffected copper golem statue.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperGolemStatue, 1, 4), //
+		L"zig",
+		new ItemInstance(Tile::copperGolemStatue, 1, 0),
+		Item::honeycomb,
+		L'S');
+	// Copper golem statue (exposed) + honeycomb -> waxed exposed copper golem statue.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperGolemStatue, 1, 5), //
+		L"zig",
+		new ItemInstance(Tile::copperGolemStatue, 1, 1),
+		Item::honeycomb,
+		L'S');
+	// Copper golem statue (weathered) + honeycomb -> waxed weathered copper golem statue.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperGolemStatue, 1, 6), //
+		L"zig",
+		new ItemInstance(Tile::copperGolemStatue, 1, 2),
+		Item::honeycomb,
+		L'S');
+	// Copper golem statue (oxidized) + honeycomb -> waxed oxidized copper golem statue.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperGolemStatue, 1, 7), //
+		L"zig",
+		new ItemInstance(Tile::copperGolemStatue, 1, 3),
+		Item::honeycomb,
+		L'S');
+	// Copper bulb (unaffected) + honeycomb -> waxed unaffected copper bulb.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperBulb, 1, 4), //
+		L"zig",
+		new ItemInstance(Tile::copperBulb, 1, 0),
+		Item::honeycomb,
+		L'S');
+	// Copper bulb (exposed) + honeycomb -> waxed exposed copper bulb.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperBulb, 1, 5), //
+		L"zig",
+		new ItemInstance(Tile::copperBulb, 1, 1),
+		Item::honeycomb,
+		L'S');
+	// Copper bulb (weathered) + honeycomb -> waxed weathered copper bulb.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperBulb, 1, 6), //
+		L"zig",
+		new ItemInstance(Tile::copperBulb, 1, 2),
+		Item::honeycomb,
+		L'S');
+	// Copper bulb (oxidized) + honeycomb -> waxed oxidized copper bulb.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperBulb, 1, 7), //
+		L"zig",
+		new ItemInstance(Tile::copperBulb, 1, 3),
+		Item::honeycomb,
+		L'S');
+
+	// ---- waxing, door bucket (+8) ----
+	// Copper door (unaffected) + honeycomb -> waxed unaffected copper door.
+	r->addShapelessRecipy(new ItemInstance(Item::copper_door, 1, 4), //
+		L"zig",
+		new ItemInstance(Item::copper_door, 1, 0),
+		Item::honeycomb,
+		L'S');
+	// Copper door (exposed) + honeycomb -> waxed exposed copper door.
+	r->addShapelessRecipy(new ItemInstance(Item::copper_door, 1, 5), //
+		L"zig",
+		new ItemInstance(Item::copper_door, 1, 1),
+		Item::honeycomb,
+		L'S');
+	// Copper door (weathered) + honeycomb -> waxed weathered copper door.
+	r->addShapelessRecipy(new ItemInstance(Item::copper_door, 1, 6), //
+		L"zig",
+		new ItemInstance(Item::copper_door, 1, 2),
+		Item::honeycomb,
+		L'S');
+	// Copper door (oxidized) + honeycomb -> waxed oxidized copper door.
+	r->addShapelessRecipy(new ItemInstance(Item::copper_door, 1, 7), //
+		L"zig",
+		new ItemInstance(Item::copper_door, 1, 3),
+		Item::honeycomb,
+		L'S');
+	// Copper trapdoor (unaffected) + honeycomb -> waxed unaffected copper trapdoor.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperTrapdoor, 1, 4), //
+		L"zig",
+		new ItemInstance(Tile::copperTrapdoor, 1, 0),
+		Item::honeycomb,
+		L'S');
+	// Copper trapdoor (exposed) + honeycomb -> waxed exposed copper trapdoor.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperTrapdoor, 1, 5), //
+		L"zig",
+		new ItemInstance(Tile::copperTrapdoor, 1, 1),
+		Item::honeycomb,
+		L'S');
+	// Copper trapdoor (weathered) + honeycomb -> waxed weathered copper trapdoor.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperTrapdoor, 1, 6), //
+		L"zig",
+		new ItemInstance(Tile::copperTrapdoor, 1, 2),
+		Item::honeycomb,
+		L'S');
+	// Copper trapdoor (oxidized) + honeycomb -> waxed oxidized copper trapdoor.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperTrapdoor, 1, 7), //
+		L"zig",
+		new ItemInstance(Tile::copperTrapdoor, 1, 3),
+		Item::honeycomb,
+		L'S');
+
+	// ---- waxing, torch bucket (+4) ----
+	// Copper lantern (unaffected) + honeycomb -> waxed unaffected copper lantern.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperLantern, 1, 4), //
+		L"zig",
+		new ItemInstance(Tile::copperLantern, 1, 0),
+		Item::honeycomb,
+		L'S');
+	// Copper lantern (exposed) + honeycomb -> waxed exposed copper lantern.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperLantern, 1, 5), //
+		L"zig",
+		new ItemInstance(Tile::copperLantern, 1, 1),
+		Item::honeycomb,
+		L'S');
+	// Copper lantern (weathered) + honeycomb -> waxed weathered copper lantern.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperLantern, 1, 6), //
+		L"zig",
+		new ItemInstance(Tile::copperLantern, 1, 2),
+		Item::honeycomb,
+		L'S');
+	// Copper lantern (oxidized) + honeycomb -> waxed oxidized copper lantern.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperLantern, 1, 7), //
+		L"zig",
+		new ItemInstance(Tile::copperLantern, 1, 3),
+		Item::honeycomb,
+		L'S');
+
+	// ---- waxing, rod bucket (+8) ----
+	// Copper chain (unaffected) + honeycomb -> waxed unaffected copper chain.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperChain, 1, 4), //
+		L"zig",
+		new ItemInstance(Tile::copperChain, 1, 0),
+		Item::honeycomb,
+		L'S');
+	// Copper chain (exposed) + honeycomb -> waxed exposed copper chain.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperChain, 1, 5), //
+		L"zig",
+		new ItemInstance(Tile::copperChain, 1, 1),
+		Item::honeycomb,
+		L'S');
+	// Copper chain (weathered) + honeycomb -> waxed weathered copper chain.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperChain, 1, 6), //
+		L"zig",
+		new ItemInstance(Tile::copperChain, 1, 2),
+		Item::honeycomb,
+		L'S');
+	// Copper chain (oxidized) + honeycomb -> waxed oxidized copper chain.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperChain, 1, 7), //
+		L"zig",
+		new ItemInstance(Tile::copperChain, 1, 3),
+		Item::honeycomb,
+		L'S');
+	// Lightning rod (unaffected) + honeycomb -> waxed unaffected lightning rod.
+	r->addShapelessRecipy(new ItemInstance(Tile::lightningRod, 1, 4), //
+		L"zig",
+		new ItemInstance(Tile::lightningRod, 1, 0),
+		Item::honeycomb,
+		L'S');
+	// Lightning rod (exposed) + honeycomb -> waxed exposed lightning rod.
+	r->addShapelessRecipy(new ItemInstance(Tile::lightningRod, 1, 5), //
+		L"zig",
+		new ItemInstance(Tile::lightningRod, 1, 1),
+		Item::honeycomb,
+		L'S');
+	// Lightning rod (weathered) + honeycomb -> waxed weathered lightning rod.
+	r->addShapelessRecipy(new ItemInstance(Tile::lightningRod, 1, 6), //
+		L"zig",
+		new ItemInstance(Tile::lightningRod, 1, 2),
+		Item::honeycomb,
+		L'S');
+	// Lightning rod (oxidized) + honeycomb -> waxed oxidized lightning rod.
+	r->addShapelessRecipy(new ItemInstance(Tile::lightningRod, 1, 7), //
+		L"zig",
+		new ItemInstance(Tile::lightningRod, 1, 3),
+		Item::honeycomb,
+		L'S');
+
+	// ---- waxing, fence bucket (+4) ----
+	// Copper bars (unaffected) + honeycomb -> waxed unaffected copper bars.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperBars, 1, 4), //
+		L"zig",
+		new ItemInstance(Tile::copperBars, 1, 0),
+		Item::honeycomb,
+		L'S');
+	// Copper bars (exposed) + honeycomb -> waxed exposed copper bars.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperBars, 1, 5), //
+		L"zig",
+		new ItemInstance(Tile::copperBars, 1, 1),
+		Item::honeycomb,
+		L'S');
+	// Copper bars (weathered) + honeycomb -> waxed weathered copper bars.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperBars, 1, 6), //
+		L"zig",
+		new ItemInstance(Tile::copperBars, 1, 2),
+		Item::honeycomb,
+		L'S');
+	// Copper bars (oxidized) + honeycomb -> waxed oxidized copper bars.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperBars, 1, 7), //
+		L"zig",
+		new ItemInstance(Tile::copperBars, 1, 3),
+		Item::honeycomb,
+		L'S');
+
+	// ---- waxing, chest bucket (+4) ----
+	// Copper chest (unaffected) + honeycomb -> waxed unaffected copper chest.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperChest, 1, 4), //
+		L"zig",
+		new ItemInstance(Tile::copperChest, 1, 0),
+		Item::honeycomb,
+		L'S');
+	// Copper chest (exposed) + honeycomb -> waxed exposed copper chest.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperChest, 1, 5), //
+		L"zig",
+		new ItemInstance(Tile::copperChest, 1, 1),
+		Item::honeycomb,
+		L'S');
+	// Copper chest (weathered) + honeycomb -> waxed weathered copper chest.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperChest, 1, 6), //
+		L"zig",
+		new ItemInstance(Tile::copperChest, 1, 2),
+		Item::honeycomb,
+		L'S');
+	// Copper chest (oxidized) + honeycomb -> waxed oxidized copper chest.
+	r->addShapelessRecipy(new ItemInstance(Tile::copperChest, 1, 7), //
+		L"zig",
+		new ItemInstance(Tile::copperChest, 1, 3),
+		Item::honeycomb,
+		L'S');
+
+	// ---- waxing, halfslab bucket (+4) ----
+	// Cut copper slab (unaffected) + honeycomb -> waxed unaffected cut copper slab.
+	r->addShapelessRecipy(new ItemInstance(Tile::cutCopperSlabHalf, 1, 4), //
+		L"zig",
+		new ItemInstance(Tile::cutCopperSlabHalf, 1, 0),
+		Item::honeycomb,
+		L'S');
+	// Cut copper slab (exposed) + honeycomb -> waxed exposed cut copper slab.
+	r->addShapelessRecipy(new ItemInstance(Tile::cutCopperSlabHalf, 1, 5), //
+		L"zig",
+		new ItemInstance(Tile::cutCopperSlabHalf, 1, 1),
+		Item::honeycomb,
+		L'S');
+	// Cut copper slab (weathered) + honeycomb -> waxed weathered cut copper slab.
+	r->addShapelessRecipy(new ItemInstance(Tile::cutCopperSlabHalf, 1, 6), //
+		L"zig",
+		new ItemInstance(Tile::cutCopperSlabHalf, 1, 2),
+		Item::honeycomb,
+		L'S');
+	// Cut copper slab (oxidized) + honeycomb -> waxed oxidized cut copper slab.
+	r->addShapelessRecipy(new ItemInstance(Tile::cutCopperSlabHalf, 1, 7), //
+		L"zig",
+		new ItemInstance(Tile::cutCopperSlabHalf, 1, 3),
+		Item::honeycomb,
+		L'S');
+
+	// ---- waxing, stairs bucket (+4) ----
+	// Cut copper stairs (unaffected) + honeycomb -> waxed unaffected cut copper stairs.
+	r->addShapelessRecipy(new ItemInstance(Tile::cutCopperStairs, 1, 4), //
+		L"zig",
+		new ItemInstance(Tile::cutCopperStairs, 1, 0),
+		Item::honeycomb,
+		L'S');
+	// Cut copper stairs (exposed) + honeycomb -> waxed exposed cut copper stairs.
+	r->addShapelessRecipy(new ItemInstance(Tile::cutCopperStairs, 1, 5), //
+		L"zig",
+		new ItemInstance(Tile::cutCopperStairs, 1, 1),
+		Item::honeycomb,
+		L'S');
+	// Cut copper stairs (weathered) + honeycomb -> waxed weathered cut copper stairs.
+	r->addShapelessRecipy(new ItemInstance(Tile::cutCopperStairs, 1, 6), //
+		L"zig",
+		new ItemInstance(Tile::cutCopperStairs, 1, 2),
+		Item::honeycomb,
+		L'S');
+	// Cut copper stairs (oxidized) + honeycomb -> waxed oxidized cut copper stairs.
+	r->addShapelessRecipy(new ItemInstance(Tile::cutCopperStairs, 1, 7), //
+		L"zig",
+		new ItemInstance(Tile::cutCopperStairs, 1, 3),
+		Item::honeycomb,
+		L'S');
 
 }

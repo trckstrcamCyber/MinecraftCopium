@@ -47,13 +47,15 @@ bool DoorItem::useOn(shared_ptr<ItemInstance> instance, shared_ptr<Player> playe
 	player->awardStat(GenericStats::blocksPlaced(tile->id),GenericStats::param_blocksPlaced(tile->id,instance->getAuxValue(),1));
 
 	int dir = Mth::floor(((player->yRot + 180) * 4) / 360 - 0.5) & 3;
-	place(level, x, y, z, dir, tile);
+	// neoLegacy - Copper Age (Phase 4): pass the item aux so a copper door
+	// item keeps its oxidation/waxed state when placed (see place()).
+	place(level, x, y, z, dir, tile, instance->getAuxValue() & 7);
 
 	instance->count--;
 	return true;
 }
 
-void DoorItem::place(Level *level, int x, int y, int z, int dir, Tile *tile)
+void DoorItem::place(Level *level, int x, int y, int z, int dir, Tile *tile, int aux)
 {
 
 	int xra = 0;
@@ -75,7 +77,14 @@ void DoorItem::place(Level *level, int x, int y, int z, int dir, Tile *tile)
 	else if (solidRight > solidLeft) flip = true;
 
 	level->setTileAndData(x, y, z, tile->id, dir, Tile::UPDATE_CLIENTS);
-	level->setTileAndData(x, y + 1, z, tile->id, 8 | (flip ? 1 : 0), Tile::UPDATE_CLIENTS);
+	// neoLegacy - Copper Age (Phase 4): the copper door's oxidation lives
+	// in the UPPER half, bits 5-7. A placed copper door previously always
+	// came out unaffected because place() ignored the item aux; encode it
+	// here so a weathered/waxed door item places as weathered/waxed.
+	// Every other door has aux 0, so this is a no-op for them.
+	int upperData = 8 | (flip ? 1 : 0);
+	if (tile->id == Tile::copper_door_Id) upperData |= (aux & 7) << 5;
+	level->setTileAndData(x, y + 1, z, tile->id, upperData, Tile::UPDATE_CLIENTS);
 	level->updateNeighborsAt(x, y, z, tile->id);
 	level->updateNeighborsAt(x, y + 1, z, tile->id);
 }

@@ -61,4 +61,7 @@ public:
 
 protected:
 	virtual int getSpawnResourcesAuxValue(int data) override;
+	// neoLegacy - Copper Age (Phase 4). A lit bulb (tile 2329) drops the
+	// unlit bulb item, not a (nonexistent) lit-bulb item.
+	virtual int getResource(int data, Random *random, int playerBonusLevel) override;
 };

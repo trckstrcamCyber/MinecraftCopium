@@ -493,6 +493,9 @@ void PreStitchedTextureMap::loadUVs()
 		// rose-gold block (r19c0-c8); c9-c10 are the next free cells.
 		ADD_ICON(19,	9,	L"doorCopper")
 		ADD_ICON(19,	10,	L"doorRoseGold")
+		// neoLegacy - Copper Age (Phase 4): honeycomb, row 19 col 11 of the
+		// extended item atlas (next free cell after the two door icons).
+		ADD_ICON(19,	11,	L"honeycomb")
 		ADD_ICON(4,		5,	L"fishing_rod_uncast")
 		ADD_ICON(4,		6,	L"clock")
 		ADD_ICON(4,		7,	L"bowl")

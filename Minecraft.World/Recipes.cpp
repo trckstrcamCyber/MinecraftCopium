@@ -2095,8 +2095,12 @@ bool Recipes::isComplexOnly(Recipy *r)
 		|| result->id == Item::enchantment_encyclopedia_Id	// neoLegacy - Enchantment Encyclopedia
 		// neoLegacy - Copper Age (Phase 3). Every Phase 3 recipe result is
 		// Complex-Table-only. Tiles (2305 raw copper block + 2306-2319 +
-		// 2321-2327; the golem statue 2320 has no recipe, and the full
-		// cut-copper slab 2328 is placed by stacking, not crafted).
+		// 2321-2327; the golem statue 2320 had no recipe in Phase 3, and
+		// the full cut-copper slab 2328 is placed by stacking, not crafted).
+		// neoLegacy - Copper Age (Phase 4). The golem statue 2320 now HAS
+		// recipes (the 4 waxing recipes), so it is added here to keep them
+		// Complex-Table-only like every other copper recipe.
+		|| result->id == Tile::copper_golem_statue_Id
 		|| result->id == Tile::raw_copper_block_Id
 		|| result->id == Tile::copper_block_Id
 		|| result->id == Tile::cut_copper_Id
