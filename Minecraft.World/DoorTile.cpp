@@ -300,7 +300,7 @@ void DoorTile::neighborChanged(Level *level, int x, int y, int z, int type)
 		{
 			if (!level->isClientSide)
 			{
-				spawnResources(level, x, y, z, data, 0);
+				spawnResources(level, x, y, z, data, 1, 0);
 			}
 		}
 		else
