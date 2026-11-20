@@ -152,6 +152,8 @@ void EntityIO::staticCtor()
 	setId(Provoker::create, eTYPE_PROVOKER, L"Provoker", 126, eMinecraftColour_Mob_Provoker_Colour1, eMinecraftColour_Mob_Provoker_Colour2, IDS_PROVOKER);	// neoLegacy
 	setId(Sorcerer::create, eTYPE_SORCERER, L"Sorcerer", 127, eMinecraftColour_Mob_Sorcerer_Colour1, eMinecraftColour_Mob_Sorcerer_Colour2, IDS_SORCERER);	// neoLegacy
 	setId(Alchemist::create, eTYPE_ALCHEMIST, L"Alchemist", 128, eMinecraftColour_Mob_Alchemist_Colour1, eMinecraftColour_Mob_Alchemist_Colour2, IDS_ALCHEMIST);	// neoLegacy
+	setId(Archivist::create, eTYPE_ARCHIVIST, L"Archivist", 129, eMinecraftColour_Mob_Archivist_Colour1, eMinecraftColour_Mob_Archivist_Colour2, IDS_ARCHIVIST);	// neoLegacy
+	setId(Necromancer::create, eTYPE_NECROMANCER, L"Necromancer", 130, eMinecraftColour_Mob_Necromancer_Colour1, eMinecraftColour_Mob_Necromancer_Colour2, IDS_NECROMANCER);	// neoLegacy
 	setId(CopperGolem::create, eTYPE_COPPER_GOLEM, L"CopperGolem", 131, eMinecraftColour_Mob_CopperGolem_Colour1, eMinecraftColour_Mob_CopperGolem_Colour2, IDS_COPPER_GOLEM);	// neoLegacy - Copper Age (Phase 5)	setId(EvokerFangs::create, eTYPE_EVOKER_FANGS, L"EvokerFangs", 121);
 	setId(IceCube::create, eTYPE_ICE_CUBE, L"IceCube", 122);
 	setId(WanderingTrader::create, eTYPE_WANDERING_TRADER, L"WanderingTrader", 113,

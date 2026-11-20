@@ -414,6 +414,8 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Tile::copper_torch_Id)	// neoLegacy - Copper Age (Phase 3)
 		ITEM(Tile::copper_lantern_Id)	// neoLegacy - Copper Age (Phase 3)
 		ITEM(Tile::lightning_rod_Id)	// neoLegacy - Copper Age (Phase 3)
+		ITEM_AUX(Item::spawn_egg_Id, 129); // Archivist
+		ITEM_AUX(Item::spawn_egg_Id, 130); // Necromancer
 		ITEM(Tile::copper_golem_statue_Id)	// neoLegacy - Copper Age (Phase 3, tile only)
 		ITEM(Tile::shelf_Id)	// neoLegacy - Copper Age (Phase 3)
 		ITEM_AUX(Tile::tallgrass_Id, TallGrass::DEAD_SHRUB)

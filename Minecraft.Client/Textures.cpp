@@ -219,6 +219,8 @@ const wchar_t *Textures::preLoaded[TN_COUNT] =
 	L"mob/provoker",
 	L"mob/sorcerer",
 	L"mob/alchemist",
+	L"mob/archivist",
+	L"mob/necromancer",
 	L"mob/copper_golem",	// neoLegacy - Copper Age (Phase 5)
 	L"mob/exposed_copper_golem",
 	L"mob/weathered_copper_golem",

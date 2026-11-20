@@ -848,6 +848,12 @@ set(_MINECRAFT_WORLD_COMMON_NET_MINECRAFT_WORLD_ENTITY_ANIMAL
   "${CMAKE_CURRENT_SOURCE_DIR}/Sorcerer.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Alchemist.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Alchemist.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Archivist.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Archivist.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Necromancer.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Necromancer.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/SkullBolt.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/SkullBolt.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolem.cpp"	// neoLegacy - Copper Age (Phase 5)
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolem.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemAi.cpp"

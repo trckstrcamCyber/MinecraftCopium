@@ -61,6 +61,7 @@ int Illager::getCelebrateSoundId()
 	case eTYPE_PILLAGER:	return eSoundType_MOB_PILLAGER_CELEBRATE;
 	case eTYPE_PROVOKER:	return eSoundType_MOB_PROVOKER_CELEBRATE;
 	case eTYPE_SORCERER:	return eSoundType_MOB_SORCERER_CELEBRATE;
+	case eTYPE_ARCHIVIST:	return eSoundType_MOB_ARCHIVIST_IDLE;	// the mod has it cheer with its idle sound
 	default:				return eSoundType_MOB_EVOKER_CELEBRATE;
 	}
 }

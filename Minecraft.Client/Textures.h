@@ -205,6 +205,8 @@ typedef enum _TEXTURE_NAME
 		TN_MOB_PROVOKER,	// neoLegacy
 		TN_MOB_SORCERER,	// neoLegacy
 		TN_MOB_ALCHEMIST,	// neoLegacy
+		TN_MOB_ARCHIVIST,	// neoLegacy
+		TN_MOB_NECROMANCER,	// neoLegacy
 		TN_MOB_COPPER_GOLEM,	// neoLegacy - Copper Age (Phase 5)
 		TN_MOB_COPPER_GOLEM_EXPOSED,
 		TN_MOB_COPPER_GOLEM_WEATHERED,

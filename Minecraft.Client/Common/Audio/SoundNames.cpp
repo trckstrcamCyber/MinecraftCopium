@@ -395,6 +395,10 @@ const WCHAR *ConsoleSoundEngine::wchSoundNames[eSoundType_MAX]=
 	L"mob.sorcerer.celebrate",
 	L"mob.sorcerer.cast",
 	L"mob.sorcerer.completecast",
+	L"mob.archivist.idle",
+	L"mob.archivist.hurt",
+	L"mob.archivist.death",
+	L"mob.necromancer.summon",
 
 	L"item.mace.smash_air",
 	L"item.mace.smash_ground",

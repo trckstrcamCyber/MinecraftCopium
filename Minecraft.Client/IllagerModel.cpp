@@ -193,7 +193,7 @@ void IllagerModel::setupAnim(float time, float r, float bob, float yRot, float x
 	if (hair != nullptr)
 	{
 		eINSTANCEOF type = (entity != nullptr) ? entity->GetType() : eTYPE_NOTSET;
-		hair->visible = (type == eTYPE_ILLUSIONER || type == eTYPE_PROVOKER || type == eTYPE_SORCERER || type == eTYPE_ALCHEMIST);
+		hair->visible = (type == eTYPE_ILLUSIONER || type == eTYPE_PROVOKER || type == eTYPE_SORCERER || type == eTYPE_ALCHEMIST || type == eTYPE_ARCHIVIST);
 	}
 
 	showCrossedArms = (pose == Illager::CROSSED);

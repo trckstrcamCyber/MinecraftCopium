@@ -11,6 +11,8 @@ ResourceLocation IllagerRenderer::PILLAGER_LOCATION = ResourceLocation(TN_MOB_PI
 ResourceLocation IllagerRenderer::PROVOKER_LOCATION = ResourceLocation(TN_MOB_PROVOKER);
 ResourceLocation IllagerRenderer::SORCERER_LOCATION = ResourceLocation(TN_MOB_SORCERER);
 ResourceLocation IllagerRenderer::ALCHEMIST_LOCATION = ResourceLocation(TN_MOB_ALCHEMIST);
+ResourceLocation IllagerRenderer::ARCHIVIST_LOCATION = ResourceLocation(TN_MOB_ARCHIVIST);
+ResourceLocation IllagerRenderer::NECROMANCER_LOCATION = ResourceLocation(TN_MOB_NECROMANCER);
 
 // illagers are drawn at 15/16 size like in Java Edition
 IllagerRenderer::IllagerRenderer(int texW, int texH, int hatKind) : HumanoidMobRenderer(new IllagerModel(texW, texH, static_cast<IllagerModel::Hat>(hatKind)), 0.5f, 0.9375f)
@@ -41,5 +43,7 @@ ResourceLocation *IllagerRenderer::getTextureLocation(shared_ptr<Entity> mob)
 	if (mob->GetType() == eTYPE_PROVOKER) return &PROVOKER_LOCATION;
 	if (mob->GetType() == eTYPE_SORCERER) return &SORCERER_LOCATION;
 	if (mob->GetType() == eTYPE_ALCHEMIST) return &ALCHEMIST_LOCATION;
+	if (mob->GetType() == eTYPE_ARCHIVIST) return &ARCHIVIST_LOCATION;
+	if (mob->GetType() == eTYPE_NECROMANCER) return &NECROMANCER_LOCATION;
 	return &VINDICATOR_LOCATION;
 }

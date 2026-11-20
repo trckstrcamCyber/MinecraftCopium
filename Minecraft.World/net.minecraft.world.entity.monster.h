@@ -21,6 +21,8 @@
 #include "Provoker.h"
 #include "Sorcerer.h"
 #include "Alchemist.h"
+#include "Archivist.h"
+#include "Necromancer.h"
 #include "IceCube.h"
 #include "Drowned.h"
 #include "PigZombie.h"
