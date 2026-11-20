@@ -123,6 +123,7 @@ void FoodRecipies::addRecipes(Recipes *r)
 	r->addShapelessRecipy(new ItemInstance(Item::magma_cream), //
 		L"iig",
 		Item::blaze_powder, Item::slime_ball,
+		L'F');
 
 	// neoLegacy - Copper Age (Phase 6). Rose-gold foods (jar: rosegold mod
 	// §2.2). All Complex-Table-only via Recipes::isComplexOnly (result-keyed).
@@ -170,7 +171,6 @@ void FoodRecipies::addRecipes(Recipes *r)
 		L"iiiiiiig", //
 		Item::rose_gilded_beetroot, Item::rose_gilded_beetroot, Item::rose_gilded_beetroot,
 		Item::rose_gilded_mushroom, Item::rose_gilded_mushroom, Item::rose_gilded_mushroom, Item::bowl,
-		L'F');
 		L'F');
 }
 
