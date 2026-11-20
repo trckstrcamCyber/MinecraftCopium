@@ -49,6 +49,14 @@ void BufferedImage::ByteFlip4(unsigned int &data)
 // 24-bits used (ie no alpha channel) whereas method 0 is a full 32-bit image with a valid alpha channel.
 BufferedImage::BufferedImage(const wstring& File, bool filenameHasExtension /*=false*/, bool bTitleUpdateTexture /*=false*/, const wstring &drive /*=L""*/)
 {
+	// NOTE (Nov 20 crash fix #5): initialize dims to 0. If the level-0
+	// load fails, app.FatalLoadError() is an empty no-op and this ctor
+	// returns with data[0]==nullptr — width/height must NOT be left as
+	// uninitialized heap garbage, or callers (Textures::loadTexture)
+	// allocate intArray(w*h) from garbage dims and getRGB's fallback fill
+	// writes far past the buffer (startup crash at 0x1401348A4).
+	width = 0;
+	height = 0;
 	HRESULT hr;
 	wstring wDrive;
 	wstring filePath;
@@ -191,6 +199,10 @@ BufferedImage::BufferedImage(const wstring& File, bool filenameHasExtension /*=f
 
 BufferedImage::BufferedImage(DLCPack *dlcPack, const wstring& File, bool filenameHasExtension /*= false*/ )
 {
+	// NOTE (Nov 20 crash fix #5): same as the file ctor — a failed
+	// level-0 load must leave a well-defined 0x0 image, not garbage dims.
+	width = 0;
+	height = 0;
 	HRESULT hr;
 	wstring filePath = File;
 	BYTE *pbData = nullptr;
@@ -284,6 +296,10 @@ BufferedImage::BufferedImage(DLCPack *dlcPack, const wstring& File, bool filenam
 
 BufferedImage::BufferedImage(BYTE *pbData, DWORD dwBytes)
 {
+	// NOTE (Nov 20 crash fix #5): same as the file ctor — a failed
+	// load must leave a well-defined 0x0 image, not garbage dims.
+	width = 0;
+	height = 0;
 	int iCurrentByte=0;
 	for( int l = 0 ; l < 10; l++ )
 	{
@@ -331,14 +347,22 @@ void BufferedImage::getRGB(int startX, int startY, int w, int h, intArray out,in
 	// missing-texture colour) instead of dereferencing a null pointer.
 	// NOTE (Nov 20 crash fix): if out.data itself is null there is nowhere
 	// to write the fallback — return early instead of writing through null.
+	// NOTE (Nov 20 crash fix #5): the fallback fill itself overflowed
+	// (crash at 0x1401348A4) when a failed load left garbage w/h, because
+	// the loop wrote (h-1)*scansize+offset+(w-1) elements into an out
+	// array sized w*h. Bound every write to out.length, and reject
+	// non-positive dims up front.
 	if (out.data == nullptr) return;
+	if (w <= 0 || h <= 0 || scansize <= 0) return;
 	if (level < 0 || level >= 10 || data[level] == nullptr)
 	{
 		for( int y = 0; y < h; y++ )
 		{
 			for( int x = 0; x < w; x++ )
 			{
-				out[ y * scansize + offset + x] = 0xFFFF00FF;
+				int idx = y * scansize + offset + x;
+				if (idx < 0 || idx >= out.length) continue;
+				out[idx] = 0xFFFF00FF;
 			}
 		}
 		return;
@@ -348,7 +372,9 @@ void BufferedImage::getRGB(int startX, int startY, int w, int h, intArray out,in
 	{
 		for( int x = 0; x < w; x++ )
 		{
-			out[ y * scansize + offset + x] = data[level][ startX + x + ww * ( startY + y ) ];
+			int idx = y * scansize + offset + x;
+			if (idx < 0 || idx >= out.length) continue;
+			out[idx] = data[level][ startX + x + ww * ( startY + y ) ];
 		}
 	}
 }
