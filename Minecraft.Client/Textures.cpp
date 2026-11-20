@@ -217,6 +217,18 @@ const wchar_t *Textures::preLoaded[TN_COUNT] =
 	L"mob/pillager",
 	L"mob/ravager",
 	L"mob/provoker",
+	L"mob/sorcerer",
+	L"mob/alchemist",
+	L"mob/archivist",
+	L"mob/necromancer",
+	L"mob/copper_golem",
+	L"mob/exposed_copper_golem",
+	L"mob/weathered_copper_golem",
+	L"mob/oxidized_copper_golem",
+	L"mob/copper_golem_eyes",
+	L"mob/exposed_copper_golem_eyes",
+	L"mob/weathered_copper_golem_eyes",
+	L"mob/oxidized_copper_golem_eyes",
 	L"mob/wandering_trader",
 	L"item/cart_diamond",
 	L"item/boat_spruce",
@@ -390,6 +402,10 @@ const wchar_t *Textures::preLoaded[TN_COUNT] =
 	L"item/copper_chest_exposed",
 	L"item/copper_chest_weathered",
 	L"item/copper_chest_oxidized",
+	L"item/copper_chest_large",
+	L"item/copper_chest_large_exposed",
+	L"item/copper_chest_large_weathered",
+	L"item/copper_chest_large_oxidized",
 };
 
 Textures::Textures(TexturePackRepository *skins, Options *options)
@@ -435,9 +451,16 @@ void Textures::loadIndexedTextures()
 	// while the atlases were the last two enum entries; Phase 3 appended
 	// the copper chest entries after them, so it silently skipped the last
 	// two copper chest textures and instead preloaded the atlases.
+	// NOTE (Nov 20 crash fix 2): the preLoaded[] initializer MUST have
+	// exactly TN_COUNT entries. It was short by 16 (12 mob + 4 large-chest
+	// entries added by Phases 4/5 + mobs), so preLoaded[244..259] were
+	// nullptr and wstring(nullptr) crashed startup in the Textures ctor.
+	// The 16 entries are now present; this guard keeps any future drift
+	// from crashing startup again.
 	for( int i = 0; i < TN_COUNT; i++ )
 	{
 		if (i == TN_GUI_ITEMS || i == TN_TERRAIN) continue;
+		if (preLoaded[i] == nullptr) continue;
 		preLoadedIdx[i] = loadTexture(static_cast<TEXTURE_NAME>(i), wstring(preLoaded[i]) + L".png");
 	}
 }
@@ -1587,6 +1610,7 @@ void Textures::reloadAll()
 	for( int i = 0; i < TN_COUNT; i++ )
 	{
 		if (i == TN_GUI_ITEMS || i == TN_TERRAIN) continue;
+		if (preLoaded[i] == nullptr) continue;
 		releaseTexture(preLoadedIdx[i]);
 	}
 
