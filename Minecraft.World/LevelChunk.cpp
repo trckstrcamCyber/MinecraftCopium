@@ -1429,7 +1429,11 @@ void LevelChunk::setTileEntity(int x, int y, int z, shared_ptr<TileEntity> tileE
 	tileEntity->y = y;
 	tileEntity->z = this->z * 16 + z;
 
-	if (getTile(x, y, z) == 0 || !Tile::tiles[getTile(x, y, z)]->isEntityTile())	// 4J - was !(Tile.tiles[getTile(x, y, z)] instanceof EntityTile))
+	// neoLegacy - worker-crash fix: getTile() can return an unregistered ext id (e.g. from a corrupted save); Tile::tiles[]
+	// would then be null and the virtual call below would fault. Resolve once, bounds-check, and null-check.
+	int _tileId = getTile(x, y, z);
+	Tile *_tile = (_tileId > 0 && _tileId < Tile::TILE_NUM_COUNT) ? Tile::tiles[_tileId] : nullptr;
+	if (_tile == nullptr || !_tile->isEntityTile())	// 4J - was !(Tile.tiles[getTile(x, y, z)] instanceof EntityTile))
 	{
 		app.DebugPrintf("Attempted to place a tile entity where there was no entity tile!\n");
 		return;
@@ -2646,8 +2650,17 @@ void LevelChunk::setExtTile(int x, int y, int z, int tile)
 	std::shared_ptr<ExtTileTable> t = std::atomic_load(&extTiles);
 	if (t == nullptr) return;
 	std::lock_guard<std::mutex> g(t->lock);
-	if (tile >= 256) t->tiles[extKey(x, y, z)] = tile;
-	else t->tiles.erase(extKey(x, y, z));
+	// neoLegacy - worker-crash fix: validate the ext id before storing it. Tile::tiles[] has only TILE_NUM_COUNT (4096)
+	// entries, and the chunk mesher (Chunk::rebuild) indexes it with the id from this table. An id >= 4096 (e.g. from a
+	// corrupted ExtTiles save tag or a bad network packet) would read out of bounds and crash the rebuild worker.
+	// An id with no registered tile is likewise dropped (it would otherwise read as a bogus tile / crash setTileEntity).
+	// Anything invalid is treated as "no ext tile" (erased), the same as tile < 256.
+	if (tile >= 256 && tile < Tile::TILE_NUM_COUNT && Tile::tiles[tile] != nullptr) t->tiles[extKey(x, y, z)] = tile;
+	else
+	{
+		if (tile >= 256) app.DebugPrintf("setExtTile: dropping invalid ext tile id %d at (%d,%d,%d)\n", tile, x, y, z);
+		t->tiles.erase(extKey(x, y, z));
+	}
 }
 
 bool LevelChunk::hasExtTiles()

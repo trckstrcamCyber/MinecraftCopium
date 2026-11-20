@@ -381,7 +381,10 @@ void Chunk::rebuild()
 					// If flagged as not visible, drop out straight away
 					if( tileId == 0xffff ) continue;
 //					int tileId = region->getTile(x,y,z);
-					if (tileId > 0)
+					// neoLegacy - worker-crash fix: tileId comes from getTileIds16() (16-bit, ext ids included) and
+					// Tile::tiles[] has only TILE_NUM_COUNT (4096) entries. A bogus ext id >= 4096 would read out of
+					// bounds at Tile::tiles[tileId] below. Skip it here (it renders as nothing) instead of indexing.
+					if (tileId > 0 && tileId < Tile::TILE_NUM_COUNT)
 					{
 						if (!started)
 						{

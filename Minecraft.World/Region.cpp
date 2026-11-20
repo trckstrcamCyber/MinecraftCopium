@@ -153,7 +153,17 @@ shared_ptr<TileEntity> Region::getTileEntity(int x, int y, int z)
 	int xc = (x >> 4) - xc1;
 	int zc = (z >> 4) - zc1;
 
-	return (*chunks)[xc]->data[zc]->getTileEntity(x & 15, y, z & 15);
+	// neoLegacy - worker-crash fix: unlike getTile() above, this had no bounds check and no null check on the chunk.
+	// A position in an unloaded neighbour chunk would dereference a null chunk pointer on the rebuild worker thread.
+	if (xc < 0 || xc >= static_cast<int>(chunks->length) || zc < 0 || zc >= static_cast<int>((*chunks)[xc]->length))
+	{
+		return nullptr;
+	}
+
+	LevelChunk *lc = (*chunks)[xc]->data[zc];
+	if (lc == nullptr) return nullptr;
+
+	return lc->getTileEntity(x & 15, y, z & 15);
 }
 
 int Region::getLightColor(int x, int y, int z, int emitt, int tileId/*=-1*/)
