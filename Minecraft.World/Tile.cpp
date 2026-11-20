@@ -36,8 +36,10 @@
 #include "ConcreteTileItems.h"
 #include "CopperBulbTile.h"	// neoLegacy - Copper Age (Phase 3)
 #include "CopperFenceTile.h"	// neoLegacy - Copper Age (Phase 3)
+#include "CopperGrateTile.h"	// neoLegacy - Copper Age (playtest fix, 2026-11-20)
 #include "CopperSlabTile.h"	// neoLegacy - Copper Age (Phase 3)
 #include "CopperStairTile.h"	// neoLegacy - Copper Age (Phase 3)
+#include "CopperThinTile.h"	// neoLegacy - Copper Age (playtest fix, 2026-11-20)
 #include "CopperTile.h"	// neoLegacy - Copper Age (Phase 3)
 #include "CopperGolemStatueBlock.h"	// neoLegacy - Copper Age (Phase 5)
 #include "ShelfTile.h"	// neoLegacy - Copper Age (Phase 3)
@@ -544,7 +546,7 @@ void Tile::staticCtor()
 	Tile::copperBlock = (new CopperTile(Tile::copper_block_Id, L"copper_block"))							->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_block")->setDescriptionId(IDS_TILE_COPPER_BLOCK)->setUseDescriptionId(IDS_DESC_BLOCK_COPPER);
 	Tile::cutCopper = (new CopperTile(Tile::cut_copper_Id, L"cut_copper"))									->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"cut_copper")->setDescriptionId(IDS_TILE_CUT_COPPER)->setUseDescriptionId(IDS_DESC_BLOCK_COPPER);
 	Tile::chiseledCopper = (new CopperTile(Tile::chiseled_copper_Id, L"chiseled_copper"))					->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"chiseled_copper")->setDescriptionId(IDS_TILE_CHISELED_COPPER)->setUseDescriptionId(IDS_DESC_BLOCK_COPPER);
-	Tile::copperGrate = (new CopperTile(Tile::copper_grate_Id, L"copper_grate"))							->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(3.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_COPPER_GRATE)->setIconName(L"copper_grate")->setDescriptionId(IDS_TILE_COPPER_GRATE)->setUseDescriptionId(IDS_DESC_BLOCK_COPPER);
+	Tile::copperGrate = (new CopperGrateTile(Tile::copper_grate_Id, L"copper_grate"))							->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(3.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_COPPER_GRATE)->setIconName(L"copper_grate")->setDescriptionId(IDS_TILE_COPPER_GRATE)->setUseDescriptionId(IDS_DESC_BLOCK_COPPER);
 	// Copper bulb: registered with NO light emission. Level's light cache
 	// reads the per-tile-id Tile::lightEmission[] array, so one tile id
 	// cannot emit a different level per lit/oxidation state; the bulb's
@@ -569,18 +571,18 @@ void Tile::staticCtor()
 	Tile::copperChest = static_cast<ChestTile *>((new ChestTile(Tile::copper_chest_Id, ChestTile::TYPE_COPPER))->setBaseItemTypeAndMaterial(Item::eBaseItemType_chest, Item::eMaterial_copper)->setDestroyTime(2.5f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_chest")->setDescriptionId(IDS_TILE_COPPER_CHEST)->sendTileData()->setUseDescriptionId(IDS_DESC_CHEST));
 	Tile::copperDoor = (new DoorTile(Tile::copper_door_Id, Material::metal, L"doorCopper"))->setDestroyTime(5.0f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_door")->setDescriptionId(IDS_TILE_DOOR_COPPER)->setNotCollectStatistics()->sendTileData()->setUseDescriptionId(IDS_DESC_DOOR_COPPER);
 	Tile::copperTrapdoor = (new TrapDoorTile(Tile::copper_trapdoor_Id, Material::metal))->setBaseItemTypeAndMaterial(Item::eBaseItemType_door, Item::eMaterial_trap)->setDestroyTime(5.0f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_trapdoor")->setDescriptionId(IDS_TILE_COPPER_TRAPDOOR)->setUseDescriptionId(IDS_DESC_TRAPDOOR);
-	Tile::copperChain = (new CopperFenceTile(Tile::copper_chain_Id, L"copper_chain"))						->setBaseItemTypeAndMaterial(Item::eBaseItemType_rod,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_chain")->setDescriptionId(IDS_TILE_COPPER_CHAIN)->setUseDescriptionId(IDS_DESC_COPPER_CHAIN);
+	Tile::copperChain = (new CopperThinTile(Tile::copper_chain_Id, L"copper_chain", 6.5f/16.0f, 0, 6.5f/16.0f, 9.5f/16.0f, 1, 9.5f/16.0f))						->setBaseItemTypeAndMaterial(Item::eBaseItemType_rod,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_chain")->setDescriptionId(IDS_TILE_COPPER_CHAIN)->setUseDescriptionId(IDS_DESC_COPPER_CHAIN);
 	Tile::copperBars = (new CopperFenceTile(Tile::copper_bars_Id, L"copper_bars"))							->setBaseItemTypeAndMaterial(Item::eBaseItemType_fence,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_bars")->setDescriptionId(IDS_TILE_COPPER_BARS)->setUseDescriptionId(IDS_DESC_COPPER_BARS);
 	// Copper lantern: always lit, so a fixed light emission is correct here
 	// (unlike the bulb, it has no lit/unlit state to vary by).
-	Tile::copperLantern = (new CopperTile(Tile::copper_lantern_Id, L"copper_lantern"))						->setBaseItemTypeAndMaterial(Item::eBaseItemType_torch,	Item::eMaterial_copper)->setDestroyTime(3.5f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setLightEmission(1.0f)->setIconName(L"copper_lantern")->setDescriptionId(IDS_TILE_COPPER_LANTERN)->setUseDescriptionId(IDS_DESC_COPPER_LANTERN);
+	Tile::copperLantern = (new CopperThinTile(Tile::copper_lantern_Id, L"copper_lantern", 5.0f/16.0f, 0, 5.0f/16.0f, 11.0f/16.0f, 8.0f/16.0f, 11.0f/16.0f))						->setBaseItemTypeAndMaterial(Item::eBaseItemType_torch,	Item::eMaterial_copper)->setDestroyTime(3.5f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setLightEmission(1.0f)->setIconName(L"copper_lantern")->setDescriptionId(IDS_TILE_COPPER_LANTERN)->setUseDescriptionId(IDS_DESC_COPPER_LANTERN);
 	Tile::copperTorch = (new TorchTile(Tile::copper_torch_Id))												->setBaseItemTypeAndMaterial(Item::eBaseItemType_torch,	Item::eMaterial_copper)->setDestroyTime(0.0f)->setLightEmission(15 / 16.0f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_torch")->setDescriptionId(IDS_TILE_COPPER_TORCH)->setUseDescriptionId(IDS_DESC_COPPER_TORCH)->disableMipmap();
 	// Copper button: reuses the copper-block texture (0 new atlas cells).
 	Tile::copperButton = (new StoneButtonTile(Tile::copper_button_Id))										->setBaseItemTypeAndMaterial(Item::eBaseItemType_button,	Item::eMaterial_copper)->setDestroyTime(0.5f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_block")->setDescriptionId(IDS_TILE_COPPER_BUTTON)->setUseDescriptionId(IDS_DESC_COPPER_BUTTON);
 	// Lightning rod: DECORATIVE ONLY (Phase 0 item 6 — natural lightning
 	// never strikes and there is no block-level lightning hook, so the
 	// attraction feature is cut). No strike code is added here.
-	Tile::lightningRod = (new CopperTile(Tile::lightning_rod_Id, L"lightning_rod"))							->setBaseItemTypeAndMaterial(Item::eBaseItemType_rod,	Item::eMaterial_copper)->setDestroyTime(3.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setIconName(L"lightning_rod")->setDescriptionId(IDS_TILE_LIGHTNING_ROD)->setUseDescriptionId(IDS_DESC_LIGHTNING_ROD);
+	Tile::lightningRod = (new CopperThinTile(Tile::lightning_rod_Id, L"lightning_rod", 6.0f/16.0f, 0, 6.0f/16.0f, 10.0f/16.0f, 1, 10.0f/16.0f))							->setBaseItemTypeAndMaterial(Item::eBaseItemType_rod,	Item::eMaterial_copper)->setDestroyTime(3.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setIconName(L"lightning_rod")->setDescriptionId(IDS_TILE_LIGHTNING_ROD)->setUseDescriptionId(IDS_DESC_LIGHTNING_ROD);
 	// Golem statue: tile only in Phase 3 (oxidation end-state). Entity
 	// rendering + behaviour is Phase 5; for now it renders as a plain cube.
 	Tile::copperGolemStatue = (new CopperGolemStatueBlock(Tile::copper_golem_statue_Id))								->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_COPPER_STATUE)->setIconName(L"copper_golem_statue")->setDescriptionId(IDS_TILE_COPPER_GOLEM_STATUE)->setUseDescriptionId(IDS_DESC_COPPER_GOLEM_STATUE);

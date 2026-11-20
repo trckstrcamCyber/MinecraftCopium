@@ -60,6 +60,9 @@ public:
 	virtual shared_ptr<TileEntity> newTileEntity(Level *level) override;
 	virtual void updateShape(LevelSource *level, int x, int y, int z, int forceData, shared_ptr<TileEntity> forceEntity = shared_ptr<TileEntity>()) override;
 	virtual void updateDefaultShape() override;
+	virtual bool isSolidRender(bool isServerLevel = false) override;
+	virtual bool isCubeShaped() override;
+	virtual int getRenderShape() override;
 	virtual AABB *getTileAABB(Level *level, int x, int y, int z) override;
 	virtual AABB *getAABB(Level *level, int x, int y, int z) override;
 	virtual void setPlacedBy(Level *level, int x, int y, int z, shared_ptr<LivingEntity> by, shared_ptr<ItemInstance> itemInstance) override;

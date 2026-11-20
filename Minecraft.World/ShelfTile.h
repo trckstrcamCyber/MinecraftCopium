@@ -35,6 +35,10 @@ public:
 	virtual bool use(Level *level, int x, int y, int z, shared_ptr<Player> player, int clickedFace, float clickX, float clickY, float clickZ, bool soundOnly = false) override;
 	virtual bool hasAnalogOutputSignal() override;
 	virtual int getAnalogOutputSignal(Level *level, int x, int y, int z, int dir) override;
+	virtual bool isSolidRender(bool isServerLevel = false) override;
+	virtual bool isCubeShaped() override;
+	virtual void updateShape(LevelSource *level, int x, int y, int z, int forceData = -1, shared_ptr<TileEntity> forceEntity = shared_ptr<TileEntity>()) override;
+	virtual void updateDefaultShape() override;
 
 protected:
 	virtual int getSpawnResourcesAuxValue(int data) override;

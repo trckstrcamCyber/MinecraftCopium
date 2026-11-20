@@ -14,9 +14,38 @@
 #include "Facing.h"
 #include "ItemInstance.h"
 
-ShelfTile::ShelfTile(int id) : BaseEntityTile(id, Material::wood)
+ShelfTile::ShelfTile(int id) : BaseEntityTile(id, Material::wood, isSolidRender())
 {
 	for (int i = 0; i < 7; i++) woodIcons[i] = nullptr;
+}
+
+bool ShelfTile::isSolidRender(bool)
+{
+	return false;
+}
+
+bool ShelfTile::isCubeShaped()
+{
+	return false;
+}
+
+void ShelfTile::updateShape(LevelSource *level, int x, int y, int z, int forceData, shared_ptr<TileEntity> forceEntity)
+{
+	// Facing is data bits 3-5; front faces that direction, body sits
+	// against the opposite wall. 5/16 deep (model z 11-16), full width/height.
+	int facing = (level->getData(x, y, z) >> 3) & 7;
+	switch (facing)
+	{
+	case Facing::SOUTH: setShape(0, 0, 0, 1, 1, 5.0f/16.0f); break;
+	case Facing::WEST:  setShape(11.0f/16.0f, 0, 0, 1, 1, 1); break;
+	case Facing::EAST:  setShape(0, 0, 0, 5.0f/16.0f, 1, 1); break;
+	default:            setShape(0, 0, 11.0f/16.0f, 1, 1, 1); break; // NORTH
+	}
+}
+
+void ShelfTile::updateDefaultShape()
+{
+	setShape(0, 0, 11.0f/16.0f, 1, 1, 1);   // NORTH default
 }
 
 Icon *ShelfTile::getTexture(int face, int data)

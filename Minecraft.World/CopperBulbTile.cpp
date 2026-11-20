@@ -18,7 +18,7 @@ CopperBulbTile::CopperBulbTile(int id) : MetalTile(id)
 Icon *CopperBulbTile::getTexture(int face, int data)
 {
 	int state = data & OXIDATION_MASK;
-	int lit = (data & LIT_BIT) != 0 ? 1 : 0;
+	int lit = (id == Tile::copper_bulb_lit_Id) ? 1 : 0;
 	return bulbIcons[state][lit];
 }
 
@@ -57,33 +57,25 @@ void CopperBulbTile::checkAndFlip(Level *level, int x, int y, int z)
 	int data = level->getData(x, y, z);
 	bool powered = (data & POWERED_BIT) != 0;
 	bool signal = level->hasNeighborSignal(x, y, z);
-
 	if (signal != powered)
 	{
 		if (!powered)
 		{
-			// Rising edge: toggle LIT and play the toggle sound. The lit
-			// state is a SEPARATE tile id (copper_bulb_lit, 2329) so
-			// Level's light cache propagates the light (the furnace_lit
-			// pattern) — so the toggle swaps the tile id as well as
-			// flipping the LIT bit, keeping the two in sync. Oxidation
-			// and waxed (bits 0-2) are preserved by the swap.
-			data ^= LIT_BIT;
-			int newId = ((data & LIT_BIT) != 0) ? Tile::copper_bulb_lit_Id : Tile::copper_bulb_Id;
+			// Rising edge: toggle LIT by swapping the tile id; remember the
+			// input in POWERED (data bit 3 — fits the 4-bit nibble).
+			int newId = (id == Tile::copper_bulb_Id)
+				? Tile::copper_bulb_lit_Id : Tile::copper_bulb_Id;
 			level->playSound(x + 0.5, y + 0.5, z + 0.5,
 				eSoundType_COPPER_BULB_TOGGLE, 0.5f, 1.0f);
 			data = signal ? (data | POWERED_BIT) : (data & ~POWERED_BIT);
 			level->setTileAndData(x, y, z, newId, data, Tile::UPDATE_ALL);
-			// The analog output and the light level may have changed —
-			// let comparators re-read and the light cache update.
 			level->updateNeighborsAt(x, y, z, newId);
 		}
 		else
 		{
-			// Falling edge: LIT stays as it is; only POWERED is updated.
+			// Falling edge: LIT stays; only POWERED is updated.
 			data = signal ? (data | POWERED_BIT) : (data & ~POWERED_BIT);
 			level->setData(x, y, z, data, Tile::UPDATE_CLIENTS);
-			// The analog output may have changed — let comparators re-read.
 			level->updateNeighborsAt(x, y, z, id);
 		}
 	}
@@ -92,14 +84,14 @@ void CopperBulbTile::checkAndFlip(Level *level, int x, int y, int z)
 float CopperBulbTile::getBrightness(LevelSource *level, int x, int y, int z)
 {
 	int data = level->getData(x, y, z);
-	int emission = ((data & LIT_BIT) != 0) ? LIGHT_LEVELS[data & OXIDATION_MASK] : 0;
+	int emission = (id == Tile::copper_bulb_lit_Id) ? LIGHT_LEVELS[data & OXIDATION_MASK] : 0;
 	return level->getBrightness(x, y, z, emission);
 }
 
 int CopperBulbTile::getLightColor(LevelSource *level, int x, int y, int z, int tileId)
 {
 	int data = level->getData(x, y, z);
-	int emission = ((data & LIT_BIT) != 0) ? LIGHT_LEVELS[data & OXIDATION_MASK] : 0;
+	int emission = (id == Tile::copper_bulb_lit_Id) ? LIGHT_LEVELS[data & OXIDATION_MASK] : 0;
 	return level->getLightColor(x, y, z, emission, -1);
 }
 
@@ -111,7 +103,7 @@ bool CopperBulbTile::hasAnalogOutputSignal()
 int CopperBulbTile::getAnalogOutputSignal(Level *level, int x, int y, int z, int dir)
 {
 	int data = level->getData(x, y, z);
-	return ((data & LIT_BIT) != 0) ? 15 : 0;
+	return (id == Tile::copper_bulb_lit_Id) ? 15 : 0;
 }
 
 int CopperBulbTile::getResource(int data, Random *random, int playerBonusLevel)

@@ -43,9 +43,26 @@ float CopperGolemStatueBlock::facingToYaw(int facing)
 	}
 }
 
-CopperGolemStatueBlock::CopperGolemStatueBlock(int id) : BaseEntityTile(id, Material::metal)
+CopperGolemStatueBlock::CopperGolemStatueBlock(int id) : BaseEntityTile(id, Material::metal, isSolidRender())
 {
 	for (int i = 0; i < 4; i++) stateIcons[i] = nullptr;
+}
+
+bool CopperGolemStatueBlock::isSolidRender(bool)
+{
+	return false;
+}
+
+bool CopperGolemStatueBlock::isCubeShaped()
+{
+	return false;
+}
+
+int CopperGolemStatueBlock::getRenderShape()
+{
+	// ChestTile precedent: the chunk renderer has no case for this shape,
+	// so it draws nothing; CopperGolemStatueRenderer draws the model.
+	return Tile::SHAPE_ENTITYTILE_ANIMATED;
 }
 
 Icon *CopperGolemStatueBlock::getTexture(int face, int data)
