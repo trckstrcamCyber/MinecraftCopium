@@ -329,7 +329,10 @@ void BufferedImage::getRGB(int startX, int startY, int w, int h, intArray out,in
 	// crash the game. Texture data can be null if the image failed to load
 	// or was corrupted; fill the output with opaque magenta (the classic
 	// missing-texture colour) instead of dereferencing a null pointer.
-	if (level < 0 || level >= 10 || data[level] == nullptr || out.data == nullptr)
+	// NOTE (Nov 20 crash fix): if out.data itself is null there is nowhere
+	// to write the fallback — return early instead of writing through null.
+	if (out.data == nullptr) return;
+	if (level < 0 || level >= 10 || data[level] == nullptr)
 	{
 		for( int y = 0; y < h; y++ )
 		{
@@ -357,6 +360,10 @@ int *BufferedImage::getData()
 
 int *BufferedImage::getData(int level)
 {
+	// NOTE (Nov 20 crash fix): data[] has exactly 10 slots (levels 0-9).
+	// Callers (getSubimage) loop on getData(level) != nullptr, so an
+	// out-of-range level must return nullptr, not read past the array.
+	if (level < 0 || level >= 10) return nullptr;
 	return data[level];
 }
 
@@ -392,7 +399,11 @@ BufferedImage *BufferedImage::getSubimage(int x ,int y, int w, int h)
 	this->getRGB(x, y, w, h, arrayWrapper,0,w);
 
 	int level = 1;
-	while(getData(level) != nullptr)
+	// NOTE (Nov 20 crash fix): data[] has exactly 10 slots (levels 0-9).
+	// The old unbounded loop wrote img->data[level] past the array when a
+	// source image had all 10 mip levels (level 10+), a heap write overflow
+	// in the stitch() init path. Bound the loop to the array size.
+	while(level < 10 && getData(level) != nullptr)
 	{
 		int ww = w >> level;
 		int hh = h >> level;

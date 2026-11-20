@@ -134,7 +134,11 @@ void Texture::_init(const wstring &name, int mode, int width, int height, int de
 				for(unsigned int level = 1; level < m_iMipLevels; ++level)
 				{
 					int ww = width >> level;
-					int hh = height >> height;
+					// NOTE (Nov 20 crash fix): was "height >> height" (a
+					// copy-paste of the width line). For height=1024 the
+					// shift count masked to 0, so hh was 1024 instead of
+					// height>>level and the mip buffers were over-allocated.
+					int hh = height >> level;
 
 					byteArray tempBytes = byteArray(ww * hh * depth * 4);
 					for (int index = 0; index < tempBytes.length; index++)
