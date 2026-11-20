@@ -3,6 +3,7 @@
 #include "CopperGolemStatueBlockEntity.h"
 #include "HatchetItem.h"
 #include "IconRegister.h"
+#include "Inventory.h"
 #include "net.minecraft.world.level.h"
 #include "SoundTypes.h"
 
