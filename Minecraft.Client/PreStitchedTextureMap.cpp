@@ -1446,6 +1446,15 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(36, 0,  L"rose_gold_trapdoor")
 		ADD_ICON(36, 1,  L"copper_chest")
 		ADD_ICON(36, 2,  L"copper_golem_statue")
+		// NOTE (Nov 20 crash fix #6): the statue's 3 oxidized variants
+		// were never added to the atlas table, but
+		// CopperGolemStatueBlock::registerIcons loops all 4 oxidation
+		// prefixes — registerIcon DEBUG_BREAKs (int3, 0x80000003) on the
+		// first missing name (exposed_copper_golem_statue), right after
+		// Rose in the stitch Tile loop (tile 2320). Row 36 cols 3-5.
+		ADD_ICON(36, 3,  L"exposed_copper_golem_statue")
+		ADD_ICON(36, 4,  L"weathered_copper_golem_statue")
+		ADD_ICON(36, 5,  L"oxidized_copper_golem_statue")
 
 	}
 }
