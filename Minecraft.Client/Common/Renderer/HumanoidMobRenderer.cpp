@@ -14,7 +14,7 @@
 #include "../Minecraft.World/net.minecraft.world.entity.monster.h"
 #include "../Minecraft.World/net.minecraft.h"
 
-const wstring HumanoidMobRenderer::MATERIAL_NAMES[7] = { L"cloth", L"chain", L"iron", L"diamond", L"gold", L"copper", L"rose_gold" };
+const wchar_t *HumanoidMobRenderer::MATERIAL_NAMES[7] = { L"cloth", L"chain", L"iron", L"diamond", L"gold", L"copper", L"rose_gold" };
 std::map<wstring, ResourceLocation> HumanoidMobRenderer::ARMOR_LOCATION_CACHE;
 
 void HumanoidMobRenderer::_init(HumanoidModel *humanoidModel, float scale)
@@ -44,20 +44,25 @@ ResourceLocation *HumanoidMobRenderer::getArmorLocation(ArmorItem *armorItem, in
 
 ResourceLocation *HumanoidMobRenderer::getArmorLocation(ArmorItem *armorItem, int layer, bool overlay)
 {
-	switch(armorItem->modelIndex)
+	// neoLegacy - the old no-op switch accepted any modelIndex, and the path was
+	// built by copying the global MATERIAL_NAMES wstring (L"armor/" + name).
+	// A corrupt global wstring length made that copy read 5.6 MB and crash on
+	// armor equip (Nov 20, memcpy at +0x2f140e). Clamp the index and build the
+	// path from string literals only, so no global wstring is ever copied.
+	int modelIndex = armorItem->modelIndex;
+	if (modelIndex < 0 || modelIndex >= 7)
 	{
-	case 0:
-		break;
-	case 1:
-		break;
-	case 2:
-		break;
-	case 3:
-		break;
-	case 4:
-		break;
-	};
-	wstring path = wstring(L"armor/" + MATERIAL_NAMES[armorItem->modelIndex]).append(L"_").append(std::to_wstring(layer == 2 ? 2 : 1)).append((overlay ? L"_b" :L"")).append(L".png");
+		modelIndex = 0;
+	}
+	wstring path = L"armor/";
+	path += MATERIAL_NAMES[modelIndex];
+	path += L"_";
+	path += std::to_wstring(layer == 2 ? 2 : 1);
+	if (overlay)
+	{
+		path += L"_b";
+	}
+	path += L".png";
 
 	std::map<wstring, ResourceLocation>::iterator it = ARMOR_LOCATION_CACHE.find(path);
 

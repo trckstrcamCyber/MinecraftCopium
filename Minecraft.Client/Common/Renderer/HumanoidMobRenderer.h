@@ -8,7 +8,11 @@ class ArmorItem;
 class HumanoidMobRenderer : public MobRenderer
 {
 private:
-	static const wstring MATERIAL_NAMES[7];
+	// neoLegacy - MATERIAL_NAMES was `const wstring[7]`. A corrupt global wstring
+	// (garbage _Mysize) made getArmorLocation's path build memcpy 5.6 MB from a
+	// static address and crash on armor equip (Nov 20). String literals cannot
+	// carry a corrupt length, so the names are plain pointers to literals now.
+	static const wchar_t *MATERIAL_NAMES[7];
 	static std::map<wstring, ResourceLocation> ARMOR_LOCATION_CACHE;
 
 protected:
