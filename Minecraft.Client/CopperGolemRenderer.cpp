@@ -5,7 +5,7 @@
 #include "CopperGolemRenderer.h"
 #include "ModelPart.h"
 #include "TextureAtlas.h"
-#include "TileItem.h"
+#include "../Minecraft.World/TileItem.h"
 
 ResourceLocation CopperGolemRenderer::GOLEM_LOCATION = ResourceLocation(TN_MOB_COPPER_GOLEM);
 ResourceLocation CopperGolemRenderer::GOLEM_EXPOSED_LOCATION = ResourceLocation(TN_MOB_COPPER_GOLEM_EXPOSED);
