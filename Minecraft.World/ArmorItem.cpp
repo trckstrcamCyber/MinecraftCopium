@@ -74,7 +74,7 @@ const _ArmorMaterial *_ArmorMaterial::IRON = new _ArmorMaterial(15, _ArmorMateri
 const _ArmorMaterial *_ArmorMaterial::GOLD = new _ArmorMaterial(7, _ArmorMaterial::goldArray, 25);
 const _ArmorMaterial *_ArmorMaterial::DIAMOND = new _ArmorMaterial(33, _ArmorMaterial::diamondArray, 10);
 const _ArmorMaterial *_ArmorMaterial::COPPER = new _ArmorMaterial(11, _ArmorMaterial::copperArray, 8);
-const _ArmorMaterial *_ArmorMaterial::ROSE_GOLD = new _ArmorMaterial(20, _ArmorMaterial::roseGoldArray, 45);
+const _ArmorMaterial *_ArmorMaterial::ROSE_GOLD = new _ArmorMaterial(15, _ArmorMaterial::roseGoldArray, 25); // rebalanced 2026-11-19 per Cameron: iron durability factor (15), gold-like enchantability (25); protection unchanged
 
 _ArmorMaterial::ArmorMaterial(int durabilityMultiplier, const int slotProtections[], int enchantmentValue)
 {
