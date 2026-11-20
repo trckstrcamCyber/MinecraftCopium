@@ -217,18 +217,7 @@ const wchar_t *Textures::preLoaded[TN_COUNT] =
 	L"mob/pillager",
 	L"mob/ravager",
 	L"mob/provoker",
-	L"mob/sorcerer",
-	L"mob/alchemist",
-	L"mob/archivist",
-	L"mob/necromancer",
-	L"mob/copper_golem",	// neoLegacy - Copper Age (Phase 5)
-	L"mob/exposed_copper_golem",
-	L"mob/weathered_copper_golem",
-	L"mob/oxidized_copper_golem",
-	L"mob/copper_golem_eyes",
-	L"mob/exposed_copper_golem_eyes",
-	L"mob/weathered_copper_golem_eyes",
-	L"mob/oxidized_copper_golem_eyes",	L"mob/wandering_trader",
+	L"mob/wandering_trader",
 	L"item/cart_diamond",
 	L"item/boat_spruce",
 	L"item/boat_birch",
@@ -401,11 +390,6 @@ const wchar_t *Textures::preLoaded[TN_COUNT] =
 	L"item/copper_chest_exposed",
 	L"item/copper_chest_weathered",
 	L"item/copper_chest_oxidized",
-	// neoLegacy - Copper Age (Phase 4). Copper double-chest sheets (128x64).
-	L"item/copper_chest_large",
-	L"item/copper_chest_large_exposed",
-	L"item/copper_chest_large_weathered",
-	L"item/copper_chest_large_oxidized",
 };
 
 Textures::Textures(TexturePackRepository *skins, Options *options)
@@ -444,8 +428,16 @@ Textures::Textures(TexturePackRepository *skins, Options *options)
 void Textures::loadIndexedTextures()
 {
 	// 4J - added - preload a set of commonly used textures that can then be referenced directly be an enumerated type rather by string
-	for( int i = 0; i < TN_COUNT - 2; i++ )
+	// NOTE (Nov 20 crash fix): the atlas textures (gui/items, terrain) are
+	// loaded separately via stitch(); they must NOT be preloaded here, and
+	// every other entry — including the copper chest textures appended by
+	// Phase 3 — MUST be preloaded. The old "TN_COUNT - 2" loop only worked
+	// while the atlases were the last two enum entries; Phase 3 appended
+	// the copper chest entries after them, so it silently skipped the last
+	// two copper chest textures and instead preloaded the atlases.
+	for( int i = 0; i < TN_COUNT; i++ )
 	{
+		if (i == TN_GUI_ITEMS || i == TN_TERRAIN) continue;
 		preLoadedIdx[i] = loadTexture(static_cast<TEXTURE_NAME>(i), wstring(preLoaded[i]) + L".png");
 	}
 }
@@ -1589,8 +1581,12 @@ void Textures::reloadAll()
 {
     TexturePack *skin = skins->getSelected();
 
-	for( int i = 0; i < TN_COUNT - 2; i++ )
+	// NOTE (Nov 20 crash fix): release every preloaded texture except the
+	// two stitched atlases (gui/items, terrain), which are not preloaded.
+	// See loadIndexedTextures for why this is not "TN_COUNT - 2".
+	for( int i = 0; i < TN_COUNT; i++ )
 	{
+		if (i == TN_GUI_ITEMS || i == TN_TERRAIN) continue;
 		releaseTexture(preLoadedIdx[i]);
 	}
 
