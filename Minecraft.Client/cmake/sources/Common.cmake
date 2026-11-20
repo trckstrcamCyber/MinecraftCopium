@@ -627,7 +627,7 @@ set(_MINECRAFT_CLIENT_COMMON_NET_MINECRAFT_CLIENT_MODEL
   "${CMAKE_CURRENT_SOURCE_DIR}/Vertex.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/VillagerGolemModel.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/VillagerGolemModel.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemModel.cpp"	// neoLegacy - Copper Age (Phase 5)
+  "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemModel.cpp"	# neoLegacy - Copper Age (Phase 5)
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemModel.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/VillagerModel.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/VillagerModel.h"
@@ -931,7 +931,7 @@ set(_MINECRAFT_CLIENT_COMMON_NET_MINECRAFT_CLIENT_RENDERER_ENTITY
   "${CMAKE_CURRENT_SOURCE_DIR}/TntRenderer.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/VillagerGolemRenderer.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/VillagerGolemRenderer.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemRenderer.cpp"	// neoLegacy - Copper Age (Phase 5)
+  "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemRenderer.cpp"	# neoLegacy - Copper Age (Phase 5)
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemRenderer.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/VillagerRenderer.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/VillagerRenderer.h"
@@ -1054,7 +1054,7 @@ set(_MINECRAFT_CLIENT_COMMON_NET_MINECRAFT_CLIENT_RENDERER_TILEENTITY
   "${CMAKE_CURRENT_SOURCE_DIR}/BannerRenderer.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/ChestRenderer.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ChestRenderer.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemStatueRenderer.cpp"	// neoLegacy - Copper Age (Phase 5)
+  "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemStatueRenderer.cpp"	# neoLegacy - Copper Age (Phase 5)
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemStatueRenderer.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/EnchantTableRenderer.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/EnchantTableRenderer.h"
