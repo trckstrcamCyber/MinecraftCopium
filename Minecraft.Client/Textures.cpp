@@ -768,8 +768,18 @@ int Textures::loadTexture(TEXTURE_NAME texId, const wstring& resourceName)
 	{
 		// 4J Stu - Get resource above just returns the name for texture packs
 		BufferedImage *bufImage = readImage(texId, pathName); //in);
-		loadTexture(bufImage, id, blur, clamp);
-		delete bufImage;
+		// Defensive (Nov 19 startup-crash fix): readImage can return null
+		// when a texture file is missing; fall back to the missing-texture
+		// image instead of crashing in loadTexture.
+		if (bufImage == nullptr)
+		{
+			loadTexture(missingNo, id, blur, clamp);
+		}
+		else
+		{
+			loadTexture(bufImage, id, blur, clamp);
+			delete bufImage;
+		}
 	}
 
 	idMap[resourceName] = id;
@@ -810,6 +820,20 @@ void Textures::loadTexture(BufferedImage *img, int id)
 void Textures::loadTexture(BufferedImage *img, int id, bool blur, bool clamp)
 {
 //	printf("Textures::loadTexture BufferedImage with blur and clamp %d\n",id);
+	// Defensive (Nov 19 startup-crash fix): never crash on a missing or
+	// zero-size texture image. Skip the load (leaving a blank texture)
+	// instead of dereferencing a null image or allocating a zero-size
+	// pixel buffer and writing through it.
+	if (img == nullptr)
+	{
+		return;
+	}
+	int w0 = img->getWidth();
+	int h0 = img->getHeight();
+	if (w0 <= 0 || h0 <= 0)
+	{
+		return;
+	}
 	int iMipLevels=1;
 	MemSect(33);
     glBindTexture(GL_TEXTURE_2D, id);

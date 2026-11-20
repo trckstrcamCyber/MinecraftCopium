@@ -325,6 +325,21 @@ int BufferedImage::getHeight()
 
 void BufferedImage::getRGB(int startX, int startY, int w, int h, intArray out,int offset,int scansize, int level)
 {
+	// Defensive (Nov 19 startup-crash fix): a null mipmap level must not
+	// crash the game. Texture data can be null if the image failed to load
+	// or was corrupted; fill the output with opaque magenta (the classic
+	// missing-texture colour) instead of dereferencing a null pointer.
+	if (level < 0 || level >= 10 || data[level] == nullptr || out.data == nullptr)
+	{
+		for( int y = 0; y < h; y++ )
+		{
+			for( int x = 0; x < w; x++ )
+			{
+				out[ y * scansize + offset + x] = 0xFFFF00FF;
+			}
+		}
+		return;
+	}
 	int ww = width >> level;
 	for( int y = 0; y < h; y++ )
 	{
