@@ -249,6 +249,20 @@ int SparseDataStorage::get(int x, int y, int z)
 // Set an individual data value
 void SparseDataStorage::set(int x, int y, int z, int val)
 {
+	// neoLegacy - data is a 4-bit nibble (0-15); mask off any bits above 3.
+	// Every read path masks to 4 bits (get() "& 15", setDataRegion "& 15",
+	// TileUpdatePacket "data & 0xf"), so a value >= 16 could never survive
+	// a read-back — but the write below used to OR the unmasked value into
+	// the byte, spilling bit 4+ into the NEIGHBOUR block's nibble (the
+	// (x, z+1) cell sharing the byte). The copper chest/trapdoor/stairs/
+	// door oxidation fields live in bits 3-7, so every weathering advance,
+	// axe scrape and waxed/oxidised placement of those blocks corrupted a
+	// neighbour ("blocks randomly turning into other blocks"). Clamping
+	// here, at the single choke point every data write passes through,
+	// stops all of it; the oxidation itself was already unrepresentable
+	// for those blocks, so nothing that worked before changes.
+	val &= 15;
+
 	unsigned char *planeIndices, *data;
 	getPlaneIndicesAndData(&planeIndices, &data);
 

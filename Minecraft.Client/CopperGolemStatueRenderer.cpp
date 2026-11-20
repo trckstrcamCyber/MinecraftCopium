@@ -50,27 +50,14 @@ void CopperGolemStatueRenderer::render(shared_ptr<TileEntity> _statue, double x,
 	glPushMatrix();
 	glEnable(GL_RESCALE_NORMAL);
 	if (setColor) glColor4f(1, 1, 1, alpha);
-	glTranslatef(static_cast<float>(x), static_cast<float>(y) + 1, static_cast<float>(z) + 1);
-	glScalef(1, -1, -1);
+	// LivingEntityRenderer pattern, not the ChestRenderer pattern: the
+	// golem model is an entity model (feet at model y=24), so stand it on
+	// the centre of the block's base like a living entity.
+	glTranslatef(static_cast<float>(x) + 0.5f, static_cast<float>(y), static_cast<float>(z) + 0.5f);
+	glRotatef(180.0f - CopperGolemStatueBlock::facingToYaw(CopperGolemStatueBlock::getFacing(data)), 0, 1, 0);
+	glScalef(-1, -1, 1);
+	glTranslatef(0, -24.0f / 16.0f - 0.125f / 16.0f, 0);
 
-	glTranslatef(0.5f, 0.5f, 0.5f);
-	// Facing is bits 5-6 of the data (0 NORTH, 1 EAST, 2 SOUTH, 3 WEST);
-	// rotation matches the ChestRenderer facing map (NORTH 180, SOUTH 0,
-	// WEST 90, EAST -90).
-	int rot = 0;
-	switch (CopperGolemStatueBlock::getFacing(data))
-	{
-	case CopperGolemStatueBlock::FACING_NORTH: rot = 180; break;
-	case CopperGolemStatueBlock::FACING_EAST: rot = -90; break;
-	case CopperGolemStatueBlock::FACING_WEST: rot = 90; break;
-	default: rot = 0; break;
-	}
-	glRotatef(static_cast<float>(rot), 0, 1, 0);
-	glTranslatef(-0.5f, -0.5f, -0.5f);
-
-	// Pose is bits 3-4 of the data. The model applies the pose in
-	// setupAnim; reset to -1 afterwards so the model never keeps a stale
-	// pose if it is ever rendered without one.
 	statueModel->setStatuePose(CopperGolemStatueBlock::getPose(data));
 	statueModel->render(shared_ptr<Entity>(), 0, 0, 0, 0, 0, 1 / 16.0f, useCompiled);
 	statueModel->setStatuePose(-1);
