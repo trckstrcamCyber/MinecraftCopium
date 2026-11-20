@@ -448,6 +448,34 @@ enum eSOUND_TYPE
 	// neoLegacy - Copper Age (Phase 3): copper grate break/step sounds.
 	eSoundType_COPPER_GRATE_BREAK,
 	eSoundType_COPPER_GRATE_STEP,
+	// neoLegacy - Copper Age (Phase 5). Copper golem + statue sounds.
+	// UNAFFECTED and EXPOSED share the regular set; WEATHERED and OXIDIZED
+	// have their own sets (Java CopperGolemOxidationLevels). The table names
+	// are stems, not variant files: SoundEngine::play tries the exact path
+	// first (death.ogg, spawn.ogg, ...) then scans numbered variants
+	// (hurt1-4, spin1-7, step1-9, become_statue1-4, break1-3, hit1-4,
+	// place1-4) and picks one at random.
+	eSoundType_MOB_COPPER_GOLEM_SPIN,
+	eSoundType_MOB_COPPER_GOLEM_HURT,
+	eSoundType_MOB_COPPER_GOLEM_DEATH,
+	eSoundType_MOB_COPPER_GOLEM_STEP,
+	eSoundType_MOB_COPPER_GOLEM_WEATHERED_SPIN,
+	eSoundType_MOB_COPPER_GOLEM_WEATHERED_HURT,
+	eSoundType_MOB_COPPER_GOLEM_WEATHERED_DEATH,
+	eSoundType_MOB_COPPER_GOLEM_WEATHERED_STEP,
+	eSoundType_MOB_COPPER_GOLEM_OXIDIZED_SPIN,
+	eSoundType_MOB_COPPER_GOLEM_OXIDIZED_HURT,
+	eSoundType_MOB_COPPER_GOLEM_OXIDIZED_DEATH,
+	eSoundType_MOB_COPPER_GOLEM_OXIDIZED_STEP,
+	eSoundType_MOB_COPPER_GOLEM_SPAWN,
+	eSoundType_MOB_COPPER_GOLEM_ITEM_DROP,
+	eSoundType_MOB_COPPER_GOLEM_ITEM_NO_DROP,
+	eSoundType_MOB_COPPER_GOLEM_NO_ITEM_GET,
+	eSoundType_MOB_COPPER_GOLEM_NO_ITEM_NO_GET,
+	eSoundType_COPPER_STATUE_BECOME_STATUE,
+	eSoundType_COPPER_STATUE_BREAK,
+	eSoundType_COPPER_STATUE_HIT,
+	eSoundType_COPPER_STATUE_PLACE,
 
 	eSoundType_MAX
 };
@@ -484,6 +512,9 @@ enum eMATERIALSOUND_TYPE
 	// neoLegacy - Copper Age (Phase 3): the copper grate has its own
 	// break/step sounds (block/copper_grate/break1.ogg, step1.ogg).
 	eMaterialSoundType_COPPER_GRATE,
+	// neoLegacy - Copper Age (Phase 5): the copper golem statue has its own
+	// break/step/place sounds (block/copper_statue/*.ogg).
+	eMaterialSoundType_COPPER_STATUE,
 };
 
 /*

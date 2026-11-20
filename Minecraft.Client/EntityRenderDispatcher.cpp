@@ -77,6 +77,7 @@
 #include "ItemFrameRenderer.h"
 #include "OcelotRenderer.h"
 #include "VillagerGolemRenderer.h"
+#include "CopperGolemRenderer.h"	// neoLegacy - Copper Age (Phase 5)
 #include "OcelotModel.h"
 #include "ZombieRenderer.h"
 #include "BatRenderer.h"
@@ -148,6 +149,7 @@ EntityRenderDispatcher::EntityRenderDispatcher()
 	renderers[eTYPE_SQUID] = new SquidRenderer(new SquidModel(), 0.7f);
 	renderers[eTYPE_VILLAGER] = new VillagerRenderer();
 	renderers[eTYPE_VILLAGERGOLEM] = new VillagerGolemRenderer();
+	renderers[eTYPE_COPPER_GOLEM] = new CopperGolemRenderer();	// neoLegacy - Copper Age (Phase 5)
 	renderers[eTYPE_BAT] = new BatRenderer();
 	renderers[eTYPE_GUARDIAN] = new GuardianRenderer(new GuardianModel(), 0.5f);
 	renderers[eTYPE_ELDER_GUARDIAN] = new GuardianRenderer(new GuardianModel(), 0.5f);

@@ -21,6 +21,9 @@
 #include "Ocelot.h"
 #include "VillagerGolem.h"
 
+// neoLegacy - Copper Age (Phase 5)
+#include "CopperGolem.h"
+
 // 1.6.4
 #include "EntityHorse.h"
 

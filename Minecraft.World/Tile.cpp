@@ -39,6 +39,7 @@
 #include "CopperSlabTile.h"	// neoLegacy - Copper Age (Phase 3)
 #include "CopperStairTile.h"	// neoLegacy - Copper Age (Phase 3)
 #include "CopperTile.h"	// neoLegacy - Copper Age (Phase 3)
+#include "CopperGolemStatueBlock.h"	// neoLegacy - Copper Age (Phase 5)
 #include "ShelfTile.h"	// neoLegacy - Copper Age (Phase 3)
 #include "CalciteWallTile.h"
 #include "ComplexTableTile.h"	// neoLegacy - Complex Table
@@ -61,6 +62,7 @@ Tile::SoundType *Tile::SOUND_SLIME = nullptr;
 Tile::SoundType *Tile::SOUND_METAL = nullptr;
 // neoLegacy - Copper Age (Phase 3): the copper grate's own break/step sounds.
 Tile::SoundType *Tile::SOUND_COPPER_GRATE = nullptr;
+Tile::SoundType *Tile::SOUND_COPPER_STATUE = nullptr;	// neoLegacy - Copper Age (Phase 5)
 Tile::SoundType *Tile::SOUND_GLASS = nullptr;
 Tile::SoundType *Tile::SOUND_CLOTH = nullptr;
 Tile::SoundType *Tile::SOUND_SAND = nullptr;
@@ -470,6 +472,10 @@ void Tile::staticCtor()
 	Tile::SOUND_METAL = new Tile::SoundType(eMaterialSoundType_STONE, 1, 1.5f);
 	// neoLegacy - Copper Age (Phase 3): the copper grate's own break/step sounds.
 	Tile::SOUND_COPPER_GRATE = new Tile::SoundType(eMaterialSoundType_COPPER_GRATE, 1, 1);
+	// neoLegacy - Copper Age (Phase 5): the copper golem statue's own break/step/place sounds.
+	// Break + step come from the eMaterialSoundType_COPPER_STATUE switch cases below;
+	// place is passed explicitly because the material switch has no place slot.
+	Tile::SOUND_COPPER_STATUE = new Tile::SoundType(eMaterialSoundType_COPPER_STATUE, 1, 1, -1, eSoundType_COPPER_STATUE_PLACE);
 	Tile::SOUND_GLASS = new Tile::SoundType(eMaterialSoundType_STONE, 1, 1, eSoundType_RANDOM_GLASS,eSoundType_STEP_STONE);
 	Tile::SOUND_CLOTH = new Tile::SoundType(eMaterialSoundType_CLOTH, 1, 1);
 	Tile::SOUND_SAND = new Tile::SoundType(eMaterialSoundType_SAND, 1, 1);
@@ -577,7 +583,7 @@ void Tile::staticCtor()
 	Tile::lightningRod = (new CopperTile(Tile::lightning_rod_Id, L"lightning_rod"))							->setBaseItemTypeAndMaterial(Item::eBaseItemType_rod,	Item::eMaterial_copper)->setDestroyTime(3.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setIconName(L"lightning_rod")->setDescriptionId(IDS_TILE_LIGHTNING_ROD)->setUseDescriptionId(IDS_DESC_LIGHTNING_ROD);
 	// Golem statue: tile only in Phase 3 (oxidation end-state). Entity
 	// rendering + behaviour is Phase 5; for now it renders as a plain cube.
-	Tile::copperGolemStatue = (new MetalTile(Tile::copper_golem_statue_Id))								->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_golem_statue")->setDescriptionId(IDS_TILE_COPPER_GOLEM_STATUE)->setUseDescriptionId(IDS_DESC_COPPER_GOLEM_STATUE);
+	Tile::copperGolemStatue = (new CopperGolemStatueBlock(Tile::copper_golem_statue_Id))								->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_COPPER_STATUE)->setIconName(L"copper_golem_statue")->setDescriptionId(IDS_TILE_COPPER_GOLEM_STATUE)->setUseDescriptionId(IDS_DESC_COPPER_GOLEM_STATUE);
 	Tile::shelf = (new ShelfTile(Tile::shelf_Id))															->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_wood)->setDestroyTime(2.0f)->setExplodeable(5)->setSoundType(Tile::SOUND_WOOD)->setIconName(L"oak_shelf")->setDescriptionId(IDS_TILE_SHELF)->setUseDescriptionId(IDS_DESC_SHELF);
 	Tile::cutCopperSlabHalf = static_cast<HalfSlabTile *>((new HalfCopperSlabTile(Tile::cut_copper_slab_Id, Tile::cut_copper_slab_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_halfslab, Item::eMaterial_copper)->setDestroyTime(3.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"cut_copper")->setDescriptionId(IDS_TILE_CUT_COPPER_SLAB)->setUseDescriptionId(IDS_DESC_HALFSLAB));
 	Tile::cutCopperSlab = static_cast<HalfSlabTile *>((new FullCopperSlabTile(Tile::cut_copper_slab_full_Id, Tile::cut_copper_slab_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_slab, Item::eMaterial_copper)->setDestroyTime(3.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"cut_copper")->setDescriptionId(IDS_TILE_CUT_COPPER_SLAB)->setUseDescriptionId(IDS_DESC_SLAB));
@@ -2133,6 +2139,10 @@ Tile::SoundType::SoundType(eMATERIALSOUND_TYPE eMaterialSound, float volume, flo
 		case eMaterialSoundType_COPPER_GRATE:
 			this->iBreakSound=eSoundType_COPPER_GRATE_BREAK;
 			break;
+		// neoLegacy - Copper Age (Phase 5): the statue's break sound.
+		case eMaterialSoundType_COPPER_STATUE:
+			this->iBreakSound=eSoundType_COPPER_STATUE_BREAK;
+			break;
 		case eMaterialSoundType_GLASS:
 			this->iBreakSound=eSoundType_RANDOM_GLASS;
 			break;
@@ -2188,6 +2198,11 @@ Tile::SoundType::SoundType(eMATERIALSOUND_TYPE eMaterialSound, float volume, flo
 	// neoLegacy - Copper Age (Phase 3): the copper grate's own step sound.
 	case eMaterialSoundType_COPPER_GRATE:
 		this->iStepSound=eSoundType_COPPER_GRATE_STEP;
+		break;
+	// neoLegacy - Copper Age (Phase 5): the statue's hit sound. The engine's
+	// step slot is the block's impact sound, so mining hits play HIT here.
+	case eMaterialSoundType_COPPER_STATUE:
+		this->iStepSound=eSoundType_COPPER_STATUE_HIT;
 		break;
 	case eMaterialSoundType_CLOTH:
 		this->iStepSound=eSoundType_STEP_CLOTH;

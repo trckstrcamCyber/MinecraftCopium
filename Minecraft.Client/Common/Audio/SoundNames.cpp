@@ -443,6 +443,29 @@ const WCHAR *ConsoleSoundEngine::wchSoundNames[eSoundType_MAX]=
 	// neoLegacy - Copper Age (Phase 3): copper grate break/step sounds.
 	L"block.copper_grate.break1",	//eSoundType_COPPER_GRATE_BREAK,
 	L"block.copper_grate.step1",	//eSoundType_COPPER_GRATE_STEP,
+	// neoLegacy - Copper Age (Phase 5). Copper golem + statue sounds.
+	// Must stay in the same order as the eSoundType enum.
+	L"entity.copper_golem.regular.spin",			//eSoundType_MOB_COPPER_GOLEM_SPIN,
+	L"entity.copper_golem.regular.hurt",			//eSoundType_MOB_COPPER_GOLEM_HURT,
+	L"entity.copper_golem.regular.death",			//eSoundType_MOB_COPPER_GOLEM_DEATH,
+	L"entity.copper_golem.regular.step",			//eSoundType_MOB_COPPER_GOLEM_STEP,
+	L"entity.copper_golem.weathered.spin",		//eSoundType_MOB_COPPER_GOLEM_WEATHERED_SPIN,
+	L"entity.copper_golem.weathered.hurt",		//eSoundType_MOB_COPPER_GOLEM_WEATHERED_HURT,
+	L"entity.copper_golem.weathered.death",		//eSoundType_MOB_COPPER_GOLEM_WEATHERED_DEATH,
+	L"entity.copper_golem.weathered.step",		//eSoundType_MOB_COPPER_GOLEM_WEATHERED_STEP,
+	L"entity.copper_golem.oxidized.spin",		//eSoundType_MOB_COPPER_GOLEM_OXIDIZED_SPIN,
+	L"entity.copper_golem.oxidized.hurt",		//eSoundType_MOB_COPPER_GOLEM_OXIDIZED_HURT,
+	L"entity.copper_golem.oxidized.death",		//eSoundType_MOB_COPPER_GOLEM_OXIDIZED_DEATH,
+	L"entity.copper_golem.oxidized.step",		//eSoundType_MOB_COPPER_GOLEM_OXIDIZED_STEP,
+	L"entity.copper_golem.spawn",				//eSoundType_MOB_COPPER_GOLEM_SPAWN,
+	L"entity.copper_golem.item_drop",			//eSoundType_MOB_COPPER_GOLEM_ITEM_DROP,
+	L"entity.copper_golem.item_no_drop",		//eSoundType_MOB_COPPER_GOLEM_ITEM_NO_DROP,
+	L"entity.copper_golem.no_item_get",			//eSoundType_MOB_COPPER_GOLEM_NO_ITEM_GET,
+	L"entity.copper_golem.no_item_no_get",		//eSoundType_MOB_COPPER_GOLEM_NO_ITEM_NO_GET,
+	L"block.copper_statue.become_statue",		//eSoundType_COPPER_STATUE_BECOME_STATUE,
+	L"block.copper_statue.break",				//eSoundType_COPPER_STATUE_BREAK,
+	L"block.copper_statue.hit",				//eSoundType_COPPER_STATUE_HIT,
+	L"block.copper_statue.place",				//eSoundType_COPPER_STATUE_PLACE,
 };
 
 

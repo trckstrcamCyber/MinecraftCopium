@@ -179,6 +179,7 @@ public:
 	static SoundType *SOUND_METAL;
 	// neoLegacy - Copper Age (Phase 3): the copper grate's own break/step sounds.
 	static SoundType *SOUND_COPPER_GRATE;
+	static SoundType *SOUND_COPPER_STATUE;	// neoLegacy - Copper Age (Phase 5)
 	static SoundType *SOUND_GLASS;
 	static SoundType *SOUND_CLOTH;
 	static SoundType *SOUND_SAND;

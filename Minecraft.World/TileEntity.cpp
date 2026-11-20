@@ -43,6 +43,7 @@ void TileEntity::staticCtor()
 	TileEntity::setId(DrillTileEntity::create, eTYPE_DRILLTILEENTITY, L"Drill");
 	TileEntity::setId(ProcessorTileEntity::create, eTYPE_PROCESSORTILEENTITY, L"CrusherRefiner");
 	TileEntity::setId(BedTileEntity::create, eTYPE_BEDTILEENTITY, L"Bed");	// neoLegacy - Fancy Beds
+	TileEntity::setId(CopperGolemStatueBlockEntity::create, eTYPE_COPPERGOLEMSTATUETILEENTITY, L"CopperGolemStatue");	// neoLegacy - Copper Age (Phase 5)
 }
 
 void TileEntity::setId(tileEntityCreateFn createFn, eINSTANCEOF clas, wstring id)

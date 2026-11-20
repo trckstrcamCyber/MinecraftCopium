@@ -154,6 +154,7 @@ enum eINSTANCEOF
 
 						eTYPE_SNOWMAN		= eTYPE_GOLEM | eTYPE_ANIMALS_SPAWN_LIMIT_CHECK | 0x1, //0x4,
 						eTYPE_VILLAGERGOLEM	= eTYPE_GOLEM  									| 0x2, //0x1000,
+						eTYPE_COPPER_GOLEM	= eTYPE_GOLEM  									| 0x1e, // neoLegacy - Copper Age (Phase 5)
 
 
 					// 4J Stu - If you add new hostile mobs here you should also update the string lookup function at CConsoleMinecraftApp::getEntityName
@@ -347,6 +348,7 @@ enum eINSTANCEOF
 		eTYPE_PROCESSORTILEENTITY			= eTYPE_TILEENTITY | 0x16,
 		eTYPE_BEDTILEENTITY					= eTYPE_TILEENTITY | 0x17,
 		eTYPE_FLOWERPOTTILEENTITY			= eTYPE_TILEENTITY | 0x18,
+		eTYPE_COPPERGOLEMSTATUETILEENTITY	= eTYPE_TILEENTITY | 0x19, // neoLegacy - Copper Age (Phase 5)
 		
 		eTYPE_DISPENSERTILEENTITY			= eTYPE_TILEENTITY | BIT_DISPENSERTILEENTITY,
 			eTYPE_DROPPERTILEENTITY			= eTYPE_DISPENSERTILEENTITY | 0x1,
@@ -461,6 +463,7 @@ public:
 		classes->push_back( SUBCLASS(eTYPE_GOLEM			)->addParent( eTYPE_PATHFINDER_MOB ) );
 		classes->push_back( SUBCLASS(eTYPE_SNOWMAN		)->addParent( eTYPE_GOLEM)->addParent(eTYPE_ANIMALS_SPAWN_LIMIT_CHECK ) );
 		classes->push_back( SUBCLASS(eTYPE_VILLAGERGOLEM	)->addParent( eTYPE_GOLEM  ) );
+		classes->push_back( SUBCLASS(eTYPE_COPPER_GOLEM	)->addParent( eTYPE_GOLEM  ) ); // neoLegacy - Copper Age (Phase 5)
 		classes->push_back( SUBCLASS(eTYPE_MONSTER     )->addParent(	eTYPE_ENEMY)->addParent(eTYPE_PATHFINDER_MOB ) );
 		classes->push_back( SUBCLASS(eTYPE_SPIDER			)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG  ) );
 		classes->push_back( SUBCLASS(eTYPE_CAVESPIDER	)->addParent( eTYPE_SPIDER  ) );
@@ -600,6 +603,7 @@ public:
 		classes->push_back( SUBCLASS(eTYPE_PROCESSORTILEENTITY				)->addParent( eTYPE_TILEENTITY			) );
 		classes->push_back( SUBCLASS(eTYPE_BEDTILEENTITY					)->addParent( eTYPE_TILEENTITY			) );
 		classes->push_back( SUBCLASS(eTYPE_FLOWERPOTTILEENTITY			)->addParent( eTYPE_TILEENTITY			) );
+		classes->push_back( SUBCLASS(eTYPE_COPPERGOLEMSTATUETILEENTITY	)->addParent( eTYPE_TILEENTITY			) ); // neoLegacy - Copper Age (Phase 5)
 		classes->push_back( SUBCLASS(eTYPE_DISPENSERTILEENTITY			)->addParent( eTYPE_TILEENTITY			) );
 		classes->push_back( SUBCLASS(eTYPE_DROPPERTILEENTITY			)->addParent( eTYPE_DISPENSERTILEENTITY ) );
 		
