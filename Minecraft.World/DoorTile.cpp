@@ -2,6 +2,7 @@
 #include "net.minecraft.world.level.h"
 #include "net.minecraft.world.phys.h"
 #include "DoorTile.h"
+#include "IconRegister.h"
 #include "LevelEvent.h"
 #include "net.minecraft.world.item.h"
 #include "net.minecraft.world.entity.player.h"

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "CopperBulbTile.h"
+#include "IconRegister.h"
 #include "net.minecraft.world.level.h"
 #include "SoundTypes.h"
 

@@ -26,6 +26,7 @@ public:
 
 	virtual Icon *getTexture(int face, int data) override;
 	virtual Icon *getTexture(LevelSource *level, int x, int y, int z, int face) override;
+	virtual Icon *getEdgeTexture() override;
 	virtual void registerIcons(IconRegister *iconRegister) override;
 
 protected:

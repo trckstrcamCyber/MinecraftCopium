@@ -4,6 +4,7 @@
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.h"
 #include "TrapDoorTile.h"
+#include "IconRegister.h"
 
 
 TrapDoorTile::TrapDoorTile(int id, Material *material) : Tile(id, material,isSolidRender())

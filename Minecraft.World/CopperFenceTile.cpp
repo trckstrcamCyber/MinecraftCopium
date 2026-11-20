@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "CopperFenceTile.h"
+#include "IconRegister.h"
 #include "net.minecraft.world.level.h"
 
 CopperFenceTile::CopperFenceTile(int id, const wstring &baseIconName)
@@ -27,9 +28,14 @@ void CopperFenceTile::registerIcons(IconRegister *iconRegister)
 		wstring name = wstring(prefixes[i]) + baseIconName;
 		stateIcons[i] = iconRegister->registerIcon(name);
 	}
-	// Base fields (used by the edge renderer, which has no data parameter).
+	// Base field (used by anything that reads the icon directly). The edge
+	// texture comes from the getEdgeTexture() override below.
 	icon = stateIcons[0];
-	iconSide = stateIcons[0];
+}
+
+Icon *CopperFenceTile::getEdgeTexture()
+{
+	return stateIcons[0];
 }
 
 int CopperFenceTile::getSpawnResourcesAuxValue(int data)

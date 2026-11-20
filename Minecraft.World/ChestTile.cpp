@@ -9,6 +9,7 @@
 #include "net.minecraft.world.level.tile.entity.h"
 #include "net.minecraft.world.phys.h"
 #include "ChestTile.h"
+#include "IconRegister.h"
 #include "Facing.h"
 
 ChestTile::ChestTile(int id, int type) : BaseEntityTile(id, Material::wood, isSolidRender() )

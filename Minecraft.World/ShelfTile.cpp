@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "ShelfTile.h"
+#include "IconRegister.h"
 #include "net.minecraft.world.level.h"
 
 ShelfTile::ShelfTile(int id) : Tile(id, Material::wood)

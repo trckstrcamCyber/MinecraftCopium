@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "CopperTile.h"
+#include "IconRegister.h"
 #include "net.minecraft.world.level.h"
 
 CopperTile::CopperTile(int id, const wstring &baseIconName) : MetalTile(id)

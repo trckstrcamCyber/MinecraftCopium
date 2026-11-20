@@ -4,6 +4,7 @@
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.world.h"
 #include "CopperSlabTile.h"
+#include "IconRegister.h"
 
 CopperSlabTile::CopperSlabTile(int id, int resourceTileId)
 	: HalfSlabTile(id, Material::metal)
