@@ -9,6 +9,9 @@ set(_MINECRAFT_SERVER_COMMON_ROOT
   # neoLegacy - client sources the server targets need because EntityRenderDispatcher.cpp / UILayer.cpp reference them
   "${_MS_SRC}/../Minecraft.Client/CamelModel.cpp"
   "${_MS_SRC}/../Minecraft.Client/CamelRenderer.cpp"
+  "${_MS_SRC}/../Minecraft.Client/CopperGolemModel.cpp"
+  "${_MS_SRC}/../Minecraft.Client/CopperGolemRenderer.cpp"
+  "${_MS_SRC}/../Minecraft.Client/CopperGolemStatueRenderer.cpp"
   "${_MS_SRC}/../Minecraft.Client/DrownedRenderer.cpp"
   "${_MS_SRC}/../Minecraft.Client/JellySlimeRenderer.cpp"
   "${_MS_SRC}/../Minecraft.Client/MaceEffectParticle.cpp"
