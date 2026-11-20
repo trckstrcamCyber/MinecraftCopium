@@ -10899,6 +10899,61 @@
 	<data name="IDS_ITEM_HONEYCOMB">
 		<value>Honeycomb</value>
 	</data>
+	<!-- neoLegacy - Copper Age (Phase 6): rose-gold food names. -->
+	<data name="IDS_ITEM_ROSE_GILDED_BEETROOT">
+		<value>Rose Gilded Beetroot</value>
+	</data>
+	<data name="IDS_ITEM_ROSE_GILDED_MUSHROOM">
+		<value>Rose Gilded Mushroom</value>
+	</data>
+	<data name="IDS_ITEM_ROSE_GILDED_COOKIE">
+		<value>Rose Gilded Cookie</value>
+	</data>
+	<data name="IDS_ITEM_ROSE_FULL_JELLY">
+		<value>Rose Gold Jelly</value>
+	</data>
+	<data name="IDS_ITEM_ROSE_HALF_JELLY">
+		<value>Half Eaten Jelly</value>
+	</data>
+	<data name="IDS_ITEM_ROSE_MUSHROOM_OMELETTE">
+		<value>Mushroom Fried Eggs</value>
+	</data>
+	<data name="IDS_ITEM_ROSE_MUSHROOM_PARTIAL">
+		<value>Partially Eaten Eggs</value>
+	</data>
+	<data name="IDS_ITEM_ROSE_MUSHROOM_CRUMBS">
+		<value>Leftover Mushroom Eggs</value>
+	</data>
+	<data name="IDS_ITEM_ROSEY_BEETROOT_STEW">
+		<value>Rosey Veggie Stew</value>
+	</data>
+	<data name="IDS_DESC_ROSE_GILDED_BEETROOT">
+		<value>Gilded beetroot. Grants Strength.</value>
+	</data>
+	<data name="IDS_DESC_ROSE_GILDED_MUSHROOM">
+		<value>A gilded mushroom. Eaten quickly.</value>
+	</data>
+	<data name="IDS_DESC_ROSE_GILDED_COOKIE">
+		<value>A gilded cookie. Grants Speed.</value>
+	</data>
+	<data name="IDS_DESC_ROSE_FULL_JELLY">
+		<value>Rose gold jelly. Grants Speed.</value>
+	</data>
+	<data name="IDS_DESC_ROSE_HALF_JELLY">
+		<value>Half-eaten rose gold jelly.</value>
+	</data>
+	<data name="IDS_DESC_ROSE_MUSHROOM_OMELETTE">
+		<value>Mushroom fried eggs. Grants Haste.</value>
+	</data>
+	<data name="IDS_DESC_ROSE_MUSHROOM_PARTIAL">
+		<value>Partially eaten eggs.</value>
+	</data>
+	<data name="IDS_DESC_ROSE_MUSHROOM_CRUMBS">
+		<value>Leftover mushroom eggs.</value>
+	</data>
+	<data name="IDS_DESC_ROSEY_BEETROOT_STEW">
+		<value>Rosey veggie stew. Grants Strength, Haste and Regeneration.</value>
+	</data>
 	<data name="IDS_DESC_BLOCK_COPPER">
 		<value>A decorative block made from copper. It oxidizes over time, changing color.</value>
 	</data>

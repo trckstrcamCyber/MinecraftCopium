@@ -476,6 +476,19 @@ enum eSOUND_TYPE
 	eSoundType_COPPER_STATUE_BREAK,
 	eSoundType_COPPER_STATUE_HIT,
 	eSoundType_COPPER_STATUE_PLACE,
+	// neoLegacy - Copper Age (Phase 6). Copper chest open/close per
+	// oxidation state (UNAFFECTED/EXPOSED share the regular set, as with
+	// the golem sounds) + shelf interaction sounds (jar1201 sounds.json).
+	eSoundType_COPPER_CHEST_WEATHERED_OPEN,
+	eSoundType_COPPER_CHEST_WEATHERED_CLOSE,
+	eSoundType_COPPER_CHEST_OXIDIZED_OPEN,
+	eSoundType_COPPER_CHEST_OXIDIZED_CLOSE,
+	eSoundType_SHELF_ACTIVATE,
+	eSoundType_SHELF_DEACTIVATE,
+	eSoundType_SHELF_PLACE_ITEM,
+	eSoundType_SHELF_TAKE_ITEM,
+	eSoundType_SHELF_SINGLE_SWAP,
+	eSoundType_SHELF_MULTI_SWAP,
 
 	eSoundType_MAX
 };

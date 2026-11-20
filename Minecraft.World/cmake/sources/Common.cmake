@@ -1190,6 +1190,9 @@ set(_MINECRAFT_WORLD_COMMON_NET_MINECRAFT_WORLD_ITEM
   "${CMAKE_CURRENT_SOURCE_DIR}/FoodItem.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/GoldenAppleItem.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/GoldenAppleItem.h"
+  # neoLegacy - Copper Age (Phase 6): rose-gold food items
+  "${CMAKE_CURRENT_SOURCE_DIR}/RoseGoldFoodItem.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RoseGoldFoodItem.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/HangingEntityItem.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/HangingEntityItem.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/HatchetItem.cpp"
@@ -2308,6 +2311,9 @@ set(_MINECRAFT_WORLD_COMMON_NET_MINECRAFT_WORLD_LEVEL_TILE_ENTITY
   "${CMAKE_CURRENT_SOURCE_DIR}/BrewingStandTileEntity.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/ChestTileEntity.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ChestTileEntity.h"
+  # neoLegacy - Copper Age (Phase 6): shelf tile entity
+  "${CMAKE_CURRENT_SOURCE_DIR}/ShelfTileEntity.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ShelfTileEntity.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/CommandBlockEntity.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/CommandBlockEntity.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/ComparatorTileEntity.cpp"

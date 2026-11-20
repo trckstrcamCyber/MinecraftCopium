@@ -66,6 +66,9 @@ public:
 
 private:
 	virtual void heyImYourNeighbor(shared_ptr<ChestTileEntity> neighbor, int from);
+	// neoLegacy - Copper Age (Phase 6). Per-oxidation open/close sound
+	// for a copper chest (see ChestTileEntity.cpp).
+	int copperChestSound(bool opening);
 
 public:
 	virtual void checkNeighbors();

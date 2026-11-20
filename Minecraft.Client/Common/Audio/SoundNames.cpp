@@ -466,6 +466,19 @@ const WCHAR *ConsoleSoundEngine::wchSoundNames[eSoundType_MAX]=
 	L"block.copper_statue.break",				//eSoundType_COPPER_STATUE_BREAK,
 	L"block.copper_statue.hit",				//eSoundType_COPPER_STATUE_HIT,
 	L"block.copper_statue.place",				//eSoundType_COPPER_STATUE_PLACE,
+	// neoLegacy - Copper Age (Phase 6). Must stay in the same order as
+	// the eSoundType enum. TAKE_ITEM reuses the place_item files: jar1201
+	// maps block.shelf.take_item to place_item1-4.
+	L"block.copper_chest.copper_chest_weathered_open1",	//eSoundType_COPPER_CHEST_WEATHERED_OPEN,
+	L"block.copper_chest.copper_chest_weathered_close1",	//eSoundType_COPPER_CHEST_WEATHERED_CLOSE,
+	L"block.copper_chest.copper_chest_oxidized_open1",	//eSoundType_COPPER_CHEST_OXIDIZED_OPEN,
+	L"block.copper_chest.copper_chest_oxidized_close1",	//eSoundType_COPPER_CHEST_OXIDIZED_CLOSE,
+	L"block.shelf.activate",			//eSoundType_SHELF_ACTIVATE,
+	L"block.shelf.deactivate",			//eSoundType_SHELF_DEACTIVATE,
+	L"block.shelf.place_item",			//eSoundType_SHELF_PLACE_ITEM,
+	L"block.shelf.place_item",			//eSoundType_SHELF_TAKE_ITEM,
+	L"block.shelf.single_swap",			//eSoundType_SHELF_SINGLE_SWAP,
+	L"block.shelf.multi_swap",			//eSoundType_SHELF_MULTI_SWAP,
 };
 
 

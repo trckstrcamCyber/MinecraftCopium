@@ -349,6 +349,7 @@ enum eINSTANCEOF
 		eTYPE_BEDTILEENTITY					= eTYPE_TILEENTITY | 0x17,
 		eTYPE_FLOWERPOTTILEENTITY			= eTYPE_TILEENTITY | 0x18,
 		eTYPE_COPPERGOLEMSTATUETILEENTITY	= eTYPE_TILEENTITY | 0x19, // neoLegacy - Copper Age (Phase 5)
+		eTYPE_SHELFTILEENTITY				= eTYPE_TILEENTITY | 0x1a, // neoLegacy - Copper Age (Phase 6)
 		
 		eTYPE_DISPENSERTILEENTITY			= eTYPE_TILEENTITY | BIT_DISPENSERTILEENTITY,
 			eTYPE_DROPPERTILEENTITY			= eTYPE_DISPENSERTILEENTITY | 0x1,
@@ -604,6 +605,7 @@ public:
 		classes->push_back( SUBCLASS(eTYPE_BEDTILEENTITY					)->addParent( eTYPE_TILEENTITY			) );
 		classes->push_back( SUBCLASS(eTYPE_FLOWERPOTTILEENTITY			)->addParent( eTYPE_TILEENTITY			) );
 		classes->push_back( SUBCLASS(eTYPE_COPPERGOLEMSTATUETILEENTITY	)->addParent( eTYPE_TILEENTITY			) ); // neoLegacy - Copper Age (Phase 5)
+		classes->push_back( SUBCLASS(eTYPE_SHELFTILEENTITY				)->addParent( eTYPE_TILEENTITY			) ); // neoLegacy - Copper Age (Phase 6)
 		classes->push_back( SUBCLASS(eTYPE_DISPENSERTILEENTITY			)->addParent( eTYPE_TILEENTITY			) );
 		classes->push_back( SUBCLASS(eTYPE_DROPPERTILEENTITY			)->addParent( eTYPE_DISPENSERTILEENTITY ) );
 		

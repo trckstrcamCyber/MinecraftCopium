@@ -2150,7 +2150,16 @@ bool Recipes::isComplexOnly(Recipy *r)
 		|| result->id == Item::rose_gold_leggings_Id
 		|| result->id == Item::rose_gold_boots_Id
 		|| result->id == Item::copper_door_Id
-		|| result->id == Item::rose_gold_door_Id)
+		|| result->id == Item::rose_gold_door_Id
+		|| result->id == Item::rose_gilded_beetroot_Id	// neoLegacy - Copper Age (Phase 6)
+		|| result->id == Item::rose_gilded_mushroom_Id
+		|| result->id == Item::rose_gilded_cookie_Id
+		|| result->id == Item::rose_full_jelly_Id
+		|| result->id == Item::rose_half_jelly_Id
+		|| result->id == Item::rose_mushroom_omelette_Id
+		|| result->id == Item::rose_mushroom_partial_Id
+		|| result->id == Item::rose_mushroom_crumbs_Id
+		|| result->id == Item::rosey_beetroot_stew_Id)
 	{
 		return true;
 	}

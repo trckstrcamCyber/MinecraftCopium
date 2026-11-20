@@ -354,6 +354,15 @@ public:
 	static Item *copper_door;	// neoLegacy - Copper Age (Phase 3)
 	static Item *rose_gold_door;	// neoLegacy - Copper Age (Phase 3)
 	static Item *honeycomb;	// neoLegacy - Copper Age (Phase 4)
+	static Item *rose_gilded_beetroot;	// neoLegacy - Copper Age (Phase 6)
+	static Item *rose_gilded_mushroom;	// neoLegacy - Copper Age (Phase 6)
+	static Item *rose_gilded_cookie;	// neoLegacy - Copper Age (Phase 6)
+	static Item *rose_full_jelly;	// neoLegacy - Copper Age (Phase 6)
+	static Item *rose_half_jelly;	// neoLegacy - Copper Age (Phase 6)
+	static Item *rose_mushroom_omelette;	// neoLegacy - Copper Age (Phase 6)
+	static Item *rose_mushroom_partial;	// neoLegacy - Copper Age (Phase 6)
+	static Item *rose_mushroom_crumbs;	// neoLegacy - Copper Age (Phase 6)
+	static Item *rosey_beetroot_stew;	// neoLegacy - Copper Age (Phase 6)
 
 	static Item *bucket;
 	static Item *water_bucket;
@@ -583,6 +592,15 @@ public:
 	static const int copper_door_Id		= 497;	// neoLegacy - Copper Age (Phase 3)
 	static const int rose_gold_door_Id		= 498;	// neoLegacy - Copper Age (Phase 3)
 	static const int honeycomb_Id			= 499;	// neoLegacy - Copper Age (Phase 4)
+	static const int rose_gilded_beetroot_Id	= 500;	// neoLegacy - Copper Age (Phase 6)
+	static const int rose_gilded_mushroom_Id	= 501;	// neoLegacy - Copper Age (Phase 6)
+	static const int rose_gilded_cookie_Id	= 502;	// neoLegacy - Copper Age (Phase 6)
+	static const int rose_full_jelly_Id		= 503;	// neoLegacy - Copper Age (Phase 6)
+	static const int rose_half_jelly_Id		= 504;	// neoLegacy - Copper Age (Phase 6)
+	static const int rose_mushroom_omelette_Id	= 505;	// neoLegacy - Copper Age (Phase 6)
+	static const int rose_mushroom_partial_Id	= 506;	// neoLegacy - Copper Age (Phase 6)
+	static const int rose_mushroom_crumbs_Id	= 507;	// neoLegacy - Copper Age (Phase 6)
+	static const int rosey_beetroot_stew_Id	= 508;	// neoLegacy - Copper Age (Phase 6)
 	static const int mace_Id					= 601;	// neoLegacy - Mace
 	static const int jelly_ball_Id			= 602;	// neoLegacy - Jelly Ball
 	static const int ice_ball_Id			= 603;	// neoLegacy - Ice Ball

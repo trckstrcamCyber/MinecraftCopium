@@ -116,6 +116,7 @@ WeighedTreasure *ScatteredFeaturePieces::DesertPyramidPiece::treasureItems[Scatt
 	new WeighedTreasure(Item::iron_horse_armor_Id, 0, 1, 1, 1),
 	new WeighedTreasure(Item::golden_horse_armor_Id, 0, 1, 1, 1),
 	new WeighedTreasure(Item::diamond_horse_armor_Id, 0, 1, 1, 1),
+	new WeighedTreasure(Item::copper_horse_armor_Id, 0, 1, 1, 1),	// neoLegacy - Copper Age (Phase 6)
 	// ...
 };
 
@@ -381,6 +382,7 @@ WeighedTreasure *ScatteredFeaturePieces::JunglePyramidPiece::treasureItems[Scatt
 	new WeighedTreasure(Item::iron_horse_armor_Id, 0, 1, 1, 1),
 	new WeighedTreasure(Item::golden_horse_armor_Id, 0, 1, 1, 1),
 	new WeighedTreasure(Item::diamond_horse_armor_Id, 0, 1, 1, 1),
+	new WeighedTreasure(Item::copper_horse_armor_Id, 0, 1, 1, 1),	// neoLegacy - Copper Age (Phase 6)
 	// ...
 };
 

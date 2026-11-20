@@ -25,6 +25,7 @@ WeighedTreasure *MonsterRoomFeature::monsterRoomTreasure[MonsterRoomFeature::TRE
 		new WeighedTreasure(Item::golden_horse_armor_Id, 0, 1, 1, 2),
 		new WeighedTreasure(Item::iron_horse_armor_Id, 0, 1, 1, 5),
 		new WeighedTreasure(Item::diamond_horse_armor_Id, 0, 1, 1, 1),
+		new WeighedTreasure(Item::copper_horse_armor_Id, 0, 1, 1, 2),	// neoLegacy - Copper Age (Phase 6)
 };
 
 bool MonsterRoomFeature::place(Level *level, Random *random, int x, int y, int z)

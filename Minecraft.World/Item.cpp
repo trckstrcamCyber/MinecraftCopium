@@ -25,6 +25,7 @@
 #include "Mac10Item.h"
 #include "MaceItem.h"
 #include "EnchantmentEncyclopediaItem.h"
+#include "RoseGoldFoodItem.h"	// neoLegacy - Copper Age (Phase 6)
 
 typedef Item::Tier _Tier;
 
@@ -191,6 +192,15 @@ Item *Item::wooden_door = nullptr;
 Item *Item::copper_door = nullptr;	// neoLegacy - Copper Age (Phase 3)
 Item *Item::rose_gold_door = nullptr;	// neoLegacy - Copper Age (Phase 3)
 Item *Item::honeycomb = nullptr;	// neoLegacy - Copper Age (Phase 4)
+Item *Item::rose_gilded_beetroot = nullptr;	// neoLegacy - Copper Age (Phase 6)
+Item *Item::rose_gilded_mushroom = nullptr;	// neoLegacy - Copper Age (Phase 6)
+Item *Item::rose_gilded_cookie = nullptr;	// neoLegacy - Copper Age (Phase 6)
+Item *Item::rose_full_jelly = nullptr;	// neoLegacy - Copper Age (Phase 6)
+Item *Item::rose_half_jelly = nullptr;	// neoLegacy - Copper Age (Phase 6)
+Item *Item::rose_mushroom_omelette = nullptr;	// neoLegacy - Copper Age (Phase 6)
+Item *Item::rose_mushroom_partial = nullptr;	// neoLegacy - Copper Age (Phase 6)
+Item *Item::rose_mushroom_crumbs = nullptr;	// neoLegacy - Copper Age (Phase 6)
+Item *Item::rosey_beetroot_stew = nullptr;	// neoLegacy - Copper Age (Phase 6)
 
 Item *Item::bucket = nullptr;
 Item *Item::water_bucket = nullptr;
@@ -586,6 +596,34 @@ void Item::staticCtor()
 	// only a Wandering Trader good and a waxing ingredient), icon at
 	// items.png row 19 col 11.
 	Item::honeycomb = ( new Item(Item::honeycomb_Id - 256) )->setIconName(L"honeycomb")->setDescriptionId(IDS_ITEM_HONEYCOMB)->setUseDescriptionId(IDS_DESC_HONEYCOMB);
+	// neoLegacy - Copper Age (Phase 6). Rose-gold foods (jar: rosegold mod).
+	Item::rose_gilded_beetroot = (new RoseGoldFoodItem(rose_gilded_beetroot_Id - 256, 6, 0.6f))
+		->addEatEffectEntry(MobEffect::regeneration->id, 6, 10)->addEatEffectEntry(MobEffect::damageBoost->id, 400, 0)
+		->setCanAlwaysEat()->setBaseItemTypeAndMaterial(eBaseItemType_utensil, eMaterial_rose_gold)->setIconName(L"rose_gilded_beetroot")->setDescriptionId(IDS_ITEM_ROSE_GILDED_BEETROOT)->setUseDescriptionId(IDS_DESC_ROSE_GILDED_BEETROOT);
+	Item::rose_gilded_mushroom = (new RoseGoldFoodItem(rose_gilded_mushroom_Id - 256, 2, 0.2f))
+		->addEatEffectEntry(MobEffect::regeneration->id, 2, 10)
+		->setUseDurationTicks(16)->setCanAlwaysEat()->setBaseItemTypeAndMaterial(eBaseItemType_utensil, eMaterial_rose_gold)->setIconName(L"rose_gilded_mushroom")->setDescriptionId(IDS_ITEM_ROSE_GILDED_MUSHROOM)->setUseDescriptionId(IDS_DESC_ROSE_GILDED_MUSHROOM);
+	Item::rose_gilded_cookie = (new RoseGoldFoodItem(rose_gilded_cookie_Id - 256, 2, 0.4f))
+		->addEatEffectEntry(MobEffect::regeneration->id, 2, 10)->addEatEffectEntry(MobEffect::movementSpeed->id, 300, 0)
+		->setUseDurationTicks(16)->setCanAlwaysEat()->setBaseItemTypeAndMaterial(eBaseItemType_utensil, eMaterial_rose_gold)->setIconName(L"rose_gilded_cookie")->setDescriptionId(IDS_ITEM_ROSE_GILDED_COOKIE)->setUseDescriptionId(IDS_DESC_ROSE_GILDED_COOKIE);
+	Item::rose_full_jelly = (new RoseGoldFoodItem(rose_full_jelly_Id - 256, 8, 1.2f))
+		->addEatEffectEntry(MobEffect::regeneration->id, 6, 10)->addEatEffectEntry(MobEffect::movementSpeed->id, 800, 1)
+		->setConvertsTo(Item::rose_half_jelly_Id)->setCanAlwaysEat()->setMaxStackSize(1)->setBaseItemTypeAndMaterial(eBaseItemType_utensil, eMaterial_rose_gold)->setIconName(L"rose_full_jelly")->setDescriptionId(IDS_ITEM_ROSE_FULL_JELLY)->setUseDescriptionId(IDS_DESC_ROSE_FULL_JELLY);
+	Item::rose_half_jelly = (new RoseGoldFoodItem(rose_half_jelly_Id - 256, 8, 1.2f))
+		->addEatEffectEntry(MobEffect::regeneration->id, 6, 10)->addEatEffectEntry(MobEffect::movementSpeed->id, 800, 1)
+		->setCanAlwaysEat()->setMaxStackSize(1)->setBaseItemTypeAndMaterial(eBaseItemType_utensil, eMaterial_rose_gold)->setIconName(L"rose_half_jelly")->setDescriptionId(IDS_ITEM_ROSE_HALF_JELLY)->setUseDescriptionId(IDS_DESC_ROSE_HALF_JELLY);
+	Item::rose_mushroom_omelette = (new RoseGoldFoodItem(rose_mushroom_omelette_Id - 256, 5, 0.4f))
+		->addEatEffectEntry(MobEffect::regeneration->id, 6, 10)->addEatEffectEntry(MobEffect::digSpeed->id, 800, 1)
+		->setConvertsTo(Item::rose_mushroom_partial_Id)->setCanAlwaysEat()->setMaxStackSize(1)->setBaseItemTypeAndMaterial(eBaseItemType_utensil, eMaterial_rose_gold)->setIconName(L"rose_mushroom_omelette")->setDescriptionId(IDS_ITEM_ROSE_MUSHROOM_OMELETTE)->setUseDescriptionId(IDS_DESC_ROSE_MUSHROOM_OMELETTE);
+	Item::rose_mushroom_partial = (new RoseGoldFoodItem(rose_mushroom_partial_Id - 256, 5, 0.4f))
+		->addEatEffectEntry(MobEffect::regeneration->id, 6, 10)->addEatEffectEntry(MobEffect::digSpeed->id, 800, 1)
+		->setConvertsTo(Item::rose_mushroom_crumbs_Id)->setCanAlwaysEat()->setMaxStackSize(1)->setBaseItemTypeAndMaterial(eBaseItemType_utensil, eMaterial_rose_gold)->setIconName(L"rose_mushroom_partial")->setDescriptionId(IDS_ITEM_ROSE_MUSHROOM_PARTIAL)->setUseDescriptionId(IDS_DESC_ROSE_MUSHROOM_PARTIAL);
+	Item::rose_mushroom_crumbs = (new RoseGoldFoodItem(rose_mushroom_crumbs_Id - 256, 5, 0.4f))
+		->addEatEffectEntry(MobEffect::regeneration->id, 6, 10)->addEatEffectEntry(MobEffect::digSpeed->id, 800, 1)
+		->setConvertsTo(Item::bowl_Id)->setCanAlwaysEat()->setMaxStackSize(1)->setBaseItemTypeAndMaterial(eBaseItemType_utensil, eMaterial_rose_gold)->setIconName(L"rose_mushroom_crumbs")->setDescriptionId(IDS_ITEM_ROSE_MUSHROOM_CRUMBS)->setUseDescriptionId(IDS_DESC_ROSE_MUSHROOM_CRUMBS);
+	Item::rosey_beetroot_stew = (new RoseGoldFoodItem(rosey_beetroot_stew_Id - 256, 14, 1.0f))
+		->addEatEffectEntry(MobEffect::heal->id, 1, 2)->addEatEffectEntry(MobEffect::damageBoost->id, 1200, 1)->addEatEffectEntry(MobEffect::digSpeed->id, 1200, 1)->addEatEffectEntry(MobEffect::regeneration->id, 400, 1)
+		->setConvertsTo(Item::bowl_Id)->setCanAlwaysEat()->setMaxStackSize(1)->setBaseItemTypeAndMaterial(eBaseItemType_utensil, eMaterial_rose_gold)->setIconName(L"rosey_beetroot_stew")->setDescriptionId(IDS_ITEM_ROSEY_BEETROOT_STEW)->setUseDescriptionId(IDS_DESC_ROSEY_BEETROOT_STEW);
 	Item::bamboo = ( new BambooItem(461-256) )->setIconName(L"bamboo")->setDescriptionId(IDS_TILE_BAMBOO)->setUseDescriptionId(IDS_DESC_REEDS);
 
 

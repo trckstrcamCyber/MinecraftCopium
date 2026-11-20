@@ -496,6 +496,19 @@ void PreStitchedTextureMap::loadUVs()
 		// neoLegacy - Copper Age (Phase 4): honeycomb, row 19 col 11 of the
 		// extended item atlas (next free cell after the two door icons).
 		ADD_ICON(19,	11,	L"honeycomb")
+		// neoLegacy - Copper Age (Phase 6): rose-gold food icons. Row 19
+		// cols 12-15 (next free after honeycomb at c11) + row 20 cols 0-4.
+		// (Row 20 cols 0-4 are free in the ITEMS map; the row-20 entries
+		// elsewhere in this file belong to the terrain map.)
+		ADD_ICON(19,	12,	L"rose_gilded_beetroot")
+		ADD_ICON(19,	13,	L"rose_gilded_mushroom")
+		ADD_ICON(19,	14,	L"rose_gilded_cookie")
+		ADD_ICON(19,	15,	L"rose_full_jelly")
+		ADD_ICON(20,	0,	L"rose_half_jelly")
+		ADD_ICON(20,	1,	L"rose_mushroom_omelette")
+		ADD_ICON(20,	2,	L"rose_mushroom_partial")
+		ADD_ICON(20,	3,	L"rose_mushroom_crumbs")
+		ADD_ICON(20,	4,	L"rosey_beetroot_stew")
 		ADD_ICON(4,		5,	L"fishing_rod_uncast")
 		ADD_ICON(4,		6,	L"clock")
 		ADD_ICON(4,		7,	L"bowl")

@@ -123,6 +123,54 @@ void FoodRecipies::addRecipes(Recipes *r)
 	r->addShapelessRecipy(new ItemInstance(Item::magma_cream), //
 		L"iig",
 		Item::blaze_powder, Item::slime_ball,
+
+	// neoLegacy - Copper Age (Phase 6). Rose-gold foods (jar: rosegold mod
+	// §2.2). All Complex-Table-only via Recipes::isComplexOnly (result-keyed).
+	// Mushroom: brown + red only — the jar's crimson/warped variants have no
+	// matching item in this tree. Jelly: 2 honeycomb, not honey_bottle (which
+	// does not exist in this tree). No recipes for half jelly / partial / crumbs.
+	r->addShapelessRecipy(new ItemInstance(Item::rose_gilded_mushroom), //
+		L"itg", //
+		Item::rose_gold_nugget, Tile::mushroom_brown,
+		L'F');
+
+	r->addShapelessRecipy(new ItemInstance(Item::rose_gilded_mushroom), //
+		L"itg", //
+		Item::rose_gold_nugget, Tile::mushroom_red,
+		L'F');
+
+	r->addShapedRecipy(new ItemInstance(Item::rose_gilded_beetroot, 1), //
+		L"ssscicig",
+		L"###", //
+		L"#X#", //
+		L"###", //
+		L'#', Item::rose_gold_nugget, L'X', Item::beetroot,
+		L'F');
+
+	r->addShapedRecipy(new ItemInstance(Item::rose_gilded_cookie, 8), //
+		L"ssscicig",
+		L"###", //
+		L"#X#", //
+		L"###", //
+		L'#', Item::cookie, L'X', Item::rose_gold_ingot,
+		L'F');
+
+	r->addShapelessRecipy(new ItemInstance(Item::rose_full_jelly), //
+		L"iiig", //
+		Item::rose_gold_ingot, Item::honeycomb, Item::honeycomb,
+		L'F');
+
+	r->addShapelessRecipy(new ItemInstance(Item::rose_mushroom_omelette), //
+		L"iiiiiiig", //
+		Item::rose_gilded_mushroom, Item::rose_gilded_mushroom, Item::rose_gilded_mushroom,
+		Item::egg, Item::egg, Item::egg, Item::bowl,
+		L'F');
+
+	r->addShapelessRecipy(new ItemInstance(Item::rosey_beetroot_stew), //
+		L"iiiiiiig", //
+		Item::rose_gilded_beetroot, Item::rose_gilded_beetroot, Item::rose_gilded_beetroot,
+		Item::rose_gilded_mushroom, Item::rose_gilded_mushroom, Item::rose_gilded_mushroom, Item::bowl,
+		L'F');
 		L'F');
 }
 

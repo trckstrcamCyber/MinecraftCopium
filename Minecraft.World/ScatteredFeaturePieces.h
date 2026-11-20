@@ -33,7 +33,7 @@ public:
 		virtual EStructurePiece GetType() { return eStructurePiece_DesertPyramidPiece; }
 
 	public:
-		static const int TREASURE_ITEMS_COUNT = 10;
+		static const int TREASURE_ITEMS_COUNT = 11;	// neoLegacy - Copper Age (Phase 6): + copper horse armor
 	private:
 		bool hasPlacedChest[4];
 		static WeighedTreasure *treasureItems[TREASURE_ITEMS_COUNT];
@@ -57,7 +57,7 @@ public:
 		virtual EStructurePiece GetType() { return eStructurePiece_JunglePyramidPiece; }
 
 	public:
-		static const int TREASURE_ITEMS_COUNT = 10;
+		static const int TREASURE_ITEMS_COUNT = 11;	// neoLegacy - Copper Age (Phase 6): + copper horse armor
 		static const int DISPENSER_ITEMS_COUNT = 1;
 	private:
 		bool placedMainChest;

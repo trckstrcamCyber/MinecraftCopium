@@ -281,6 +281,18 @@ bool ChestTileEntity::isSameChest(int x, int y, int z)
 	return static_cast<ChestTile *>(tile)->type == getType();
 }
 
+// neoLegacy - Copper Age (Phase 6). The copper chest's oxidation lives
+// in data bits 3-5 (facing is bits 0-2; see ChestTile::setPlacedBy and
+// Level::advanceCopperOxidation). Stage = field & 3, so waxed chests
+// (field 4-7) sound like their unwaxed stage. UNAFFECTED (0) and
+// EXPOSED (1) share the regular set, as with the golem sounds.
+int ChestTileEntity::copperChestSound(bool opening)
+{
+	int stage = (level->getData(x, y, z) >> 3) & 3;
+	if (stage >= 3) return opening ? eSoundType_COPPER_CHEST_OXIDIZED_OPEN : eSoundType_COPPER_CHEST_OXIDIZED_CLOSE;
+	if (stage == 2) return opening ? eSoundType_COPPER_CHEST_WEATHERED_OPEN : eSoundType_COPPER_CHEST_WEATHERED_CLOSE;
+	return opening ? eSoundType_COPPER_CHEST_OPEN : eSoundType_COPPER_CHEST_CLOSE;
+}
 void ChestTileEntity::tick()
 {
 	TileEntity::tick();
@@ -331,7 +343,7 @@ void ChestTileEntity::tick()
 
 			// 4J-PB - Seems the chest open volume is much louder than other sounds from user reports. We'll tone it down a bit
 			// neoLegacy - Copper Age (Phase 3): the copper chest has its own open sound.
-			level->playSound(xc, y + 0.5, zc, (getType() == ChestTile::TYPE_COPPER) ? eSoundType_COPPER_CHEST_OPEN : eSoundType_RANDOM_CHEST_OPEN, 0.2f, level->random->nextFloat() * 0.1f + 0.9f);
+			level->playSound(xc, y + 0.5, zc, (getType() == ChestTile::TYPE_COPPER) ? copperChestSound(true) : eSoundType_RANDOM_CHEST_OPEN, 0.2f, level->random->nextFloat() * 0.1f + 0.9f);
 		}
 	}
 	if ((openCount == 0 && openness > 0) || (openCount > 0 && openness < 1))
@@ -357,7 +369,7 @@ void ChestTileEntity::tick()
 
 				// 4J-PB - Seems the chest open volume is much louder than other sounds from user reports. We'll tone it down a bit
 				// neoLegacy - Copper Age (Phase 3): the copper chest has its own close sound.
-				level->playSound(xc, y + 0.5, zc, (getType() == ChestTile::TYPE_COPPER) ? eSoundType_COPPER_CHEST_CLOSE : eSoundType_RANDOM_CHEST_CLOSE, 0.2f, level->random->nextFloat() * 0.1f + 0.9f);
+				level->playSound(xc, y + 0.5, zc, (getType() == ChestTile::TYPE_COPPER) ? copperChestSound(false) : eSoundType_RANDOM_CHEST_CLOSE, 0.2f, level->random->nextFloat() * 0.1f + 0.9f);
 			}
 		}
 		if (openness < 0)

@@ -1,5 +1,5 @@
 #pragma once
-#include "Tile.h"
+#include "BaseEntityTile.h"
 
 class IconRegister;
 
@@ -9,10 +9,16 @@ class IconRegister;
 // The shelf has its OWN per-wood texture in jar1201 (32x32, downscaled to
 // 16x16 for the atlas) — it does NOT reuse the wood/log textures.
 //
-// Phase 3 scope: the tile + recipe only. Storing / displaying an item on
-// the shelf (Java shelf behaviour) needs a tile entity + interaction and is
-// Phase 6.
-class ShelfTile : public Tile
+// Phase 6: storage + redstone output. The shelf is a BaseEntityTile
+// with a 3-slot ShelfTileEntity. Data bits 3-5 hold the facing
+// (Facing::NORTH/SOUTH/WEST/EAST, set in setPlacedBy); bits 0-2 stay
+// the wood aux, so getSpawnResourcesAuxValue (data & 7) is unchanged.
+// use() swaps one item with the slot under the click (thirds along
+// the front face); empty hand takes the item. Redstone output is the
+// container-fullness signal (chest precedent).
+// Display rendering is NOT in Phase 6 (see the report): no renderer
+// in this tree draws item icons on a block face yet.
+class ShelfTile : public BaseEntityTile
 {
 private:
 	Icon *woodIcons[7];
@@ -23,6 +29,12 @@ public:
 	virtual Icon *getTexture(int face, int data) override;
 	virtual Icon *getTexture(LevelSource *level, int x, int y, int z, int face) override;
 	virtual void registerIcons(IconRegister *iconRegister) override;
+	virtual shared_ptr<TileEntity> newTileEntity(Level *level) override;
+	virtual void setPlacedBy(Level *level, int x, int y, int z, shared_ptr<LivingEntity> by, shared_ptr<ItemInstance> itemInstance) override;
+	virtual void onRemove(Level *level, int x, int y, int z, int id, int data) override;
+	virtual bool use(Level *level, int x, int y, int z, shared_ptr<Player> player, int clickedFace, float clickX, float clickY, float clickZ, bool soundOnly = false) override;
+	virtual bool hasAnalogOutputSignal() override;
+	virtual int getAnalogOutputSignal(Level *level, int x, int y, int z, int dir) override;
 
 protected:
 	virtual int getSpawnResourcesAuxValue(int data) override;

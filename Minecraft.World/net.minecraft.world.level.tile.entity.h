@@ -24,4 +24,5 @@
 #include "BannerTileEntity.h"
 #include "ConcreteColorTileEntity.h"
 #include "CopperGolemStatueBlockEntity.h" // neoLegacy - Copper Age (Phase 5)
+#include "ShelfTileEntity.h" // neoLegacy - Copper Age (Phase 6)
 #include "BedTileEntity.h"
