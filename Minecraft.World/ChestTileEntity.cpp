@@ -330,7 +330,8 @@ void ChestTileEntity::tick()
 			if (e.lock() != nullptr) xc += 0.5;
 
 			// 4J-PB - Seems the chest open volume is much louder than other sounds from user reports. We'll tone it down a bit
-			level->playSound(xc, y + 0.5, zc, eSoundType_RANDOM_CHEST_OPEN, 0.2f, level->random->nextFloat() * 0.1f + 0.9f);
+			// neoLegacy - Copper Age (Phase 3): the copper chest has its own open sound.
+			level->playSound(xc, y + 0.5, zc, (getType() == ChestTile::TYPE_COPPER) ? eSoundType_COPPER_CHEST_OPEN : eSoundType_RANDOM_CHEST_OPEN, 0.2f, level->random->nextFloat() * 0.1f + 0.9f);
 		}
 	}
 	if ((openCount == 0 && openness > 0) || (openCount > 0 && openness < 1))
@@ -355,7 +356,8 @@ void ChestTileEntity::tick()
 				if (e.lock() != nullptr) xc += 0.5;
 
 				// 4J-PB - Seems the chest open volume is much louder than other sounds from user reports. We'll tone it down a bit
-				level->playSound(xc, y + 0.5, zc, eSoundType_RANDOM_CHEST_CLOSE, 0.2f, level->random->nextFloat() * 0.1f + 0.9f);
+				// neoLegacy - Copper Age (Phase 3): the copper chest has its own close sound.
+				level->playSound(xc, y + 0.5, zc, (getType() == ChestTile::TYPE_COPPER) ? eSoundType_COPPER_CHEST_CLOSE : eSoundType_RANDOM_CHEST_CLOSE, 0.2f, level->random->nextFloat() * 0.1f + 0.9f);
 			}
 		}
 		if (openness < 0)

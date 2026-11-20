@@ -434,6 +434,15 @@ const WCHAR *ConsoleSoundEngine::wchSoundNames[eSoundType_MAX]=
 	// painting sounds
 	L"entity.painting.place",					//eSoundType_ENTITY_PAINTING_PLACE,
 	L"entity.painting.break",					//eSoundType_ENTITY_PAINTING_BREAK,
+
+	// neoLegacy - Copper Age (Phase 3). Copper bulb toggle + copper chest
+	// open/close. Must stay in the same order as the eSoundType enum.
+	L"block.copper_bulb.toggle",				//eSoundType_COPPER_BULB_TOGGLE,
+	L"block.copper_chest.copper_chest_open1",	//eSoundType_COPPER_CHEST_OPEN,
+	L"block.copper_chest.copper_chest_close1",	//eSoundType_COPPER_CHEST_CLOSE,
+	// neoLegacy - Copper Age (Phase 3): copper grate break/step sounds.
+	L"block.copper_grate.break1",	//eSoundType_COPPER_GRATE_BREAK,
+	L"block.copper_grate.step1",	//eSoundType_COPPER_GRATE_STEP,
 };
 
 

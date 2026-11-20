@@ -34,30 +34,40 @@ void ToolRecipies::_init()
 	ADD_OBJECT(map[0],Item::iron_ingot);
 	ADD_OBJECT(map[0],Item::diamond);
 	ADD_OBJECT(map[0],Item::gold_ingot);
+	ADD_OBJECT(map[0],Item::copper_ingot);	// neoLegacy - Copper Age (Phase 3)
+	ADD_OBJECT(map[0],Item::rose_gold_ingot);	// neoLegacy - Copper Age (Phase 3)
 
 	ADD_OBJECT(map[1],Item::wooden_pickaxe);
 	ADD_OBJECT(map[1],Item::stone_pickaxe);
 	ADD_OBJECT(map[1],Item::iron_pickaxe);
 	ADD_OBJECT(map[1],Item::diamond_pickaxe);
 	ADD_OBJECT(map[1],Item::golden_pickaxe);
+	ADD_OBJECT(map[1],Item::copper_pickaxe);	// neoLegacy - Copper Age (Phase 3)
+	ADD_OBJECT(map[1],Item::rose_gold_pickaxe);	// neoLegacy - Copper Age (Phase 3)
 
 	ADD_OBJECT(map[2],Item::wooden_shovel);
 	ADD_OBJECT(map[2],Item::stone_shovel);
 	ADD_OBJECT(map[2],Item::iron_shovel);
 	ADD_OBJECT(map[2],Item::diamond_shovel);
 	ADD_OBJECT(map[2],Item::golden_shovel);
+	ADD_OBJECT(map[2],Item::copper_shovel);	// neoLegacy - Copper Age (Phase 3)
+	ADD_OBJECT(map[2],Item::rose_gold_shovel);	// neoLegacy - Copper Age (Phase 3)
 
 	ADD_OBJECT(map[3],Item::wooden_axe);
 	ADD_OBJECT(map[3],Item::stone_axe);
 	ADD_OBJECT(map[3],Item::iron_axe);
 	ADD_OBJECT(map[3],Item::diamond_axe);
 	ADD_OBJECT(map[3],Item::golden_axe);
+	ADD_OBJECT(map[3],Item::copper_axe);	// neoLegacy - Copper Age (Phase 3)
+	ADD_OBJECT(map[3],Item::rose_gold_axe);	// neoLegacy - Copper Age (Phase 3)
 
 	ADD_OBJECT(map[4],Item::wooden_hoe);
 	ADD_OBJECT(map[4],Item::stone_hoe);
 	ADD_OBJECT(map[4],Item::iron_hoe);
 	ADD_OBJECT(map[4],Item::diamond_hoe);
 	ADD_OBJECT(map[4],Item::golden_hoe);
+	ADD_OBJECT(map[4],Item::copper_hoe);	// neoLegacy - Copper Age (Phase 3)
+	ADD_OBJECT(map[4],Item::rose_gold_hoe);	// neoLegacy - Copper Age (Phase 3)
 }
 
 void ToolRecipies::addRecipes(Recipes *r) 

@@ -362,6 +362,17 @@ typedef enum _TEXTURE_NAME
 	TN_GUI_ITEMS,
 	TN_TERRAIN,
 
+	// neoLegacy - Copper Age (Phase 3). Copper chest entity textures
+	// (64x64, one per oxidation state; waxed reuses the unwaxed texture).
+	// The double-chest form reuses the single-chest texture in Phase 3
+	// (the LCE large-chest model takes one sheet; a combined copper
+	// double-chest sheet from the jar1201 left/right textures is a Phase 4
+	// item).
+	TN_TILE_COPPER_CHEST,
+	TN_TILE_COPPER_CHEST_EXPOSED,
+	TN_TILE_COPPER_CHEST_WEATHERED,
+	TN_TILE_COPPER_CHEST_OXIDIZED,
+
 	TN_COUNT,
 	
 } 

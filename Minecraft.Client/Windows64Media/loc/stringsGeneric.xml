@@ -10823,4 +10823,119 @@
 	<data name="IDS_DESC_BOOTS_ROSE_GOLD">
 		<value>Gives the user 2 Armor when worn.</value>
 	</data>
+	<!-- neoLegacy - Copper Age (Phase 3) -->
+	<data name="IDS_TILE_COPPER_BLOCK">
+		<value>Copper Block</value>
+	</data>
+	<data name="IDS_TILE_CUT_COPPER">
+		<value>Cut Copper</value>
+	</data>
+	<data name="IDS_TILE_CHISELED_COPPER">
+		<value>Chiseled Copper</value>
+	</data>
+	<data name="IDS_TILE_COPPER_GRATE">
+		<value>Copper Grate</value>
+	</data>
+	<data name="IDS_TILE_COPPER_BULB">
+		<value>Copper Bulb</value>
+	</data>
+	<data name="IDS_TILE_COPPER_CHEST">
+		<value>Copper Chest</value>
+	</data>
+	<data name="IDS_TILE_DOOR_COPPER">
+		<value>Copper Door</value>
+	</data>
+	<data name="IDS_TILE_COPPER_TRAPDOOR">
+		<value>Copper Trapdoor</value>
+	</data>
+	<data name="IDS_TILE_COPPER_CHAIN">
+		<value>Copper Chain</value>
+	</data>
+	<data name="IDS_TILE_COPPER_BARS">
+		<value>Copper Bars</value>
+	</data>
+	<data name="IDS_TILE_COPPER_LANTERN">
+		<value>Copper Lantern</value>
+	</data>
+	<data name="IDS_TILE_COPPER_TORCH">
+		<value>Copper Torch</value>
+	</data>
+	<data name="IDS_TILE_COPPER_BUTTON">
+		<value>Copper Button</value>
+	</data>
+	<data name="IDS_TILE_LIGHTNING_ROD">
+		<value>Lightning Rod</value>
+	</data>
+	<data name="IDS_TILE_COPPER_GOLEM_STATUE">
+		<value>Copper Golem Statue</value>
+	</data>
+	<data name="IDS_TILE_SHELF">
+		<value>Shelf</value>
+	</data>
+	<data name="IDS_TILE_CUT_COPPER_SLAB">
+		<value>Cut Copper Slab</value>
+	</data>
+	<data name="IDS_TILE_CUT_COPPER_STAIRS">
+		<value>Cut Copper Stairs</value>
+	</data>
+	<data name="IDS_TILE_ROSE_GOLD_BLOCK">
+		<value>Block of Rose Gold</value>
+	</data>
+	<data name="IDS_TILE_RAW_ROSE_GOLD_BLOCK">
+		<value>Block of Raw Rose Gold</value>
+	</data>
+	<data name="IDS_TILE_DOOR_ROSE_GOLD">
+		<value>Rose Gold Door</value>
+	</data>
+	<data name="IDS_TILE_ROSE_GOLD_TRAPDOOR">
+		<value>Rose Gold Trapdoor</value>
+	</data>
+	<data name="IDS_ITEM_DOOR_COPPER">
+		<value>Copper Door</value>
+	</data>
+	<data name="IDS_ITEM_DOOR_ROSE_GOLD">
+		<value>Rose Gold Door</value>
+	</data>
+	<data name="IDS_DESC_BLOCK_COPPER">
+		<value>A decorative block made from copper. It oxidizes over time, changing color.</value>
+	</data>
+	<data name="IDS_DESC_BLOCK_ROSE_GOLD">
+		<value>A decorative block made from rose gold ingots.</value>
+	</data>
+	<data name="IDS_DESC_BLOCK_RAW_ROSE_GOLD">
+		<value>A block made from raw rose gold.</value>
+	</data>
+	<data name="IDS_DESC_COPPER_BULB">
+		<value>A light source that can be toggled on and off with a redstone signal. The light it gives off dims as it oxidizes.</value>
+	</data>
+	<data name="IDS_DESC_DOOR_COPPER">
+		<value>A door made from copper. It can be opened by hand, unlike an iron door.</value>
+	</data>
+	<data name="IDS_DESC_DOOR_ROSE_GOLD">
+		<value>A door made from rose gold. It can be opened by hand, unlike an iron door.</value>
+	</data>
+	<data name="IDS_DESC_COPPER_CHAIN">
+		<value>A decorative chain made from copper nuggets and ingots.</value>
+	</data>
+	<data name="IDS_DESC_COPPER_BARS">
+		<value>Decorative bars made from copper ingots. They can be used as a fence or a window.</value>
+	</data>
+	<data name="IDS_DESC_COPPER_LANTERN">
+		<value>A lantern made from copper. It gives off light.</value>
+	</data>
+	<data name="IDS_DESC_COPPER_TORCH">
+		<value>A torch made from copper. It gives off light.</value>
+	</data>
+	<data name="IDS_DESC_COPPER_BUTTON">
+		<value>Used to send an electrical charge by being pressed. Stays activated for approximately a second before shutting off again.</value>
+	</data>
+	<data name="IDS_DESC_LIGHTNING_ROD">
+		<value>A decorative rod made from copper. It is said to attract lightning, but in this world lightning never strikes.</value>
+	</data>
+	<data name="IDS_DESC_COPPER_GOLEM_STATUE">
+		<value>A statue of a copper golem. It is the final, oxidized form of a copper golem.</value>
+	</data>
+	<data name="IDS_DESC_SHELF">
+		<value>A shelf for displaying and storing items. It is made from stripped logs.</value>
+	</data>
 </root>

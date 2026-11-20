@@ -105,23 +105,34 @@ void ChestTile::setPlacedBy(Level *level, int x, int y, int z, shared_ptr<Living
 	if (dir == 2) facing = Facing::SOUTH;
 	if (dir == 3) facing = Facing::WEST;
 
+	// neoLegacy - Copper Age (Phase 3). The copper chest's oxidation lives
+	// in bits 3-5 of the block data (the facing uses bits 0-2). The item
+	// aux value IS the oxidation (0-7), so it is shifted into bits 3-5
+	// here; every other chest has aux 0, so this is a no-op for them.
+	// (In Phase 3 every copper chest is crafted unaffected, aux 0; the
+	// oxidation only becomes non-zero when weathering lands in Phase 4.)
+	int oxidation = 0;
+	if (id == Tile::copper_chest_Id && itemInstance) oxidation = itemInstance->getAuxValue() & 7;
+	int data = facing | (oxidation << 3);
+
 	if (n != id && s != id && w != id && e != id)
 	{
-		level->setData(x, y, z, facing, Tile::UPDATE_ALL);
+		level->setData(x, y, z, data, Tile::UPDATE_ALL);
 	}
 	else
 	{
 		if ((n == id || s == id) && (facing == Facing::WEST || facing == Facing::EAST))
 		{
-			if (n == id) level->setData(x, y, z - 1, facing, Tile::UPDATE_ALL);
-			else level->setData(x, y, z + 1, facing, Tile::UPDATE_ALL);
-			level->setData(x, y, z, facing, Tile::UPDATE_ALL);
+			// Preserve the neighbour chest's oxidation when re-facing it.
+			if (n == id) level->setData(x, y, z - 1, facing | (level->getData(x, y, z - 1) & ~7), Tile::UPDATE_ALL);
+			else level->setData(x, y, z + 1, facing | (level->getData(x, y, z + 1) & ~7), Tile::UPDATE_ALL);
+			level->setData(x, y, z, data, Tile::UPDATE_ALL);
 		}
 		if ((w == id || e == id) && (facing == Facing::NORTH || facing == Facing::SOUTH))
 		{
-			if (w == id) level->setData(x - 1, y, z, facing, Tile::UPDATE_ALL);
-			else level->setData(x + 1, y, z, facing, Tile::UPDATE_ALL);
-			level->setData(x, y, z, facing, Tile::UPDATE_ALL);
+			if (w == id) level->setData(x - 1, y, z, facing | (level->getData(x - 1, y, z) & ~7), Tile::UPDATE_ALL);
+			else level->setData(x + 1, y, z, facing | (level->getData(x + 1, y, z) & ~7), Tile::UPDATE_ALL);
+			level->setData(x, y, z, data, Tile::UPDATE_ALL);
 		}
 	}
 
@@ -156,6 +167,9 @@ void ChestTile::recalcLockDir(Level *level, int x, int y, int z)
 		int otherDir = -1;
 		if (n == id) otherDir = level->getData(x, y, z - 1);
 		else otherDir = level->getData(x, y, z + 1);
+		// neoLegacy - Copper Age (Phase 3): mask off the copper chest's
+		// oxidation bits (3-5) so the facing comparison still works.
+		otherDir &= 7;
 		if (otherDir == 4) lockDir = 4;
 
 		if ((Tile::solid[w] || Tile::solid[w2]) && !Tile::solid[e] && !Tile::solid[e2]) lockDir = 5;
@@ -170,6 +184,9 @@ void ChestTile::recalcLockDir(Level *level, int x, int y, int z)
 		int otherDir = -1;
 		if (w == id) otherDir = level->getData(x - 1, y, z);
 		else otherDir = level->getData(x + 1, y, z);
+		// neoLegacy - Copper Age (Phase 3): mask off the copper chest's
+		// oxidation bits (3-5) so the facing comparison still works.
+		otherDir &= 7;
 		if (otherDir == 2) lockDir = 2;
 
 		if ((Tile::solid[n] || Tile::solid[n2]) && !Tile::solid[s] && !Tile::solid[s2]) lockDir = 3;
@@ -184,7 +201,9 @@ void ChestTile::recalcLockDir(Level *level, int x, int y, int z)
 		if (Tile::solid[e] && !Tile::solid[w]) lockDir = 4;
 	}
 
-	level->setData(x, y, z, lockDir, Tile::UPDATE_ALL);
+	// neoLegacy - Copper Age (Phase 3): preserve the copper chest's
+	// oxidation bits (3-5) when re-writing the facing (lockDir).
+	level->setData(x, y, z, lockDir | (level->getData(x, y, z) & ~7), Tile::UPDATE_ALL);
 }
 
 bool ChestTile::mayPlace(Level *level, int x, int y, int z)
@@ -379,5 +398,16 @@ void ChestTile::registerIcons(IconRegister *iconRegister)
 {
 	// Register wood as the chest's icon, because it's used by the particles
 	// when destroying the chest
-	icon = iconRegister->registerIcon(L"planks_oak");
+	// neoLegacy - Copper Age (Phase 3): the copper chest uses its own icon
+	// (the copper-chest front) for its break particles instead of planks.
+	if (type == TYPE_COPPER) icon = iconRegister->registerIcon(L"copper_chest");
+	else icon = iconRegister->registerIcon(L"planks_oak");
+}
+
+// neoLegacy - Copper Age (Phase 3). Breaking a copper chest drops a chest
+// item carrying the oxidation aux (bits 3-5 of the block data).
+int ChestTile::getSpawnResourcesAuxValue(int data)
+{
+	if (id == Tile::copper_chest_Id) return (data >> 3) & 7;
+	return Tile::getSpawnResourcesAuxValue(data);
 }

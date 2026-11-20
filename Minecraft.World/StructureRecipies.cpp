@@ -389,5 +389,347 @@ for (int i = 0; i < 16; i++)
 		L'P', Tile::wood,
 		L'S');
 
+	// =================================================================
+	// neoLegacy - Copper Age (Phase 3). Copper + rose-gold blocks.
+	// All patterns are the jar1201 / jar1165 (rosegold) recipes, verified
+	// in copper-rose-gold/work/jar1201-inventory.md and
+	// jar1165-rosegold-inventory.md. Group letter 'S' (Structure) on
+	// every recipe; every result id is listed in Recipes::isComplexOnly,
+	// so these are Complex-Table-only. Deviations from the Phase 3 brief,
+	// each following the jar over the brief, are marked DEVIATION below.
+	// =================================================================
+
+	// ---- block bucket (13) ----
+	// Copper block: 3x3 copper ingots -> 1 (vanilla).
+	r->addShapedRecipy(new ItemInstance(Tile::copper_block, 1), //
+		L"ssscig",
+		L"###", //
+		L"###", //
+		L"###", //
+
+		L'#', Item::copper_ingot,
+		L'S');
+
+	// Cut copper: 2x2 copper blocks -> 4 (vanilla).
+	r->addShapedRecipy(new ItemInstance(Tile::cut_copper, 4), //
+		L"ssctg",
+		L"##", //
+		L"##", //
+
+		L'#', Tile::copper_block,
+		L'S');
+
+	// Chiseled copper: 2 cut-copper slabs, one column -> 1 (jar1201).
+	r->addShapedRecipy(new ItemInstance(Tile::chiseled_copper, 1), //
+		L"ssczg",
+		L"#", //
+		L"#", //
+
+		L'#', new ItemInstance(Tile::cut_copper_slab, 1, 0),
+		L'S');
+
+	// Raw copper block: 3x3 raw copper -> 1 (vanilla; the tile is Phase 1,
+	// the recipe is new in Phase 3).
+	r->addShapedRecipy(new ItemInstance(Tile::raw_copper_block, 1), //
+		L"ssscig",
+		L"###", //
+		L"###", //
+		L"###", //
+
+		L'#', Item::raw_copper,
+		L'S');
+
+	// Copper grate: cross of 4 copper blocks -> 4 (jar1201).
+	r->addShapedRecipy(new ItemInstance(Tile::copper_grate, 4), //
+		L"sssctg",
+		L" # ", //
+		L"# #", //
+		L" # ", //
+
+		L'#', Tile::copper_block,
+		L'S');
+
+	// Copper bulb: 3 copper blocks + blaze rod + redstone -> 4 (jar1201:
+	// pattern [ C / CBC / R ]).
+	r->addShapedRecipy(new ItemInstance(Tile::copper_bulb, 4), //
+		L"sssctcicig",
+		L" C ", //
+		L"CBC", //
+		L" R ", //
+
+		L'C', Tile::copper_block,
+		L'B', Item::blaze_rod,
+		L'R', Item::redstone,
+		L'S');
+
+	// Shelf: 6 stripped logs (two rows of 3, middle row empty) -> 6
+	// shelves, per wood x7 (jar1201: [### / / ###]).
+	for (int wood = StrippedLogTile::OAK; wood <= StrippedLogTile::BAMBOO; ++wood)
+	{
+		Tile *strippedTile = (wood < 4) ? Tile::strippedLog : Tile::strippedLog2;
+		int strippedData = (wood < 4) ? wood : (wood - 4);
+		r->addShapedRecipy(new ItemInstance(Tile::shelf, 6, wood), //
+			L"sssczg",
+			L"###", //
+			L"   ", //
+			L"###", //
+
+			L'#', new ItemInstance(strippedTile, 1, strippedData),
+			L'S');
+	}
+
+	// Rose gold block: 3x3 rose-gold ingots -> 1 (rosegold jar).
+	r->addShapedRecipy(new ItemInstance(Tile::rose_gold_block, 1), //
+		L"ssscig",
+		L"###", //
+		L"###", //
+		L"###", //
+
+		L'#', Item::rose_gold_ingot,
+		L'S');
+
+	// Raw rose gold block: 3x3 raw rose gold -> 1 (rosegold jar).
+	r->addShapedRecipy(new ItemInstance(Tile::raw_rose_gold_block, 1), //
+		L"ssscig",
+		L"###", //
+		L"###", //
+		L"###", //
+
+		L'#', Item::raw_rose_gold,
+		L'S');
+
+	// Cut copper stairs: standard stair pattern -> 4 (jar1165).
+	r->addShapedRecipy(new ItemInstance(Tile::cut_copper_stairs, 4), //
+		L"sssctg",
+		L"#  ", //
+		L"## ", //
+		L"###", //
+
+		L'#', Tile::cut_copper,
+		L'S');
+
+	// Cut copper slab: 3 cut copper -> 6 (jar1165).
+	r->addShapedRecipy(new ItemInstance(Tile::cut_copper_slab, 6), //
+		L"sctg",
+		L"###", //
+
+		L'#', Tile::cut_copper,
+		L'S');
+
+	// ---- door bucket (4) ----
+	// Copper door: 6 ingots -> 3 (jar1201).
+	r->addShapedRecipy(new ItemInstance(Item::copper_door, 3), //
+		L"ssscig",
+		L"##", //
+		L"##", //
+		L"##", //
+
+		L'#', Item::copper_ingot,
+		L'S');
+
+	// Rose gold door: 6 ingots -> 3 (rosegold jar).
+	r->addShapedRecipy(new ItemInstance(Item::rose_gold_door, 3), //
+		L"ssscig",
+		L"##", //
+		L"##", //
+		L"##", //
+
+		L'#', Item::rose_gold_ingot,
+		L'S');
+
+	// Copper trapdoor: 4 ingots -> 1 (jar1201).
+	r->addShapedRecipy(new ItemInstance(Tile::copper_trapdoor, 1), //
+		L"sscig",
+		L"##", //
+		L"##", //
+
+		L'#', Item::copper_ingot,
+		L'S');
+
+	// Rose gold trapdoor: 6 ingots -> 2 (rosegold jar: ["###","###"]).
+	// DEVIATION from the brief ("4 ingots -> 2"): the jar uses 6 ingots
+	// (3x2) for 2 trapdoors, and the jar is followed here.
+	r->addShapedRecipy(new ItemInstance(Tile::rose_gold_trapdoor, 2), //
+		L"sscig",
+		L"###", //
+		L"###", //
+
+		L'#', Item::rose_gold_ingot,
+		L'S');
+
+	// ---- torch bucket (2) ----
+	// Copper torch: copper nugget / coal-or-charcoal / stick -> 4
+	// (jar1201). Two recipes, one per coal kind, matching the existing
+	// vanilla torch pair in Recipes.cpp.
+	r->addShapedRecipy(new ItemInstance(Tile::copper_torch, 4), //
+		L"sssciczcig",
+		L"N", //
+		L"X", //
+		L"#", //
+
+		L'N', Item::copper_nugget,
+		L'X', new ItemInstance(Item::coal, 1, CoalItem::CHAR_COAL),
+		L'#', Item::stick,
+		L'S');
+
+	r->addShapedRecipy(new ItemInstance(Tile::copper_torch, 4), //
+		L"sssciczcig",
+		L"N", //
+		L"X", //
+		L"#", //
+
+		L'N', Item::copper_nugget,
+		L'X', new ItemInstance(Item::coal, 1, CoalItem::STONE_COAL),
+		L'#', Item::stick,
+		L'S');
+
+	// Copper lantern: 8 copper nuggets around a copper torch -> 1 (jar1201).
+	r->addShapedRecipy(new ItemInstance(Tile::copper_lantern, 1), //
+		L"ssscictg",
+		L"XXX", //
+		L"X#X", //
+		L"XXX", //
+
+		L'X', Item::copper_nugget,
+		L'#', Tile::copper_torch,
+		L'S');
+
+	// ---- button bucket (1) ----
+	// Copper button: 1 cut copper -> 1 (jar1201).
+	// DEVIATION from the brief ("1 ingot -> 1"): the jar makes the button
+	// from a cut-copper block, not an ingot, and the jar is followed here.
+	r->addShapedRecipy(new ItemInstance(Tile::copper_button, 1), //
+		L"sctg",
+		L"#", //
+
+		L'#', Tile::cut_copper,
+		L'S');
+
+	// ---- rod bucket (2) ----
+	// Copper chain: nugget / ingot / nugget, vertical -> 1 (jar1201).
+	r->addShapedRecipy(new ItemInstance(Tile::copper_chain, 1), //
+		L"ssscicig",
+		L"N", //
+		L"I", //
+		L"N", //
+
+		L'N', Item::copper_nugget,
+		L'I', Item::copper_ingot,
+		L'S');
+
+	// Lightning rod: 3 copper ingots, vertical -> 1 (vanilla).
+	// DECORATIVE ONLY (Phase 0 item 6): no strike-attraction code exists.
+	r->addShapedRecipy(new ItemInstance(Tile::lightning_rod, 1), //
+		L"ssscig",
+		L"I", //
+		L"I", //
+		L"I", //
+
+		L'I', Item::copper_ingot,
+		L'S');
+
+	// ---- fence bucket (1) ----
+	// Copper bars: 6 ingots -> 16 (jar1201).
+	r->addShapedRecipy(new ItemInstance(Tile::copper_bars, 16), //
+		L"sscig",
+		L"###", //
+		L"###", //
+
+		L'#', Item::copper_ingot,
+		L'S');
+
+	// ---- chest bucket (1) ----
+	// Copper chest: 8 copper ingots around a chest -> 1 (jar1201).
+	r->addShapedRecipy(new ItemInstance(Tile::copper_chest, 1), //
+		L"ssscictg",
+		L"###", //
+		L"#X#", //
+		L"###", //
+
+		L'#', Item::copper_ingot,
+		L'X', Tile::chest,
+		L'S');
+
+	// ---- ingot bucket (10) ----
+	// Copper block -> 9 copper ingots (vanilla, shapeless).
+	r->addShapelessRecipy(new ItemInstance(Item::copper_ingot, 9), //
+		L"tg",
+		Tile::copper_block,
+		L'S');
+
+	// Copper ingot -> 9 copper nuggets (jar1201, shapeless).
+	r->addShapelessRecipy(new ItemInstance(Item::copper_nugget, 9), //
+		L"ig",
+		Item::copper_ingot,
+		L'S');
+
+	// 9 copper nuggets -> 1 copper ingot (jar1201).
+	r->addShapedRecipy(new ItemInstance(Item::copper_ingot, 1), //
+		L"ssscig",
+		L"NNN", //
+		L"NNN", //
+		L"NNN", //
+
+		L'N', Item::copper_nugget,
+		L'S');
+
+	// Rose gold block -> 9 rose-gold ingots (rosegold jar, shapeless).
+	r->addShapelessRecipy(new ItemInstance(Item::rose_gold_ingot, 9), //
+		L"tg",
+		Tile::rose_gold_block,
+		L'S');
+
+	// Rose gold ingot -> 9 rose-gold nuggets (rosegold jar, shapeless).
+	r->addShapelessRecipy(new ItemInstance(Item::rose_gold_nugget, 9), //
+		L"ig",
+		Item::rose_gold_ingot,
+		L'S');
+
+	// 9 rose-gold nuggets -> 1 rose-gold ingot (rosegold jar).
+	r->addShapedRecipy(new ItemInstance(Item::rose_gold_ingot, 1), //
+		L"ssscig",
+		L"NNN", //
+		L"NNN", //
+		L"NNN", //
+
+		L'N', Item::rose_gold_nugget,
+		L'S');
+
+	// Raw copper block -> 9 raw copper (vanilla, shapeless).
+	// (Not in the brief's list; the jar/vanilla reverse recipe, added for
+	// symmetry with the block -> 9 ingots recipes above.)
+	r->addShapelessRecipy(new ItemInstance(Item::raw_copper, 9), //
+		L"tg",
+		Tile::raw_copper_block,
+		L'S');
+
+	// Raw rose gold block -> 9 raw rose gold (rosegold jar, shapeless).
+	// (Not in the brief's list; the jar's raw_rose_gold_from_block recipe.)
+	r->addShapelessRecipy(new ItemInstance(Item::raw_rose_gold, 9), //
+		L"tg",
+		Tile::raw_rose_gold_block,
+		L'S');
+
+	// Raw rose gold: 1 copper ingot + 1 gold ingot -> 1 (rosegold jar).
+	r->addShapelessRecipy(new ItemInstance(Item::raw_rose_gold, 1), //
+		L"iig",
+		Item::copper_ingot, Item::gold_ingot,
+		L'S');
+
+	// Raw rose gold: 2 copper ingots + 2 gold ingots -> 2 (rosegold jar).
+	r->addShapelessRecipy(new ItemInstance(Item::raw_rose_gold, 2), //
+		L"zzg",
+		new ItemInstance(Item::copper_ingot, 2),
+		new ItemInstance(Item::gold_ingot, 2),
+		L'S');
+
+	// DEVIATION from the brief: the "raw copper + raw gold" shapeless
+	// recipes (1+1 -> 1 and 2+2 -> 2) are NOT implemented, because this
+	// tree has NO raw-gold item (OreTile::getResource returns the gold
+	// ore block itself for gold ore; gold auto-smelts to ingots). Raw
+	// rose gold is still craftable from ingots via the two recipes above.
+	// Adding a raw-gold item would change gold-ore drops game-wide and
+	// is a separate decision (Phase 4/6).
+
 
 }

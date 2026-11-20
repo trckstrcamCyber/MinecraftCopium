@@ -2092,7 +2092,61 @@ bool Recipes::isComplexOnly(Recipy *r)
 		|| result->id == Item::mace_Id			// neoLegacy - Mace
 		|| result->id == Item::ice_ball_Id		// neoLegacy - Ice Ball <-> Ice
 		|| result->id == Tile::ice_Id
-		|| result->id == Item::enchantment_encyclopedia_Id)	// neoLegacy - Enchantment Encyclopedia
+		|| result->id == Item::enchantment_encyclopedia_Id	// neoLegacy - Enchantment Encyclopedia
+		// neoLegacy - Copper Age (Phase 3). Every Phase 3 recipe result is
+		// Complex-Table-only. Tiles (2305 raw copper block + 2306-2319 +
+		// 2321-2327; the golem statue 2320 has no recipe, and the full
+		// cut-copper slab 2328 is placed by stacking, not crafted).
+		|| result->id == Tile::raw_copper_block_Id
+		|| result->id == Tile::copper_block_Id
+		|| result->id == Tile::cut_copper_Id
+		|| result->id == Tile::chiseled_copper_Id
+		|| result->id == Tile::copper_grate_Id
+		|| result->id == Tile::copper_bulb_Id
+		|| result->id == Tile::copper_chest_Id
+		|| result->id == Tile::copper_door_Id
+		|| result->id == Tile::copper_trapdoor_Id
+		|| result->id == Tile::copper_chain_Id
+		|| result->id == Tile::copper_bars_Id
+		|| result->id == Tile::copper_lantern_Id
+		|| result->id == Tile::copper_torch_Id
+		|| result->id == Tile::copper_button_Id
+		|| result->id == Tile::lightning_rod_Id
+		|| result->id == Tile::shelf_Id
+		|| result->id == Tile::cut_copper_slab_Id
+		|| result->id == Tile::cut_copper_stairs_Id
+		|| result->id == Tile::rose_gold_block_Id
+		|| result->id == Tile::raw_rose_gold_block_Id
+		|| result->id == Tile::rose_gold_door_Id
+		|| result->id == Tile::rose_gold_trapdoor_Id
+		// Copper Age (Phase 3) items: ingot/nugget recycling, the raw
+		// rose-gold shapeless recipes, the table-driven tools + armour,
+		// and the two door items.
+		|| result->id == Item::copper_ingot_Id
+		|| result->id == Item::copper_nugget_Id
+		|| result->id == Item::copper_sword_Id
+		|| result->id == Item::copper_pickaxe_Id
+		|| result->id == Item::copper_axe_Id
+		|| result->id == Item::copper_shovel_Id
+		|| result->id == Item::copper_hoe_Id
+		|| result->id == Item::copper_helmet_Id
+		|| result->id == Item::copper_chestplate_Id
+		|| result->id == Item::copper_leggings_Id
+		|| result->id == Item::copper_boots_Id
+		|| result->id == Item::raw_rose_gold_Id
+		|| result->id == Item::rose_gold_ingot_Id
+		|| result->id == Item::rose_gold_nugget_Id
+		|| result->id == Item::rose_gold_sword_Id
+		|| result->id == Item::rose_gold_pickaxe_Id
+		|| result->id == Item::rose_gold_axe_Id
+		|| result->id == Item::rose_gold_shovel_Id
+		|| result->id == Item::rose_gold_hoe_Id
+		|| result->id == Item::rose_gold_helmet_Id
+		|| result->id == Item::rose_gold_chestplate_Id
+		|| result->id == Item::rose_gold_leggings_Id
+		|| result->id == Item::rose_gold_boots_Id
+		|| result->id == Item::copper_door_Id
+		|| result->id == Item::rose_gold_door_Id)
 	{
 		return true;
 	}

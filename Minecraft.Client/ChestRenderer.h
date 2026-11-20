@@ -12,6 +12,11 @@ private:
 	static ResourceLocation CHEST_TRAP_LOCATION;
 	//static ResourceLocation CHEST_XMAS_LOCATION;
 	static ResourceLocation CHEST_LOCATION;
+	// neoLegacy - Copper Age (Phase 3). Copper chest entity textures.
+	static ResourceLocation CHEST_COPPER_LOCATION;
+	static ResourceLocation CHEST_COPPER_EXPOSED_LOCATION;
+	static ResourceLocation CHEST_COPPER_WEATHERED_LOCATION;
+	static ResourceLocation CHEST_COPPER_OXIDIZED_LOCATION;
 
 	ChestModel *chestModel;
 	ChestModel *largeChestModel;

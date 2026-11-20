@@ -383,6 +383,13 @@ const wchar_t *Textures::preLoaded[TN_COUNT] =
 
 	L"gui/items",
 	L"terrain",
+
+	// neoLegacy - Copper Age (Phase 3). Copper chest entity textures.
+	// Must stay in the same order as the TN_TILE_COPPER_CHEST_* enum.
+	L"item/copper_chest",
+	L"item/copper_chest_exposed",
+	L"item/copper_chest_weathered",
+	L"item/copper_chest_oxidized",
 };
 
 Textures::Textures(TexturePackRepository *skins, Options *options)
@@ -1762,6 +1769,12 @@ TEXTURE_NAME TUImages[] =
 	TN_TILE_LARGE_TRAP_CHEST,
 	//TN_TILE_XMAS_CHEST,
 	//TN_TILE_LARGE_XMAS_CHEST,
+
+	// neoLegacy - Copper Age (Phase 3). Copper chest entity textures.
+	TN_TILE_COPPER_CHEST,
+	TN_TILE_COPPER_CHEST_EXPOSED,
+	TN_TILE_COPPER_CHEST_WEATHERED,
+	TN_TILE_COPPER_CHEST_OXIDIZED,
 
 #ifdef _LARGE_WORLDS
 	TN_MISC_ADDITIONALMAPICONS,

@@ -34,6 +34,12 @@
 #include "ConcreteSlabTile.h"
 #include "ConcreteStairTile.h"
 #include "ConcreteTileItems.h"
+#include "CopperBulbTile.h"	// neoLegacy - Copper Age (Phase 3)
+#include "CopperFenceTile.h"	// neoLegacy - Copper Age (Phase 3)
+#include "CopperSlabTile.h"	// neoLegacy - Copper Age (Phase 3)
+#include "CopperStairTile.h"	// neoLegacy - Copper Age (Phase 3)
+#include "CopperTile.h"	// neoLegacy - Copper Age (Phase 3)
+#include "ShelfTile.h"	// neoLegacy - Copper Age (Phase 3)
 #include "CalciteWallTile.h"
 #include "ComplexTableTile.h"	// neoLegacy - Complex Table
 #include "JellyBlockTile.h"	// neoLegacy - Jelly Block
@@ -53,6 +59,8 @@ Tile::SoundType *Tile::SOUND_GRASS = nullptr;
 Tile::SoundType *Tile::SOUND_STONE = nullptr;
 Tile::SoundType *Tile::SOUND_SLIME = nullptr;
 Tile::SoundType *Tile::SOUND_METAL = nullptr;
+// neoLegacy - Copper Age (Phase 3): the copper grate's own break/step sounds.
+Tile::SoundType *Tile::SOUND_COPPER_GRATE = nullptr;
 Tile::SoundType *Tile::SOUND_GLASS = nullptr;
 Tile::SoundType *Tile::SOUND_CLOTH = nullptr;
 Tile::SoundType *Tile::SOUND_SAND = nullptr;
@@ -117,6 +125,30 @@ Bush *Tile::mushroom_red = nullptr;
 Tile *Tile::goldBlock = nullptr;
 Tile *Tile::ironBlock = nullptr;
 Tile *Tile::rawCopperBlock = nullptr;
+// neoLegacy - Copper Age (Phase 3).
+Tile *Tile::copperBlock = nullptr;
+Tile *Tile::cutCopper = nullptr;
+Tile *Tile::chiseledCopper = nullptr;
+Tile *Tile::copperGrate = nullptr;
+Tile *Tile::copperBulb = nullptr;
+ChestTile *Tile::copperChest = nullptr;
+Tile *Tile::copperDoor = nullptr;
+Tile *Tile::copperTrapdoor = nullptr;
+Tile *Tile::copperChain = nullptr;
+Tile *Tile::copperBars = nullptr;
+Tile *Tile::copperLantern = nullptr;
+Tile *Tile::copperTorch = nullptr;
+Tile *Tile::copperButton = nullptr;
+Tile *Tile::lightningRod = nullptr;
+Tile *Tile::copperGolemStatue = nullptr;
+Tile *Tile::shelf = nullptr;
+HalfSlabTile *Tile::cutCopperSlabHalf = nullptr;
+HalfSlabTile *Tile::cutCopperSlab = nullptr;
+Tile *Tile::cutCopperStairs = nullptr;
+Tile *Tile::roseGoldBlock = nullptr;
+Tile *Tile::rawRoseGoldBlock = nullptr;
+Tile *Tile::roseGoldDoor = nullptr;
+Tile *Tile::roseGoldTrapdoor = nullptr;
 HalfSlabTile *Tile::stoneSlab = nullptr;
 HalfSlabTile *Tile::stoneSlabHalf = nullptr;
 Tile *Tile::redBrick = nullptr;
@@ -435,6 +467,8 @@ void Tile::staticCtor()
 	Tile::SOUND_STONE = new Tile::SoundType(eMaterialSoundType_STONE, 1, 1);
 	Tile::SOUND_SLIME = new Tile::SoundType(eMaterialSoundType_SLIME, 1, 1, eSoundType_MOB_SLIME_BIG, eSoundType_MOB_SLIME_BIG);
 	Tile::SOUND_METAL = new Tile::SoundType(eMaterialSoundType_STONE, 1, 1.5f);
+	// neoLegacy - Copper Age (Phase 3): the copper grate's own break/step sounds.
+	Tile::SOUND_COPPER_GRATE = new Tile::SoundType(eMaterialSoundType_COPPER_GRATE, 1, 1);
 	Tile::SOUND_GLASS = new Tile::SoundType(eMaterialSoundType_STONE, 1, 1, eSoundType_RANDOM_GLASS,eSoundType_STEP_STONE);
 	Tile::SOUND_CLOTH = new Tile::SoundType(eMaterialSoundType_CLOTH, 1, 1);
 	Tile::SOUND_SAND = new Tile::SoundType(eMaterialSoundType_SAND, 1, 1);
@@ -496,6 +530,48 @@ void Tile::staticCtor()
 	Tile::goldBlock = (new MetalTile(41))														->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_gold)->setDestroyTime(3.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"gold_block")->setDescriptionId(IDS_TILE_BLOCK_GOLD)->setUseDescriptionId(IDS_DESC_BLOCK_GOLD);
 	Tile::ironBlock = (new MetalTile(42))														->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_iron)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"iron_block")->setDescriptionId(IDS_TILE_BLOCK_IRON)->setUseDescriptionId(IDS_DESC_BLOCK_IRON);
 	Tile::rawCopperBlock = (new MetalTile(Tile::raw_copper_block_Id))										->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"raw_copper_block")->setDescriptionId(IDS_TILE_RAW_COPPER_BLOCK)->setUseDescriptionId(IDS_DESC_BLOCK_RAW_COPPER);
+
+	// neoLegacy - Copper Age (Phase 3). Copper blocks + rose-gold blocks.
+	// Aux 0-7 = oxidation (0 unaffected, 1 exposed, 2 weathered, 3 oxidized,
+	// 4-7 waxed, same texture as the unwaxed state); rose-gold tiles use aux 0.
+	Tile::copperBlock = (new CopperTile(Tile::copper_block_Id, L"copper_block"))							->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_block")->setDescriptionId(IDS_TILE_COPPER_BLOCK)->setUseDescriptionId(IDS_DESC_BLOCK_COPPER);
+	Tile::cutCopper = (new CopperTile(Tile::cut_copper_Id, L"cut_copper"))									->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"cut_copper")->setDescriptionId(IDS_TILE_CUT_COPPER)->setUseDescriptionId(IDS_DESC_BLOCK_COPPER);
+	Tile::chiseledCopper = (new CopperTile(Tile::chiseled_copper_Id, L"chiseled_copper"))					->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"chiseled_copper")->setDescriptionId(IDS_TILE_CHISELED_COPPER)->setUseDescriptionId(IDS_DESC_BLOCK_COPPER);
+	Tile::copperGrate = (new CopperTile(Tile::copper_grate_Id, L"copper_grate"))							->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(3.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_COPPER_GRATE)->setIconName(L"copper_grate")->setDescriptionId(IDS_TILE_COPPER_GRATE)->setUseDescriptionId(IDS_DESC_BLOCK_COPPER);
+	// Copper bulb: registered with NO light emission. Level's light cache
+	// reads the per-tile-id Tile::lightEmission[] array, so one tile id
+	// cannot emit a different level per lit/oxidation state; the bulb's
+	// getBrightness()/getLightColor() overrides render it at the correct
+	// per-state brightness (15/14/13/12 when lit). True per-state light
+	// propagation needs a second "lit bulb" tile id (furnace_lit pattern) —
+	// a Phase 4 item.
+	Tile::copperBulb = (new CopperBulbTile(Tile::copper_bulb_Id))											->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(3.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_bulb")->setDescriptionId(IDS_TILE_COPPER_BULB)->setUseDescriptionId(IDS_DESC_COPPER_BULB);
+	Tile::copperChest = static_cast<ChestTile *>((new ChestTile(Tile::copper_chest_Id, ChestTile::TYPE_COPPER))->setBaseItemTypeAndMaterial(Item::eBaseItemType_chest, Item::eMaterial_copper)->setDestroyTime(2.5f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_chest")->setDescriptionId(IDS_TILE_COPPER_CHEST)->sendTileData()->setUseDescriptionId(IDS_DESC_CHEST));
+	Tile::copperDoor = (new DoorTile(Tile::copper_door_Id, Material::metal, L"doorCopper"))->setDestroyTime(5.0f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_door")->setDescriptionId(IDS_TILE_DOOR_COPPER)->setNotCollectStatistics()->sendTileData()->setUseDescriptionId(IDS_DESC_DOOR_COPPER);
+	Tile::copperTrapdoor = (new TrapDoorTile(Tile::copper_trapdoor_Id, Material::metal))->setBaseItemTypeAndMaterial(Item::eBaseItemType_door, Item::eMaterial_trap)->setDestroyTime(5.0f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_trapdoor")->setDescriptionId(IDS_TILE_COPPER_TRAPDOOR)->setUseDescriptionId(IDS_DESC_TRAPDOOR);
+	Tile::copperChain = (new CopperFenceTile(Tile::copper_chain_Id, L"copper_chain"))						->setBaseItemTypeAndMaterial(Item::eBaseItemType_rod,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_chain")->setDescriptionId(IDS_TILE_COPPER_CHAIN)->setUseDescriptionId(IDS_DESC_COPPER_CHAIN);
+	Tile::copperBars = (new CopperFenceTile(Tile::copper_bars_Id, L"copper_bars"))							->setBaseItemTypeAndMaterial(Item::eBaseItemType_fence,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_bars")->setDescriptionId(IDS_TILE_COPPER_BARS)->setUseDescriptionId(IDS_DESC_COPPER_BARS);
+	// Copper lantern: always lit, so a fixed light emission is correct here
+	// (unlike the bulb, it has no lit/unlit state to vary by).
+	Tile::copperLantern = (new CopperTile(Tile::copper_lantern_Id, L"copper_lantern"))						->setBaseItemTypeAndMaterial(Item::eBaseItemType_torch,	Item::eMaterial_copper)->setDestroyTime(3.5f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setLightEmission(1.0f)->setIconName(L"copper_lantern")->setDescriptionId(IDS_TILE_COPPER_LANTERN)->setUseDescriptionId(IDS_DESC_COPPER_LANTERN);
+	Tile::copperTorch = (new TorchTile(Tile::copper_torch_Id))												->setBaseItemTypeAndMaterial(Item::eBaseItemType_torch,	Item::eMaterial_copper)->setDestroyTime(0.0f)->setLightEmission(15 / 16.0f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_torch")->setDescriptionId(IDS_TILE_COPPER_TORCH)->setUseDescriptionId(IDS_DESC_COPPER_TORCH)->disableMipmap();
+	// Copper button: reuses the copper-block texture (0 new atlas cells).
+	Tile::copperButton = (new StoneButtonTile(Tile::copper_button_Id))										->setBaseItemTypeAndMaterial(Item::eBaseItemType_button,	Item::eMaterial_copper)->setDestroyTime(0.5f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_block")->setDescriptionId(IDS_TILE_COPPER_BUTTON)->setUseDescriptionId(IDS_DESC_COPPER_BUTTON);
+	// Lightning rod: DECORATIVE ONLY (Phase 0 item 6 — natural lightning
+	// never strikes and there is no block-level lightning hook, so the
+	// attraction feature is cut). No strike code is added here.
+	Tile::lightningRod = (new CopperTile(Tile::lightning_rod_Id, L"lightning_rod"))							->setBaseItemTypeAndMaterial(Item::eBaseItemType_rod,	Item::eMaterial_copper)->setDestroyTime(3.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setIconName(L"lightning_rod")->setDescriptionId(IDS_TILE_LIGHTNING_ROD)->setUseDescriptionId(IDS_DESC_LIGHTNING_ROD);
+	// Golem statue: tile only in Phase 3 (oxidation end-state). Entity
+	// rendering + behaviour is Phase 5; for now it renders as a plain cube.
+	Tile::copperGolemStatue = (new MetalTile(Tile::copper_golem_statue_Id))								->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_golem_statue")->setDescriptionId(IDS_TILE_COPPER_GOLEM_STATUE)->setUseDescriptionId(IDS_DESC_COPPER_GOLEM_STATUE);
+	Tile::shelf = (new ShelfTile(Tile::shelf_Id))															->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_wood)->setDestroyTime(2.0f)->setExplodeable(5)->setSoundType(Tile::SOUND_WOOD)->setIconName(L"oak_shelf")->setDescriptionId(IDS_TILE_SHELF)->setUseDescriptionId(IDS_DESC_SHELF);
+	Tile::cutCopperSlabHalf = static_cast<HalfSlabTile *>((new HalfCopperSlabTile(Tile::cut_copper_slab_Id, Tile::cut_copper_slab_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_halfslab, Item::eMaterial_copper)->setDestroyTime(3.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"cut_copper")->setDescriptionId(IDS_TILE_CUT_COPPER_SLAB)->setUseDescriptionId(IDS_DESC_HALFSLAB));
+	Tile::cutCopperSlab = static_cast<HalfSlabTile *>((new FullCopperSlabTile(Tile::cut_copper_slab_full_Id, Tile::cut_copper_slab_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_slab, Item::eMaterial_copper)->setDestroyTime(3.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"cut_copper")->setDescriptionId(IDS_TILE_CUT_COPPER_SLAB)->setUseDescriptionId(IDS_DESC_SLAB));
+	Tile::cutCopperStairs = (new CopperStairTile(Tile::cut_copper_stairs_Id))								->setBaseItemTypeAndMaterial(Item::eBaseItemType_stairs,	Item::eMaterial_copper)->setDestroyTime(3.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setIconName(L"cut_copper")->setDescriptionId(IDS_TILE_CUT_COPPER_STAIRS)->setUseDescriptionId(IDS_DESC_STAIRS);
+	Tile::roseGoldBlock = (new MetalTile(Tile::rose_gold_block_Id))										->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_rose_gold)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"rose_gold_block")->setDescriptionId(IDS_TILE_ROSE_GOLD_BLOCK)->setUseDescriptionId(IDS_DESC_BLOCK_ROSE_GOLD);
+	Tile::rawRoseGoldBlock = (new MetalTile(Tile::raw_rose_gold_block_Id))									->setBaseItemTypeAndMaterial(Item::eBaseItemType_block,	Item::eMaterial_rose_gold)->setDestroyTime(5.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_METAL)->setIconName(L"raw_rose_gold_block")->setDescriptionId(IDS_TILE_RAW_ROSE_GOLD_BLOCK)->setUseDescriptionId(IDS_DESC_BLOCK_RAW_ROSE_GOLD);
+	Tile::roseGoldDoor = (new DoorTile(Tile::rose_gold_door_Id, Material::metal, L"doorRoseGold"))->setDestroyTime(5.0f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"rose_gold_door")->setDescriptionId(IDS_TILE_DOOR_ROSE_GOLD)->setNotCollectStatistics()->sendTileData()->setUseDescriptionId(IDS_DESC_DOOR_ROSE_GOLD);
+	Tile::roseGoldTrapdoor = (new TrapDoorTile(Tile::rose_gold_trapdoor_Id, Material::metal))->setBaseItemTypeAndMaterial(Item::eBaseItemType_door, Item::eMaterial_trap)->setDestroyTime(5.0f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"rose_gold_trapdoor")->setDescriptionId(IDS_TILE_ROSE_GOLD_TRAPDOOR)->setUseDescriptionId(IDS_DESC_TRAPDOOR);
 	Tile::stoneSlab = static_cast<HalfSlabTile *>((new FullStoneSlabTile(Tile::double_stone_slab_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_slab, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_STONE)->setIconName(L"stoneSlab")->setDescriptionId(IDS_TILE_STONESLAB)->setUseDescriptionId(IDS_DESC_SLAB));
 	Tile::stoneSlabHalf = static_cast<HalfSlabTile *>((new HalfStoneSlabTile(Tile::stone_slab_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_halfslab, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_STONE)->setIconName(L"stoneSlab")->setDescriptionId(IDS_TILE_STONESLAB)->setUseDescriptionId(IDS_DESC_HALFSLAB));
 	Tile::redBrick = (new Tile(45, Material::stone))											->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock,	Item::eMaterial_brick)->setDestroyTime(2.0f)->setExplodeable(10)->setSoundType(Tile::SOUND_STONE)->setIconName(L"brick")->setDescriptionId(IDS_TILE_BRICK)->setUseDescriptionId(IDS_DESC_BRICK);
@@ -968,6 +1044,10 @@ void Tile::staticCtor()
 	Item::items[sandstone_Id]			= ( new MultiTextureTileItem(sandstone_Id - 256, sandStone, SandStoneTile::SANDSTONE_NAMES, SandStoneTile::SANDSTONE_BLOCK_NAMES) )->setIconName(L"sandStone")->setDescriptionId(IDS_TILE_SANDSTONE)->setUseDescriptionId(IDS_DESC_SANDSTONE);
 	Item::items[quartz_block_Id]			= ( new MultiTextureTileItem(quartz_block_Id - 256, quartzBlock, QuartzBlockTile::BLOCK_NAMES, QuartzBlockTile::QUARTZ_BLOCK_NAMES) )->setIconName(L"quartzBlock")->setDescriptionId(IDS_TILE_QUARTZ_BLOCK)->setUseDescriptionId(IDS_DESC_QUARTZ_BLOCK);
 	Item::items[stone_slab_Id]		= ( new StoneSlabTileItem(Tile::stone_slab_Id - 256, Tile::stoneSlabHalf,	Tile::stoneSlab, false) )->setIconName(L"stoneSlab")->setDescriptionId(IDS_TILE_STONESLAB)->setUseDescriptionId(IDS_DESC_HALFSLAB);
+	// neoLegacy - Copper Age (Phase 3). Cut-copper slab item (half + full);
+	// the item aux value is the oxidation state, carried into the block data.
+	Item::items[cut_copper_slab_Id]	= ( new StoneSlabTileItem(Tile::cut_copper_slab_Id - 256, Tile::cutCopperSlabHalf,	Tile::cutCopperSlab, false) )->setIconName(L"cut_copper")->setDescriptionId(IDS_TILE_CUT_COPPER_SLAB)->setUseDescriptionId(IDS_DESC_HALFSLAB);
+	Item::items[cut_copper_slab_full_Id]	= ( new StoneSlabTileItem(Tile::cut_copper_slab_full_Id - 256, Tile::cutCopperSlabHalf,	Tile::cutCopperSlab, true) )->setIconName(L"cut_copper")->setDescriptionId(IDS_TILE_CUT_COPPER_SLAB)->setUseDescriptionId(IDS_DESC_SLAB);
 	Item::items[double_stone_slab_Id]			= ( new StoneSlabTileItem(Tile::double_stone_slab_Id - 256,		Tile::stoneSlabHalf,	Tile::stoneSlab, true))->setIconName(L"stoneSlab")->setDescriptionId(IDS_DESC_STONESLAB)->setUseDescriptionId(IDS_DESC_SLAB);
 	Item::items[wooden_slab_Id]		= ( new StoneSlabTileItem(Tile::wooden_slab_Id - 256,	Tile::woodSlabHalf,		Tile::woodSlab, false))->setIconName(L"woodSlab")->setDescriptionId(IDS_DESC_WOODSLAB)->setUseDescriptionId(IDS_DESC_WOODSLAB);
 	Item::items[double_wooden_slab_Id]			= ( new StoneSlabTileItem(Tile::double_wooden_slab_Id - 256,		Tile::woodSlabHalf,		Tile::woodSlab, true))->setIconName(L"woodSlab")->setDescriptionId(IDS_DESC_WOODSLAB)->setUseDescriptionId(IDS_DESC_WOODSLAB);
@@ -2035,6 +2115,10 @@ Tile::SoundType::SoundType(eMATERIALSOUND_TYPE eMaterialSound, float volume, flo
 		case eMaterialSoundType_METAL:
 			this->iBreakSound=eSoundType_DIG_STONE;
 			break;
+		// neoLegacy - Copper Age (Phase 3): the copper grate's own break sound.
+		case eMaterialSoundType_COPPER_GRATE:
+			this->iBreakSound=eSoundType_COPPER_GRATE_BREAK;
+			break;
 		case eMaterialSoundType_GLASS:
 			this->iBreakSound=eSoundType_RANDOM_GLASS;
 			break;
@@ -2086,6 +2170,10 @@ Tile::SoundType::SoundType(eMATERIALSOUND_TYPE eMaterialSound, float volume, flo
 		break;
 	case eMaterialSoundType_METAL:
 		this->iStepSound=eSoundType_STEP_METAL;
+		break;
+	// neoLegacy - Copper Age (Phase 3): the copper grate's own step sound.
+	case eMaterialSoundType_COPPER_GRATE:
+		this->iStepSound=eSoundType_COPPER_GRATE_STEP;
 		break;
 	case eMaterialSoundType_CLOTH:
 		this->iStepSound=eSoundType_STEP_CLOTH;

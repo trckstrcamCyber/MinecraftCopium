@@ -14,6 +14,45 @@ TrapDoorTile::TrapDoorTile(int id, Material *material) : Tile(id, material,isSol
 	setShape(0.5f - r, 0, 0.5f - r, 0.5f + r, h, 0.5f + r);
 }
 
+// neoLegacy - Copper Age (Phase 3). The copper trapdoor's oxidation lives
+// in bits 4-6 of the data (the use() toggle XORs bit 2 only, so opening /
+// closing preserves it). Other trapdoors have a single texture (state 0).
+Icon *TrapDoorTile::getTexture(int face, int data)
+{
+	if (id == Tile::copper_trapdoor_Id) return stateIcons[(data >> 4) & 3];
+	return icon;
+}
+
+Icon *TrapDoorTile::getTexture(LevelSource *level, int x, int y, int z, int face)
+{
+	if (id == Tile::copper_trapdoor_Id) return stateIcons[(level->getData(x, y, z) >> 4) & 3];
+	return icon;
+}
+
+void TrapDoorTile::registerIcons(IconRegister *iconRegister)
+{
+	if (id == Tile::copper_trapdoor_Id)
+	{
+		static const wchar_t *prefixes[4] = { L"", L"exposed_", L"weathered_", L"oxidized_" };
+		for (int i = 0; i < 4; i++)
+		{
+			wstring name = wstring(prefixes[i]) + getIconName();
+			stateIcons[i] = iconRegister->registerIcon(name);
+		}
+		icon = stateIcons[0];
+	}
+	else
+	{
+		Tile::registerIcons(iconRegister);
+	}
+}
+
+int TrapDoorTile::getSpawnResourcesAuxValue(int data)
+{
+	if (id == Tile::copper_trapdoor_Id) return (data >> 4) & 7;
+	return Tile::getSpawnResourcesAuxValue(data);
+}
+
 void TrapDoorTile::createBlockStateDefinition()
 {
 	if (!m_blockStateDefinition)

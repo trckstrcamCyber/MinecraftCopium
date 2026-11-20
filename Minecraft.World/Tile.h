@@ -177,6 +177,8 @@ public:
 	static SoundType *SOUND_STONE;
 	static SoundType *SOUND_SLIME;
 	static SoundType *SOUND_METAL;
+	// neoLegacy - Copper Age (Phase 3): the copper grate's own break/step sounds.
+	static SoundType *SOUND_COPPER_GRATE;
 	static SoundType *SOUND_GLASS;
 	static SoundType *SOUND_CLOTH;
 	static SoundType *SOUND_SAND;
@@ -553,6 +555,32 @@ public:
     // neoLegacy - Copper Age (Phase 1). Extended tile ids (2304+); see EXT_TILE_ID_FIRST.
     static const int copper_ore_Id = 2304;
     static const int raw_copper_block_Id = 2305;
+    // neoLegacy - Copper Age (Phase 3). Extended tile ids 2306-2327, in spec order.
+    static const int copper_block_Id = 2306;
+    static const int cut_copper_Id = 2307;
+    static const int chiseled_copper_Id = 2308;
+    static const int copper_grate_Id = 2309;
+    static const int copper_bulb_Id = 2310;
+    static const int copper_chest_Id = 2311;
+    static const int copper_door_Id = 2312;
+    static const int copper_trapdoor_Id = 2313;
+    static const int copper_chain_Id = 2314;
+    static const int copper_bars_Id = 2315;
+    static const int copper_lantern_Id = 2316;
+    static const int copper_torch_Id = 2317;
+    static const int copper_button_Id = 2318;
+    static const int lightning_rod_Id = 2319;
+    static const int copper_golem_statue_Id = 2320;
+    static const int shelf_Id = 2321;
+    static const int cut_copper_slab_Id = 2322;
+    static const int cut_copper_stairs_Id = 2323;
+    static const int rose_gold_block_Id = 2324;
+    static const int raw_rose_gold_block_Id = 2325;
+    static const int rose_gold_door_Id = 2326;
+    static const int rose_gold_trapdoor_Id = 2327;
+    // neoLegacy - Copper Age (Phase 3). A slab is 2 tile ids (half + full),
+    // so the full cut-copper slab takes the next free extended id, 2328.
+    static const int cut_copper_slab_full_Id = 2328;
 
     // neoLegacy - Jelly Block (honey-block behaviour, see JellyBlockTile.h). Uses a free vanilla-range id: extended ids (2304+) have crashed before.
     static const int jelly_block_Id = 210;
@@ -608,6 +636,30 @@ public:
 	static Tile *goldBlock;
 	static Tile *ironBlock;
 	static Tile *rawCopperBlock;
+	// neoLegacy - Copper Age (Phase 3).
+	static Tile *copperBlock;
+	static Tile *cutCopper;
+	static Tile *chiseledCopper;
+	static Tile *copperGrate;
+	static Tile *copperBulb;
+	static ChestTile *copperChest;
+	static Tile *copperDoor;
+	static Tile *copperTrapdoor;
+	static Tile *copperChain;
+	static Tile *copperBars;
+	static Tile *copperLantern;
+	static Tile *copperTorch;
+	static Tile *copperButton;
+	static Tile *lightningRod;
+	static Tile *copperGolemStatue;
+	static Tile *shelf;
+	static HalfSlabTile *cutCopperSlabHalf;
+	static HalfSlabTile *cutCopperSlab;
+	static Tile *cutCopperStairs;
+	static Tile *roseGoldBlock;
+	static Tile *rawRoseGoldBlock;
+	static Tile *roseGoldDoor;
+	static Tile *roseGoldTrapdoor;
 	//     static Tile *stoneSlab;
 	//     static Tile *stoneSlabHalf;
 	static Tile *redBrick;

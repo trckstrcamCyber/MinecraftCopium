@@ -11,6 +11,12 @@ class TrapDoorTile : public Tile
 private:
 	static const int TOP_MASK = 0x8;
 
+	// neoLegacy - Copper Age (Phase 3). Per-oxidation-state icons for the
+	// copper trapdoor (oxidation in bits 4-6 of the data; the use() toggle
+	// XORs bit 2 only, so it survives opening/closing). Only the copper
+	// trapdoor registers all four states; other trapdoors use state 0.
+	Icon *stateIcons[4];
+
 protected:
 	TrapDoorTile(int id, Material *material);
 
@@ -25,7 +31,13 @@ protected:
 
 public:
 	bool blocksLight();
+	virtual Icon *getTexture(int face, int data) override;
+	virtual Icon *getTexture(LevelSource *level, int x, int y, int z, int face) override;
+	virtual void registerIcons(IconRegister *iconRegister) override;
 	virtual void createBlockStateDefinition() override;
+
+protected:
+	virtual int getSpawnResourcesAuxValue(int data) override;
 	virtual int defaultBlockState() override;
 	virtual int convertBlockStateToLegacyData(BlockState *state) override;
 	virtual Tile::BlockState getBlockState(LevelSource *level, int x, int y, int z) override;

@@ -27,8 +27,18 @@ public:
 private:
 	static const int DOOR_TILE_TEXTURE_COUNT = 4;
 	int texBase;
-	Icon *iconTop[2];
-	Icon *iconBottom[2];
+	// neoLegacy - Copper Age (Phase 3). Per-oxidation-state icons:
+	// [oxidation 0-3][normal/flipped]. Only the copper door registers all
+	// four states; every other door registers state 0 only (as before).
+	Icon *iconTop[4][2];
+	Icon *iconBottom[4][2];
+
+	// Copper door oxidation lives in bits 5-7 of the UPPER half's data (the
+	// lower half is rewritten on every open/close, so it cannot hold state).
+	// Returns 0 for non-copper doors.
+	int getOxidation(LevelSource *level, int x, int y, int z, bool isUpper);
+	// Copper + rose-gold doors are hand-openable (Java), unlike the iron door.
+	bool isHandOpenable();
 
 protected:
 	DoorTile(int id, Material *material, const wstring& doorType);

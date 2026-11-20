@@ -131,6 +131,21 @@ void PreStitchedTextureMap::stitch()
 		image = padded;
 	}
 
+	// neoLegacy - Copper Age (Phase 3): the terrain atlas is now 16 columns
+	// x 64 rows (256x1024), extended the same way items.png was. A texture
+	// pack that still ships the old 256x512 terrain.png would be sampled at
+	// half scale, so pad it with transparent rows first. (The old pack is
+	// 512 tall = width * 2; the new atlas is 1024 tall = width * 4.)
+	if (iconType == Icon::TYPE_TERRAIN && image->getHeight() == image->getWidth() * 2)
+	{
+		BufferedImage *padded = new BufferedImage(image->getWidth(), image->getHeight() * 2, BufferedImage::TYPE_INT_ARGB);
+		const size_t texels = static_cast<size_t>(image->getWidth()) * image->getHeight();
+		memset(padded->getData(), 0, texels * 2 * sizeof(int));
+		memcpy(padded->getData(), image->getData(), texels * sizeof(int));
+		delete image;
+		image = padded;
+	}
+
 	int height = image->getHeight();
 	int width = image->getWidth();
 
@@ -473,6 +488,11 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(19,	6,	L"rose_gold_chestplate")
 		ADD_ICON(19,	7,	L"rose_gold_leggings")
 		ADD_ICON(19,	8,	L"rose_gold_boots")
+		// neoLegacy - Copper Age (Phase 3). Door item icons (the door tiles
+		// are placed via these DoorItem items). Row 19 continues the Phase 2
+		// rose-gold block (r19c0-c8); c9-c10 are the next free cells.
+		ADD_ICON(19,	9,	L"doorCopper")
+		ADD_ICON(19,	10,	L"doorRoseGold")
 		ADD_ICON(4,		5,	L"fishing_rod_uncast")
 		ADD_ICON(4,		6,	L"clock")
 		ADD_ICON(4,		7,	L"bowl")
@@ -790,7 +810,11 @@ void PreStitchedTextureMap::loadUVs()
 	else
 	{
 		float horizRatio = 1.0f/16.0f;
-		float vertRatio = 1.0f/32.0f;
+		// neoLegacy - Copper Age (Phase 3): the terrain atlas is now 16
+		// columns x 64 rows (256x1024). Rows 0-31 are unchanged; rows 32-63
+		// are new space. stitch() pads old 256x512 terrain.png packs with
+		// transparent rows so they still line up.
+		float vertRatio = 1.0f/64.0f;
 
 		ADD_ICON(0,		0,	L"grass_top")
 		texturesByName[L"grass_top"]->setFlags(Icon::IS_GRASS_TOP);			// 4J added for faster determination of texture type in tesselation
@@ -1325,6 +1349,87 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(31, 14, L"stripped_dark_oak_log_top");
 		// neoLegacy - Jelly Block (terrain.png row 31, col 15)
 		ADD_ICON(31, 15, L"jelly_block");
+
+		// =================================================================
+		// neoLegacy - Copper Age (Phase 3). Copper + rose-gold block icons.
+		// These live in the EXTENDED rows 32-36 of terrain.png (16x64 =
+		// 1024 cells; see the vertRatio 1/64 change above and the stitch()
+		// padding for old 256x512 packs). Rows 0-31 are unchanged.
+		// Waxed states reuse the unwaxed texture, so only the 4 unwaxed
+		// oxidation states are registered per block. 67 cells total.
+		// Row 32: copper block family (block, cut, chiseled, grate).
+		ADD_ICON(32, 0,  L"copper_block")
+		ADD_ICON(32, 1,  L"exposed_copper_block")
+		ADD_ICON(32, 2,  L"weathered_copper_block")
+		ADD_ICON(32, 3,  L"oxidized_copper_block")
+		ADD_ICON(32, 4,  L"cut_copper")
+		ADD_ICON(32, 5,  L"exposed_cut_copper")
+		ADD_ICON(32, 6,  L"weathered_cut_copper")
+		ADD_ICON(32, 7,  L"oxidized_cut_copper")
+		ADD_ICON(32, 8,  L"chiseled_copper")
+		ADD_ICON(32, 9,  L"exposed_chiseled_copper")
+		ADD_ICON(32, 10, L"weathered_chiseled_copper")
+		ADD_ICON(32, 11, L"oxidized_chiseled_copper")
+		ADD_ICON(32, 12, L"copper_grate")
+		ADD_ICON(32, 13, L"exposed_copper_grate")
+		ADD_ICON(32, 14, L"weathered_copper_grate")
+		ADD_ICON(32, 15, L"oxidized_copper_grate")
+		// Row 33: copper bulb (off + lit per state) and copper door (top/bottom).
+		ADD_ICON(33, 0,  L"copper_bulb")
+		ADD_ICON(33, 1,  L"copper_bulb_lit")
+		ADD_ICON(33, 2,  L"exposed_copper_bulb")
+		ADD_ICON(33, 3,  L"exposed_copper_bulb_lit")
+		ADD_ICON(33, 4,  L"weathered_copper_bulb")
+		ADD_ICON(33, 5,  L"weathered_copper_bulb_lit")
+		ADD_ICON(33, 6,  L"oxidized_copper_bulb")
+		ADD_ICON(33, 7,  L"oxidized_copper_bulb_lit")
+		ADD_ICON(33, 8,  L"copper_door_upper")
+		ADD_ICON(33, 9,  L"copper_door_lower")
+		ADD_ICON(33, 10, L"exposed_copper_door_upper")
+		ADD_ICON(33, 11, L"exposed_copper_door_lower")
+		ADD_ICON(33, 12, L"weathered_copper_door_upper")
+		ADD_ICON(33, 13, L"weathered_copper_door_lower")
+		ADD_ICON(33, 14, L"oxidized_copper_door_upper")
+		ADD_ICON(33, 15, L"oxidized_copper_door_lower")
+		// Row 34: copper trapdoor, chain, bars, lantern (per state).
+		ADD_ICON(34, 0,  L"copper_trapdoor")
+		ADD_ICON(34, 1,  L"exposed_copper_trapdoor")
+		ADD_ICON(34, 2,  L"weathered_copper_trapdoor")
+		ADD_ICON(34, 3,  L"oxidized_copper_trapdoor")
+		ADD_ICON(34, 4,  L"copper_chain")
+		ADD_ICON(34, 5,  L"exposed_copper_chain")
+		ADD_ICON(34, 6,  L"weathered_copper_chain")
+		ADD_ICON(34, 7,  L"oxidized_copper_chain")
+		ADD_ICON(34, 8,  L"copper_bars")
+		ADD_ICON(34, 9,  L"exposed_copper_bars")
+		ADD_ICON(34, 10, L"weathered_copper_bars")
+		ADD_ICON(34, 11, L"oxidized_copper_bars")
+		ADD_ICON(34, 12, L"copper_lantern")
+		ADD_ICON(34, 13, L"exposed_copper_lantern")
+		ADD_ICON(34, 14, L"weathered_copper_lantern")
+		ADD_ICON(34, 15, L"oxidized_copper_lantern")
+		// Row 35: copper torch, lightning rod (per state), shelves (per wood),
+		// rose-gold block, raw rose-gold block, rose-gold door (top/bottom).
+		ADD_ICON(35, 0,  L"copper_torch")
+		ADD_ICON(35, 1,  L"lightning_rod")
+		ADD_ICON(35, 2,  L"exposed_lightning_rod")
+		ADD_ICON(35, 3,  L"weathered_lightning_rod")
+		ADD_ICON(35, 4,  L"oxidized_lightning_rod")
+		ADD_ICON(35, 5,  L"oak_shelf")
+		ADD_ICON(35, 6,  L"spruce_shelf")
+		ADD_ICON(35, 7,  L"birch_shelf")
+		ADD_ICON(35, 8,  L"jungle_shelf")
+		ADD_ICON(35, 9,  L"acacia_shelf")
+		ADD_ICON(35, 10, L"dark_oak_shelf")
+		ADD_ICON(35, 11, L"bamboo_shelf")
+		ADD_ICON(35, 12, L"rose_gold_block")
+		ADD_ICON(35, 13, L"raw_rose_gold_block")
+		ADD_ICON(35, 14, L"rose_gold_door_upper")
+		ADD_ICON(35, 15, L"rose_gold_door_lower")
+		// Row 36: rose-gold trapdoor, copper chest (inventory icon), golem statue.
+		ADD_ICON(36, 0,  L"rose_gold_trapdoor")
+		ADD_ICON(36, 1,  L"copper_chest")
+		ADD_ICON(36, 2,  L"copper_golem_statue")
 
 	}
 }

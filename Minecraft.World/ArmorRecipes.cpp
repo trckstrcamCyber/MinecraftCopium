@@ -49,30 +49,40 @@ void ArmorRecipes::_init()
 	ADD_OBJECT(map[0],Item::iron_ingot);
 	ADD_OBJECT(map[0],Item::diamond);
 	ADD_OBJECT(map[0],Item::gold_ingot);
+	ADD_OBJECT(map[0],Item::copper_ingot);	// neoLegacy - Copper Age (Phase 3)
+	ADD_OBJECT(map[0],Item::rose_gold_ingot);	// neoLegacy - Copper Age (Phase 3)
 
 	ADD_OBJECT(map[1],Item::leather_helmet);
 	ADD_OBJECT(map[1],Item::chainmail_helmet);
 	ADD_OBJECT(map[1],Item::iron_helmet);
 	ADD_OBJECT(map[1],Item::diamond_helmet);
 	ADD_OBJECT(map[1],Item::golden_helmet);
+	ADD_OBJECT(map[1],Item::copper_helmet);	// neoLegacy - Copper Age (Phase 3)
+	ADD_OBJECT(map[1],Item::rose_gold_helmet);	// neoLegacy - Copper Age (Phase 3)
 
 	ADD_OBJECT(map[2],Item::leather_chestplate);
 	ADD_OBJECT(map[2],Item::chainmail_chestplate);
 	ADD_OBJECT(map[2],Item::iron_chestplate);
 	ADD_OBJECT(map[2],Item::diamond_chestplate);
 	ADD_OBJECT(map[2],Item::golden_chestplate);
+	ADD_OBJECT(map[2],Item::copper_chestplate);	// neoLegacy - Copper Age (Phase 3)
+	ADD_OBJECT(map[2],Item::rose_gold_chestplate);	// neoLegacy - Copper Age (Phase 3)
 
 	ADD_OBJECT(map[3],Item::leather_leggings);
 	ADD_OBJECT(map[3],Item::chainmail_leggings);
 	ADD_OBJECT(map[3],Item::iron_leggings);
 	ADD_OBJECT(map[3],Item::diamond_leggings);
 	ADD_OBJECT(map[3],Item::golden_leggings);
+	ADD_OBJECT(map[3],Item::copper_leggings);	// neoLegacy - Copper Age (Phase 3)
+	ADD_OBJECT(map[3],Item::rose_gold_leggings);	// neoLegacy - Copper Age (Phase 3)
 
 	ADD_OBJECT(map[4],Item::leather_boots);
 	ADD_OBJECT(map[4],Item::chainmail_boots);
 	ADD_OBJECT(map[4],Item::iron_boots);
 	ADD_OBJECT(map[4],Item::diamond_boots);
 	ADD_OBJECT(map[4],Item::golden_boots);
+	ADD_OBJECT(map[4],Item::copper_boots);	// neoLegacy - Copper Age (Phase 3)
+	ADD_OBJECT(map[4],Item::rose_gold_boots);	// neoLegacy - Copper Age (Phase 3)
 }
 
 // 4J-PB added for quick equip in the inventory
@@ -85,6 +95,8 @@ ArmorRecipes::_eArmorType ArmorRecipes::GetArmorType(int iId)
 	case Item::iron_helmet_Id:		
 	case Item::diamond_helmet_Id:						
 	case Item::golden_helmet_Id:	
+	case Item::copper_helmet_Id:	// neoLegacy - Copper Age (Phase 3)
+	case Item::rose_gold_helmet_Id:	// neoLegacy - Copper Age (Phase 3)
 		return eArmorType_Helmet;
 		break;
 
@@ -93,6 +105,8 @@ ArmorRecipes::_eArmorType ArmorRecipes::GetArmorType(int iId)
 	case Item::iron_chestplate_Id:	
 	case Item::diamond_chestplate_Id:
 	case Item::golden_chestplate_Id:
+	case Item::copper_chestplate_Id:	// neoLegacy - Copper Age (Phase 3)
+	case Item::rose_gold_chestplate_Id:	// neoLegacy - Copper Age (Phase 3)
 	case Item::elytra_Id:
 
 		return eArmorType_Chestplate;
@@ -103,6 +117,8 @@ ArmorRecipes::_eArmorType ArmorRecipes::GetArmorType(int iId)
 	case Item::iron_leggings_Id:
 	case Item::diamond_leggings_Id:
 	case Item::golden_leggings_Id:
+	case Item::copper_leggings_Id:	// neoLegacy - Copper Age (Phase 3)
+	case Item::rose_gold_leggings_Id:	// neoLegacy - Copper Age (Phase 3)
 		return eArmorType_Leggings;
 		break;
 
@@ -111,6 +127,8 @@ ArmorRecipes::_eArmorType ArmorRecipes::GetArmorType(int iId)
 	case Item::iron_boots_Id:
 	case Item::diamond_boots_Id:
 	case Item::golden_boots_Id:
+	case Item::copper_boots_Id:	// neoLegacy - Copper Age (Phase 3)
+	case Item::rose_gold_boots_Id:	// neoLegacy - Copper Age (Phase 3)
 		return eArmorType_Boots;
 		break;
 	}

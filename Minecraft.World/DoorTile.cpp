@@ -16,7 +16,9 @@ static std::map<wstring, int> doorItemMap = {
 	{ L"doorJungle", Item::jungle_door_Id },
 	{ L"doorAcacia", Item::acacia_door_Id },
 	{ L"doorDark",   Item::dark_oak_door_Id   },
-	{ L"doorBamboo", Item::bamboo_door_Id }
+	{ L"doorBamboo", Item::bamboo_door_Id },
+	{ L"doorCopper", Item::copper_door_Id },	// neoLegacy - Copper Age (Phase 3)
+	{ L"doorRoseGold", Item::rose_gold_door_Id }	// neoLegacy - Copper Age (Phase 3)
 };
 
 DoorTile::DoorTile(int id, Material *material, const wstring& doorType) : Tile(id, material,isSolidRender())
@@ -31,18 +33,35 @@ DoorTile::DoorTile(int id, Material *material, const wstring& doorType) : Tile(i
 
 Icon *DoorTile::getTexture(int face, int data)
 {
-	return iconBottom[TEXTURE_NORMAL];
+	// Item / inventory form: the item aux value is the oxidation state.
+	return iconBottom[data & 3][TEXTURE_NORMAL];
+}
+
+int DoorTile::getOxidation(LevelSource *level, int x, int y, int z, bool isUpper)
+{
+	if (id != Tile::copper_door_Id) return 0;
+	// Oxidation is stored in bits 5-7 of the UPPER half's data.
+	int upperData = isUpper ? level->getData(x, y, z) : level->getData(x, y + 1, z);
+	return (upperData >> 5) & 7;
+}
+
+bool DoorTile::isHandOpenable()
+{
+	// Copper + rose-gold doors open by hand (Java); the iron door does not.
+	if (id == Tile::copper_door_Id || id == Tile::rose_gold_door_Id) return true;
+	return material != Material::metal;
 }
 
 Icon *DoorTile::getTexture(LevelSource *level, int x, int y, int z, int face)
 {
-	if (face == Facing::UP || face == Facing::DOWN) return iconBottom[TEXTURE_NORMAL];
+	if (face == Facing::UP || face == Facing::DOWN) return iconBottom[getOxidation(level, x, y, z, (level->getData(x, y, z) & C_IS_UPPER_MASK) != 0)][TEXTURE_NORMAL];
 
 	int compositeData = getCompositeData(level, x, y, z);
 	int dir = compositeData & C_DIR_MASK;
 	bool isOpen = (compositeData & C_OPEN_MASK) != 0;
 	bool flip = false;
 	bool upper = (compositeData & C_IS_UPPER_MASK) != 0;
+	int oxidation = getOxidation(level, x, y, z, upper) & 3;
 
 	if (isOpen)
 	{
@@ -62,20 +81,37 @@ Icon *DoorTile::getTexture(LevelSource *level, int x, int y, int z, int face)
 
 	if (upper)
 	{
-		return iconTop[flip ? TEXTURE_FLIPPED : TEXTURE_NORMAL];
+		return iconTop[oxidation][flip ? TEXTURE_FLIPPED : TEXTURE_NORMAL];
 	}
 	else
 	{
-		return iconBottom[flip ? TEXTURE_FLIPPED : TEXTURE_NORMAL];
+		return iconBottom[oxidation][flip ? TEXTURE_FLIPPED : TEXTURE_NORMAL];
 	}
 }
 
 void DoorTile::registerIcons(IconRegister *iconRegister)
 {
-	iconTop[TEXTURE_NORMAL] = iconRegister->registerIcon(getIconName() + L"_upper");
-	iconBottom[TEXTURE_NORMAL] = iconRegister->registerIcon(getIconName() + L"_lower");
-	iconTop[TEXTURE_FLIPPED] = new FlippedIcon(iconTop[TEXTURE_NORMAL], true, false);
-	iconBottom[TEXTURE_FLIPPED] = new FlippedIcon(iconBottom[TEXTURE_NORMAL], true, false);
+	// Only the copper door has per-oxidation-state icons; every other door
+	// registers the single (unaffected) state exactly as before.
+	int states = (id == Tile::copper_door_Id) ? 4 : 1;
+	static const wchar_t *prefixes[4] = { L"", L"exposed_", L"weathered_", L"oxidized_" };
+	for (int s = 0; s < states; s++)
+	{
+		wstring upperName = wstring(prefixes[s]) + getIconName() + L"_upper";
+		wstring lowerName = wstring(prefixes[s]) + getIconName() + L"_lower";
+		iconTop[s][TEXTURE_NORMAL] = iconRegister->registerIcon(upperName);
+		iconBottom[s][TEXTURE_NORMAL] = iconRegister->registerIcon(lowerName);
+		iconTop[s][TEXTURE_FLIPPED] = new FlippedIcon(iconTop[s][TEXTURE_NORMAL], true, false);
+		iconBottom[s][TEXTURE_FLIPPED] = new FlippedIcon(iconBottom[s][TEXTURE_NORMAL], true, false);
+	}
+	// Point the unused state slots at state 0 so a stray read never derefs null.
+	for (int s = states; s < 4; s++)
+	{
+		iconTop[s][TEXTURE_NORMAL] = iconTop[0][TEXTURE_NORMAL];
+		iconBottom[s][TEXTURE_NORMAL] = iconBottom[0][TEXTURE_NORMAL];
+		iconTop[s][TEXTURE_FLIPPED] = iconTop[0][TEXTURE_FLIPPED];
+		iconBottom[s][TEXTURE_FLIPPED] = iconBottom[0][TEXTURE_FLIPPED];
+	}
 }
 
 bool DoorTile::blocksLight()
@@ -190,14 +226,14 @@ bool DoorTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player,
 	if (soundOnly)
 	{
 		// 4J - added - just do enough to play the sound
-		if (material != Material::metal)
+		if (isHandOpenable())
 		{
 			level->levelEvent(player, LevelEvent::SOUND_OPEN_DOOR, x, y, z, 0);
 		}
 		return false;
 	}
 
-	if (material == Material::metal) return true;
+	if (!isHandOpenable()) return true;
 
 	int compositeData = getCompositeData(level, x, y, z);
 	int lowerData = compositeData & C_LOWER_DATA_MASK;

@@ -13,6 +13,13 @@ ResourceLocation ChestRenderer::CHEST_LARGE_LOCATION = ResourceLocation(TN_TILE_
 ResourceLocation ChestRenderer::CHEST_TRAP_LOCATION = ResourceLocation(TN_TILE_TRAP_CHEST);
 //ResourceLocation ChestRenderer::CHEST_XMAS_LOCATION = ResourceLocation(TN_TILE_XMAS_CHEST);
 ResourceLocation ChestRenderer::CHEST_LOCATION = ResourceLocation(TN_TILE_CHEST);
+// neoLegacy - Copper Age (Phase 3). Copper chest entity textures, one per
+// oxidation state (waxed reuses the unwaxed texture). The double-chest
+// form reuses the single-chest texture in Phase 3 (see Textures.h note).
+ResourceLocation ChestRenderer::CHEST_COPPER_LOCATION = ResourceLocation(TN_TILE_COPPER_CHEST);
+ResourceLocation ChestRenderer::CHEST_COPPER_EXPOSED_LOCATION = ResourceLocation(TN_TILE_COPPER_CHEST_EXPOSED);
+ResourceLocation ChestRenderer::CHEST_COPPER_WEATHERED_LOCATION = ResourceLocation(TN_TILE_COPPER_CHEST_WEATHERED);
+ResourceLocation ChestRenderer::CHEST_COPPER_OXIDIZED_LOCATION = ResourceLocation(TN_TILE_COPPER_CHEST_OXIDIZED);
 
 ChestRenderer::ChestRenderer() : TileEntityRenderer()
 {
@@ -52,7 +59,10 @@ void ChestRenderer::render(shared_ptr<TileEntity>  _chest, double x, double y, d
 		Tile *tile = chest->getTile();
 		data = chest->getData();
 
-		if (dynamic_cast<ChestTile*>(tile) != nullptr && data == 0)
+		// neoLegacy - Copper Age (Phase 3): the facing is bits 0-2 of the
+		// data; bits 3-5 hold the copper chest's oxidation. Test the facing
+		// only here (a freshly placed chest has facing 0).
+		if (dynamic_cast<ChestTile*>(tile) != nullptr && (data & 7) == 0)
 		{
 			static_cast<ChestTile *>(tile)->recalcLockDir(chest->getLevel(), chest->x, chest->y, chest->z);
 			data = chest->getData();
@@ -62,13 +72,28 @@ void ChestRenderer::render(shared_ptr<TileEntity>  _chest, double x, double y, d
 	}
 	if (chest->n.lock() != nullptr || chest->w.lock() != nullptr) return;
 
+	// neoLegacy - Copper Age (Phase 3). Copper chest texture by oxidation
+	// state (bits 3-5 of the data; waxed reuses the unwaxed texture).
+	// The double-chest form reuses the single-chest texture in Phase 3.
+	ResourceLocation *copperLocation = &CHEST_COPPER_LOCATION;
+	switch ((data >> 3) & 3)
+	{
+	case 1: copperLocation = &CHEST_COPPER_EXPOSED_LOCATION; break;
+	case 2: copperLocation = &CHEST_COPPER_WEATHERED_LOCATION; break;
+	case 3: copperLocation = &CHEST_COPPER_OXIDIZED_LOCATION; break;
+	default: break;
+	}
 
 	ChestModel *model;
 	if (chest->e.lock() != nullptr || chest->s.lock() != nullptr)
 	{
 		model = largeChestModel;
 
-		if (chest->getType() == ChestTile::TYPE_TRAP)
+		if (chest->getType() == ChestTile::TYPE_COPPER)
+		{
+			bindTexture(copperLocation);
+		}
+		else if (chest->getType() == ChestTile::TYPE_TRAP)
 		{
 			bindTexture(&CHEST_LARGE_TRAP_LOCATION);
 		}
@@ -84,7 +109,11 @@ void ChestRenderer::render(shared_ptr<TileEntity>  _chest, double x, double y, d
 	else
 	{
 		model = chestModel;
-		if (chest->getType() == ChestTile::TYPE_TRAP)
+		if (chest->getType() == ChestTile::TYPE_COPPER)
+		{
+			bindTexture(copperLocation);
+		}
+		else if (chest->getType() == ChestTile::TYPE_TRAP)
 		{
 			bindTexture(&CHEST_TRAP_LOCATION);
 		}
@@ -106,17 +135,20 @@ void ChestRenderer::render(shared_ptr<TileEntity>  _chest, double x, double y, d
 	glScalef(1, -1, -1);
 
 	glTranslatef(0.5f, 0.5f, 0.5f);
+	// neoLegacy - Copper Age (Phase 3): the facing is bits 0-2 of the data;
+	// bits 3-5 hold the copper chest's oxidation.
+	int facing = data & 7;
 	int rot = 0;
-	if (data == 2) rot = 180;
-	if (data == 3) rot = 0;
-	if (data == 4) rot = 90;
-	if (data == 5) rot = -90;
+	if (facing == 2) rot = 180;
+	if (facing == 3) rot = 0;
+	if (facing == 4) rot = 90;
+	if (facing == 5) rot = -90;
 
-	if (data == 2 && chest->e.lock() != nullptr)
+	if (facing == 2 && chest->e.lock() != nullptr)
 	{
 		glTranslatef(1, 0, 0);
 	}
-	if (data == 5 && chest->s.lock() != nullptr)
+	if (facing == 5 && chest->s.lock() != nullptr)
 	{
 		glTranslatef(0, 0, -1);
 	}

@@ -188,6 +188,8 @@ Item *Item::golden_apple = nullptr;
 
 Item *Item::sign = nullptr;
 Item *Item::wooden_door = nullptr;
+Item *Item::copper_door = nullptr;	// neoLegacy - Copper Age (Phase 3)
+Item *Item::rose_gold_door = nullptr;	// neoLegacy - Copper Age (Phase 3)
 
 Item *Item::bucket = nullptr;
 Item *Item::water_bucket = nullptr;
@@ -574,6 +576,10 @@ void Item::staticCtor()
 
 	Item::sign = ( new SignItem(67) )															->setBaseItemTypeAndMaterial(eBaseItemType_HangingItem, eMaterial_wood)->setIconName(L"sign")->setDescriptionId(IDS_ITEM_SIGN)->setUseDescriptionId(IDS_DESC_SIGN);
 	Item::bamboo_door = (new DoorItem(462-256, Material::wood, L"doorBamboo"))->setBaseItemTypeAndMaterial(eBaseItemType_door, eMaterial_wood)->setIconName(L"bamboo_door")->setDescriptionId(IDS_ITEM_DOOR_BAMBOO)->setUseDescriptionId(IDS_DESC_DOOR_WOOD);
+	// neoLegacy - Copper Age (Phase 3). DoorItem ctor takes (id - 256);
+	// the Item ctor adds 256 back, so these land on ids 497 / 498.
+	Item::copper_door = (new DoorItem(copper_door_Id - 256, Material::metal, L"doorCopper"))->setBaseItemTypeAndMaterial(eBaseItemType_door, eMaterial_copper)->setIconName(L"doorCopper")->setDescriptionId(IDS_ITEM_DOOR_COPPER)->setUseDescriptionId(IDS_DESC_DOOR_COPPER);
+	Item::rose_gold_door = (new DoorItem(rose_gold_door_Id - 256, Material::metal, L"doorRoseGold"))->setBaseItemTypeAndMaterial(eBaseItemType_door, eMaterial_rose_gold)->setIconName(L"doorRoseGold")->setDescriptionId(IDS_ITEM_DOOR_ROSE_GOLD)->setUseDescriptionId(IDS_DESC_DOOR_ROSE_GOLD);
 	Item::bamboo = ( new BambooItem(461-256) )->setIconName(L"bamboo")->setDescriptionId(IDS_TILE_BAMBOO)->setUseDescriptionId(IDS_DESC_REEDS);
 
 

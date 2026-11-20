@@ -440,6 +440,15 @@ enum eSOUND_TYPE
 	eSoundType_ENTITY_PAINTING_PLACE,
 	eSoundType_ENTITY_PAINTING_BREAK,
 
+	// neoLegacy - Copper Age (Phase 3). Copper bulb toggle + copper chest
+	// open/close. The oggs are staged for Deck-fetch (jar1201).
+	eSoundType_COPPER_BULB_TOGGLE,
+	eSoundType_COPPER_CHEST_OPEN,
+	eSoundType_COPPER_CHEST_CLOSE,
+	// neoLegacy - Copper Age (Phase 3): copper grate break/step sounds.
+	eSoundType_COPPER_GRATE_BREAK,
+	eSoundType_COPPER_GRATE_STEP,
+
 	eSoundType_MAX
 };
 
@@ -472,6 +481,9 @@ enum eMATERIALSOUND_TYPE
 	eMaterialSoundType_SNOW,
 	eMaterialSoundType_LADDER,
 	eMaterialSoundType_ANVIL,
+	// neoLegacy - Copper Age (Phase 3): the copper grate has its own
+	// break/step sounds (block/copper_grate/break1.ogg, step1.ogg).
+	eMaterialSoundType_COPPER_GRATE,
 };
 
 /*

@@ -13,6 +13,7 @@ class ChestTile : public BaseEntityTile
 public:
 	static const int TYPE_BASIC = 0;
 	static const int TYPE_TRAP = 1;
+	static const int TYPE_COPPER = 2;	// neoLegacy - Copper Age (Phase 3)
 
 	static const int EVENT_SET_OPEN_COUNT = 1;
 
@@ -58,5 +59,10 @@ private:
 public:
 	virtual bool hasAnalogOutputSignal();
 	virtual int getAnalogOutputSignal(Level *level, int x, int y, int z, int dir);
+
+protected:
+	// neoLegacy - Copper Age (Phase 3). Breaking a copper chest drops a
+	// chest item with the oxidation aux (bits 3-5 of the data).
+	virtual int getSpawnResourcesAuxValue(int data) override;
 	virtual void registerIcons(IconRegister *iconRegister);
 };
