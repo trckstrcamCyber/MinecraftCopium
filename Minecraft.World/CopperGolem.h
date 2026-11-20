@@ -41,20 +41,20 @@ public:
 	eINSTANCEOF GetType() { return eTYPE_COPPER_GOLEM; }
 	static Entity *create(Level *level) { return new CopperGolem(level); }
 
+	// Oxidation stages (Java CopperGolemOxidationLevels). UNAFFECTED and
+	// EXPOSED share the regular sound set; WEATHERED and OXIDIZED have
+	// their own sets. Public: the renderer switches on getWeatherState().
+	static const int WEATHER_STATE_UNAFFECTED = 0;
+	static const int WEATHER_STATE_EXPOSED = 1;
+	static const int WEATHER_STATE_WEATHERED = 2;
+	static const int WEATHER_STATE_OXIDIZED = 3;
+
 protected:
 	// Synched-data id for the weather/wax byte (Sheep uses 16 for its wool
 	// byte, VillagerGolem uses 16 for its flags byte — the id is
 	// per-entity-type, so 16 is the established slot for a mob's private
 	// byte). Bits 0-1 weather state, bit 2 waxed.
 	static const int DATA_WEATHER_ID = 16;
-
-	// Oxidation stages (Java CopperGolemOxidationLevels). UNAFFECTED and
-	// EXPOSED share the regular sound set; WEATHERED and OXIDIZED have
-	// their own sets.
-	static const int WEATHER_STATE_UNAFFECTED = 0;
-	static const int WEATHER_STATE_EXPOSED = 1;
-	static const int WEATHER_STATE_WEATHERED = 2;
-	static const int WEATHER_STATE_OXIDIZED = 3;
 
 	// Weathering timing, in ticks (Java CopperGolem WEATHERING_TICK_FROM /
 	// WEATHERING_TICK_TO). The next oxidation stage is scheduled at a random
