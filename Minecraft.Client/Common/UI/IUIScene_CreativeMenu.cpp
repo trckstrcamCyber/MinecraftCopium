@@ -414,8 +414,6 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Tile::copper_torch_Id)	// neoLegacy - Copper Age (Phase 3)
 		ITEM(Tile::copper_lantern_Id)	// neoLegacy - Copper Age (Phase 3)
 		ITEM(Tile::lightning_rod_Id)	// neoLegacy - Copper Age (Phase 3)
-		ITEM_AUX(Item::spawn_egg_Id, 129); // Archivist
-		ITEM_AUX(Item::spawn_egg_Id, 130); // Necromancer
 		ITEM(Tile::copper_golem_statue_Id)	// neoLegacy - Copper Age (Phase 3, tile only)
 		ITEM(Tile::shelf_Id)	// neoLegacy - Copper Age (Phase 3)
 		ITEM_AUX(Tile::tallgrass_Id, TallGrass::DEAD_SHRUB)
@@ -736,7 +734,10 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Item::spawn_egg_Id, 126); // Provoker
 		ITEM_AUX(Item::spawn_egg_Id, 127); // Sorcerer
 		ITEM_AUX(Item::spawn_egg_Id, 128); // Alchemist
-		ITEM_AUX(Item::spawn_egg_Id, 131); // Copper Golem // neoLegacy - Copper Age (Phase 5)		ITEM_AUX(Item::spawn_egg_Id, 113); // Wandering Trader
+		ITEM_AUX(Item::spawn_egg_Id, 129); // Archivist
+		ITEM_AUX(Item::spawn_egg_Id, 130); // Necromancer
+		ITEM_AUX(Item::spawn_egg_Id, 131); // Copper Golem // neoLegacy - Copper Age (Phase 5)
+		ITEM_AUX(Item::spawn_egg_Id, 113); // Wandering Trader
 		ITEM(Item::record_13_Id)
 		ITEM(Item::record_cat_Id)
 		ITEM(Item::record_blocks_Id)

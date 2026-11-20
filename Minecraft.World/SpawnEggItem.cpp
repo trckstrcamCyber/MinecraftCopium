@@ -129,6 +129,9 @@ shared_ptr<Entity> SpawnEggItem::canSpawn(int iAuxVal, Level *level, int *piResu
 		case eTYPE_WANDERING_TRADER:
 			canSpawn = true;		// neoLegacy - no spawn-egg limit for the trader
 			break;
+		case eTYPE_COPPER_GOLEM:
+			canSpawn = true;		// neoLegacy - no spawn-egg limit for the copper golem
+			break;
 		case eTYPE_BAT:
 			if(level->canCreateMore( eTYPE_BAT, Level::eSpawnType_Egg) )
 			{

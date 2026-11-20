@@ -2102,6 +2102,7 @@ bool Recipes::isComplexOnly(Recipy *r)
 		// Complex-Table-only like every other copper recipe.
 		|| result->id == Tile::copper_golem_statue_Id
 		|| result->id == Tile::raw_copper_block_Id
+		|| result->id == Item::raw_copper_Id	// neoLegacy - Copper Age (Phase 3). Raw copper (reverse recipe: raw copper block -> 9 raw copper)
 		|| result->id == Tile::copper_block_Id
 		|| result->id == Tile::cut_copper_Id
 		|| result->id == Tile::chiseled_copper_Id

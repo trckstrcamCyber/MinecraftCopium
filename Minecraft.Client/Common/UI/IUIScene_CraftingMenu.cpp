@@ -664,6 +664,7 @@ bool IUIScene_CraftingMenu::handleKeyDown(int iPad, int iAction, bool bRepeat)
 			if (m_iGroupVIndex < 0) m_iGroupVIndex = 0;
 		}
 
+		m_iGroupHIndex = 0; // Banner row has 6 tabs (0-5); the Workbench row's last tab (Decoration, 6) is out of range
 		setVGroupHighlight(m_iGroupVIndex);
 
 		m_iCurrentSlotHIndex = 0;
@@ -695,6 +696,7 @@ bool IUIScene_CraftingMenu::handleKeyDown(int iPad, int iAction, bool bRepeat)
 			m_iGroupVIndex = 0;
 		}
 
+		m_iGroupHIndex = 0; // Banner row has 6 tabs (0-5); the Workbench row's last tab (Decoration, 6) is out of range
 		setVGroupHighlight(m_iGroupVIndex);
 
 		m_iCurrentSlotHIndex = 0;
@@ -1747,7 +1749,9 @@ void IUIScene_CraftingMenu::DisplayIngredients()
 
 		int patternId = m_aBannerCraftPatterns[m_iGroupHIndex - 1][m_iCurrentSlotHIndex];
 		if (patternId != -1) {
-			const BannerPatternDef &pattern = *BannerPatterns::get(patternId); // patternId validated != -1 above; table values are 0-37
+			const BannerPatternDef *pPattern = BannerPatterns::get(patternId);
+			if (pPattern == nullptr) return; // stale H index / bad pattern id — ingredient slots already hidden above
+			const BannerPatternDef &pattern = *pPattern;
 
 			auto whiteBanner = std::make_shared<ItemInstance>(Tile::standing_banner_Id, 1, 15);
 
