@@ -14,9 +14,18 @@ void IllagerModel::rebuild(ModelPart *part, int u, int v, bool mirror, float x, 
 	part->bMirror = false;
 }
 
-IllagerModel::IllagerModel() : ZombieModel(0.0f, false)	// 64x64 humanoid, not an armor model
+IllagerModel::IllagerModel(int texW, int texH, Hat hatKind) : ZombieModel(0.0f, false)	// 64x64 humanoid, not an armor model
 {
 	showCrossedArms = true;
+
+	// a bigger skin: every part has to map into it before its boxes are (re)built, the 64x64 layout simply sits in its top left corner
+	if (texW != 64 || texH != 64)
+	{
+		texWidth = texW;
+		texHeight = texH;
+		ModelPart *baseParts[] = { head, hair, body, arm0, arm1, leg0, leg1 };
+		for (int i = 0; i < 7; i++) if (baseParts[i] != nullptr) baseParts[i]->setTexSize(texW, texH);
+	}
 
 	rebuild(head, 0, 0, false, -4, -10, -4, 8, 10, 8, 0.0f);
 	rebuild(body, 16, 20, false, -4, 0, -3, 8, 12, 6, 0.0f);
@@ -40,6 +49,30 @@ IllagerModel::IllagerModel() : ZombieModel(0.0f, false)	// 64x64 humanoid, not a
 		hair->cubes.clear();
 		hair->texOffs(32, 0);
 		hair->addHumanoidBox(-4, -10, -4, 8, 12, 8, 0.45f);
+
+		if (hatKind == HAT_WIZARD)
+		{
+			// brim, then the crooked tall middle, then the folded-over tip (each hangs off the one before, as in the mod)
+			ModelPart *lower = new ModelPart(this, 0, 64);
+			lower->addBox(-7.0f, -10.0f, -7.0f, 14, 1, 14, 0.0f);
+			lower->setPos(0.0f, -1.0f, 0.0f);
+			ModelPart *middle = new ModelPart(this, 0, 80);
+			middle->addBox(-4.0f, -19.76f, -4.0f, 8, 10, 8, -0.05f);
+			middle->xRot = -0.05f;
+			ModelPart *upper = new ModelPart(this, 0, 98);
+			upper->addBox(-4.0f, -19.76f, 3.9f, 8, 5, 5, -0.05f);
+			middle->addChild(upper);
+			lower->addChild(middle);
+			hair->addChild(lower);
+		}
+		else if (hatKind == HAT_ALCHEMIST)
+		{
+			// a wide flat brim, laid on its side
+			ModelPart *brim = new ModelPart(this, 69, 47);
+			brim->addBox(-8.0f, -8.0f, -6.0f, 16, 16, 1, 0.0f);
+			brim->xRot = -1.5707964f;
+			hair->addChild(brim);
+		}
 	}
 
 	// the big nose hangs off the head
@@ -156,7 +189,12 @@ void IllagerModel::setupAnim(float time, float r, float bob, float yRot, float x
 		arm1->yRot = 0.4f + t * 0.45f;
 	}
 
-	if (hair != nullptr) hair->visible = (entity != nullptr && entity->GetType() == eTYPE_ILLUSIONER);
+	// the hat layer is worn by the Illusioner, Provoker, Sorcerer and Alchemist (the mod turns it on for them)
+	if (hair != nullptr)
+	{
+		eINSTANCEOF type = (entity != nullptr) ? entity->GetType() : eTYPE_NOTSET;
+		hair->visible = (type == eTYPE_ILLUSIONER || type == eTYPE_PROVOKER || type == eTYPE_SORCERER || type == eTYPE_ALCHEMIST);
+	}
 
 	showCrossedArms = (pose == Illager::CROSSED);
 	arm0->visible = !showCrossedArms;

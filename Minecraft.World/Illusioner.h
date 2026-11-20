@@ -22,6 +22,7 @@ public:
 	virtual ArmPose getArmPose();
 	virtual void performRangedAttack(shared_ptr<LivingEntity> target, float power);
 	virtual MobGroupData *finalizeMobSpawn(MobGroupData *groupData, int extraData = 0);
+	virtual void dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel);
 
 	// where to draw the four images this frame (interpolated between the previous and current offsets)
 	void getRenderLocations(float a, double out[4][3]);

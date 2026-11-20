@@ -7,7 +7,10 @@
 class IllagerModel : public ZombieModel
 {
 public:
-	IllagerModel();
+	// Hats from the Illager Invasion mod: the Sorcerer's tall wizard hat and the Alchemist's big brim are extra parts hanging off the hat layer.
+	// Their skins are bigger than the standard 64x64 (Sorcerer 64x128, Alchemist 128x64), so the model takes the skin size.
+	enum Hat { HAT_NONE = 0, HAT_WIZARD = 1, HAT_ALCHEMIST = 2 };
+	IllagerModel(int texW = 64, int texH = 64, Hat hatKind = HAT_NONE);
 	virtual void setupAnim(float time, float r, float bob, float yRot, float xRot, float scale, shared_ptr<Entity> entity, unsigned int uiBitmaskOverrideAnim = 0);
 	virtual void render(shared_ptr<Entity> entity, float time, float r, float bob, float yRot, float xRot, float scale, bool usecompiled);
 

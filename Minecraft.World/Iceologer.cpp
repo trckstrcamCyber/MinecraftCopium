@@ -113,9 +113,12 @@ void Iceologer::dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel)
 {
 	Monster::dropDeathLoot(wasKilledByPlayer, playerBonusLevel);
 
-	if (random->nextInt(2) == 0) spawnAtLocation(std::make_shared<ItemInstance>(Item::ice_wand), 0.0f);
+	// the Ice Wand used to be a coin flip; now about 1 in 8, a little better with Looting (3% per level)
+	if (random->nextInt(100) < 12 + playerBonusLevel * 3) spawnAtLocation(std::make_shared<ItemInstance>(Item::ice_wand), 0.0f);
 	if (wasKilledByPlayer)
 	{
+		// a very small chance of a block or two of ice: 5%, +1% per Looting level
+		if (random->nextInt(100) < 5 + playerBonusLevel) spawnAtLocation(Tile::ice_Id, 1 + random->nextInt(2));
 		int count = random->nextInt(2);
 		if (playerBonusLevel > 0) count += random->nextInt(playerBonusLevel + 1);
 		for (int i = 0; i < count; i++) spawnAtLocation(Item::emerald_Id, 1);

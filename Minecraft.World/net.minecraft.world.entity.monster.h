@@ -19,6 +19,8 @@
 #include "Pillager.h"
 #include "Ravager.h"
 #include "Provoker.h"
+#include "Sorcerer.h"
+#include "Alchemist.h"
 #include "IceCube.h"
 #include "Drowned.h"
 #include "PigZombie.h"

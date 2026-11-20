@@ -178,6 +178,8 @@ EntityRenderDispatcher::EntityRenderDispatcher()
 	renderers[eTYPE_PILLAGER] = new IllagerRenderer();	// neoLegacy
 	renderers[eTYPE_RAVAGER] = new RavagerRenderer();	// neoLegacy
 	renderers[eTYPE_PROVOKER] = new IllagerRenderer();	// neoLegacy
+	renderers[eTYPE_SORCERER] = new IllagerRenderer(64, 128, 1);	// neoLegacy - wizard hat, 64x128 skin
+	renderers[eTYPE_ALCHEMIST] = new IllagerRenderer(128, 64, 2);	// neoLegacy - big brim, 128x64 skin
 	renderers[eTYPE_DROWNED] = new DrownedRenderer();
 	renderers[eTYPE_WANDERING_TRADER] = new WanderingTraderRenderer();
 	

@@ -60,6 +60,7 @@ int Illager::getCelebrateSoundId()
 	case eTYPE_VINDICATOR:	return eSoundType_MOB_VINDICATOR_CELEBRATE;
 	case eTYPE_PILLAGER:	return eSoundType_MOB_PILLAGER_CELEBRATE;
 	case eTYPE_PROVOKER:	return eSoundType_MOB_PROVOKER_CELEBRATE;
+	case eTYPE_SORCERER:	return eSoundType_MOB_SORCERER_CELEBRATE;
 	default:				return eSoundType_MOB_EVOKER_CELEBRATE;
 	}
 }

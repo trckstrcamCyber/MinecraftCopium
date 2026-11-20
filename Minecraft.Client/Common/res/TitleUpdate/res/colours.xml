@@ -325,9 +325,12 @@ if __name__=="__main__": notecolors()
    <colour name="Mob_Ravager_Colour2" value="5B5049"/>
    <colour name="Mob_Provoker_Colour1" value="959595"/>
    <colour name="Mob_Provoker_Colour2" value="4D8A8A"/>
+   <colour name="Mob_Sorcerer_Colour1" value="7B3FA0"/>
+   <colour name="Mob_Sorcerer_Colour2" value="3B1D52"/>
+   <colour name="Mob_Alchemist_Colour1" value="6B8E3A"/>
+   <colour name="Mob_Alchemist_Colour2" value="3A4A1E"/>
    <colour name="Mob_CopperGolem_Colour1" value="AD5F45"/>
-   <colour name="Mob_CopperGolem_Colour2" value="4F9C74"/>
-   <colour name="Mob_WanderingTrader_Colour1" value="456E92"/>
+   <colour name="Mob_CopperGolem_Colour2" value="4F9C74"/>   <colour name="Mob_WanderingTrader_Colour1" value="456E92"/>
    <colour name="Mob_WanderingTrader_Colour2" value="E5B34A"/>
    <colour name="Mob_WitherSkeleton_Colour1" value="141414"/>
    <colour name="Mob_WitherSkeleton_Colour2" value="474D4D"/>

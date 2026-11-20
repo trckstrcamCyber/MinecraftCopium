@@ -217,6 +217,8 @@ const wchar_t *Textures::preLoaded[TN_COUNT] =
 	L"mob/pillager",
 	L"mob/ravager",
 	L"mob/provoker",
+	L"mob/sorcerer",
+	L"mob/alchemist",
 	L"mob/copper_golem",	// neoLegacy - Copper Age (Phase 5)
 	L"mob/exposed_copper_golem",
 	L"mob/weathered_copper_golem",
@@ -224,8 +226,7 @@ const wchar_t *Textures::preLoaded[TN_COUNT] =
 	L"mob/copper_golem_eyes",
 	L"mob/exposed_copper_golem_eyes",
 	L"mob/weathered_copper_golem_eyes",
-	L"mob/oxidized_copper_golem_eyes",
-	L"mob/wandering_trader",
+	L"mob/oxidized_copper_golem_eyes",	L"mob/wandering_trader",
 	L"item/cart_diamond",
 	L"item/boat_spruce",
 	L"item/boat_birch",

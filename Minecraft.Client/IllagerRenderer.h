@@ -9,9 +9,12 @@ private:
 	static ResourceLocation EVOKER_LOCATION;
 	static ResourceLocation PILLAGER_LOCATION;
 	static ResourceLocation PROVOKER_LOCATION;
+	static ResourceLocation SORCERER_LOCATION;
+	static ResourceLocation ALCHEMIST_LOCATION;
 
 public:
-	IllagerRenderer();
+	// texW / texH: the skin's size; hatKind: an IllagerModel::Hat (0 none, 1 the Sorcerer's wizard hat, 2 the Alchemist's brim)
+	IllagerRenderer(int texW = 64, int texH = 64, int hatKind = 0);
 
 protected:
 	virtual void additionalRendering(shared_ptr<LivingEntity> mob, float a);

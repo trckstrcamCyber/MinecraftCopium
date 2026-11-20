@@ -21,6 +21,8 @@
 #include "Mth.h"
 #include "IllagerSpellGoals.h"
 #include "Illusioner.h"
+#include "PotionItem.h"
+#include "MobEffectInstance.h"
 
 namespace
 {
@@ -201,6 +203,37 @@ void Illusioner::getRenderLocations(float a, double out[4][3])
 	for (int i = 0; i < 4; i++)
 		for (int k = 0; k < 3; k++)
 			out[i][k] = illusionOffsets[1][i][k] * (1.0 - t) + illusionOffsets[0][i][k] * t;
+}
+
+// The value of a drinkable Potion of Invisibility. Asks the potion item which of the drinkable values (bit 13 set, no splash bit) give that
+// effect and takes the longest one; falls back to the 1.6.4 value for the 3:00 potion.
+static int invisibilityPotionValue()
+{
+	static int found = 0;
+	if (found != 0) return found;
+	int bestDuration = 0;
+	for (int aux = 8192; aux < 8192 + 256; aux++)
+	{
+		vector<MobEffectInstance *> *effects = Item::potion->getMobEffects(aux);
+		if (effects == nullptr) continue;
+		for (size_t i = 0; i < effects->size(); i++)
+		{
+			MobEffectInstance *e = (*effects)[i];
+			if (e->getId() == MobEffect::invisibility->id && e->getDuration() > bestDuration) { bestDuration = e->getDuration(); found = aux; }
+		}
+	}
+	if (found == 0) found = 8238;
+	return found;
+}
+
+// An even smaller chance than the Iceologer's ice: a Potion of Invisibility. 2% when a player kills it, +0.5% per Looting level.
+void Illusioner::dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel)
+{
+	Monster::dropDeathLoot(wasKilledByPlayer, playerBonusLevel);
+	if (wasKilledByPlayer && random->nextInt(1000) < 20 + playerBonusLevel * 5)
+	{
+		spawnAtLocation(std::make_shared<ItemInstance>(Item::potion, 1, invisibilityPotionValue()), 0.0f);
+	}
 }
 
 int Illusioner::getCastingSoundId() { return eSoundType_MOB_EVOKER_CAST; }	// VERIFY: no illusioner "cast spell" sound was supplied, the evoker's stands in

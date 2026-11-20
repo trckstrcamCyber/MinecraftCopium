@@ -732,8 +732,9 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Item::spawn_egg_Id, 124); // Pillager
 		ITEM_AUX(Item::spawn_egg_Id, 125); // Ravager
 		ITEM_AUX(Item::spawn_egg_Id, 126); // Provoker
-		ITEM_AUX(Item::spawn_egg_Id, 131); // Copper Golem // neoLegacy - Copper Age (Phase 5)
-		ITEM_AUX(Item::spawn_egg_Id, 113); // Wandering Trader
+		ITEM_AUX(Item::spawn_egg_Id, 127); // Sorcerer
+		ITEM_AUX(Item::spawn_egg_Id, 128); // Alchemist
+		ITEM_AUX(Item::spawn_egg_Id, 131); // Copper Golem // neoLegacy - Copper Age (Phase 5)		ITEM_AUX(Item::spawn_egg_Id, 113); // Wandering Trader
 		ITEM(Item::record_13_Id)
 		ITEM(Item::record_cat_Id)
 		ITEM(Item::record_blocks_Id)

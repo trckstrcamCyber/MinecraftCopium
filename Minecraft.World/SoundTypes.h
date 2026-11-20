@@ -394,6 +394,14 @@ enum eSOUND_TYPE
 	eSoundType_MOB_PROVOKER_DEATH,
 	eSoundType_MOB_PROVOKER_CELEBRATE,
 
+	// neoLegacy - sorcerer (files under Windows64Media/Sound/Minecraft/mob/sorcerer)
+	eSoundType_MOB_SORCERER_IDLE,
+	eSoundType_MOB_SORCERER_HURT,
+	eSoundType_MOB_SORCERER_DEATH,
+	eSoundType_MOB_SORCERER_CELEBRATE,
+	eSoundType_MOB_SORCERER_CAST,			// the spell's wind-up
+	eSoundType_MOB_SORCERER_COMPLETECAST,	// the spell going off
+
 	// neoLegacy - mace smash (files: Windows64Media/Sound/Minecraft/item/mace/*)
 	eSoundType_ITEM_MACE_SMASH_AIR,			// target was in the air: smash_air1-3
 	eSoundType_ITEM_MACE_SMASH_GROUND,		// target on the ground: smash_ground1-4

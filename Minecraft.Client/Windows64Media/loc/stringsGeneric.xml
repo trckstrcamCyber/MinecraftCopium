@@ -10999,10 +10999,15 @@
 	<data name="IDS_DESC_SHELF">
 		<value>A shelf for displaying and storing items. It is made from stripped logs.</value>
 	</data>
+	<data name="IDS_SORCERER">
+		<value>Sorcerer</value>
+	</data>
+	<data name="IDS_ALCHEMIST">
+		<value>Alchemist</value>
+	</data>
 	<data name="IDS_COPPER_GOLEM">
 		<value>Copper Golem</value>
 	</data>
 	<data name="IDS_COPPER_GOLEM_STATUE">
-		<value>Copper Golem Statue</value>
-	</data>
+		<value>Copper Golem Statue</value>	</data>
 </root>
