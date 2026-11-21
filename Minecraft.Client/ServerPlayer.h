@@ -74,9 +74,9 @@ public:
 	void doChunkSendingTick(bool dontDelayChunks);
 	void doTickB();
 	virtual void changeDimension(int i);
-private:
+	// neoLegacy - Copper Age (2026-11-20). broadcast() must be public:
+	// ServerLevel::broadcastTileEntityUpdate calls it for every player.
 	void broadcast(shared_ptr<TileEntity> te, bool delay = false);
-public:
 	virtual void take(shared_ptr<Entity> e, int orgCount);
 	virtual BedSleepingResult startSleepInBed(int x, int y, int z, bool bTestUse = false);
 
