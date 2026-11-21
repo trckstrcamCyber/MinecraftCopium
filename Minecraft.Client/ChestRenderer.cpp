@@ -58,7 +58,13 @@ void ChestRenderer::render(shared_ptr<TileEntity>  _chest, double x, double y, d
 
 	if (!chest->hasLevel())
 	{
-		data = 0;
+		// neoLegacy - Copper Age (Round 5): a level-less chest is a held /
+		// inventory / dropped item (EntityTileRenderer). Its cached
+		// TileEntity::data was set from the item aux by the caller
+		// (oxidation for a copper chest); -1 means "not set", i.e. a plain
+		// chest. TileEntity::getData() would dereference the null level
+		// when data is -1, so read the public member directly.
+		data = chest->data >= 0 ? chest->data : 0;
 	}
 	else
 	{

@@ -2,6 +2,7 @@
 
 class ChestTileEntity;
 class EnderChestTileEntity;
+class CopperGolemStatueBlockEntity;
 class Tile;
 
 class EntityTileRenderer
@@ -13,6 +14,11 @@ class EntityTileRenderer
 	 shared_ptr<ChestTileEntity> chest;
 	 shared_ptr<ChestTileEntity> trappedChest;
 	 shared_ptr<EnderChestTileEntity> enderChest;
+	 // neoLegacy - Copper Age (Round 5): held-item TEs for the copper
+	 // chest (TYPE_COPPER) and the golem statue, so they render as
+	 // themselves instead of falling through to the vanilla chest.
+	 shared_ptr<ChestTileEntity> copperChest;
+	 shared_ptr<CopperGolemStatueBlockEntity> statue;
 
  public:
 	 EntityTileRenderer();

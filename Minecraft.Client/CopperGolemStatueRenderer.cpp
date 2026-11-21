@@ -28,7 +28,14 @@ void CopperGolemStatueRenderer::render(shared_ptr<TileEntity> _statue, double x,
 	int data;
 	if (statue == nullptr || !statue->hasLevel())
 	{
-		data = 0;
+		// neoLegacy - Copper Age (Round 5): a level-less statue is a held /
+		// inventory / dropped item (EntityTileRenderer). Its cached
+		// TileEntity::data was set from the item aux by the caller
+		// (oxidation bits 0-2; pose/facing are placement-time, so they
+		// read 0 = STANDING/NORTH here). TileEntity::getData() would
+		// dereference the null level when data is -1, so read the public
+		// member directly; -1 means "not set".
+		data = (statue != nullptr && statue->data >= 0) ? statue->data : 0;
 	}
 	else
 	{
