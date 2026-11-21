@@ -2007,6 +2007,8 @@ set(_MINECRAFT_WORLD_COMMON_NET_MINECRAFT_WORLD_LEVEL_TILE
   "${CMAKE_CURRENT_SOURCE_DIR}/ConcreteColorTileEntity.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperBulbTile.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperBulbTile.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/CopperButtonTile.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/CopperButtonTile.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperFenceTile.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperFenceTile.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperGrateTile.cpp"

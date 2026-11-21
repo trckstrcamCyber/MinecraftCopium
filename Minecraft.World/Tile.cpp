@@ -35,6 +35,7 @@
 #include "ConcreteStairTile.h"
 #include "ConcreteTileItems.h"
 #include "CopperBulbTile.h"	// neoLegacy - Copper Age (Phase 3)
+#include "CopperButtonTile.h"	// neoLegacy - Copper Age (round-5 fix, 2026-11-20)
 #include "CopperFenceTile.h"	// neoLegacy - Copper Age (Phase 3)
 #include "CopperGrateTile.h"	// neoLegacy - Copper Age (playtest fix, 2026-11-20)
 #include "CopperSlabTile.h"	// neoLegacy - Copper Age (Phase 3)
@@ -578,7 +579,7 @@ void Tile::staticCtor()
 	Tile::copperLantern = (new CopperThinTile(Tile::copper_lantern_Id, L"copper_lantern", 5.0f/16.0f, 0, 5.0f/16.0f, 11.0f/16.0f, 8.0f/16.0f, 11.0f/16.0f))						->setBaseItemTypeAndMaterial(Item::eBaseItemType_torch,	Item::eMaterial_copper)->setDestroyTime(3.5f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setLightEmission(1.0f)->setIconName(L"copper_lantern")->setDescriptionId(IDS_TILE_COPPER_LANTERN)->setUseDescriptionId(IDS_DESC_COPPER_LANTERN);
 	Tile::copperTorch = (new TorchTile(Tile::copper_torch_Id))												->setBaseItemTypeAndMaterial(Item::eBaseItemType_torch,	Item::eMaterial_copper)->setDestroyTime(0.0f)->setLightEmission(15 / 16.0f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_torch")->setDescriptionId(IDS_TILE_COPPER_TORCH)->setUseDescriptionId(IDS_DESC_COPPER_TORCH)->disableMipmap();
 	// Copper button: reuses the copper-block texture (0 new atlas cells).
-	Tile::copperButton = (new StoneButtonTile(Tile::copper_button_Id))										->setBaseItemTypeAndMaterial(Item::eBaseItemType_button,	Item::eMaterial_copper)->setDestroyTime(0.5f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_block")->setDescriptionId(IDS_TILE_COPPER_BUTTON)->setUseDescriptionId(IDS_DESC_COPPER_BUTTON);
+	Tile::copperButton = (new CopperButtonTile(Tile::copper_button_Id))										->setBaseItemTypeAndMaterial(Item::eBaseItemType_button,	Item::eMaterial_copper)->setDestroyTime(0.5f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_block")->setDescriptionId(IDS_TILE_COPPER_BUTTON)->setUseDescriptionId(IDS_DESC_COPPER_BUTTON);
 	// Lightning rod: DECORATIVE ONLY (Phase 0 item 6 — natural lightning
 	// never strikes and there is no block-level lightning hook, so the
 	// attraction feature is cut). No strike code is added here.
