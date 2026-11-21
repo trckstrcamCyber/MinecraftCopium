@@ -6,8 +6,12 @@ class IconRegister;
 // neoLegacy - Copper Age (Phase 3). The copper shelf (Java shelf block).
 // One tile id; aux = wood index 0-6 (same global order as
 // StrippedLogTile: OAK, SPRUCE, BIRCH, JUNGLE, ACACIA, DARK_OAK, BAMBOO).
-// The shelf has its OWN per-wood texture in jar1201 (32x32, downscaled to
-// 16x16 for the atlas) — it does NOT reuse the wood/log textures.
+// The shelf has its OWN per-wood texture in jar1201 (32x32). The atlas
+// holds two 16x16 quadrants per wood: the FRONT icon (top-left quadrant,
+// the front view) and the BACK icon (top-right quadrant, the back panel
+// and board tops/undersides). The multi-cuboid model (SHAPE_SHELF,
+// TileRenderer) samples both; getTexture() still returns the front icon
+// for particles / pick-block. It does NOT reuse the wood/log textures.
 //
 // Phase 6: storage + redstone output. The shelf is a BaseEntityTile
 // with a 3-slot ShelfTileEntity. The wood aux lives in data bits 0-2,
@@ -25,12 +29,18 @@ class ShelfTile : public BaseEntityTile
 {
 private:
 	Icon *woodIcons[7];
+	Icon *backIcons[7];	// top-right quadrant per wood (back panel)
 
 public:
 	ShelfTile(int id);
 
 	virtual Icon *getTexture(int face, int data) override;
 	virtual Icon *getTexture(LevelSource *level, int x, int y, int z, int face) override;
+	virtual int getRenderShape() override;
+	// Front (top-left quadrant) / back (top-right quadrant) atlas icons for
+	// the multi-cuboid model. data & 7 is the wood index.
+	Icon *getFrontIcon(int data);
+	Icon *getBackIcon(int data);
 	virtual void registerIcons(IconRegister *iconRegister) override;
 	virtual shared_ptr<TileEntity> newTileEntity(Level *level) override;
 	virtual void setPlacedBy(Level *level, int x, int y, int z, shared_ptr<LivingEntity> by, shared_ptr<ItemInstance> itemInstance) override;

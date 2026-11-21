@@ -23,6 +23,16 @@ bool CopperThinTile::isCubeShaped()
 	return false;
 }
 
+int CopperThinTile::getRenderShape()
+{
+	// COPPER_MODELS_RENDERER: the lantern (body + cap) and the rod (head +
+	// shaft) have Java-style two-box models; the chain is a single thin box
+	// and keeps the generic SHAPE_BLOCK path.
+	if (id == Tile::copper_lantern_Id) return Tile::SHAPE_COPPER_LANTERN;
+	if (id == Tile::lightning_rod_Id) return Tile::SHAPE_LIGHTNING_ROD;
+	return Tile::SHAPE_BLOCK;
+}
+
 void CopperThinTile::updateShape(LevelSource *level, int x, int y, int z, int forceData, shared_ptr<TileEntity> forceEntity)
 {
 	setShape(sx0, sy0, sz0, sx1, sy1, sz1);

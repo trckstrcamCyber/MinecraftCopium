@@ -1455,6 +1455,18 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(36, 3,  L"exposed_copper_golem_statue")
 		ADD_ICON(36, 4,  L"weathered_copper_golem_statue")
 		ADD_ICON(36, 5,  L"oxidized_copper_golem_statue")
+		// Row 36 (cols 6-12): shelf back panels (per wood) -- the top-right
+		// quadrant of each wood's Java shelf texture. The multi-cuboid shelf
+		// model (SHAPE_SHELF) samples the back panel and the board tops /
+		// undersides from these; the front cells (row 35, cols 5-11) are the
+		// top-left quadrant.
+		ADD_ICON(36, 6,  L"oak_shelf_back")
+		ADD_ICON(36, 7,  L"spruce_shelf_back")
+		ADD_ICON(36, 8,  L"birch_shelf_back")
+		ADD_ICON(36, 9,  L"jungle_shelf_back")
+		ADD_ICON(36, 10, L"acacia_shelf_back")
+		ADD_ICON(36, 11, L"dark_oak_shelf_back")
+		ADD_ICON(36, 12, L"bamboo_shelf_back")
 
 	}
 }

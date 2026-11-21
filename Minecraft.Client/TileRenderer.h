@@ -27,6 +27,8 @@ class WallTile;
 class BeaconTile;
 class HopperTile;
 class GrindstoneTile;
+class CopperThinTile;
+class ShelfTile;
 class Icon;
 class Minecraft;
 
@@ -209,6 +211,13 @@ public:
 	bool tesselateGrindstoneInWorld(GrindstoneTile *tt, int x, int y, int z);
 	bool tesselateBambooInWorld(Tile *tt, int x, int y, int z);	// neoLegacy - Bamboo
 	void renderGrindstoneInventory(GrindstoneTile *tt, int data, float brightness, float alpha);
+	// COPPER_MODELS_RENDERER: Java-style multi-cuboid models (see TileRenderer.cpp).
+	bool tesselateCopperLanternInWorld(CopperThinTile *tt, int x, int y, int z);
+	bool tesselateLightningRodInWorld(CopperThinTile *tt, int x, int y, int z);
+	bool tesselateShelfInWorld(ShelfTile *tt, int x, int y, int z);
+	void renderCopperLanternInventory(CopperThinTile *tt, int data, float brightness, float alpha);
+	void renderLightningRodInventory(CopperThinTile *tt, int data, float brightness, float alpha);
+	void renderShelfInventory(ShelfTile *tt, int data, float brightness, float alpha);
 	bool tesselateStairsInWorld( StairTile* tt, int x, int y, int z );
 	bool tesselateDoorInWorld( Tile* tt, int x, int y, int z );
 	void renderFaceUp( Tile* tt, double x, double y, double z, Icon *tex );

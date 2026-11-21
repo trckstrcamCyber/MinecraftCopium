@@ -16,6 +16,9 @@
 #include "Options.h"
 #include "../Minecraft.World/TallGrass2.h"
 #include "../Minecraft.World/BambooTile.h"
+#include "../Minecraft.World/CopperThinTile.h"
+#include "../Minecraft.World/ShelfTile.h"
+#include "../Minecraft.World/ShelfTileEntity.h"
 
 bool TileRenderer::fancy = true;
 
@@ -375,6 +378,217 @@ namespace
 		emitGrindstoneFace(t, eastWestTexture, GS_EAST,
 			x0, y0, z0, x1, y1, z1, uvs[GS_EAST], quarterTurns, ox, oy, oz, writeNormal);
 	}
+	// COPPER_MODELS_RENDERER: same explicit-UV cuboid machinery as the
+	// grindstone above, but with ONE icon per face instead of the grindstone's
+	// north/south-vs-east/west split. The copper lantern, lightning rod and
+	// shelf need per-face icons (e.g. the shelf's boards take the front icon
+	// on their north/east/west faces and the back icon on up/down). The
+	// helpers it reuses (GrindstoneUV, emitGrindstoneFace, rotateGrindstone*,
+	// GS_*) are generic despite the names; the grindstone itself is untouched.
+	// faceIcons are indexed by GS_* (DOWN, UP, NORTH, SOUTH, WEST, EAST).
+	static void renderCopperModelCuboid(
+		Tesselator *t,
+		LevelSource *level,
+		Tile *tile,
+		int blockX, int blockY, int blockZ,
+		float x0, float y0, float z0,
+		float x1, float y1, float z1,
+		Icon *const faceIcons[6],
+		const GrindstoneUV *uvs,
+		bool worldLighting,
+		int quarterTurns,
+		float brightness,
+		float alpha,
+		const int *faceLight = nullptr)
+	{
+		(void)level;
+
+		if (tile == nullptr)
+			return;
+
+		// Where the block's cell sits: its world position in a chunk build,
+		// 0,0,0 for the inventory (callers pass 0,0,0 there).
+		const float ox = static_cast<float>(blockX);
+		const float oy = static_cast<float>(blockY);
+		const float oz = static_cast<float>(blockZ);
+
+		const float shade[6] =
+		{
+			0.5f, // down
+			1.0f, // up
+			0.8f, // north
+			0.8f, // south
+			0.6f, // west
+			0.6f  // east
+		};
+
+		// Does this face of the (unrotated) cuboid lie on the edge of the block
+		// cell? Those faces take the light of the neighbour they face; faces
+		// inside the cell take the block's own light. Sampling the neighbour for
+		// an inset face would leave a lantern beside a wall pitch black.
+		auto onCellEdge =
+			[&](int face) -> bool
+			{
+				const float eps = 0.001f;
+				switch (face)
+				{
+				case GS_DOWN:  return y0 <= eps;
+				case GS_UP:    return y1 >= 1.0f - eps;
+				case GS_NORTH: return z0 <= eps;
+				case GS_SOUTH: return z1 >= 1.0f - eps;
+				case GS_WEST:  return x0 <= eps;
+				case GS_EAST:  return x1 >= 1.0f - eps;
+				}
+				return false;
+			};
+
+		auto setFaceLighting =
+			[&](int face)
+			{
+				// The direction this quad really faces once the model is turned.
+				// Shading and light lookups must use it, not the base-model face.
+				const int facing = rotateGrindstoneFace(face, quarterTurns);
+
+#ifdef GRINDSTONE_DEBUG_MAGENTA
+				tessColor(t, 1.0f, 0.0f, 1.0f, 1.0f);
+				return;
+#endif
+				const float s = shade[facing];
+
+				if (worldLighting && faceLight != nullptr &&
+					SharedConstants::TEXTURE_LIGHTING)
+				{
+					t->tex2(onCellEdge(face) ? faceLight[facing] : faceLight[6]);
+					tessColor(t, s, s, s, alpha);
+				}
+				else
+				{
+					const float c = s * brightness;
+					tessColor(t, c, c, c, alpha);
+				}
+			};
+
+		const bool writeNormal = !worldLighting;
+
+		setFaceLighting(GS_NORTH);
+		emitGrindstoneFace(t, faceIcons[GS_NORTH], GS_NORTH,
+			x0, y0, z0, x1, y1, z1, uvs[GS_NORTH], quarterTurns, ox, oy, oz, writeNormal);
+
+		setFaceLighting(GS_SOUTH);
+		emitGrindstoneFace(t, faceIcons[GS_SOUTH], GS_SOUTH,
+			x0, y0, z0, x1, y1, z1, uvs[GS_SOUTH], quarterTurns, ox, oy, oz, writeNormal);
+
+		setFaceLighting(GS_UP);
+		emitGrindstoneFace(t, faceIcons[GS_UP], GS_UP,
+			x0, y0, z0, x1, y1, z1, uvs[GS_UP], quarterTurns, ox, oy, oz, writeNormal);
+
+		setFaceLighting(GS_DOWN);
+		emitGrindstoneFace(t, faceIcons[GS_DOWN], GS_DOWN,
+			x0, y0, z0, x1, y1, z1, uvs[GS_DOWN], quarterTurns, ox, oy, oz, writeNormal);
+
+		setFaceLighting(GS_WEST);
+		emitGrindstoneFace(t, faceIcons[GS_WEST], GS_WEST,
+			x0, y0, z0, x1, y1, z1, uvs[GS_WEST], quarterTurns, ox, oy, oz, writeNormal);
+
+		setFaceLighting(GS_EAST);
+		emitGrindstoneFace(t, faceIcons[GS_EAST], GS_EAST,
+			x0, y0, z0, x1, y1, z1, uvs[GS_EAST], quarterTurns, ox, oy, oz, writeNormal);
+	}
+
+	// COPPER_MODELS_RENDERER: Java face UVs for the three models, shared by
+	// the world and inventory renderers below (unlike the grindstone, whose
+	// world and inventory tables differ, these models use identical UVs in
+	// both paths). Tables are indexed GS_* (DOWN, UP, NORTH, SOUTH, WEST,
+	// EAST) and hold ICON PIXELS (0-16) into the model's atlas cell.
+	//   * Lantern / rod: the icon IS the official 16x16 texture (frame 1 for
+	//     the lantern), so the values are the Java JSON UVs verbatim.
+	//   * Shelf: the texture is 32x32 and Java UV space is 0-16 = the full
+	//     texture, so 1 UV unit = 2 PNG px. The port's atlas cells are 16x16:
+	//     the FRONT icon is the top-left quadrant (PNG x0-16, y0-16) and the
+	//     BACK icon the top-right quadrant (PNG x16-32, y0-16), so icon px =
+	//     PNG px (front) or PNG px - 16 in x (back).
+	// {0,0,0,0} = the JSON has no such face: emitGrindstoneFace skips it,
+	// which is what keeps coincident faces from z-fighting (cap bottom vs
+	// body top, shaft top vs head bottom, board backs vs back-panel front).
+	static const GrindstoneUV LANTERN_BODY_UV[6] =
+	{
+		{0, 9, 6, 15}, // down  (template_lantern body)
+		{0, 9, 6, 15}, // up
+		{0, 2, 6, 9},  // north
+		{0, 2, 6, 9},  // south
+		{0, 2, 6, 9},  // west
+		{0, 2, 6, 9}   // east
+	};
+
+	static const GrindstoneUV LANTERN_CAP_UV[6] =
+	{
+		{0, 0, 0, 0},   // no down (Java omits it)
+		{1, 10, 5, 14}, // up
+		{1, 0, 5, 2},   // north
+		{1, 0, 5, 2},   // south
+		{1, 0, 5, 2},   // west
+		{1, 0, 5, 2}    // east
+	};
+
+	static const GrindstoneUV ROD_HEAD_UV[6] =
+	{
+		{0, 0, 4, 4}, // down  (template_lightning_rod head)
+		{4, 4, 0, 0}, // up (reversed in the JSON)
+		{0, 0, 4, 4}, // north
+		{0, 0, 4, 4}, // south
+		{0, 0, 4, 4}, // west
+		{0, 0, 4, 4}  // east
+	};
+
+	static const GrindstoneUV ROD_SHAFT_UV[6] =
+	{
+		{0, 4, 2, 6},  // down
+		{0, 0, 0, 0},  // no up (Java omits it)
+		{0, 4, 2, 16}, // north
+		{0, 4, 2, 16}, // south
+		{0, 4, 2, 16}, // west
+		{0, 4, 2, 16}  // east
+	};
+
+	static const GrindstoneUV SHELF_BODY_UV[6] =
+	{
+		{16, 12, 0, 9}, // down  (template_shelf_body, back panel; back icon)
+		{16, 10, 0, 7}, // up
+		{0, 0, 0, 0},   // no north (Java omits it: the overlay covers the front)
+		{0, 0, 16, 16}, // south
+		{13, 0, 16, 16},// west
+		{0, 0, 3, 16}   // east
+	};
+
+	static const GrindstoneUV SHELF_BOTTOM_UV[6] =
+	{
+		{16, 9, 0, 7},  // down  (bottom board; back icon)
+		{0, 7, 16, 9},  // up    (back icon)
+		{0, 12, 16, 16},// north (front icon)
+		{0, 0, 0, 0},   // no south (Java omits it)
+		{11, 12, 13, 16},// west (front icon)
+		{3, 12, 5, 16}  // east  (front icon)
+	};
+
+	static const GrindstoneUV SHELF_TOP_UV[6] =
+	{
+		{0, 10, 16, 12},// down  (top board; back icon)
+		{16, 12, 0, 10},// up    (back icon)
+		{0, 0, 16, 4},  // north (front icon)
+		{0, 0, 0, 0},   // no south (Java omits it)
+		{11, 0, 13, 4}, // west  (front icon)
+		{3, 0, 5, 4}    // east  (front icon)
+	};
+
+	static const GrindstoneUV SHELF_OVERLAY_UV[6] =
+	{
+		{0, 0, 0, 0},   // down  (unpowered overlay plane; north face only)
+		{0, 0, 0, 0},   // up
+		{0, 4, 16, 12}, // north (front icon: divider pattern, open middle)
+		{0, 0, 0, 0},   // south
+		{0, 0, 0, 0},   // west
+		{0, 0, 0, 0}    // east
+	};
 }
 
 
@@ -872,6 +1086,15 @@ bool TileRenderer::tesselateInWorld( Tile* tt, int x, int y, int z, int forceDat
 		break;
 	case Tile::SHAPE_BAMBOO:
 		retVal = tesselateBambooInWorld(tt, x, y, z);
+		break;
+	case Tile::SHAPE_COPPER_LANTERN:
+		retVal = tesselateCopperLanternInWorld(static_cast<CopperThinTile *>(tt), x, y, z);
+		break;
+	case Tile::SHAPE_LIGHTNING_ROD:
+		retVal = tesselateLightningRodInWorld(static_cast<CopperThinTile *>(tt), x, y, z);
+		break;
+	case Tile::SHAPE_SHELF:
+		retVal = tesselateShelfInWorld(static_cast<ShelfTile *>(tt), x, y, z);
 		break;
 	};
 
@@ -5781,6 +6004,340 @@ void TileRenderer::renderGrindstoneInventory(
 		14.0f / 16.0f, 1.0f, 14.0f / 16.0f);
 }
 
+
+bool TileRenderer::tesselateCopperLanternInWorld(CopperThinTile *tt, int x, int y, int z)
+{
+	if (tt == nullptr)
+		return false;
+
+	Tesselator *t = Tesselator::getInstance();
+
+	// One icon per oxidation state (waxed reuses the unwaxed icon, as in
+	// CopperThinTile::getTexture); every face of both boxes samples it.
+	Icon *icon = getTexture(tt, level, x, y, z, Facing::NORTH);
+	// Block-breaking cracks (LevelRenderer re-tesselates with a fixed
+	// texture): renderNorth et al. substitute it for the face icon, so do
+	// the same here or the cracks would never show on these models.
+	if (hasFixedTexture()) icon = fixedTexture;
+	Icon *faces[6] = { icon, icon, icon, icon, icon, icon };
+
+	const float b = tt->getBrightness(level, x, y, z);
+	const float alpha = 1.0f;
+
+	// Packed sky/block light for the six neighbouring cells (indexed by GS_*)
+	// and, at [6], the block's own cell -- read through the chunk compiler's
+	// light cache like every other tesselator in this file.
+	int faceLight[7];
+	faceLight[GS_DOWN]  = getLightColor(tt, level, x, y - 1, z);
+	faceLight[GS_UP]    = getLightColor(tt, level, x, y + 1, z);
+	faceLight[GS_NORTH] = getLightColor(tt, level, x, y, z - 1);
+	faceLight[GS_SOUTH] = getLightColor(tt, level, x, y, z + 1);
+	faceLight[GS_WEST]  = getLightColor(tt, level, x - 1, y, z);
+	faceLight[GS_EAST]  = getLightColor(tt, level, x + 1, y, z);
+	faceLight[6]        = getLightColor(tt, level, x, y, z);
+
+	// NOTE: tesselateCopperLanternInWorld runs *inside* the chunk compiler's
+	// single begin()/end() pass for the whole chunk section (see
+	// tesselateInWorld above -- none of the other SHAPE_* handlers call
+	// begin()/end() either), so do not call t->begin()/t->end() here: just
+	// append quads into the already-active batch. Vertices submitted here
+	// must be in WORLD coordinates.
+	//
+	// Java model (template_lantern.json, standing): body [5,0,5]->[11,7,11]
+	// (squat box, green glass window on all four sides) + cap
+	// [6,7,6]->[10,9,10] (narrower, darker cap on top). The two 45-degree
+	// rotated hanger bars (y 9-11) cannot be expressed with axis-aligned
+	// cuboids and are omitted -- the lantern reads as body + cap, which is
+	// the standing model's silhouette (cf. reference-lantern-java.jpg: squat
+	// box, green windows, dark cap, handle loop on top).
+
+	// Body: [5,0,5] -> [11,7,11]
+	renderCopperModelCuboid(
+		t, level, tt, x, y, z,
+		5.0f / 16.0f, 0.0f, 5.0f / 16.0f,
+		11.0f / 16.0f, 7.0f / 16.0f, 11.0f / 16.0f,
+		faces, LANTERN_BODY_UV, true, 0, b, alpha, faceLight);
+
+	// Cap: [6,7,6] -> [10,9,10]
+	renderCopperModelCuboid(
+		t, level, tt, x, y, z,
+		6.0f / 16.0f, 7.0f / 16.0f, 6.0f / 16.0f,
+		10.0f / 16.0f, 9.0f / 16.0f, 10.0f / 16.0f,
+		faces, LANTERN_CAP_UV, true, 0, b, alpha, faceLight);
+
+	// Keep the collision/render bounds valid for the next block (union of
+	// body + cap; matches the tile's shape bounds in Tile.cpp).
+	setShape(5.0f / 16.0f, 0.0f, 5.0f / 16.0f,
+		11.0f / 16.0f, 9.0f / 16.0f, 11.0f / 16.0f);
+
+	return true;
+}
+
+bool TileRenderer::tesselateLightningRodInWorld(CopperThinTile *tt, int x, int y, int z)
+{
+	if (tt == nullptr)
+		return false;
+
+	Tesselator *t = Tesselator::getInstance();
+
+	Icon *icon = getTexture(tt, level, x, y, z, Facing::NORTH);
+	// Block-breaking cracks (LevelRenderer re-tesselates with a fixed
+	// texture): renderNorth et al. substitute it for the face icon, so do
+	// the same here or the cracks would never show on these models.
+	if (hasFixedTexture()) icon = fixedTexture;
+	Icon *faces[6] = { icon, icon, icon, icon, icon, icon };
+
+	const float b = tt->getBrightness(level, x, y, z);
+	const float alpha = 1.0f;
+
+	int faceLight[7];
+	faceLight[GS_DOWN]  = getLightColor(tt, level, x, y - 1, z);
+	faceLight[GS_UP]    = getLightColor(tt, level, x, y + 1, z);
+	faceLight[GS_NORTH] = getLightColor(tt, level, x, y, z - 1);
+	faceLight[GS_SOUTH] = getLightColor(tt, level, x, y, z + 1);
+	faceLight[GS_WEST]  = getLightColor(tt, level, x - 1, y, z);
+	faceLight[GS_EAST]  = getLightColor(tt, level, x + 1, y, z);
+	faceLight[6]        = getLightColor(tt, level, x, y, z);
+
+	// Java model (template_lightning_rod.json): TWO boxes, not one --
+	// head [6,12,6]->[10,16,10] (4-wide square head) + shaft
+	// [7,0,7]->[9,12,9] (2-wide shaft, centred under the head). The old
+	// port rendered ONE 4-wide box (the ctor bounds), which is why the rod
+	// read as a thick column instead of a thin shaft with a head.
+
+	// Head: [6,12,6] -> [10,16,10]
+	renderCopperModelCuboid(
+		t, level, tt, x, y, z,
+		6.0f / 16.0f, 12.0f / 16.0f, 6.0f / 16.0f,
+		10.0f / 16.0f, 1.0f, 10.0f / 16.0f,
+		faces, ROD_HEAD_UV, true, 0, b, alpha, faceLight);
+
+	// Shaft: [7,0,7] -> [9,12,9]
+	renderCopperModelCuboid(
+		t, level, tt, x, y, z,
+		7.0f / 16.0f, 0.0f, 7.0f / 16.0f,
+		9.0f / 16.0f, 12.0f / 16.0f, 9.0f / 16.0f,
+		faces, ROD_SHAFT_UV, true, 0, b, alpha, faceLight);
+
+	// Keep the collision/render bounds valid for the next block (union of
+	// head + shaft; matches the tile's shape bounds in Tile.cpp).
+	setShape(6.0f / 16.0f, 0.0f, 6.0f / 16.0f,
+		10.0f / 16.0f, 1.0f, 10.0f / 16.0f);
+
+	return true;
+}
+
+bool TileRenderer::tesselateShelfInWorld(ShelfTile *tt, int x, int y, int z)
+{
+	if (tt == nullptr)
+		return false;
+
+	Tesselator *t = Tesselator::getInstance();
+
+	int data = level->getData(x, y, z);
+	Icon *front = getTextureOrMissing(tt->getFrontIcon(data));
+	Icon *back = getTextureOrMissing(tt->getBackIcon(data));
+	// Block-breaking cracks: see the lantern/rod functions above.
+	if (hasFixedTexture()) front = back = fixedTexture;
+
+	// The base model faces north (front plane z=11/16, back panel z=13-16);
+	// turn it to the shelf's facing, which lives in the ShelfTileEntity
+	// (Facing::NORTH=2, SOUTH=3, WEST=4, EAST=5 -- the same values
+	// ShelfTile::updateShape uses). No TE yet (freshly placed) means NORTH,
+	// the same default updateShape() uses.
+	int quarterTurns = 0;
+	std::shared_ptr<ShelfTileEntity> shelf =
+		std::dynamic_pointer_cast<ShelfTileEntity>(level->getTileEntity(x, y, z));
+	if (shelf != nullptr)
+	{
+		switch (shelf->getFacing())
+		{
+		case Facing::EAST:  quarterTurns = 1; break;
+		case Facing::SOUTH: quarterTurns = 2; break;
+		case Facing::WEST:  quarterTurns = 3; break;
+		default:            quarterTurns = 0; break; // NORTH
+		}
+	}
+
+	const float b = tt->getBrightness(level, x, y, z);
+	const float alpha = 1.0f;
+
+	int faceLight[7];
+	faceLight[GS_DOWN]  = getLightColor(tt, level, x, y - 1, z);
+	faceLight[GS_UP]    = getLightColor(tt, level, x, y + 1, z);
+	faceLight[GS_NORTH] = getLightColor(tt, level, x, y, z - 1);
+	faceLight[GS_SOUTH] = getLightColor(tt, level, x, y, z + 1);
+	faceLight[GS_WEST]  = getLightColor(tt, level, x - 1, y, z);
+	faceLight[GS_EAST]  = getLightColor(tt, level, x + 1, y, z);
+	faceLight[6]        = getLightColor(tt, level, x, y, z);
+
+	// Java model (template_shelf_body.json + template_shelf_unpowered.json):
+	// the shelf is NOT a solid slab. It is a back panel, two boards, and an
+	// overlay plane, with the middle open -- which is why the old single-slab
+	// render looked like a flat wooden block from the side and top. Per-face
+	// icons, GS order {DOWN, UP, NORTH, SOUTH, WEST, EAST}: the back panel
+	// takes the BACK icon on every modelled face; the boards take the FRONT
+	// icon on north/east/west and the BACK icon on up/down; the overlay
+	// takes the FRONT icon (only its north face is modelled).
+	Icon *bodyFaces[6] = { back, back, back, back, back, back };
+	Icon *bottomFaces[6] = { back, back, front, front, front, front };
+	Icon *topFaces[6] = { back, back, front, front, front, front };
+	Icon *overlayFaces[6] = { front, front, front, front, front, front };
+
+	// Back panel: [0,0,13] -> [16,16,16]
+	renderCopperModelCuboid(
+		t, level, tt, x, y, z,
+		0.0f, 0.0f, 13.0f / 16.0f,
+		1.0f, 1.0f, 1.0f,
+		bodyFaces, SHELF_BODY_UV, true, quarterTurns, b, alpha, faceLight);
+
+	// Bottom board: [0,0,11] -> [16,4,13]
+	renderCopperModelCuboid(
+		t, level, tt, x, y, z,
+		0.0f, 0.0f, 11.0f / 16.0f,
+		1.0f, 4.0f / 16.0f, 13.0f / 16.0f,
+		bottomFaces, SHELF_BOTTOM_UV, true, quarterTurns, b, alpha, faceLight);
+
+	// Top board: [0,12,11] -> [16,16,13]
+	renderCopperModelCuboid(
+		t, level, tt, x, y, z,
+		0.0f, 12.0f / 16.0f, 11.0f / 16.0f,
+		1.0f, 1.0f, 13.0f / 16.0f,
+		topFaces, SHELF_TOP_UV, true, quarterTurns, b, alpha, faceLight);
+
+	// Unpowered overlay plane: [0,4,13] -> [16,12,13] (zero-depth; only the
+	// north face is modelled, like the JSON -- it is the divider pattern in
+	// the open middle of the front view). The powered side_chain overlays
+	// (left/centre/right/unconnected) are NOT modelled: the port has no
+	// powered state for the shelf.
+	renderCopperModelCuboid(
+		t, level, tt, x, y, z,
+		0.0f, 4.0f / 16.0f, 13.0f / 16.0f,
+		1.0f, 12.0f / 16.0f, 13.0f / 16.0f,
+		overlayFaces, SHELF_OVERLAY_UV, true, quarterTurns, b, alpha, faceLight);
+
+	// Keep the collision/render bounds valid for the next block. The union
+	// of the four pieces is the old single slab; updateShape() already set
+	// the facing-dependent slab on the tile, so restore it here.
+	setShape(tt);
+
+	return true;
+}
+
+void TileRenderer::renderCopperLanternInventory(CopperThinTile *tt, int data, float brightness, float alpha)
+{
+	if (tt == nullptr)
+		return;
+
+	Tesselator *t = Tesselator::getInstance();
+
+	Icon *icon = getTexture(tt, Facing::NORTH, data);
+	Icon *faces[6] = { icon, icon, icon, icon, icon, icon };
+
+	// Inventory items use the base (north-facing) JSON model. The inventory
+	// caller has already applied the standard -0.5 model translation, so
+	// this method emits the model in [0,1] coordinates.
+	t->tex2(0xf000f);
+	t->begin();
+
+	renderCopperModelCuboid(
+		t, nullptr, tt, 0, 0, 0,
+		5.0f / 16.0f, 0.0f, 5.0f / 16.0f,
+		11.0f / 16.0f, 7.0f / 16.0f, 11.0f / 16.0f,
+		faces, LANTERN_BODY_UV, false, 0, brightness, alpha);
+
+	renderCopperModelCuboid(
+		t, nullptr, tt, 0, 0, 0,
+		6.0f / 16.0f, 7.0f / 16.0f, 6.0f / 16.0f,
+		10.0f / 16.0f, 9.0f / 16.0f, 10.0f / 16.0f,
+		faces, LANTERN_CAP_UV, false, 0, brightness, alpha);
+
+	t->end();
+	setShape(5.0f / 16.0f, 0.0f, 5.0f / 16.0f,
+		11.0f / 16.0f, 9.0f / 16.0f, 11.0f / 16.0f);
+}
+
+void TileRenderer::renderLightningRodInventory(CopperThinTile *tt, int data, float brightness, float alpha)
+{
+	if (tt == nullptr)
+		return;
+
+	Tesselator *t = Tesselator::getInstance();
+
+	Icon *icon = getTexture(tt, Facing::NORTH, data);
+	Icon *faces[6] = { icon, icon, icon, icon, icon, icon };
+
+	t->tex2(0xf000f);
+	t->begin();
+
+	renderCopperModelCuboid(
+		t, nullptr, tt, 0, 0, 0,
+		6.0f / 16.0f, 12.0f / 16.0f, 6.0f / 16.0f,
+		10.0f / 16.0f, 1.0f, 10.0f / 16.0f,
+		faces, ROD_HEAD_UV, false, 0, brightness, alpha);
+
+	renderCopperModelCuboid(
+		t, nullptr, tt, 0, 0, 0,
+		7.0f / 16.0f, 0.0f, 7.0f / 16.0f,
+		9.0f / 16.0f, 12.0f / 16.0f, 9.0f / 16.0f,
+		faces, ROD_SHAFT_UV, false, 0, brightness, alpha);
+
+	t->end();
+	setShape(6.0f / 16.0f, 0.0f, 6.0f / 16.0f,
+		10.0f / 16.0f, 1.0f, 10.0f / 16.0f);
+}
+
+void TileRenderer::renderShelfInventory(ShelfTile *tt, int data, float brightness, float alpha)
+{
+	if (tt == nullptr)
+		return;
+
+	Tesselator *t = Tesselator::getInstance();
+
+	Icon *front = getTextureOrMissing(tt->getFrontIcon(data));
+	Icon *back = getTextureOrMissing(tt->getBackIcon(data));
+
+	Icon *bodyFaces[6] = { back, back, back, back, back, back };
+	Icon *bottomFaces[6] = { back, back, front, front, front, front };
+	Icon *topFaces[6] = { back, back, front, front, front, front };
+	Icon *overlayFaces[6] = { front, front, front, front, front, front };
+
+	// Inventory items use the base (north-facing) JSON model. Block entities
+	// in the world apply the horizontal facing rotation; the inventory does
+	// not. The inventory caller has already applied the standard -0.5 model
+	// translation, so this method emits the model in [0,1] coordinates.
+	t->tex2(0xf000f);
+	t->begin();
+
+	renderCopperModelCuboid(
+		t, nullptr, tt, 0, 0, 0,
+		0.0f, 0.0f, 13.0f / 16.0f,
+		1.0f, 1.0f, 1.0f,
+		bodyFaces, SHELF_BODY_UV, false, 0, brightness, alpha);
+
+	renderCopperModelCuboid(
+		t, nullptr, tt, 0, 0, 0,
+		0.0f, 0.0f, 11.0f / 16.0f,
+		1.0f, 4.0f / 16.0f, 13.0f / 16.0f,
+		bottomFaces, SHELF_BOTTOM_UV, false, 0, brightness, alpha);
+
+	renderCopperModelCuboid(
+		t, nullptr, tt, 0, 0, 0,
+		0.0f, 12.0f / 16.0f, 11.0f / 16.0f,
+		1.0f, 1.0f, 13.0f / 16.0f,
+		topFaces, SHELF_TOP_UV, false, 0, brightness, alpha);
+
+	renderCopperModelCuboid(
+		t, nullptr, tt, 0, 0, 0,
+		0.0f, 4.0f / 16.0f, 13.0f / 16.0f,
+		1.0f, 12.0f / 16.0f, 13.0f / 16.0f,
+		overlayFaces, SHELF_OVERLAY_UV, false, 0, brightness, alpha);
+
+	t->end();
+	setShape(0.0f, 0.0f, 11.0f / 16.0f,
+		1.0f, 1.0f, 1.0f);
+}
+
 bool TileRenderer::tesselateTreeInWorld(Tile *tt, int x, int y, int z)
 {
 	int data = level->getData(x, y, z);
@@ -9367,6 +9924,65 @@ void TileRenderer::renderTile( Tile* tile, int data, float brightness, float fAl
 		setShape(2.0f / 16.0f, 0.0f, 2.0f / 16.0f,
 			14.0f / 16.0f, 1.0f, 14.0f / 16.0f);
 	}
+	else if (shape == Tile::SHAPE_COPPER_LANTERN)
+	{
+		tile->updateDefaultShape();
+
+		// Match the orientation transform used by the normal block inventory
+		// renderer, then draw the JSON cuboids around the block center.
+		glRotatef(90, 0, 1, 0);
+		glTranslatef(-0.5f, -0.5f, -0.5f);
+
+		renderCopperLanternInventory(
+			static_cast<CopperThinTile *>(tile),
+			data,
+			brightness,
+			fAlpha);
+
+		glTranslatef(0.5f, 0.5f, 0.5f);
+		glRotatef(-90, 0, 1, 0);
+
+		setShape(5.0f / 16.0f, 0.0f, 5.0f / 16.0f,
+			11.0f / 16.0f, 9.0f / 16.0f, 11.0f / 16.0f);
+	}
+	else if (shape == Tile::SHAPE_LIGHTNING_ROD)
+	{
+		tile->updateDefaultShape();
+
+		glRotatef(90, 0, 1, 0);
+		glTranslatef(-0.5f, -0.5f, -0.5f);
+
+		renderLightningRodInventory(
+			static_cast<CopperThinTile *>(tile),
+			data,
+			brightness,
+			fAlpha);
+
+		glTranslatef(0.5f, 0.5f, 0.5f);
+		glRotatef(-90, 0, 1, 0);
+
+		setShape(6.0f / 16.0f, 0.0f, 6.0f / 16.0f,
+			10.0f / 16.0f, 1.0f, 10.0f / 16.0f);
+	}
+	else if (shape == Tile::SHAPE_SHELF)
+	{
+		tile->updateDefaultShape();
+
+		glRotatef(90, 0, 1, 0);
+		glTranslatef(-0.5f, -0.5f, -0.5f);
+
+		renderShelfInventory(
+			static_cast<ShelfTile *>(tile),
+			data,
+			brightness,
+			fAlpha);
+
+		glTranslatef(0.5f, 0.5f, 0.5f);
+		glRotatef(-90, 0, 1, 0);
+
+		setShape(0.0f, 0.0f, 11.0f / 16.0f,
+			1.0f, 1.0f, 1.0f);
+	}
 	else if ( shape == Tile::SHAPE_PORTAL_FRAME )
 	{
 		// 4J added
@@ -9532,6 +10148,9 @@ bool TileRenderer::canRender( int renderShape )
 	if (renderShape == Tile::SHAPE_THIN_PANE) return true;
 	if (renderShape == Tile::SHAPE_WATER) return true;
 	if (renderShape == Tile::SHAPE_GRINDSTONE) return true;
+	if (renderShape == Tile::SHAPE_COPPER_LANTERN) return true;
+	if (renderShape == Tile::SHAPE_LIGHTNING_ROD) return true;
+	if (renderShape == Tile::SHAPE_SHELF) return true;
 	if (renderShape == Tile::SHAPE_BAMBOO) return true;
 	return false;
 }

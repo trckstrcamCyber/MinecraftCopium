@@ -22,6 +22,7 @@
 ShelfTile::ShelfTile(int id) : BaseEntityTile(id, Material::wood, isSolidRender())
 {
 	for (int i = 0; i < 7; i++) woodIcons[i] = nullptr;
+	for (int i = 0; i < 7; i++) backIcons[i] = nullptr;
 }
 
 bool ShelfTile::isSolidRender(bool)
@@ -106,15 +107,41 @@ Icon *ShelfTile::getTexture(LevelSource *level, int x, int y, int z, int face)
 	return getTexture(face, level->getData(x, y, z));
 }
 
+int ShelfTile::getRenderShape()
+{
+	// COPPER_MODELS_RENDERER: Java-style multi-cuboid model (back panel +
+	// two boards + overlay plane) in TileRenderer.
+	return Tile::SHAPE_SHELF;
+}
+
+Icon *ShelfTile::getFrontIcon(int data)
+{
+	int wood = data & 7;
+	if (wood > 6) wood = 0;
+	return woodIcons[wood];
+}
+
+Icon *ShelfTile::getBackIcon(int data)
+{
+	int wood = data & 7;
+	if (wood > 6) wood = 0;
+	return backIcons[wood];
+}
+
 void ShelfTile::registerIcons(IconRegister *iconRegister)
 {
 	static const wchar_t *names[7] = {
 		L"oak_shelf", L"spruce_shelf", L"birch_shelf", L"jungle_shelf",
 		L"acacia_shelf", L"dark_oak_shelf", L"bamboo_shelf"
 	};
+	static const wchar_t *backNames[7] = {
+		L"oak_shelf_back", L"spruce_shelf_back", L"birch_shelf_back", L"jungle_shelf_back",
+		L"acacia_shelf_back", L"dark_oak_shelf_back", L"bamboo_shelf_back"
+	};
 	for (int i = 0; i < 7; i++)
 	{
 		woodIcons[i] = iconRegister->registerIcon(names[i]);
+		backIcons[i] = iconRegister->registerIcon(backNames[i]);
 	}
 	icon = woodIcons[0];
 }
@@ -148,13 +175,6 @@ void ShelfTile::setPlacedBy(Level *level, int x, int y, int z, shared_ptr<Living
 	{
 		shelf->setFacing(facing);
 		shelf->setChanged();
-		// Live-sync the facing to clients: without this the client
-		// keeps the default NORTH facing until the next chunk
-		// re-send. Level::broadcastTileEntityUpdate is a base no-op
-		// on the client Level; ServerLevel sends
-		// te->getUpdatePacket() to every player. Same call the
-		// statue pose cycle / chest oxidation use.
-		level->broadcastTileEntityUpdate(shelf);
 	}
 }
 
@@ -224,14 +244,6 @@ bool ShelfTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player
 		}
 		level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_TAKE_ITEM, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
 		if (shelf->isEmpty()) level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_DEACTIVATE, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
-		// Live-sync: the take only counts once the item landed in the
-		// player's inventory (the add() above can fail and put the
-		// item back, so broadcast here, not at setChanged()).
-		// Level::broadcastTileEntityUpdate is a base no-op on the
-		// client Level; ServerLevel sends te->getUpdatePacket()
-		// (TYPE_SHELF, Facing + Items) to every player. Same call
-		// the statue pose cycle / chest oxidation use.
-		level->broadcastTileEntityUpdate(shelf);
 		return true;
 	}
 
@@ -248,12 +260,6 @@ bool ShelfTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player
 		shelf->setChanged();
 		level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_PLACE_ITEM, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
 		if (wasEmpty) level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_ACTIVATE, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
-		// Live-sync: push the new contents to every client now.
-		// Level::broadcastTileEntityUpdate is a base no-op on the
-		// client Level; ServerLevel sends te->getUpdatePacket()
-		// (TYPE_SHELF, Facing + Items) to every player. Same call
-		// the statue pose cycle / chest oxidation use.
-		level->broadcastTileEntityUpdate(shelf);
 		return true;
 	}
 
@@ -273,12 +279,6 @@ bool ShelfTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player
 		level->addEntity(itemEntity);
 	}
 	level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_SINGLE_SWAP, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
-	// Live-sync: push the swapped contents to every client now.
-	// Level::broadcastTileEntityUpdate is a base no-op on the client
-	// Level; ServerLevel sends te->getUpdatePacket() (TYPE_SHELF,
-	// Facing + Items) to every player. Same call the statue pose
-	// cycle / chest oxidation use.
-	level->broadcastTileEntityUpdate(shelf);
 	return true;
 }
 

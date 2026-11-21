@@ -234,7 +234,12 @@ public:
 	static const int SHAPE_GRINDSTONE = 42;
 
 	static const int SHAPE_BAMBOO = 43;	// neoLegacy
-	static const int SHAPE_COUNT = 44;
+	// COPPER_MODELS_RENDERER: Java-style multi-cuboid models (lantern body +
+	// cap, rod head + shaft, shelf body + boards + overlay). See TileRenderer.
+	static const int SHAPE_COPPER_LANTERN = 44;
+	static const int SHAPE_LIGHTNING_ROD = 45;
+	static const int SHAPE_SHELF = 46;
+	static const int SHAPE_COUNT = 47;
 
 	static  Tile **tiles;
 
