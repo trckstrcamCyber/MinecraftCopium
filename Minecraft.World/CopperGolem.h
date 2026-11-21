@@ -129,12 +129,14 @@ public:
 	virtual int getDeathSoundForState();
 	virtual int getStepSoundForState();
 
-	// Build-spawning: clear the pumpkin at (x, y, z) and the copper block
-	// below it, then spawn a golem. The trigger itself is UNWIRED (this
-	// tree has no carved pumpkin; PumpkinTile.cpp is untouched) — call this
-	// once Cameron confirms the pattern (plain pumpkin on a copper block).
-	// Follows the PumpkinTile::onPlace iron-golem branch.
-	static bool spawnFromBuild(Level *level, int x, int y, int z);
+	// Build-spawning (Java rule): a carved pumpkin / jack o'lantern placed
+	// on a copper block turns the block into a copper chest (facing
+	// chestFacing, oxidation inherited from the block, never waxed) and
+	// spawns a golem with the same oxidation. (x, y, z) is the pumpkin.
+	// chestFacing uses Facing values (NORTH 2, SOUTH 3, WEST 4, EAST 5).
+	// Called from PumpkinTile; follows the PumpkinTile::onPlace
+	// iron-golem branch.
+	static bool spawnFromBuild(Level *level, int x, int y, int z, int chestFacing);
 
 	// Turn this golem into a statue in place (oxidized + in air + luck).
 	virtual void turnToStatue();

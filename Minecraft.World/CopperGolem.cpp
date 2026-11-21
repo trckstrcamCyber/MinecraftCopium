@@ -18,6 +18,7 @@
 #include "CopperGolemAi.h"
 #include "CopperGolemStatueBlock.h"
 #include "CopperGolemStatueBlockEntity.h"
+#include "ChestTileEntity.h"
 #include "HatchetItem.h"
 #include "SoundTypes.h"
 #include "SynchedEntityData.h"
@@ -360,20 +361,39 @@ void CopperGolem::turnToStatue()
 	remove();
 }
 
-bool CopperGolem::spawnFromBuild(Level *level, int x, int y, int z)
+bool CopperGolem::spawnFromBuild(Level *level, int x, int y, int z, int chestFacing)
 {
-	// Java build pattern (2 blocks): a carved pumpkin on top of a copper
-	// block. (x, y, z) is the pumpkin. The trigger is UNWIRED — this tree
-	// has no carved pumpkin, so PumpkinTile.cpp is untouched; call this
-	// once Cameron confirms the pattern. Mirrors the PumpkinTile::onPlace
-	// iron-golem branch.
+	// Java build pattern: a carved pumpkin / jack o'lantern on top of a
+	// copper block. (x, y, z) is the pumpkin. The copper block becomes a
+	// copper chest (facing chestFacing, oxidation inherited, never waxed)
+	// and a golem spawns with the same oxidation. Mirrors the
+	// PumpkinTile::onPlace iron-golem branch.
 	if (level->isClientSide) return false;
 	if (!level->canCreateMore(eTYPE_COPPER_GOLEM, Level::eSpawnType_Egg)) return false;
 
+	// Read the oxidation BEFORE clearing: aux bits 0-1 are the stage,
+	// bit 2 is waxed. Java: the golem and the chest inherit the stage
+	// but never the wax.
+	int stage = level->getData(x, y - 1, z) & 3;
+
 	level->setTileAndData(x, y, z, 0, 0, Tile::UPDATE_CLIENTS);
-	level->setTileAndData(x, y - 1, z, 0, 0, Tile::UPDATE_CLIENTS);
+	level->setTileAndData(x, y - 1, z, Tile::copper_chest_Id, chestFacing, Tile::UPDATE_CLIENTS);
+
+	// The chest's oxidation lives in its tile entity (oxidation workaround):
+	// set it now and broadcast so clients see the right stage live.
+	{
+		shared_ptr<TileEntity> te = level->getTileEntity(x, y - 1, z);
+		shared_ptr<ChestTileEntity> chestTe = dynamic_pointer_cast<ChestTileEntity>(te);
+		if (chestTe != nullptr)
+		{
+			chestTe->setOxidation(stage);
+			level->broadcastTileEntityUpdate(chestTe);
+		}
+	}
 
 	shared_ptr<CopperGolem> golem = std::make_shared<CopperGolem>(level);
+	golem->setWeatherState(stage);
+	golem->setWaxed(false);
 	golem->moveTo(x + 0.5, y - 1.95, z + 0.5, 0, 0);
 	level->addEntity(golem);
 

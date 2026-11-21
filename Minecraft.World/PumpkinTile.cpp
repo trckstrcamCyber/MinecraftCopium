@@ -7,6 +7,7 @@
 #include "Mob.h"
 #include "SnowMan.h"
 #include "MobCategory.h"
+#include "CopperGolem.h"
 
 const wstring PumpkinTile::TEXTURE_FACE = L"pumpkin_face";
 const wstring PumpkinTile::TEXTURE_LANTERN = L"pumpkin_jack";
@@ -159,6 +160,25 @@ void PumpkinTile::setPlacedBy(Level *level, int x, int y, int z, shared_ptr<Livi
 {
 	int dir = Mth::floor(by->yRot * 4 / (360) + 2.5) & 3;
 	level->setData(x, y, z, dir, Tile::UPDATE_CLIENTS);
+
+	// Copper golem build (Java rule): a carved pumpkin / jack o'lantern
+	// placed on a copper block. The block becomes a copper chest facing
+	// the way the player faced, and a golem spawns. Checked here (not
+	// onPlace) because the facing is only known once the pumpkin is
+	// placed by the player — so dispenser/enderman placements do NOT
+	// trigger it (Cameron's choice, Nov 21: correct facing over
+	// universal trigger).
+	if (level->getTile(x, y - 1, z) == Tile::copper_block_Id)
+	{
+		if (!level->isClientSide)
+		{
+			// Pumpkin dir -> chest Facing: 0 SOUTH(3), 1 WEST(4),
+			// 2 NORTH(2), 3 EAST(5).
+			static const int kPumpkinDirToChestFacing[4] =
+				{ Facing::SOUTH, Facing::WEST, Facing::NORTH, Facing::EAST };
+			CopperGolem::spawnFromBuild(level, x, y, z, kPumpkinDirToChestFacing[dir]);
+		}
+	}
 }
 
 void PumpkinTile::registerIcons(IconRegister *iconRegister)
