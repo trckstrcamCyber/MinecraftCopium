@@ -22,7 +22,9 @@ class Player;
 // a nearby normal / trapped chest (Java TransportItemsBetweenContainers,
 // translated to this tree's Goal system). The CopperGolemState enum below
 // (GETTING/DROPPING states) is driven by that goal at the Java 1 / 9 / 60
-// tick marks. See golem-transport-nov20.md.
+// tick marks. See golem-transport-nov20.md. The state is held in the
+// synched byte DATA_STATE_ID (not a plain member) so the client-side
+// model can read it for the reach-in / carry poses.
 enum CopperGolemState
 {
 	COPPER_GOLEM_STATE_IDLE = 0,
@@ -57,6 +59,13 @@ protected:
 	// byte). Bits 0-1 weather state, bit 2 waxed.
 	static const int DATA_WEATHER_ID = 16;
 
+	// Synched-data id for the transport state byte (Phase 5b). The
+	// transport goal sets the state server-side; the client-side model
+	// reads it to play the reach-in / carry poses, so it must be synched
+	// like the weather byte — a plain member would stay IDLE on the
+	// client forever and the pose would never show.
+	static const int DATA_STATE_ID = 17;
+
 	// Weathering timing, in ticks (Java CopperGolem WEATHERING_TICK_FROM /
 	// WEATHERING_TICK_TO). The next oxidation stage is scheduled at a random
 	// absolute game time in [now + FROM, now + TO]; absolute game time comes
@@ -75,7 +84,6 @@ protected:
 
 private:
 	int64_t nextWeatheringTick;
-	CopperGolemState state;
 	// Transport cooldown (Phase 5b, Java TRANSPORT_ITEMS_COOLDOWN_TICKS):
 	// ticks until the golem may start another transport run. Counts down
 	// in CopperGolemAi::updateActivity; reset to a random 60-100 after a

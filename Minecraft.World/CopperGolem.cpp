@@ -32,7 +32,6 @@ CopperGolem::CopperGolem(Level *level) : Golem(level)
 	setHealth(getMaxHealth());
 
 	nextWeatheringTick = -1;
-	state = COPPER_GOLEM_STATE_IDLE;
 	antennaItem = nullptr;
 
 	// Transport cooldown (Phase 5b, Java CopperGolem ctor sets the
@@ -61,6 +60,10 @@ void CopperGolem::defineSynchedData()
 	// reads this byte to pick the body/eyes textures, so oxidation must be
 	// synched.
 	entityData->define(DATA_WEATHER_ID, static_cast<byte>(0));
+	// Transport state byte (Phase 5b): the goal sets it server-side and
+	// the client-side model reads it for the reach-in / carry poses.
+	// Defaults to 0 = COPPER_GOLEM_STATE_IDLE.
+	entityData->define(DATA_STATE_ID, static_cast<byte>(0));
 }
 
 bool CopperGolem::useNewAi()
@@ -102,12 +105,12 @@ void CopperGolem::setWaxed(bool waxed)
 
 CopperGolemState CopperGolem::getState()
 {
-	return state;
+	return static_cast<CopperGolemState>(entityData->getByte(DATA_STATE_ID));
 }
 
 void CopperGolem::setState(CopperGolemState state)
 {
-	this->state = state;
+	entityData->set(DATA_STATE_ID, static_cast<byte>(state));
 }
 
 int CopperGolem::getTransportCooldown()
@@ -467,7 +470,7 @@ void CopperGolem::addAdditonalSaveData(CompoundTag *tag)
 	tag->putInt(L"WeatherState", getWeatherState());
 	tag->putBoolean(L"Waxed", isWaxed());
 	tag->putLong(L"NextWeatheringTick", nextWeatheringTick);
-	tag->putInt(L"GolemState", static_cast<int>(state));
+	tag->putInt(L"GolemState", static_cast<int>(getState()));
 	if (antennaItem != nullptr)
 	{
 		CompoundTag *antennaTag = new CompoundTag();
@@ -482,7 +485,7 @@ void CopperGolem::readAdditionalSaveData(CompoundTag *tag)
 	if (tag->contains(L"WeatherState")) setWeatherState(tag->getInt(L"WeatherState"));
 	if (tag->contains(L"Waxed")) setWaxed(tag->getBoolean(L"Waxed"));
 	if (tag->contains(L"NextWeatheringTick")) nextWeatheringTick = tag->getLong(L"NextWeatheringTick");
-	if (tag->contains(L"GolemState")) state = static_cast<CopperGolemState>(tag->getInt(L"GolemState"));
+	if (tag->contains(L"GolemState")) setState(static_cast<CopperGolemState>(tag->getInt(L"GolemState")));
 	if (tag->contains(L"AntennaItem"))
 	{
 		antennaItem = ItemInstance::fromTag(tag->getCompound(L"AntennaItem"));

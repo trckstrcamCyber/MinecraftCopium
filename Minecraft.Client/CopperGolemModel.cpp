@@ -7,6 +7,10 @@
 CopperGolemModel::CopperGolemModel(float g)
 {
 	statuePose = -1;
+	lastState = -1;
+	stateStartTick = 0;
+	wasCarrying = false;
+	carryStartTick = 0;
 
 	int xTexSize = 64;
 	int yTexSize = 64;
@@ -121,13 +125,97 @@ void CopperGolemModel::setupAnim(float time, float r, float bob, float yRot, flo
 	// walking golem keeps its head still). Phase comes from tickCount via
 	// CopperGolem::getSpinPhase, so client and server agree.
 	shared_ptr<CopperGolem> golem = dynamic_pointer_cast<CopperGolem>(entity);
-	if (golem != nullptr && r <= 0.05f)
+	// The head-spin is an idle animation: while the golem is interacting
+	// with a chest it plays the reach-in pose instead (below), so the
+	// spin must not fight the head-down.
+	if (golem != nullptr && r <= 0.05f && golem->getState() == COPPER_GOLEM_STATE_IDLE)
 	{
 		float phase = golem->getSpinPhase();
 		if (phase >= 0.0f)
 		{
 			head->yRot = spinHeadAngle(phase) / (float) (180 / PI);
 			head->xRot = 0;
+		}
+	}
+
+	// Transport reach-in pose (Phase 5b, Java CopperGolemAnimation
+	// CHEST_INTERACTION_*): while the golem is taking from / depositing
+	// into a chest, both arms reach forward into it — arm pitches around
+	// -90° to -120° in the Java keyframes — body slightly forward, head
+	// down. Strongest in the first ~10 ticks (take/deposit at tick 1,
+	// sound at tick 9), easing back to the normal pose by tick 60, when
+	// the goal closes the chest and resets the state to IDLE.
+	// While carrying a stack (Java WALK_ITEM), the arms are held slightly
+	// forward/down instead of the full walk swing.
+	// The state is the synched byte (CopperGolem::DATA_STATE_ID): the
+	// goal sets it server-side and the client reads it here. Runs after
+	// prepareMobModel, so these overrides win over the walk swing.
+	if (golem != nullptr)
+	{
+		int state = static_cast<int>(golem->getState());
+		if (state != lastState)
+		{
+			lastState = state;
+			stateStartTick = golem->tickCount;
+		}
+		int elapsed = golem->tickCount - stateStartTick;
+		if (elapsed < 0) elapsed = 0;
+
+		bool interacting =
+			state == COPPER_GOLEM_STATE_GETTING_ITEM ||
+			state == COPPER_GOLEM_STATE_GETTING_NO_ITEM ||
+			state == COPPER_GOLEM_STATE_DROPPING_ITEM ||
+			state == COPPER_GOLEM_STATE_DROPPING_NO_ITEM;
+
+		if (interacting)
+		{
+			// Reach strength: ramps up over the first 10 ticks, holds,
+			// then eases back to 0 at tick 60.
+			float reach = 1.0f;
+			if (elapsed < 10) reach = static_cast<float>(elapsed) / 10.0f;
+			else if (elapsed < 60) reach = 1.0f - static_cast<float>(elapsed - 10) / 50.0f;
+			else reach = 0.0f;
+			if (reach < 0.0f) reach = 0.0f;
+			if (reach > 1.0f) reach = 1.0f;
+
+			// DROP variants reach marginally lower than GET (Java
+			// DROP/NODROP keyframes sit at ≈ -113°/-117° vs ≈ -93°/-98°
+			// for GET).
+			bool dropping = state == COPPER_GOLEM_STATE_DROPPING_ITEM ||
+				state == COPPER_GOLEM_STATE_DROPPING_NO_ITEM;
+			float armPitch = dropping ? -1.98f : -1.66f; // -113° / -95°
+			float bodyPitch = 0.25f;
+			float headPitch = 0.35f;
+
+			arm0->xRot = arm0->xRot * (1.0f - reach) + armPitch * reach;
+			arm1->xRot = arm1->xRot * (1.0f - reach) + armPitch * reach;
+			body->xRot = body->xRot * (1.0f - reach) + bodyPitch * reach;
+			head->xRot = head->xRot * (1.0f - reach) + headPitch * reach;
+			arm0->zRot = 0;
+			arm1->zRot = 0;
+		}
+		else if (golem->getCarriedItem() != nullptr)
+		{
+			// WALK_ITEM: carrying a stack — hold both arms slightly
+			// forward/down instead of the full walk swing. Ramps in over
+			// the first 10 ticks of carrying so the arms do not snap
+			// from the reach pose to the carry pose.
+			if (!wasCarrying)
+			{
+				wasCarrying = true;
+				carryStartTick = golem->tickCount;
+			}
+			int carryElapsed = golem->tickCount - carryStartTick;
+			if (carryElapsed < 0) carryElapsed = 0;
+			float carry = static_cast<float>(carryElapsed) / 10.0f;
+			if (carry > 1.0f) carry = 1.0f;
+			float armPitch = -0.6f; // ≈ -34°, arms forward/down
+			arm0->xRot = arm0->xRot * (1.0f - carry) + armPitch * carry;
+			arm1->xRot = arm1->xRot * (1.0f - carry) + armPitch * carry;
+		}
+		else
+		{
+			wasCarrying = false;
 		}
 	}
 

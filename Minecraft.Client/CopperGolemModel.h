@@ -22,6 +22,9 @@ class ModelPart;
 // statuePose renders the statue poses (CopperGolemStatueBlock::POSE_*);
 // -1 means "live golem" (walk/spin animation). The statue poses are
 // procedural approximations on this model — playtest check.
+// Transport poses (Phase 5b, see setupAnim): the reach-in pose for the
+// GETTING/DROPPING states and the WALK_ITEM carry pose, keyed off the
+// golem's synched state (CopperGolem::DATA_STATE_ID).
 class CopperGolemModel : public Model
 {
 public:
@@ -39,6 +42,14 @@ public:
 
 private:
 	int statuePose;
+	// Transport pose tracking (Phase 5b): the model instance persists
+	// across frames, so the tick a state began (and the tick carrying
+	// started) can be remembered here and the reach eased against the
+	// goal's 60-tick interaction window.
+	int lastState;
+	int stateStartTick;
+	bool wasCarrying;
+	int carryStartTick;
 	float triangleWave(float bob, float period);
 	float spinHeadAngle(float phase);
 };
