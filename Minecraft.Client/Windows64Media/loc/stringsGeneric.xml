@@ -686,11 +686,11 @@
 		<value>{*T3*}HOW TO PLAY : BEACONS{*ETW*}{*B*}{*B*}
 			Active Beacons project a bright beam of light into the sky and grant powers to nearby players.{*B*}
 			They are crafted with Glass, Obsidian and Nether Stars, which can be obtained by defeating the Wither.{*B*}{*B*}
-			Beacons must be placed so that they are in sunlight during the day. Beacons must be placed on Pyramids of Iron, Gold, Emerald or Diamond.{*B*}
+			Beacons must be placed so that they are in sunlight during the day. Beacons must be placed on Pyramids of Iron, Gold, Emerald, Diamond or Rose Gold.{*B*}
 			The material the Beacon is placed on has no effect on the power of the Beacon.{*B*}{*B*}
 			In the Beacon menu you can select one primary power for your Beacon. The more tiers your pyramid has the more powers you will have to choose from.{*B*}
 			A Beacon on a pyramid with at least four tiers also gives the option of either the Regeneration secondary power or a stronger primary power.{*B*}{*B*}
-			To set the powers of your Beacon you must sacrifice an Emerald, Diamond, Gold or Iron Ingot in the payment slot.{*B*}
+			To set the powers of your Beacon you must sacrifice an Emerald, Diamond, Gold, Iron or Rose Gold Ingot in the payment slot.{*B*}
 			Once set, the powers will emanate from the Beacon indefinitely.{*B*}
 		</value>
 	</data>

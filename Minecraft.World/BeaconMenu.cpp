@@ -152,7 +152,7 @@ bool BeaconMenu::PaymentSlot::mayPlace(shared_ptr<ItemInstance> item)
 {
 	if (item != nullptr)
 	{
-		return (item->id == Item::emerald_Id || item->id == Item::diamond_Id || item->id == Item::gold_ingot_Id || item->id == Item::iron_ingot_Id);
+		return (item->id == Item::emerald_Id || item->id == Item::diamond_Id || item->id == Item::gold_ingot_Id || item->id == Item::iron_ingot_Id || item->id == Item::rose_gold_ingot_Id);
 	}
 	return false;
 }
