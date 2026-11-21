@@ -191,6 +191,14 @@ bool ShelfTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player
 	int slot = static_cast<int>(along * 3.0f);
 	if (slot < 0) slot = 0;
 	if (slot > 2) slot = 2;
+	// Java parity: slot 0 is the player's LEFT slot. For NORTH and EAST
+	// facings the slot order along the front is mirrored (slot 0 sits at
+	// low x / low z, which is the player's right), so mirror the clicked
+	// slot to match the renderer (which mirrors the same way).
+	if (facing == Facing::NORTH || facing == Facing::EAST)
+	{
+		slot = 2 - slot;
+	}
 
 	shared_ptr<ItemInstance> hand = player->inventory->getSelected();
 	bool wasEmpty = shelf->isEmpty();
@@ -215,22 +223,26 @@ bool ShelfTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player
 	shared_ptr<ItemInstance> stored = shelf->getItem(slot);
 	if (stored == nullptr)
 	{
-		// Slot empty: place one item from the hand.
-		shared_ptr<ItemInstance> placed = std::make_shared<ItemInstance>(hand->id, 1, hand->getAuxValue());
+		// Slot empty: place the WHOLE hand stack (Java swaps the whole
+		// stack, not one item).
+		int handCount = hand->count;
+		shared_ptr<ItemInstance> placed = std::make_shared<ItemInstance>(hand->id, handCount, hand->getAuxValue());
 		if (hand->hasTag()) placed->setTag(static_cast<CompoundTag *>(hand->getTag()->copy()));
 		shelf->setItem(slot, placed);
-		player->inventory->removeItem(player->inventory->selected, 1);
+		player->inventory->removeItem(player->inventory->selected, handCount);
 		shelf->setChanged();
 		level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_PLACE_ITEM, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
 		if (wasEmpty) level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_ACTIVATE, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
 		return true;
 	}
 
-	// Slot occupied: swap one hand item for the stored item.
-	shared_ptr<ItemInstance> placed = std::make_shared<ItemInstance>(hand->id, 1, hand->getAuxValue());
+	// Slot occupied: swap the WHOLE hand stack for the stored stack
+	// (Java swaps the whole stack, not one item).
+	int handCount = hand->count;
+	shared_ptr<ItemInstance> placed = std::make_shared<ItemInstance>(hand->id, handCount, hand->getAuxValue());
 	if (hand->hasTag()) placed->setTag(static_cast<CompoundTag *>(hand->getTag()->copy()));
 	shelf->setItem(slot, placed);
-	player->inventory->removeItem(player->inventory->selected, 1);
+	player->inventory->removeItem(player->inventory->selected, handCount);
 	shelf->setChanged();
 	if (!player->inventory->add(stored))
 	{
@@ -250,12 +262,17 @@ bool ShelfTile::hasAnalogOutputSignal()
 
 int ShelfTile::getAnalogOutputSignal(Level *level, int x, int y, int z, int dir)
 {
-	// ChestTile precedent: container-fullness signal (0-15). The
-	// Java shelf emits by filled slots instead; the difference is
-	// recorded in the Phase 6 report as a playtest item.
-	shared_ptr<Container> container = dynamic_pointer_cast<ShelfTileEntity>(level->getTileEntity(x, y, z));
-	if (container == nullptr) return 0;
-	return AbstractContainerMenu::getRedstoneSignalFromContainer(container);
+	// Java: the shelf emits a BINARY signal by filled slots (0-7); the
+	// left slot (from the player's view of the front) is the LSB.
+	// (Not the chest-style container-fullness 0-15.)
+	shared_ptr<ShelfTileEntity> shelf = dynamic_pointer_cast<ShelfTileEntity>(level->getTileEntity(x, y, z));
+	if (shelf == nullptr) return 0;
+	int signal = 0;
+	for (unsigned int i = 0; i < ShelfTileEntity::SLOT_COUNT; i++)
+	{
+		if (shelf->getItem(i) != nullptr) signal |= (1 << i);
+	}
+	return signal;
 }
 
 int ShelfTile::getSpawnResourcesAuxValue(int data)

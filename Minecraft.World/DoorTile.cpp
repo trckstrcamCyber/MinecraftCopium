@@ -2,6 +2,7 @@
 #include "net.minecraft.world.level.h"
 #include "net.minecraft.world.phys.h"
 #include "DoorTile.h"
+#include "CopperOxidationTileEntity.h"
 #include "IconRegister.h"
 #include "LevelEvent.h"
 #include "net.minecraft.world.item.h"
@@ -22,7 +23,7 @@ static std::map<wstring, int> doorItemMap = {
 	{ L"doorRoseGold", Item::rose_gold_door_Id }	// neoLegacy - Copper Age (Phase 3)
 };
 
-DoorTile::DoorTile(int id, Material *material, const wstring& doorType) : Tile(id, material,isSolidRender())
+DoorTile::DoorTile(int id, Material *material, const wstring& doorType) : BaseEntityTile(id, material,isSolidRender())
 {
 	setLightBlock(0);
 	this->doorType = doorType;
@@ -30,6 +31,13 @@ DoorTile::DoorTile(int id, Material *material, const wstring& doorType) : Tile(i
 	float r = 0.5f;
 	float h = 1.0f;
 	Tile::setShape(0.5f - r, 0, 0.5f - r, 0.5f + r, h, 0.5f + r);
+}
+
+shared_ptr<TileEntity> DoorTile::newTileEntity(Level *level)
+{
+	// Every door half gets one (setTileAndData creates it per half); the
+	// LOWER half's is authoritative for oxidation, the upper's is ignored.
+	return std::make_shared<CopperOxidationTileEntity>();
 }
 
 Icon *DoorTile::getTexture(int face, int data)
@@ -41,9 +49,14 @@ Icon *DoorTile::getTexture(int face, int data)
 int DoorTile::getOxidation(LevelSource *level, int x, int y, int z, bool isUpper)
 {
 	if (id != Tile::copper_door_Id) return 0;
-	// Oxidation is stored in bits 5-7 of the UPPER half's data.
-	int upperData = isUpper ? level->getData(x, y, z) : level->getData(x, y + 1, z);
-	return (upperData >> 5) & 7;
+	// Oxidation workaround (2026-11-20): the field lives in the LOWER
+	// half's CopperOxidationTileEntity, not in the nibble. Resolve the
+	// lower half from either half and read its TE (0 if it is missing).
+	int lowerY = isUpper ? y - 1 : y;
+	shared_ptr<TileEntity> te = level->getTileEntity(x, lowerY, z);
+	shared_ptr<CopperOxidationTileEntity> ox = dynamic_pointer_cast<CopperOxidationTileEntity>(te);
+	if (ox == nullptr) return 0;
+	return ox->getOxidation();
 }
 
 bool DoorTile::isHandOpenable()
@@ -331,24 +344,28 @@ int DoorTile::getResource(int data, Random *random, int playerBonusLevel)
 	return doorItemMap[doorType];
 }
 
-// neoLegacy - Copper Age (Phase 4). The copper door's oxidation lives in
-// bits 5-7 of the UPPER half's data, but the drop is produced from the
-// LOWER half (getResource returns 0 for the upper half), so the base
-// spawnResources would always drop an unaffected (aux 0) door item and a
-// weathered/waxed door would lose its oxidation when broken. When the
-// lower half is broken while the upper half is still present (the direct
-// destroyTile path — the common case), read the upper half's oxidation
-// and drop the door item with that aux, so the oxidation round-trips
-// (break -> wax -> place). If the upper half is already gone (it was
-// broken first, or the door lost its support), fall back to the base
-// behaviour (aux 0) — see the Phase 4 report for the residual gap.
-// Non-copper doors fall through to the base implementation unchanged.
+// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). The copper
+// door's oxidation lives in the LOWER half's CopperOxidationTileEntity,
+// but the drop is produced from the LOWER half (getResource returns 0
+// for the upper half), so the base spawnResources would always drop an
+// unaffected (aux 0) door item. When the lower half is broken while the
+// upper half is still present (the direct destroyTile path — the common
+// case; destroyTile drops before clearing the tile, so the TE is still
+// there), read the lower half's TE and drop the door item with that aux,
+// so the oxidation round-trips (break -> wax -> place). If the TE is
+// already gone (support lost after the half was removed —
+// neighborChanged drops after removeTile), fall back to the base
+// behaviour (aux 0). Non-copper doors fall through to the base
+// implementation unchanged.
 void DoorTile::spawnResources(Level *level, int x, int y, int z, int data, float odds, int playerBonusLevel)
 {
 	if (id == Tile::copper_door_Id && (data & UPPER_BIT) == 0 && level->getTile(x, y + 1, z) == id)
 	{
 		if (level->isClientSide) return;
-		int ox = (level->getData(x, y + 1, z) >> 5) & 7;
+		int ox = 0;
+		shared_ptr<TileEntity> te = level->getTileEntity(x, y, z);
+		shared_ptr<CopperOxidationTileEntity> oxTe = dynamic_pointer_cast<CopperOxidationTileEntity>(te);
+		if (oxTe != nullptr) ox = oxTe->getOxidation();
 		int count = getResourceCountForLootBonus(playerBonusLevel, level->random);
 		for (int i = 0; i < count; i++)
 		{
@@ -360,6 +377,20 @@ void DoorTile::spawnResources(Level *level, int x, int y, int z, int data, float
 		return;
 	}
 	Tile::spawnResources(level, x, y, z, data, odds, playerBonusLevel);
+}
+
+int DoorTile::cloneTileData(Level *level, int x, int y, int z)
+{
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Pick-block
+	// (middle-click) on a copper door gives the door item with the TE
+	// oxidation aux. getOxidation resolves the lower half's TE from
+	// either half (bit 3 = upper half).
+	if (id == Tile::copper_door_Id)
+	{
+		int data = level->getData(x, y, z);
+		return getOxidation(level, x, y, z, (data & 8) != 0);
+	}
+	return Tile::cloneTileData(level, x, y, z);
 }
 
 HitResult *DoorTile::clip(Level *level, int xt, int yt, int zt, Vec3 *a, Vec3 *b)
@@ -403,14 +434,17 @@ int DoorTile::getCompositeData(LevelSource *level, int x, int y, int z)
 	}
 
 	// bits: dir, dir, open/closed, isUpper, isRightHinge
-	// neoLegacy - Copper Age (Phase 4): bits 5-7 carry the copper door's
-	// oxidation (upper half, bits 5-7 of its data), so the oxidation
-	// round-trips through BlockState. BlockState.value is a plain int
-	// (no width limit). Vanilla doors have 0 there, so this is a no-op
-	// for them. DoorTile::use(BlockState) only reads bits 0-3, so
-	// opening/closing still works and never wipes the oxidation.
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20): bits 5-7
+	// still carry the copper door's oxidation in the composite, but now
+	// read from the LOWER half's CopperOxidationTileEntity (see
+	// getOxidation), NOT from the upper half's nibble — the nibble holds
+	// structural bits only. BlockState.value is a plain int (no width
+	// limit). Vanilla doors have 0 there, so this is a no-op for them.
+	// DoorTile::use(BlockState) only reads bits 0-3, so opening/closing
+	// still works and never wipes the oxidation.
 	bool isRightHinge = (upperData & 1) != 0;
-	return (lowerData & C_LOWER_DATA_MASK) | (isUpper ? 8 : 0) | (isRightHinge ? 16 : 0) | (((upperData >> 5) & 7) << 5);
+	int oxidation = getOxidation(level, x, y, z, isUpper);
+	return (lowerData & C_LOWER_DATA_MASK) | (isUpper ? 8 : 0) | (isRightHinge ? 16 : 0) | ((oxidation & 7) << 5);
 }
 
 int DoorTile::cloneTileId(Level *level, int x, int y, int z)
@@ -458,9 +492,11 @@ int DoorTile::convertBlockStateToLegacyData(BlockState *state)
 	{
 		int base = (composite & C_RIGHT_HINGE_MASK) ? 9 : 8;
 		if (composite & C_OPEN_MASK) base |= 2;
-		// neoLegacy - Copper Age (Phase 4): restore the oxidation bits
-		// (5-7) the composite carries (see getCompositeData).
-		base |= ((composite >> 5) & 7) << 5;
+		// neoLegacy - Copper Age (oxidation workaround, 2026-11-20): the
+		// oxidation bits (5-7) the composite carries are NOT restored
+		// into the legacy data — the nibble holds structural bits only
+		// (lower = dir, upper = 8 | hinge) and the oxidation lives in
+		// the lower half's CopperOxidationTileEntity.
 		return base;
 	}
 	else
@@ -479,9 +515,10 @@ Tile::BlockState DoorTile::getBlockState(int data)
 	} else {
 		composite = C_IS_UPPER_MASK;
 		if ((data & 1) != 0) composite |= C_RIGHT_HINGE_MASK;
-		// neoLegacy - Copper Age (Phase 4): carry the oxidation bits
-		// (5-7) into the BlockState (see getCompositeData).
-		composite |= ((data >> 5) & 7) << 5;
+		// neoLegacy - Copper Age (oxidation workaround, 2026-11-20):
+		// legacy data carries no oxidation bits — the oxidation lives in
+		// the lower half's CopperOxidationTileEntity, so nothing is
+		// carried into the BlockState here (see getCompositeData).
 	}
 	return Tile::BlockState(composite);
 }

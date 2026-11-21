@@ -88,7 +88,15 @@ void ShelfTileEntityRenderer::render(shared_ptr<TileEntity> _shelf, double x, do
 		// Slot centre along the front face — the same thirds
 		// ShelfTile::use() maps clicks to (clickX for N/S, clickZ for
 		// E/W), so the drawn item sits in the slot it is taken from.
+		// Java parity: slot 0 is the player's LEFT slot. For NORTH and
+		// EAST facings the slot order is mirrored (slot 0 would sit at
+		// low x / low z, the player's right), so mirror it here to
+		// match ShelfTile::use().
 		float along = (static_cast<float>(slot) + 0.5f) / 3.0f;
+		if (facing == Facing::NORTH || facing == Facing::EAST)
+		{
+			along = 1.0f - along;
+		}
 		float out = isBlock ? OUT_BLOCK : OUT_FLAT;
 		float px = 0.0f, pz = 0.0f;
 		switch (facing)

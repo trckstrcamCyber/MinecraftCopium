@@ -1203,6 +1203,24 @@ void ServerLevel::broadcastEntityEvent(shared_ptr<Entity> e, byte event)
 	server->getLevel(dimension->id)->getTracker()->broadcastAndSend(e, p);
 }
 
+// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Push a tile
+// entity's update packet to every player. broadcast(te) sends
+// te->getUpdatePacket() (or nothing if it returns nullptr) and the client
+// drops packets for TEs it does not have, so this is safe to call for any
+// TE a player may or may not have loaded yet.
+void ServerLevel::broadcastTileEntityUpdate(shared_ptr<TileEntity> te)
+{
+	if (te == nullptr) return;
+	for (vector<shared_ptr<Player> >::iterator it = players.begin(); it != players.end(); ++it)
+	{
+		shared_ptr<ServerPlayer> sp = dynamic_pointer_cast<ServerPlayer>(*it);
+		if (sp != nullptr)
+		{
+			sp->broadcast(te);
+		}
+	}
+}
+
 shared_ptr<Explosion> ServerLevel::explode(shared_ptr<Entity> source, double x, double y, double z, float r, bool fire, bool destroyBlocks)
 {
 	// instead of calling super, we run the same explosion code here except

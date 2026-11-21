@@ -106,15 +106,13 @@ void ChestTile::setPlacedBy(Level *level, int x, int y, int z, shared_ptr<Living
 	if (dir == 2) facing = Facing::SOUTH;
 	if (dir == 3) facing = Facing::WEST;
 
-	// neoLegacy - Copper Age (Phase 3). The copper chest's oxidation lives
-	// in bits 3-5 of the block data (the facing uses bits 0-2). The item
-	// aux value IS the oxidation (0-7), so it is shifted into bits 3-5
-	// here; every other chest has aux 0, so this is a no-op for them.
-	// (In Phase 3 every copper chest is crafted unaffected, aux 0; the
-	// oxidation only becomes non-zero when weathering lands in Phase 4.)
-	int oxidation = 0;
-	if (id == Tile::copper_chest_Id && itemInstance) oxidation = itemInstance->getAuxValue() & 7;
-	int data = facing | (oxidation << 3);
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). The
+	// copper chest's oxidation lives in the ChestTileEntity now, NOT in
+	// data bits 3-5 (the 4-bit nibble truncated it). The data written to
+	// the block is the facing ONLY. (In Phase 3 every copper chest is
+	// crafted unaffected, aux 0; the oxidation only becomes non-zero
+	// when weathering lands.)
+	int data = facing;
 
 	if (n != id && s != id && w != id && e != id)
 	{
@@ -124,17 +122,26 @@ void ChestTile::setPlacedBy(Level *level, int x, int y, int z, shared_ptr<Living
 	{
 		if ((n == id || s == id) && (facing == Facing::WEST || facing == Facing::EAST))
 		{
-			// Preserve the neighbour chest's oxidation when re-facing it.
-			if (n == id) level->setData(x, y, z - 1, facing | (level->getData(x, y, z - 1) & ~7), Tile::UPDATE_ALL);
-			else level->setData(x, y, z + 1, facing | (level->getData(x, y, z + 1) & ~7), Tile::UPDATE_ALL);
+			if (n == id) level->setData(x, y, z - 1, facing, Tile::UPDATE_ALL);
+			else level->setData(x, y, z + 1, facing, Tile::UPDATE_ALL);
 			level->setData(x, y, z, data, Tile::UPDATE_ALL);
 		}
 		if ((w == id || e == id) && (facing == Facing::NORTH || facing == Facing::SOUTH))
 		{
-			if (w == id) level->setData(x - 1, y, z, facing | (level->getData(x - 1, y, z) & ~7), Tile::UPDATE_ALL);
-			else level->setData(x + 1, y, z, facing | (level->getData(x + 1, y, z) & ~7), Tile::UPDATE_ALL);
+			if (w == id) level->setData(x - 1, y, z, facing, Tile::UPDATE_ALL);
+			else level->setData(x + 1, y, z, facing, Tile::UPDATE_ALL);
 			level->setData(x, y, z, data, Tile::UPDATE_ALL);
 		}
+	}
+
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). The
+	// item aux value IS the oxidation (0-7); store it in the tile
+	// entity. Each half of a double chest keeps its own oxidation, so
+	// the neighbour needs no preservation here.
+	if (id == Tile::copper_chest_Id && itemInstance != nullptr)
+	{
+		shared_ptr<ChestTileEntity> cte = dynamic_pointer_cast<ChestTileEntity>(level->getTileEntity(x, y, z));
+		if (cte != nullptr) cte->setOxidation(itemInstance->getAuxValue() & 7);
 	}
 
 	if (itemInstance->hasCustomHoverName())
@@ -168,8 +175,9 @@ void ChestTile::recalcLockDir(Level *level, int x, int y, int z)
 		int otherDir = -1;
 		if (n == id) otherDir = level->getData(x, y, z - 1);
 		else otherDir = level->getData(x, y, z + 1);
-		// neoLegacy - Copper Age (Phase 3): mask off the copper chest's
-		// oxidation bits (3-5) so the facing comparison still works.
+		// neoLegacy - Copper Age (oxidation workaround, 2026-11-20):
+		// the data is facing-only now (oxidation lives in the tile
+		// entity), so mask defensively for the facing comparison.
 		otherDir &= 7;
 		if (otherDir == 4) lockDir = 4;
 
@@ -185,8 +193,9 @@ void ChestTile::recalcLockDir(Level *level, int x, int y, int z)
 		int otherDir = -1;
 		if (w == id) otherDir = level->getData(x - 1, y, z);
 		else otherDir = level->getData(x + 1, y, z);
-		// neoLegacy - Copper Age (Phase 3): mask off the copper chest's
-		// oxidation bits (3-5) so the facing comparison still works.
+		// neoLegacy - Copper Age (oxidation workaround, 2026-11-20):
+		// the data is facing-only now (oxidation lives in the tile
+		// entity), so mask defensively for the facing comparison.
 		otherDir &= 7;
 		if (otherDir == 2) lockDir = 2;
 
@@ -202,9 +211,10 @@ void ChestTile::recalcLockDir(Level *level, int x, int y, int z)
 		if (Tile::solid[e] && !Tile::solid[w]) lockDir = 4;
 	}
 
-	// neoLegacy - Copper Age (Phase 3): preserve the copper chest's
-	// oxidation bits (3-5) when re-writing the facing (lockDir).
-	level->setData(x, y, z, lockDir | (level->getData(x, y, z) & ~7), Tile::UPDATE_ALL);
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20): the
+	// data is facing-only now (oxidation lives in the tile entity), so
+	// just write the facing (lockDir).
+	level->setData(x, y, z, lockDir, Tile::UPDATE_ALL);
 }
 
 bool ChestTile::mayPlace(Level *level, int x, int y, int z)
@@ -405,10 +415,56 @@ void ChestTile::registerIcons(IconRegister *iconRegister)
 	else icon = iconRegister->registerIcon(L"planks_oak");
 }
 
-// neoLegacy - Copper Age (Phase 3). Breaking a copper chest drops a chest
-// item carrying the oxidation aux (bits 3-5 of the block data).
+// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). The copper
+// chest's oxidation now lives in the ChestTileEntity, so it cannot be
+// read here — this only gets the (facing-only) data, and bits 3-5 are
+// always 0 on newly placed chests, so this returns 0 for them. A
+// weathered chest therefore drops an unaffected chest item until
+// ChestTile gains a spawnResources override that reads the TE — that
+// needs a ChestTile.h declaration (not in this file's scope), so it is
+// left for the integration step. (Old-save chests may still carry a
+// stale oxidation in data bits 3-5; for those this still returns it.)
 int ChestTile::getSpawnResourcesAuxValue(int data)
 {
 	if (id == Tile::copper_chest_Id) return (data >> 3) & 7;
 	return Tile::getSpawnResourcesAuxValue(data);
+}
+
+// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Breaking a
+// copper chest drops a chest item with the TE oxidation aux (the nibble
+// no longer holds oxidation — getSpawnResourcesAuxValue above can only
+// see the stale bits 3-5 on old saves). Level::destroyTile calls
+// spawnResources before the block is removed, so the TE is still alive
+// here. Non-copper chests fall through to the base implementation.
+void ChestTile::spawnResources(Level *level, int x, int y, int z, int data, float odds, int playerBonusLevel)
+{
+	if (id == Tile::copper_chest_Id)
+	{
+		if (level->isClientSide) return;
+		shared_ptr<ChestTileEntity> cte = dynamic_pointer_cast<ChestTileEntity>(level->getTileEntity(x, y, z));
+		int ox = cte != nullptr ? cte->getOxidation() : 0;
+		int count = getResourceCountForLootBonus(playerBonusLevel, level->random);
+		for (int i = 0; i < count; i++)
+		{
+			if (level->random->nextFloat() > odds) continue;
+			int type = getResource(data, level->random, playerBonusLevel);
+			if (type <= 0) continue;
+			popResource(level, x, y, z, std::make_shared<ItemInstance>(type, 1, ox));
+		}
+		return;
+	}
+	Tile::spawnResources(level, x, y, z, data, odds, playerBonusLevel);
+}
+
+// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Pick-block
+// (middle-click) on a copper chest gives the chest item with the TE
+// oxidation aux, so the picked item matches the placed block.
+int ChestTile::cloneTileData(Level *level, int x, int y, int z)
+{
+	if (id == Tile::copper_chest_Id)
+	{
+		shared_ptr<ChestTileEntity> cte = dynamic_pointer_cast<ChestTileEntity>(level->getTileEntity(x, y, z));
+		if (cte != nullptr) return cte->getOxidation();
+	}
+	return Tile::cloneTileData(level, x, y, z);
 }

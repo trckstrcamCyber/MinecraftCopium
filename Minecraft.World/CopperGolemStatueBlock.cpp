@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "CopperGolemStatueBlock.h"
 #include "CopperGolemStatueBlockEntity.h"
+#include "CopperGolem.h"
 #include "HatchetItem.h"
 #include "IconRegister.h"
 #include "Inventory.h"
@@ -41,6 +42,15 @@ float CopperGolemStatueBlock::facingToYaw(int facing)
 	default:
 		return 0.0f;
 	}
+}
+
+// Oxidation workaround: pose/facing live in the tile entity, not the
+// nibble. Returns nullptr when the TE is missing (chunk not fully
+// loaded, or a level-less TE); callers fall back gracefully.
+static shared_ptr<CopperGolemStatueBlockEntity> getStatueTE(Level *level, int x, int y, int z)
+{
+	if (level == nullptr) return nullptr;
+	return dynamic_pointer_cast<CopperGolemStatueBlockEntity>(level->getTileEntity(x, y, z));
 }
 
 CopperGolemStatueBlock::CopperGolemStatueBlock(int id) : BaseEntityTile(id, Material::metal, isSolidRender())
@@ -126,10 +136,20 @@ void CopperGolemStatueBlock::setPlacedBy(Level *level, int x, int y, int z, shar
 	// The statue has no item form, so nothing places it by hand — only
 	// turnToStatue (via setTileAndData, which does not call setPlacedBy)
 	// creates one. Implemented defensively: facing from the placer's yaw,
-	// pose STANDING, oxidation bits preserved.
+	// pose STANDING, oxidation (+ waxed) bits preserved.
+	// Oxidation workaround: the nibble keeps bits 0-2 ONLY (oxidation +
+	// waxed); the old packed pose/facing bits 3-6 are cleared, and the
+	// facing goes into the TE instead.
 	int data = level->getData(x, y, z);
 	int facing = (Mth::floor(by->yRot * 4.0f / 360.0f + 0.5f)) & 3;
-	level->setData(x, y, z, makeData(getOxidation(data), POSE_STANDING, facing), Tile::UPDATE_ALL);
+	level->setData(x, y, z, data & 7, Tile::UPDATE_ALL);
+	shared_ptr<CopperGolemStatueBlockEntity> te = getStatueTE(level, x, y, z);
+	if (te != nullptr)
+	{
+		te->setPose(POSE_STANDING);
+		te->setFacing(facing);
+		level->broadcastTileEntityUpdate(te);
+	}
 }
 
 bool CopperGolemStatueBlock::use(Level *level, int x, int y, int z, shared_ptr<Player> player, int clickedFace, float clickX, float clickY, float clickZ, bool soundOnly/*=false*/)
@@ -141,23 +161,51 @@ bool CopperGolemStatueBlock::use(Level *level, int x, int y, int z, shared_ptr<P
 		return false;
 	}
 
-	// Axe on a statue: PASS (Java updatePose returns PASS for axes — the
-	// axe's wax-scrape / de-oxidize applies to golems and to waxed blocks
-	// via the Phase 4 recipes, not to a statue's pose).
+	// Axe on a statue: Java reanimates a FULLY OXIDIZED, unwaxed statue
+	// into a copper golem. Any other axe use passes through (PASS) so
+	// the axe's wax-scrape / de-oxidize applies instead.
 	shared_ptr<ItemInstance> item = player->inventory->getSelected();
 	if (item != nullptr && dynamic_cast<HatchetItem *>(item->getItem()) != nullptr)
 	{
+		int data = level->getData(x, y, z);
+		if (getOxidation(data) == 3 && ((data >> 2) & 1) == 0)
+		{
+			// Fully oxidized and unwaxed: reanimate into a golem.
+			if (!level->isClientSide)
+			{
+				shared_ptr<CopperGolemStatueBlockEntity> te = dynamic_pointer_cast<CopperGolemStatueBlockEntity>(level->getTileEntity(x, y, z));
+				if (te != nullptr)
+				{
+					shared_ptr<CopperGolem> golem = te->removeStatue();
+					if (golem != nullptr)
+					{
+						level->addEntity(golem);
+						level->removeTile(x, y, z);
+					}
+				}
+			}
+			item->hurtAndBreak(1, player);
+			return true;
+		}
 		return false;
 	}
 
 	// Otherwise: cycle the pose (STANDING -> SITTING -> RUNNING -> STAR ->
 	// STANDING; Java getNextPose wraps to ZERO on out-of-bounds) and play
-	// the become-statue sound.
-	int data = level->getData(x, y, z);
-	int nextPose = (getPose(data) + 1) & 3;
-	int newData = makeData(getOxidation(data), nextPose, getFacing(data));
-	level->setData(x, y, z, newData, Tile::UPDATE_ALL);
-	level->setTilesDirty(x, y, z, x, y, z);
+	// the become-statue sound. Oxidation workaround: the pose lives in
+	// the TE, not the nibble — cycle it there and broadcast so clients
+	// see the new pose live (the renderer reads the TE every frame, so
+	// no chunk rebuild is needed; setChanged() inside setPose() also
+	// notifies comparators). If the TE is missing, change nothing: the
+	// old nibble write would only store a truncated pose that never
+	// persisted.
+	shared_ptr<CopperGolemStatueBlockEntity> te = getStatueTE(level, x, y, z);
+	if (te != nullptr)
+	{
+		int nextPose = (te->getPose() + 1) & 3;
+		te->setPose(nextPose);
+		level->broadcastTileEntityUpdate(te);
+	}
 	level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_COPPER_STATUE_BECOME_STATUE, 1.0f, 1.0f);
 	return true;
 }
@@ -169,15 +217,20 @@ bool CopperGolemStatueBlock::hasAnalogOutputSignal()
 
 int CopperGolemStatueBlock::getAnalogOutputSignal(Level *level, int x, int y, int z, int dir)
 {
-	// Java: comparator output = pose ordinal + 1.
+	// Java: comparator output = pose ordinal + 1. Oxidation workaround:
+	// the pose lives in the TE, not the nibble.
+	shared_ptr<CopperGolemStatueBlockEntity> te = getStatueTE(level, x, y, z);
+	if (te != nullptr) return te->getPose() + 1;
+	// Fallback: TE missing — decode the (legacy, now always 0) nibble pose.
 	return getPose(level->getData(x, y, z)) + 1;
 }
 
 int CopperGolemStatueBlock::getResourceCount(Random *random)
 {
-	// Conservative statue-trigger decision: breaking a statue drops
-	// nothing and does NOT spawn a golem. (The block entity's removeStatue
-	// can build the golem back, but no trigger is wired — open decision
-	// for Cameron.)
-	return 0;
+	// Audit fix (Java): breaking a statue drops the statue as an item
+	// (base Tile::getResource returns the statue tile id, aux 0, so it
+	// places back as an unaffected standing statue). It does NOT spawn
+	// a golem on break — reanimation is via an axe on a fully-oxidized
+	// statue (see use()).
+	return 1;
 }

@@ -45,6 +45,7 @@ void TileEntity::staticCtor()
 	TileEntity::setId(BedTileEntity::create, eTYPE_BEDTILEENTITY, L"Bed");	// neoLegacy - Fancy Beds
 	TileEntity::setId(CopperGolemStatueBlockEntity::create, eTYPE_COPPERGOLEMSTATUETILEENTITY, L"CopperGolemStatue");	// neoLegacy - Copper Age (Phase 5)
 	TileEntity::setId(ShelfTileEntity::create, eTYPE_SHELFTILEENTITY, L"Shelf");	// neoLegacy - Copper Age (Phase 6)
+	TileEntity::setId(CopperOxidationTileEntity::create, eTYPE_COPPEROXIDATIONTILEENTITY, L"CopperOxidation");	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20)
 }
 
 void TileEntity::setId(tileEntityCreateFn createFn, eINSTANCEOF clas, wstring id)

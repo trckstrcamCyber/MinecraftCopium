@@ -71,9 +71,10 @@ void ChestRenderer::render(shared_ptr<TileEntity>  _chest, double x, double y, d
 		Tile *tile = chest->getTile();
 		data = chest->getData();
 
-		// neoLegacy - Copper Age (Phase 3): the facing is bits 0-2 of the
-		// data; bits 3-5 hold the copper chest's oxidation. Test the facing
-		// only here (a freshly placed chest has facing 0).
+		// neoLegacy - Copper Age (oxidation workaround, 2026-11-20):
+		// the facing is bits 0-2 of the data; the oxidation lives in
+		// the tile entity now. Test the facing only here (a freshly
+		// placed chest has facing 0).
 		if (dynamic_cast<ChestTile*>(tile) != nullptr && (data & 7) == 0)
 		{
 			static_cast<ChestTile *>(tile)->recalcLockDir(chest->getLevel(), chest->x, chest->y, chest->z);
@@ -84,15 +85,21 @@ void ChestRenderer::render(shared_ptr<TileEntity>  _chest, double x, double y, d
 	}
 	if (chest->n.lock() != nullptr || chest->w.lock() != nullptr) return;
 
-	// neoLegacy - Copper Age (Phase 3). Copper chest texture by oxidation
-	// state (bits 3-5 of the data; waxed reuses the unwaxed texture).
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Copper
+	// chest texture by oxidation stage (waxed reuses the unwaxed
+	// texture). An in-world chest reads its stage from the tile entity
+	// (the 4-bit data nibble holds the facing only now); a level-less
+	// chest (held / inventory item) has no TE state, so it keeps the
+	// old packed-data reading — the caller set TileEntity::data from
+	// the item aux. See the level-less branch above.
 	// neoLegacy - Copper Age (Phase 4). The double-chest form uses the
 	// combined 128x64 sheet (one per oxidation state); each half of a
 	// double chest binds its own sheet, since the halves oxidize
 	// independently. The single-chest texture is unchanged.
 	ResourceLocation *copperLocation = &CHEST_COPPER_LOCATION;
 	ResourceLocation *copperLargeLocation = &CHEST_COPPER_LARGE_LOCATION;
-	switch ((data >> 3) & 3)
+	int oxidationStage = chest->hasLevel() ? chest->getOxidationStage() : (data >> 3) & 3;
+	switch (oxidationStage)
 	{
 	case 1: copperLocation = &CHEST_COPPER_EXPOSED_LOCATION; copperLargeLocation = &CHEST_COPPER_LARGE_EXPOSED_LOCATION; break;
 	case 2: copperLocation = &CHEST_COPPER_WEATHERED_LOCATION; copperLargeLocation = &CHEST_COPPER_LARGE_WEATHERED_LOCATION; break;
@@ -151,8 +158,9 @@ void ChestRenderer::render(shared_ptr<TileEntity>  _chest, double x, double y, d
 	glScalef(1, -1, -1);
 
 	glTranslatef(0.5f, 0.5f, 0.5f);
-	// neoLegacy - Copper Age (Phase 3): the facing is bits 0-2 of the data;
-	// bits 3-5 hold the copper chest's oxidation.
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20): the
+	// facing is bits 0-2 of the data; the oxidation lives in the tile
+	// entity now (level-less chests keep it packed in chest->data).
 	int facing = data & 7;
 	int rot = 0;
 	if (facing == 2) rot = 180;

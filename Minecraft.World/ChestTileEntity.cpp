@@ -12,6 +12,8 @@
 #include "ChestTileEntity.h"
 #include "ContainerOpenPacket.h"
 #include "SoundTypes.h"
+#include "net.minecraft.network.packet.h"
+#include "TileEntityDataPacket.h"
 
 int ChestTileEntity::getContainerType()
 {
@@ -30,6 +32,7 @@ void ChestTileEntity::_init(bool isBonusChest)
 	oOpenness = 0.0f;
 	openCount = 0;
 	tickInterval = 0;
+	oxidation = 0;
 
 	type = -1;
 	name = L"";
@@ -127,9 +130,34 @@ void ChestTileEntity::setCustomName(const wstring &name)
 	this->name = name;
 }
 
+// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). The
+// oxidation field lives in this tile entity, not in the block data
+// nibble (see the header).
+int ChestTileEntity::getOxidation()
+{
+	return oxidation;
+}
+
+void ChestTileEntity::setOxidation(int oxidation)
+{
+	this->oxidation = oxidation & 7;
+	setChanged();
+}
+
+int ChestTileEntity::getOxidationStage()
+{
+	return oxidation & 3;
+}
+
 void ChestTileEntity::load(CompoundTag *base)
 {
 	TileEntity::load(base);
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Old
+	// saves have no "Oxidation" key — default to unaffected (0).
+	if (base->contains(L"Oxidation"))
+	{
+		oxidation = base->getByte(L"Oxidation") & 7;
+	}
 	ListTag<CompoundTag> *inventoryList = (ListTag<CompoundTag> *) base->getList(L"Items");
 	if( items )
 	{
@@ -189,6 +217,8 @@ void ChestTileEntity::save(CompoundTag *base)
 	base->put(L"Items", listTag);
 	if (hasCustomName()) base->putString(L"CustomName", name);
 	base->putBoolean(L"bonus", isBonusChest);
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20).
+	base->putByte(L"Oxidation", static_cast<byte>(oxidation));
 }
 
 int ChestTileEntity::getMaxStackSize() const
@@ -282,13 +312,13 @@ bool ChestTileEntity::isSameChest(int x, int y, int z)
 }
 
 // neoLegacy - Copper Age (Phase 6). The copper chest's oxidation lives
-// in data bits 3-5 (facing is bits 0-2; see ChestTile::setPlacedBy and
-// Level::advanceCopperOxidation). Stage = field & 3, so waxed chests
-// (field 4-7) sound like their unwaxed stage. UNAFFECTED (0) and
-// EXPOSED (1) share the regular set, as with the golem sounds.
+// in this tile entity (see oxidation), NOT in data bits 3-5 — the 4-bit
+// nibble truncated it. Stage = field & 3, so waxed chests (field 4-7)
+// sound like their unwaxed stage. UNAFFECTED (0) and EXPOSED (1) share
+// the regular set, as with the golem sounds.
 int ChestTileEntity::copperChestSound(bool opening)
 {
-	int stage = (level->getData(x, y, z) >> 3) & 3;
+	int stage = oxidation & 3;
 	if (stage >= 3) return opening ? eSoundType_COPPER_CHEST_OXIDIZED_OPEN : eSoundType_COPPER_CHEST_OXIDIZED_CLOSE;
 	if (stage == 2) return opening ? eSoundType_COPPER_CHEST_WEATHERED_OPEN : eSoundType_COPPER_CHEST_WEATHERED_CLOSE;
 	return opening ? eSoundType_COPPER_CHEST_OPEN : eSoundType_COPPER_CHEST_CLOSE;
@@ -445,6 +475,8 @@ shared_ptr<TileEntity> ChestTileEntity::clone()
 {
 	shared_ptr<ChestTileEntity> result = std::make_shared<ChestTileEntity>();
 	TileEntity::clone(result);
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20).
+	result->oxidation = oxidation;
 
 	for (unsigned int i = 0; i < items->length; i++)
 	{
@@ -454,4 +486,25 @@ shared_ptr<TileEntity> ChestTileEntity::clone()
 		}
 	}
 	return result;
+}
+
+// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Live-sync
+// the oxidation to the client. Minimal tag: Oxidation only — do NOT call
+// save() here, which would send the whole inventory.
+shared_ptr<Packet> ChestTileEntity::getUpdatePacket()
+{
+	CompoundTag *tag = new CompoundTag();
+	tag->putByte(L"Oxidation", static_cast<byte>(oxidation));
+	return std::make_shared<TileEntityDataPacket>(x, y, z, TileEntityDataPacket::TYPE_COPPER_CHEST, tag);
+}
+
+void ChestTileEntity::applyUpdate(CompoundTag *tag)
+{
+	// Client-side only: apply the oxidation from a TileEntityDataPacket
+	// without touching anything else. Do NOT call setChanged() here —
+	// the client must not mark its chunk unsaved.
+	if (tag != nullptr && tag->contains(L"Oxidation"))
+	{
+		oxidation = tag->getByte(L"Oxidation") & 7;
+	}
 }

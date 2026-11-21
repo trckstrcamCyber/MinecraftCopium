@@ -10767,7 +10767,7 @@
 		<value>Copper Horse Armor</value>
 	</data>
 	<data name="IDS_DESC_COPPER_HORSE_ARMOR">
-		<value>A special type of Armor that can be equipped to a horse. Provides 5 Armor.</value>
+		<value>A special type of Armor that can be equipped to a horse. Provides 4 Armor.</value>
 	</data>
 	<data name="IDS_ITEM_RAW_ROSE_GOLD">
 		<value>Raw Rose Gold</value>

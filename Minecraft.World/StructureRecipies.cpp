@@ -651,10 +651,19 @@ for (int i = 0; i < 16; i++)
 		L'S');
 
 	// ---- ingot bucket (10) ----
-	// Copper block -> 9 copper ingots (vanilla, shapeless).
+	// Copper block -> 9 copper ingots (vanilla, shapeless). Java: only
+	// an UNOXIDIZED block (waxed or not) can be crafted back into
+	// ingots — an oxidized block uncrafting into 9 fresh ingots is an
+	// exploit. The bare Tile::copperBlock ingredient matches ANY aux,
+	// so use an exact-aux ItemInstance ('z') instead, with one recipe
+	// per accepted state (aux 0 unoxidized, aux 4 waxed unoxidized).
 	r->addShapelessRecipy(new ItemInstance(Item::copper_ingot, 9), //
-		L"tg",
-		Tile::copperBlock,
+		L"zg",
+		new ItemInstance(Tile::copperBlock, 1, 0),
+		L'S');
+	r->addShapelessRecipy(new ItemInstance(Item::copper_ingot, 9), //
+		L"zg",
+		new ItemInstance(Tile::copperBlock, 1, 4),
 		L'S');
 
 	// Copper ingot -> 9 copper nuggets (jar1201, shapeless).

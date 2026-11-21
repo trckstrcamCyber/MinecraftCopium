@@ -107,6 +107,19 @@ int Drowned::decreaseAirSupply(int currentSupply)
 	return currentSupply;		// breathes underwater
 }
 
+void Drowned::dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel)
+{
+	Mob::dropDeathLoot(wasKilledByPlayer, playerBonusLevel);
+	// neoLegacy - Copper Age (audit fix). Java: drowned drop a copper
+	// ingot 11% of the time (+2% per Looting level, up to 17%).
+	int chance = 11 + 2 * playerBonusLevel;
+	if (chance > 17) chance = 17;
+	if (random->nextFloat() * 100.0f < chance)
+	{
+		spawnAtLocation(Item::copper_ingot_Id, 1);
+	}
+}
+
 void Drowned::dropRareDeathLoot(int rareLootLevel)
 {
 	// Rare drop: a gold ingot (instead of the zombie's iron/carrot/potato).

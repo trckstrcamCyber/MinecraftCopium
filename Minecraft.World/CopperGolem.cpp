@@ -320,9 +320,12 @@ void CopperGolem::turnToStatue()
 
 	// Random pose; facing from the golem's yaw (ChestTile convention:
 	// 0 NORTH, 1 EAST, 2 SOUTH, 3 WEST).
+	// Oxidation workaround: the nibble holds oxidation ONLY (bits 0-1).
+	// Pose/facing live in the statue's TE — write them there after
+	// createStatue and broadcast so clients see them live.
 	int pose = random->nextInt(4);
 	int facing = (Mth::floor(yRot * 4.0f / 360.0f + 0.5f)) & 3;
-	int data = CopperGolemStatueBlock::makeData(getWeatherState(), pose, facing);
+	int data = getWeatherState() & 3;
 
 	level->setTileAndData(bx, by, bz, Tile::copper_golem_statue_Id, data, Tile::UPDATE_ALL);
 
@@ -334,6 +337,9 @@ void CopperGolem::turnToStatue()
 		if (statueTe != nullptr)
 		{
 			statueTe->createStatue(dynamic_pointer_cast<CopperGolem>(shared_from_this()));
+			statueTe->setPose(pose);
+			statueTe->setFacing(facing);
+			level->broadcastTileEntityUpdate(statueTe);
 		}
 	}
 
@@ -409,9 +415,12 @@ bool CopperGolem::mobInteract(shared_ptr<Player> player)
 		// updateWeathering). Java also sets nextWeatheringTick = -2; this
 		// tree uses the waxed flag instead. No dedicated wax sound exists
 		// in the golem's sound set, so none is played.
+		// Audit fix: the honeycomb is CONSUMED (it was infinite free
+		// waxing before — the golem never used the item up).
 		if (!level->isClientSide)
 		{
 			setWaxed(true);
+			player->inventory->removeItem(player->inventory->selected, 1);
 		}
 		return true;
 	}

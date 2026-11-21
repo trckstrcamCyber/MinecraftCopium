@@ -3554,6 +3554,24 @@ void ClientConnection::handleTileEntityData(shared_ptr<TileEntityDataPacket> pac
 				// neoLegacy - Copper Age: ShelfTileEntityRenderer reads the stored items from the tile entity every frame, so no chunk rebuild is needed
 				dynamic_pointer_cast<ShelfTileEntity>(te)->load(packet->tag);
 			}
+			else if (packet->type == TileEntityDataPacket::TYPE_COPPER_OXIDATION && dynamic_pointer_cast<CopperOxidationTileEntity>(te) != nullptr)
+			{
+				dynamic_pointer_cast<CopperOxidationTileEntity>(te)->applyUpdate(packet->tag);
+				// Unlike the chest/statue (drawn by a tile entity renderer every frame), the
+				// door/trapdoor/stairs oxidation is baked into the chunk mesh, so rebuild it
+				// now that the real oxidation has arrived.
+				minecraft->level->setTilesDirty(packet->x, packet->y, packet->z, packet->x, packet->y, packet->z);
+			}
+			else if (packet->type == TileEntityDataPacket::TYPE_COPPER_CHEST && dynamic_pointer_cast<ChestTileEntity>(te) != nullptr)
+			{
+				// neoLegacy - Copper Age: the chest renderer reads the oxidation from the tile entity every frame, so no chunk rebuild is needed
+				dynamic_pointer_cast<ChestTileEntity>(te)->applyUpdate(packet->tag);
+			}
+			else if (packet->type == TileEntityDataPacket::TYPE_COPPER_STATUE && dynamic_pointer_cast<CopperGolemStatueBlockEntity>(te) != nullptr)
+			{
+				// neoLegacy - Copper Age: the statue renderer reads the pose/facing from the tile entity every frame, so no chunk rebuild is needed
+				dynamic_pointer_cast<CopperGolemStatueBlockEntity>(te)->applyUpdate(packet->tag);
+			}
 		}
 	}
 }

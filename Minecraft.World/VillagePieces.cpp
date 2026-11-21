@@ -1756,7 +1756,7 @@ bool VillagePieces::TwoRoomHouse::postProcess(Level *level, Random *random, Boun
 
 void VillagePieces::Smithy::staticCtor()
 {
-	treasureItems = WeighedTreasureArray(17);
+	treasureItems = WeighedTreasureArray(18);
 	treasureItems[0] = new WeighedTreasure(Item::diamond_Id, 0, 1, 3, 3);
 	treasureItems[1] = new WeighedTreasure(Item::iron_ingot_Id, 0, 1, 5, 10);
 	treasureItems[2] = new WeighedTreasure(Item::gold_ingot_Id, 0, 1, 3, 5);
@@ -1775,6 +1775,7 @@ void VillagePieces::Smithy::staticCtor()
 	treasureItems[14] = new WeighedTreasure(Item::iron_horse_armor_Id, 0, 1, 1, 1);
 	treasureItems[15] = new WeighedTreasure(Item::golden_horse_armor_Id, 0, 1, 1, 1);
 	treasureItems[16] = new WeighedTreasure(Item::diamond_horse_armor_Id, 0, 1, 1, 1);
+	treasureItems[17] = new WeighedTreasure(Item::copper_horse_armor_Id, 0, 1, 1, 1);	// neoLegacy - Copper Age (audit fix): Java village weaponsmith also has copper horse armor
 	// ...
 }
 

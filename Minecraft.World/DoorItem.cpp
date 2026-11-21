@@ -10,6 +10,7 @@ using namespace std;
 #include "Facing.h"
 #include "Material.h"
 #include "GenericStats.h"
+#include "CopperOxidationTileEntity.h"
 #include "DoorItem.h"
 
 DoorItem::DoorItem(int id, Material *material, const wstring& doorType) :  Item(id)
@@ -77,14 +78,27 @@ void DoorItem::place(Level *level, int x, int y, int z, int dir, Tile *tile, int
 	else if (solidRight > solidLeft) flip = true;
 
 	level->setTileAndData(x, y, z, tile->id, dir, Tile::UPDATE_CLIENTS);
-	// neoLegacy - Copper Age (Phase 4): the copper door's oxidation lives
-	// in the UPPER half, bits 5-7. A placed copper door previously always
-	// came out unaffected because place() ignored the item aux; encode it
-	// here so a weathered/waxed door item places as weathered/waxed.
-	// Every other door has aux 0, so this is a no-op for them.
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20): the
+	// copper door's oxidation lives in the LOWER half's
+	// CopperOxidationTileEntity, not in the nibble — both halves are
+	// placed with structural data only (upper = 8 | hinge bit), and the
+	// item aux is written into the lower half's TE instead. setTileAndData
+	// creates the TE (DoorTile is an entity tile), so it is there to
+	// write by the time place() returns; if it is missing (client-side
+	// prediction), skip silently — the server's broadcast syncs it.
+	// Every other door has no oxidation, so this is a no-op for them.
 	int upperData = 8 | (flip ? 1 : 0);
-	if (tile->id == Tile::copper_door_Id) upperData |= (aux & 7) << 5;
 	level->setTileAndData(x, y + 1, z, tile->id, upperData, Tile::UPDATE_CLIENTS);
+	if (tile->id == Tile::copper_door_Id)
+	{
+		shared_ptr<TileEntity> te = level->getTileEntity(x, y, z);
+		shared_ptr<CopperOxidationTileEntity> ox = dynamic_pointer_cast<CopperOxidationTileEntity>(te);
+		if (ox != nullptr)
+		{
+			ox->setOxidation(aux & 7);
+			level->broadcastTileEntityUpdate(ox);
+		}
+	}
 	level->updateNeighborsAt(x, y, z, tile->id);
 	level->updateNeighborsAt(x, y + 1, z, tile->id);
 }

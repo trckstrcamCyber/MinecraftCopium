@@ -4,7 +4,7 @@
 #include "net.minecraft.world.level.h"
 #include "SoundTypes.h"
 
-const int CopperBulbTile::LIGHT_LEVELS[4] = { 15, 14, 13, 12 };
+const int CopperBulbTile::LIGHT_LEVELS[4] = { 15, 12, 8, 4 };	// neoLegacy - Copper Age (audit fix): Java light levels by oxidation (was {15,14,13,12})
 
 CopperBulbTile::CopperBulbTile(int id) : MetalTile(id)
 {

@@ -1,24 +1,36 @@
 #pragma once
 
 #include "Tile.h"
+#include "BaseEntityTile.h"
 
 class Player;
 class HitResult;
 
-class TrapDoorTile : public Tile
+// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). The copper
+// trapdoor is an entity tile: its oxidation field (0-7) lives in a
+// CopperOxidationTileEntity, because the 4-bit data nibble cannot hold
+// oxidation alongside dir/open/top. The nibble now holds structural bits
+// only (dir 0-3, open bit 2, top bit 3). Other trapdoors get the same
+// (unused, oxidation-0) TE.
+class TrapDoorTile : public BaseEntityTile
 {
 	friend class Tile;
 private:
 	static const int TOP_MASK = 0x8;
 
-	// neoLegacy - Copper Age (Phase 3). Per-oxidation-state icons for the
-	// copper trapdoor (oxidation in bits 4-6 of the data; the use() toggle
-	// XORs bit 2 only, so it survives opening/closing). Only the copper
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20).
+	// Per-oxidation-state icons for the copper trapdoor. The oxidation
+	// field lives in the CopperOxidationTileEntity (see class comment);
+	// the item form's aux IS the field, so getTexture(int, int) indexes
+	// it directly, and the in-world form reads the TE. Only the copper
 	// trapdoor registers all four states; other trapdoors use state 0.
 	Icon *stateIcons[4];
 
 protected:
 	TrapDoorTile(int id, Material *material);
+
+public:
+	virtual shared_ptr<TileEntity> newTileEntity(Level *level) override;
 
 /*
  * public int getTexture(int face, int data) { if (face == 0 || face == 1)
@@ -31,6 +43,15 @@ protected:
 
 public:
 	bool blocksLight();
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Drops
+	// the trapdoor item with the TE's oxidation aux (the base
+	// spawnResources only knows the nibble data, which no longer holds
+	// oxidation). Copper only; other trapdoors use the base behaviour.
+	virtual void spawnResources(Level *level, int x, int y, int z, int data, float odds, int playerBonusLevel) override;
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Pick-block
+	// (middle-click) reads the TE oxidation so the picked trapdoor item
+	// matches the placed trapdoor.
+	virtual int cloneTileData(Level *level, int x, int y, int z) override;
 	virtual Icon *getTexture(int face, int data) override;
 	virtual Icon *getTexture(LevelSource *level, int x, int y, int z, int face) override;
 	virtual void registerIcons(IconRegister *iconRegister) override;

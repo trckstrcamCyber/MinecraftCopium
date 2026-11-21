@@ -11,19 +11,23 @@ class Random;
 // oxidized form of a copper golem. Replaces the Phase 3 placeholder (a
 // plain CopperTile cube) on the EXISTING Tile 2320 — no new Tile ID.
 //
-// Data layout (must preserve Phase 4: bits 0-2 are oxidation/waxed, and
-// Level::advanceCopperOxidation + the waxing recipes already handle the
-// statue with that layout):
-//   bits 0-1  oxidation 0=unaffected, 1=exposed, 2=weathered, 3=oxidized
-//   bit 2     waxed (+4); waxed reuses the unwaxed texture
-//   bits 3-4  pose 0=STANDING, 1=SITTING, 2=RUNNING, 3=STAR
-//   bits 5-6  facing 0=NORTH, 1=EAST, 2=SOUTH, 3=WEST (ChestTile dir
-//             convention: (floor(yRot*4/360+0.5))&3)
+// Data layout (oxidation workaround, 2026-11-20): the 4-bit nibble
+// holds oxidation ONLY — bits 0-1 oxidation, bit 2 waxed — which is
+// what Level::advanceCopperOxidation and the waxing recipes already
+// handle. Pose and facing used to be packed into the same nibble
+// (pose bits 3-4, facing bits 5-6), but the SparseDataStorage clamp
+// truncates the 6-bit value to 15, so pose was 0/1 only, facing was
+// always NORTH, and neither persisted. Pose/facing now live in the
+// CopperGolemStatueBlockEntity ("Pose"/"Facing" NBT, 0-3 each):
+//   pose    0=STANDING, 1=SITTING, 2=RUNNING, 3=STAR
+//   facing  0=NORTH, 1=EAST, 2=SOUTH, 3=WEST (ChestTile dir
+//           convention: (floor(yRot*4/360+0.5))&3)
 // Waterlogging is CUT: this engine has no waterlogging.
-// The statue has no item form and no recipe (Phase 3): it only arises
-// when an OXIDIZED golem turns to statue. Breaking it drops nothing and
-// does NOT spawn a golem (see removeStatue on the block entity — the
-// method exists, but no trigger is wired; that is an open decision).
+// The statue arises when an OXIDIZED golem turns to statue. Breaking it
+// drops the statue as an item (audit fix, Java behavior); it does NOT
+// spawn a golem on break. An axe on a fully-oxidized, unwaxed statue
+// reanimates it into a golem (see use() + removeStatue on the block
+// entity).
 class CopperGolemStatueBlock : public BaseEntityTile
 {
 	friend class Tile;
@@ -39,7 +43,14 @@ public:
 	static const int FACING_SOUTH = 2;
 	static const int FACING_WEST = 3;
 
-	// Data helpers (shared with the golem's turnToStatue and the renderer).
+	// Data helpers. getOxidation reads the nibble (bits 0-1), which is
+	// still where oxidation lives. makeData / getPose / getFacing are
+	// LEGACY nibble decoders of the pre-workaround 6-bit packed layout
+	// (pose bits 3-4, facing bits 5-6): the nibble no longer stores
+	// pose/facing, so they decode stale/zero bits on live data and must
+	// NOT be used for live reads — read pose/facing from the
+	// CopperGolemStatueBlockEntity instead. They are kept (unchanged
+	// signatures) so any out-of-tree caller still compiles.
 	static int makeData(int oxidation, int pose, int facing);
 	static int getOxidation(int data);
 	static int getPose(int data);

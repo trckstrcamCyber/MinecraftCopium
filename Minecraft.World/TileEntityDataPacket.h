@@ -17,6 +17,9 @@ public:
 	static const int TYPE_BED = 7;				// neoLegacy - Fancy Beds (which bed: color / straw)
 	static const int TYPE_FLOWER_POT = 8;
 	static const int TYPE_SHELF = 9;			// neoLegacy - Copper Age (shelf contents + facing)
+	static const int TYPE_COPPER_OXIDATION = 10;	// neoLegacy - Copper Age (oxidation workaround: door/trapdoor/stairs oxidation)
+	static const int TYPE_COPPER_CHEST = 11;		// neoLegacy - Copper Age (oxidation workaround: chest oxidation)
+	static const int TYPE_COPPER_STATUE = 12;		// neoLegacy - Copper Age (oxidation workaround: statue pose + facing)
 
 	int x, y, z;
 	int type;

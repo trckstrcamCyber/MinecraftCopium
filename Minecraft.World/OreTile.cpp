@@ -31,6 +31,7 @@ int OreTile::getSmeltedResource(int data)
 int OreTile::getResourceCount(Random *random)
 {
     if (id == Tile::lapis_ore_Id) return 4 + random->nextInt(5);
+	if (id == Tile::copper_ore_Id) return 2 + random->nextInt(4);	// neoLegacy - Copper Age (audit fix): Java drops 2-5 raw copper
     return 1;
 }
 

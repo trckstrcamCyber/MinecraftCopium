@@ -3436,15 +3436,27 @@ void Level::tickCopperWeathering()
 // an unwaxed oxidizable copper block at stage 0-2. The oxidation field is
 // a 3-bit value (0-7: stage 0-3, +4 when waxed); only values 0-2 advance,
 // so a single `field >= 3` test covers both waxed (4-7) and fully
-// oxidized (3). The field lives in different data bits per tile, and the
-// door's field lives in its UPPER half, so each family is handled below.
+// oxidized (3). For the nibble-stored families the field lives in data
+// bits 0-2. For the chest, door, trapdoor and stairs it lives in a tile
+// entity instead (ChestTileEntity / CopperOxidationTileEntity, on the
+// door's LOWER half) — the nibble has no room for it alongside the
+// structural bits — so those cases read/write the TE and broadcast the
+// change instead of calling setTileAndData. The statue keeps its field
+// in nibble bits 0-1 and is unchanged.
 // Returns true if the block advanced.
 bool Level::advanceCopperOxidation(int x, int y, int z, int tile)
 {
 	int data = getData(x, y, z);
 	int field;
-	int newData;
+	int newData = 0;
 	int wx = x, wy = y, wz = z; // the block actually written (the door writes its upper half)
+	// Oxidation stored in a tile entity (chest, door, trapdoor, stairs):
+	// the TE holding it, its position, and the advanced field value. Null
+	// for the nibble-stored families, which use newData instead.
+	shared_ptr<ChestTileEntity> chestTe;
+	shared_ptr<CopperOxidationTileEntity> oxTe;
+	int oxX = x, oxY = y, oxZ = z;
+	int newField = 0;
 	switch (tile)
 	{
 	// Field = data bits 0-2. CopperTile family (block, cut, chiseled,
@@ -3468,39 +3480,49 @@ bool Level::advanceCopperOxidation(int x, int y, int z, int tile)
 		if (field >= 3) return false;
 		newData = (data & ~7) | (field + 1);
 		break;
-	// Chest: field = data bits 3-5 (facing is bits 0-2).
+	// Chest: the field lives in the ChestTileEntity, not the nibble
+	// (facing is bits 0-2, so the nibble has no room for it).
 	case Tile::copper_chest_Id:
-		field = (data >> 3) & 7;
+		chestTe = dynamic_pointer_cast<ChestTileEntity>(getTileEntity(x, y, z));
+		if (chestTe == nullptr) return false;
+		field = chestTe->getOxidation();
 		if (field >= 3) return false;
-		newData = (data & ~(7 << 3)) | ((field + 1) << 3);
+		newField = field + 1;
 		break;
-	// Door: the field lives in the UPPER half, bits 5-7. A sampled lower
-	// half advances the block above it; a sampled upper half advances
-	// itself. The upper half must still be a copper door (it could have
-	// been removed between the sample and this read).
+	// Door: the field lives in the CopperOxidationTileEntity on the LOWER
+	// half. A sampled lower half advances its own TE; a sampled upper half
+	// advances the TE below it. The other half must still be a copper door
+	// (it could have been removed between the sample and this read).
 	case Tile::copper_door_Id:
 	{
 		bool isUpper = (data & 8) != 0;
 		int ux = x, uy = isUpper ? y : y + 1, uz = z;
 		if (getTile(ux, uy, uz) != Tile::copper_door_Id) return false;
-		int upperData = isUpper ? data : getData(ux, uy, uz);
-		field = (upperData >> 5) & 7;
+		oxX = x; oxY = isUpper ? y - 1 : y; oxZ = z;
+		oxTe = dynamic_pointer_cast<CopperOxidationTileEntity>(getTileEntity(oxX, oxY, oxZ));
+		if (oxTe == nullptr) return false;
+		field = oxTe->getOxidation();
 		if (field >= 3) return false;
-		newData = (upperData & ~(7 << 5)) | ((field + 1) << 5);
-		wx = ux; wy = uy; wz = uz;
+		newField = field + 1;
 		break;
 	}
-	// Trapdoor: field = data bits 4-6.
+	// Trapdoor: the field lives in the CopperOxidationTileEntity, not the
+	// nibble (hinge/open/top leave no room for it).
 	case Tile::copper_trapdoor_Id:
-		field = (data >> 4) & 7;
+		oxTe = dynamic_pointer_cast<CopperOxidationTileEntity>(getTileEntity(x, y, z));
+		if (oxTe == nullptr) return false;
+		field = oxTe->getOxidation();
 		if (field >= 3) return false;
-		newData = (data & ~(7 << 4)) | ((field + 1) << 4);
+		newField = field + 1;
 		break;
-	// Stairs: field = data bits 3-5 (facing is bits 0-1, upside-down bit 2).
+	// Stairs: the field lives in the CopperOxidationTileEntity, not the
+	// nibble (facing is bits 0-1, upside-down bit 2, so no room for it).
 	case Tile::cut_copper_stairs_Id:
-		field = (data >> 3) & 7;
+		oxTe = dynamic_pointer_cast<CopperOxidationTileEntity>(getTileEntity(x, y, z));
+		if (oxTe == nullptr) return false;
+		field = oxTe->getOxidation();
 		if (field >= 3) return false;
-		newData = (data & ~(7 << 3)) | ((field + 1) << 3);
+		newField = field + 1;
 		break;
 	default:
 		// Not an oxidizable copper block. (The copper torch and shelf do
@@ -3510,6 +3532,26 @@ bool Level::advanceCopperOxidation(int x, int y, int z, int tile)
 	}
 	// 1-in-8 chance per sampled oxidizable block.
 	if (random->nextInt(8) != 0) return false;
+	if (chestTe != nullptr)
+	{
+		// Chest oxidation lives in the TE; broadcast so clients see it
+		// live. The chest renderer reads the TE every frame, so no chunk
+		// rebuild is needed (setTilesDirty is harmless here).
+		chestTe->setOxidation(newField);
+		broadcastTileEntityUpdate(chestTe);
+		setTilesDirty(x, y, z, x, y, z);
+		return true;
+	}
+	if (oxTe != nullptr)
+	{
+		// Door/trapdoor/stairs oxidation lives in the TE; the texture is
+		// baked into the chunk mesh, so rebuild it, and broadcast so
+		// clients see it live.
+		oxTe->setOxidation(newField);
+		broadcastTileEntityUpdate(oxTe);
+		setTilesDirty(oxX, oxY, oxZ, oxX, oxY, oxZ);
+		return true;
+	}
 	setTileAndData(wx, wy, wz, tile, newData, Tile::UPDATE_ALL);
 	return true;
 }
@@ -4549,6 +4591,13 @@ bool Level::mayInteract(shared_ptr<Player> player, int xt, int yt, int zt, int c
 
 
 void Level::broadcastEntityEvent(shared_ptr<Entity> e, byte event)
+{
+}
+
+// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Base no-op:
+// the client-side Level has no players to send to. ServerLevel overrides
+// this to push te->getUpdatePacket() to every player.
+void Level::broadcastTileEntityUpdate(shared_ptr<TileEntity> te)
 {
 }
 

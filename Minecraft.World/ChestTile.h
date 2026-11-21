@@ -64,5 +64,10 @@ protected:
 	// neoLegacy - Copper Age (Phase 3). Breaking a copper chest drops a
 	// chest item with the oxidation aux (bits 3-5 of the data).
 	virtual int getSpawnResourcesAuxValue(int data) override;
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). The
+	// oxidation lives in the ChestTileEntity now, not in data bits 3-5,
+	// so the drop / pick-block aux must be read from the TE.
+	virtual void spawnResources(Level *level, int x, int y, int z, int data, float odds, int playerBonusLevel) override;
+	virtual int cloneTileData(Level *level, int x, int y, int z) override;
 	virtual void registerIcons(IconRegister *iconRegister);
 };

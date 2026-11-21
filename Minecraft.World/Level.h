@@ -500,6 +500,13 @@ public:
 	void ensureAdded(shared_ptr<Entity> entity);
 	virtual bool mayInteract(shared_ptr<Player> player, int xt, int yt, int zt, int content);
 	virtual void broadcastEntityEvent(shared_ptr<Entity> e, byte event);
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Live-sync a
+	// tile entity to every client (weathering / axe scrape / placement change
+	// the server TE; without this the client renderer keeps showing the old
+	// oxidation until the next chunk re-send). No-op in the base Level (the
+	// client has no players to send to); ServerLevel overrides it to send
+	// te->getUpdatePacket() to every player. Safe to call on either side.
+	virtual void broadcastTileEntityUpdate(shared_ptr<TileEntity> te);
 	ChunkSource *getChunkSource();
 	virtual void tileEvent(int x, int y, int z, int tile, int b0, int b1);
 	LevelStorage *getLevelStorage();

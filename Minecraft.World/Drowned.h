@@ -7,7 +7,8 @@
 //     drowned (see Zombie::convertToDrowned),
 //   * by day, out of water, it heads back to the nearest water; it does NOT burn in sunlight and
 //     breathes underwater,
-//   * drops rotten flesh and, rarely, a gold ingot,
+//   * drops rotten flesh, a copper ingot (11%, +2% per Looting level, Java),
+//     and, rarely, a gold ingot,
 //   * drawn with a second "outer layer" skin (DrownedRenderer).
 class Drowned : public Zombie
 {
@@ -31,6 +32,7 @@ protected:
 	virtual void playStepSound(int xt, int yt, int zt, int t);
 	virtual bool isSunSensitive();
 	virtual int decreaseAirSupply(int currentSupply);
+	virtual void dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel);
 	virtual void dropRareDeathLoot(int rareLootLevel);
 
 private:

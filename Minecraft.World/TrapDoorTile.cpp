@@ -2,12 +2,14 @@
 #include "net.minecraft.world.level.h"
 #include "net.minecraft.world.entity.player.h"
 #include "net.minecraft.world.level.tile.h"
+#include "net.minecraft.world.item.h"
 #include "net.minecraft.h"
 #include "TrapDoorTile.h"
+#include "CopperOxidationTileEntity.h"
 #include "IconRegister.h"
 
 
-TrapDoorTile::TrapDoorTile(int id, Material *material) : Tile(id, material,isSolidRender())
+TrapDoorTile::TrapDoorTile(int id, Material *material) : BaseEntityTile(id, material,isSolidRender())
 {
 	float r = 0.5f;
 	float h = 1.0f;
@@ -15,18 +17,31 @@ TrapDoorTile::TrapDoorTile(int id, Material *material) : Tile(id, material,isSol
 	setShape(0.5f - r, 0, 0.5f - r, 0.5f + r, h, 0.5f + r);
 }
 
-// neoLegacy - Copper Age (Phase 3). The copper trapdoor's oxidation lives
-// in bits 4-6 of the data (the use() toggle XORs bit 2 only, so opening /
-// closing preserves it). Other trapdoors have a single texture (state 0).
+shared_ptr<TileEntity> TrapDoorTile::newTileEntity(Level *level)
+{
+	return std::make_shared<CopperOxidationTileEntity>();
+}
+
+// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). The copper
+// trapdoor's oxidation lives in its CopperOxidationTileEntity, not in
+// the data nibble (which holds structural bits only). Item form: the
+// item aux IS the oxidation field (0-7), so the stage is aux & 3 —
+// same as DoorTile's item form.
 Icon *TrapDoorTile::getTexture(int face, int data)
 {
-	if (id == Tile::copper_trapdoor_Id) return stateIcons[(data >> 4) & 3];
+	if (id == Tile::copper_trapdoor_Id) return stateIcons[data & 3];
 	return icon;
 }
 
 Icon *TrapDoorTile::getTexture(LevelSource *level, int x, int y, int z, int face)
 {
-	if (id == Tile::copper_trapdoor_Id) return stateIcons[(level->getData(x, y, z) >> 4) & 3];
+	if (id == Tile::copper_trapdoor_Id)
+	{
+		shared_ptr<TileEntity> te = level->getTileEntity(x, y, z);
+		shared_ptr<CopperOxidationTileEntity> ox = dynamic_pointer_cast<CopperOxidationTileEntity>(te);
+		if (ox != nullptr) return stateIcons[ox->getOxidationStage()];
+		return stateIcons[0];
+	}
 	return icon;
 }
 
@@ -50,8 +65,56 @@ void TrapDoorTile::registerIcons(IconRegister *iconRegister)
 
 int TrapDoorTile::getSpawnResourcesAuxValue(int data)
 {
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20): the
+	// oxidation no longer lives in the nibble, so there is nothing to
+	// read here — the value below only ever reflects legacy nibble bits
+	// (0 for live blocks). Drops go through the spawnResources override,
+	// which reads the CopperOxidationTileEntity. (pick-block also uses
+	// this via Tile::cloneTileData, so a picked copper trapdoor comes
+	// back aux 0 — same as the door; see report.)
 	if (id == Tile::copper_trapdoor_Id) return (data >> 4) & 7;
 	return Tile::getSpawnResourcesAuxValue(data);
+}
+
+// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). The base
+// spawnResources drops the item with getSpawnResourcesAuxValue(data),
+// which cannot see the TE — so for copper trapdoors read the TE here
+// and drop with its oxidation aux, mirroring DoorTile. If the TE is
+// missing (already removed), fall back to aux 0.
+void TrapDoorTile::spawnResources(Level *level, int x, int y, int z, int data, float odds, int playerBonusLevel)
+{
+	if (id == Tile::copper_trapdoor_Id)
+	{
+		if (level->isClientSide) return;
+		int ox = 0;
+		shared_ptr<TileEntity> te = level->getTileEntity(x, y, z);
+		shared_ptr<CopperOxidationTileEntity> oxTe = dynamic_pointer_cast<CopperOxidationTileEntity>(te);
+		if (oxTe != nullptr) ox = oxTe->getOxidation();
+		int count = getResourceCountForLootBonus(playerBonusLevel, level->random);
+		for (int i = 0; i < count; i++)
+		{
+			if (level->random->nextFloat() > odds) continue;
+			int type = getResource(data, level->random, playerBonusLevel);
+			if (type <= 0) continue;
+			popResource(level, x, y, z, std::make_shared<ItemInstance>(type, 1, ox));
+		}
+		return;
+	}
+	Tile::spawnResources(level, x, y, z, data, odds, playerBonusLevel);
+}
+
+int TrapDoorTile::cloneTileData(Level *level, int x, int y, int z)
+{
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Pick-block
+	// (middle-click) on a copper trapdoor gives the trapdoor item with
+	// the TE oxidation aux.
+	if (id == Tile::copper_trapdoor_Id)
+	{
+		shared_ptr<TileEntity> te = level->getTileEntity(x, y, z);
+		shared_ptr<CopperOxidationTileEntity> oxTe = dynamic_pointer_cast<CopperOxidationTileEntity>(te);
+		if (oxTe != nullptr) return oxTe->getOxidation();
+	}
+	return Tile::cloneTileData(level, x, y, z);
 }
 
 void TrapDoorTile::createBlockStateDefinition()
@@ -67,21 +130,21 @@ int TrapDoorTile::defaultBlockState()
 
 int TrapDoorTile::convertBlockStateToLegacyData(BlockState *state)
 {
-	// neoLegacy - Copper Age (Phase 4): the oxidation field lives in bits
-	// 4-6, so mask to 0x7F (not 0xF) or the oxidation is lost when a
-	// trapdoor round-trips through BlockState. BlockState.value is a plain
-	// int (no width limit). Vanilla trapdoors have 0 in bits 4-6.
-	return state ? (state->value & 0x7F) : 0;
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20): legacy
+	// data is structural only (dir 0-3, open bit 2, top bit 3) — mask to
+	// 0xF. The oxidation lives in the CopperOxidationTileEntity, not in
+	// the BlockState value. (Phase 4 masked to 0x7F to carry bits 4-6.)
+	return state ? (state->value & 0xF) : 0;
 }
 
 Tile::BlockState TrapDoorTile::getBlockState(int data)
 {
-	return Tile::BlockState(data & 0x7F);
+	return Tile::BlockState(data & 0xF);
 }
 
 Tile::BlockState TrapDoorTile::getBlockState(LevelSource *level, int x, int y, int z)
 {
-	return Tile::BlockState(level->getData(x, y, z) & 0x7F);
+	return Tile::BlockState(level->getData(x, y, z) & 0xF);
 }
 
 bool TrapDoorTile::blocksLight()
@@ -270,6 +333,23 @@ bool TrapDoorTile::mayPlace(Level *level, int x, int y, int z, int face)
 void TrapDoorTile::setPlacedBy(Level *level, int x, int y, int z, shared_ptr<LivingEntity> by, shared_ptr<ItemInstance> itemInstance)
 {
 	if (by == nullptr) return;
+
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20): the
+	// item aux is the oxidation field — write it into the
+	// CopperOxidationTileEntity instead of the nibble (the nibble holds
+	// structural bits only). setTileAndData already created the TE.
+	// Copper only; other trapdoors have no TE oxidation to write.
+	if (id == Tile::copper_trapdoor_Id && itemInstance != nullptr)
+	{
+		shared_ptr<TileEntity> te = level->getTileEntity(x, y, z);
+		shared_ptr<CopperOxidationTileEntity> ox = dynamic_pointer_cast<CopperOxidationTileEntity>(te);
+		if (ox != nullptr)
+		{
+			ox->setOxidation(itemInstance->getAuxValue() & 7);
+			level->broadcastTileEntityUpdate(ox);
+		}
+	}
+
 	if (s_trapdoorPlacedFace != Facing::UP && s_trapdoorPlacedFace != Facing::DOWN) return;
 
 	// floor/ceiling trapdoor: put the hinge on the side the player is looking toward, so the open flap stands up facing them
@@ -277,7 +357,9 @@ void TrapDoorTile::setPlacedBy(Level *level, int x, int y, int z, shared_ptr<Liv
 	static const int hingeForLook[4] = { 0, 3, 1, 2 };
 	int look = Mth::floor(by->yRot * 4.0f / 360.0f + 0.5) & 3;
 	int data = level->getData(x, y, z);
-	level->setData(x, y, z, (data & ~3) | hingeForLook[look], Tile::UPDATE_ALL);
+	// Structural bits only — strip any oxidation bits (4-6) out of the
+	// data being written, so a legacy/old-save value cannot linger.
+	level->setData(x, y, z, ((data & 0xF) & ~3) | hingeForLook[look], Tile::UPDATE_ALL);
 }
 
 bool TrapDoorTile::isOpen(int data)

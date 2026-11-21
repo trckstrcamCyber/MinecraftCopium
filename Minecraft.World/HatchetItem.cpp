@@ -4,6 +4,7 @@
 #include "StrippedLogTile.h"
 #include "net.minecraft.world.entity.player.h"
 #include "net.minecraft.world.level.h"
+#include "net.minecraft.world.level.tile.entity.h"
 #include "net.minecraft.world.item.h"
 
 TileArray *HatchetItem::diggables = nullptr;
@@ -41,15 +42,25 @@ float HatchetItem::getDestroySpeed(shared_ptr<ItemInstance> itemInstance, Tile *
 // de-oxidize one stage (field - 1). Follows the log-strip pattern (same
 // sound, same 1-durability cost); there is no separate scrape sound in
 // this tree (jar1201 has no scrape ogg), so the copper step sound is
-// used. The oxidation field lives in different data bits per tile, and
-// the door's field lives in its UPPER half. Returns true if a scrape
+// used. For the nibble-stored families the field lives in data bits 0-2;
+// for the chest, door, trapdoor and stairs it lives in a tile entity
+// instead (ChestTileEntity / CopperOxidationTileEntity, on the door's
+// LOWER half), so those cases read/write the TE and broadcast the change
+// instead of calling setTileAndData. Returns true if a scrape
 // happened (or would happen, when bTestUseOnOnly), false if the block is
 // not a scrapable copper block.
 static bool scrapeCopper(shared_ptr<ItemInstance> instance, shared_ptr<Player> player, Level *level, int x, int y, int z, int tileId, int data, bool bTestUseOnOnly)
 {
 	int field;
-	int newData;
+	int newData = 0;
 	int wx = x, wy = y, wz = z; // the block actually written (the door writes its upper half)
+	// Oxidation stored in a tile entity (chest, door, trapdoor, stairs):
+	// the TE holding it, its position, and the scraped field value. Null
+	// for the nibble-stored families, which use newData instead.
+	shared_ptr<ChestTileEntity> chestTe;
+	shared_ptr<CopperOxidationTileEntity> oxTe;
+	int oxX = x, oxY = y, oxZ = z;
+	int newField = 0;
 	switch (tileId)
 	{
 	// Field = data bits 0-2. CopperTile family (block, cut, chiseled,
@@ -73,36 +84,47 @@ static bool scrapeCopper(shared_ptr<ItemInstance> instance, shared_ptr<Player> p
 		if (field == 0) return false; // unaffected and unwaxed: nothing to scrape
 		newData = (data & ~7) | (field >= 4 ? field - 4 : field - 1);
 		break;
-	// Chest: field = data bits 3-5 (facing is bits 0-2).
+	// Chest: the field lives in the ChestTileEntity, not the nibble
+	// (facing is bits 0-2, so the nibble has no room for it).
 	case Tile::copper_chest_Id:
-		field = (data >> 3) & 7;
+		chestTe = dynamic_pointer_cast<ChestTileEntity>(level->getTileEntity(x, y, z));
+		if (chestTe == nullptr) return false;
+		field = chestTe->getOxidation();
 		if (field == 0) return false;
-		newData = (data & ~(7 << 3)) | ((field >= 4 ? field - 4 : field - 1) << 3);
+		newField = field >= 4 ? field - 4 : field - 1;
 		break;
-	// Door: the field lives in the UPPER half, bits 5-7.
+	// Door: the field lives in the CopperOxidationTileEntity on the LOWER
+	// half. Clicking either half scrapes the TE below the upper half.
 	case Tile::copper_door_Id:
 	{
 		bool isUpper = (data & 8) != 0;
 		int ux = x, uy = isUpper ? y : y + 1, uz = z;
 		if (level->getTile(ux, uy, uz) != Tile::copper_door_Id) return false;
-		int upperData = isUpper ? data : level->getData(ux, uy, uz);
-		field = (upperData >> 5) & 7;
+		oxX = x; oxY = isUpper ? y - 1 : y; oxZ = z;
+		oxTe = dynamic_pointer_cast<CopperOxidationTileEntity>(level->getTileEntity(oxX, oxY, oxZ));
+		if (oxTe == nullptr) return false;
+		field = oxTe->getOxidation();
 		if (field == 0) return false;
-		newData = (upperData & ~(7 << 5)) | ((field >= 4 ? field - 4 : field - 1) << 5);
-		wx = ux; wy = uy; wz = uz;
+		newField = field >= 4 ? field - 4 : field - 1;
 		break;
 	}
-	// Trapdoor: field = data bits 4-6.
+	// Trapdoor: the field lives in the CopperOxidationTileEntity, not the
+	// nibble (hinge/open/top leave no room for it).
 	case Tile::copper_trapdoor_Id:
-		field = (data >> 4) & 7;
+		oxTe = dynamic_pointer_cast<CopperOxidationTileEntity>(level->getTileEntity(x, y, z));
+		if (oxTe == nullptr) return false;
+		field = oxTe->getOxidation();
 		if (field == 0) return false;
-		newData = (data & ~(7 << 4)) | ((field >= 4 ? field - 4 : field - 1) << 4);
+		newField = field >= 4 ? field - 4 : field - 1;
 		break;
-	// Stairs: field = data bits 3-5 (facing is bits 0-1, upside-down bit 2).
+	// Stairs: the field lives in the CopperOxidationTileEntity, not the
+	// nibble (facing is bits 0-1, upside-down bit 2, so no room for it).
 	case Tile::cut_copper_stairs_Id:
-		field = (data >> 3) & 7;
+		oxTe = dynamic_pointer_cast<CopperOxidationTileEntity>(level->getTileEntity(x, y, z));
+		if (oxTe == nullptr) return false;
+		field = oxTe->getOxidation();
 		if (field == 0) return false;
-		newData = (data & ~(7 << 3)) | ((field >= 4 ? field - 4 : field - 1) << 3);
+		newField = field >= 4 ? field - 4 : field - 1;
 		break;
 	default:
 		// Not a scrapable copper block. (The copper torch and shelf do not
@@ -116,7 +138,27 @@ static bool scrapeCopper(shared_ptr<ItemInstance> instance, shared_ptr<Player> p
 		Tile *tile = Tile::tiles[tileId];
 		level->playSound(x + 0.5f, y + 0.5f, z + 0.5f, tile->soundType->getStepSound(), (tile->soundType->getVolume() + 1) / 2, tile->soundType->getPitch() * 0.8f);
 		if (level->isClientSide) return true;
-		level->setTileAndData(wx, wy, wz, tileId, newData, Tile::UPDATE_ALL);
+		if (chestTe != nullptr)
+		{
+			// Chest oxidation lives in the TE; broadcast so clients see
+			// it live (the chest renderer reads the TE every frame).
+			chestTe->setOxidation(newField);
+			level->broadcastTileEntityUpdate(chestTe);
+			level->setTilesDirty(x, y, z, x, y, z);
+		}
+		else if (oxTe != nullptr)
+		{
+			// Door/trapdoor/stairs oxidation lives in the TE; the texture
+			// is baked into the chunk mesh, so rebuild it, and broadcast
+			// so clients see it live.
+			oxTe->setOxidation(newField);
+			level->broadcastTileEntityUpdate(oxTe);
+			level->setTilesDirty(oxX, oxY, oxZ, oxX, oxY, oxZ);
+		}
+		else
+		{
+			level->setTileAndData(wx, wy, wz, tileId, newData, Tile::UPDATE_ALL);
+		}
 		instance->hurtAndBreak(1, player);
 	}
 	return true;
