@@ -2,6 +2,7 @@
 #include "net.minecraft.world.entity.ai.goal.h"
 #include "net.minecraft.world.entity.ai.navigation.h"
 #include "net.minecraft.world.entity.player.h"
+#include "net.minecraft.world.level.h"
 #include "CopperGolem.h"
 #include "CopperGolemAi.h"
 #include "CopperGolemTransportGoal.h"

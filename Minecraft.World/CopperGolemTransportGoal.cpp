@@ -311,7 +311,7 @@ void CopperGolemTransportGoal::tickInteract(bool isSource)
 			shared_ptr<ItemInstance> stack = takeFirstStack(openContainer);
 			if (stack != nullptr)
 			{
-				golem->setEquippedSlot(SLOT_WEAPON, stack);
+				golem->setEquippedSlot(Golem::SLOT_WEAPON, stack);
 				golem->setState(COPPER_GOLEM_STATE_GETTING_ITEM);
 				pendingSound = eSoundType_MOB_COPPER_GOLEM_NO_ITEM_GET;
 			}
@@ -330,7 +330,7 @@ void CopperGolemTransportGoal::tickInteract(bool isSource)
 				deposited = depositStack(openContainer, held);
 				if (deposited)
 				{
-					golem->setEquippedSlot(SLOT_WEAPON, nullptr);
+					golem->setEquippedSlot(Golem::SLOT_WEAPON, nullptr);
 				}
 			}
 			if (deposited)
