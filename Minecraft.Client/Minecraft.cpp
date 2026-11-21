@@ -3519,6 +3519,7 @@ void Minecraft::tick(bool bFirst, bool bUpdateTextures)
 								case Item::diamond_horse_armor_Id:
 								case Item::golden_horse_armor_Id:
 								case Item::iron_horse_armor_Id:
+								case Item::copper_horse_armor_Id:
 									heldItemIsArmour = true;
 									break;
 							}

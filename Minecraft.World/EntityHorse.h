@@ -52,9 +52,10 @@ public:
 	static const int ARMOR_IRON = 1;
 	static const int ARMOR_GOLD = 2;
 	static const int ARMOR_DIAMOND = 3;
+	static const int ARMOR_COPPER = 4;	// neoLegacy - Copper Age (Round 5): copper horse armor (item 484)
 
 private:
-	static const int ARMORS = 4;
+	static const int ARMORS = 5;
 	static wstring ARMOR_TEXTURES[ARMORS];
 	static int ARMOR_TEXTURES_ID[ARMORS];
 	static wstring ARMOR_HASHES[ARMORS];

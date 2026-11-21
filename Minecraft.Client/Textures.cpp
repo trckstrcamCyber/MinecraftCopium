@@ -406,6 +406,11 @@ const wchar_t *Textures::preLoaded[TN_COUNT] =
 	L"item/copper_chest_large_exposed",
 	L"item/copper_chest_large_weathered",
 	L"item/copper_chest_large_oxidized",
+
+	// neoLegacy - Copper Age (Round 5): copper horse armor texture (item 484).
+	// Must stay in the same order as the TN_MOB_HORSE_ARMOR_COPPER enum;
+	// preLoaded[] must have exactly TN_COUNT entries.
+	L"mob/horse/armor/horse_armor_copper",
 };
 
 Textures::Textures(TexturePackRepository *skins, Options *options)
@@ -1818,6 +1823,7 @@ TEXTURE_NAME TUImages[] =
 	TN_MOB_HORSE_ARMOR_DIAMOND,
 	TN_MOB_HORSE_ARMOR_GOLD,
 	TN_MOB_HORSE_ARMOR_IRON,
+	TN_MOB_HORSE_ARMOR_COPPER,
 
 	TN_MOB_WITCH,
 

@@ -24,10 +24,10 @@ const EntitySelector *EntityHorse::PARENT_HORSE_SELECTOR = new HorseEntitySelect
 
 Attribute *EntityHorse::JUMP_STRENGTH = (new RangedAttribute(eAttributeId_HORSE_JUMPSTRENGTH, .7, 0, 2.0))->setSyncable(true);
 
-wstring EntityHorse::ARMOR_TEXTURES[EntityHorse::ARMORS] = {L"", L"armor/horse_armor_iron.png", L"armor/horse_armor_gold.png", L"armor/horse_armor_diamond.png"};
-int EntityHorse::ARMOR_TEXTURES_ID[EntityHorse::ARMORS] = {-1, TN_MOB_HORSE_ARMOR_IRON, TN_MOB_HORSE_ARMOR_GOLD, TN_MOB_HORSE_ARMOR_DIAMOND };
-wstring EntityHorse::ARMOR_HASHES[EntityHorse::ARMORS] = {L"", L"meo", L"goo", L"dio"};
-int EntityHorse::ARMOR_PROTECTION[EntityHorse::ARMORS] = {0, 5, 7, 11};
+wstring EntityHorse::ARMOR_TEXTURES[EntityHorse::ARMORS] = {L"", L"armor/horse_armor_iron.png", L"armor/horse_armor_gold.png", L"armor/horse_armor_diamond.png", L"armor/horse_armor_copper.png"};
+int EntityHorse::ARMOR_TEXTURES_ID[EntityHorse::ARMORS] = {-1, TN_MOB_HORSE_ARMOR_IRON, TN_MOB_HORSE_ARMOR_GOLD, TN_MOB_HORSE_ARMOR_DIAMOND, TN_MOB_HORSE_ARMOR_COPPER };
+wstring EntityHorse::ARMOR_HASHES[EntityHorse::ARMORS] = {L"", L"meo", L"goo", L"dio", L"coo"};
+int EntityHorse::ARMOR_PROTECTION[EntityHorse::ARMORS] = {0, 5, 7, 11, 5};	// neoLegacy - Copper Age (Round 5): copper horse armor protects 5, same as iron (Java value; Phase 2 desc "Provides 5 Armor")
 
 wstring EntityHorse::VARIANT_TEXTURES[EntityHorse::VARIANTS] = {L"horse_white.png", L"horse_creamy.png", L"horse_chestnut.png", L"horse_brown.png",  L"horse_black.png", L"horse_gray.png", L"horse_darkbrown.png"};
 int EntityHorse::VARIANT_TEXTURES_ID[EntityHorse::VARIANTS] = {TN_MOB_HORSE_WHITE, TN_MOB_HORSE_CREAMY, TN_MOB_HORSE_CHESTNUT, TN_MOB_HORSE_BROWN,  TN_MOB_HORSE_BLACK, TN_MOB_HORSE_GRAY, TN_MOB_HORSE_DARKBROWN};
@@ -274,6 +274,10 @@ int EntityHorse::getArmorTypeForItem(shared_ptr<ItemInstance> armorItem)
 	else if (armorItem->id == Item::diamond_horse_armor_Id)
 	{
 		return ARMOR_DIAMOND;
+	}
+	else if (armorItem->id == Item::copper_horse_armor_Id)
+	{
+		return ARMOR_COPPER;
 	}
 	return ARMOR_NONE;
 }
@@ -859,6 +863,10 @@ bool EntityHorse::mobInteract(shared_ptr<Player> player)
 			else if (itemstack->id == Item::diamond_horse_armor_Id)
 			{
 				armorType = ARMOR_DIAMOND;
+			}
+			else if (itemstack->id == Item::copper_horse_armor_Id)
+			{
+				armorType = ARMOR_COPPER;
 			}
 
 			if (armorType >= 0)
@@ -1836,7 +1844,7 @@ EntityHorse::HorseGroupData::HorseGroupData(int type, int variant)
 
 bool EntityHorse::isHorseArmor(int itemId)
 {
-	return itemId == Item::iron_horse_armor_Id || itemId == Item::golden_horse_armor_Id || itemId == Item::diamond_horse_armor_Id;
+	return itemId == Item::iron_horse_armor_Id || itemId == Item::golden_horse_armor_Id || itemId == Item::diamond_horse_armor_Id || itemId == Item::copper_horse_armor_Id;
 }
 
 bool EntityHorse::onLadder()
