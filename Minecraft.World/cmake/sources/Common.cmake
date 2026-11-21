@@ -858,6 +858,8 @@ set(_MINECRAFT_WORLD_COMMON_NET_MINECRAFT_WORLD_ENTITY_ANIMAL
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolem.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemAi.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemAi.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemTransportGoal.cpp"	# neoLegacy - Copper Age (Phase 5b)
+  "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemTransportGoal.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemStatueBlock.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemStatueBlock.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemStatueBlockEntity.cpp"

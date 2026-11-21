@@ -4,6 +4,7 @@
 #include "net.minecraft.world.entity.player.h"
 #include "CopperGolem.h"
 #include "CopperGolemAi.h"
+#include "CopperGolemTransportGoal.h"
 
 void CopperGolemAi::registerGoals(CopperGolem *golem)
 {
@@ -14,31 +15,36 @@ void CopperGolemAi::registerGoals(CopperGolem *golem)
 	//     the hurt/fire window).
 	//   2 OpenDoor — the golem opens doors (navigation canOpenDoors is set
 	//     in the ctor alongside this goal).
-	//   3 Wander at speed 1.0.
-	//   4 Look at nearby players (6 blocks).
-	//   5 Look around idly.
+	//   3 Transport (Phase 5b) — carry one item stack from an open copper
+	//     chest to a normal / trapped chest. Above RandomStroll so it
+	//     pre-empts wandering when work exists (the Java idle activity's
+	//     first entry), but below Panic/Float. Claims Move + Look, so it
+	//     cannot run at the same time as RandomStroll.
+	//   4 Wander at speed 1.0.
+	//   5 Look at nearby players (6 blocks).
+	//   6 Look around idly.
 	// Head-spin is NOT a goal: it is a time-based idle animation driven
 	// off tickCount (CopperGolem::getSpinPhase, sound at +10 ticks in
 	// CopperGolem::tick), so it needs no goal slot.
 	golem->goalSelector.addGoal(0, new FloatGoal(golem));
 	golem->goalSelector.addGoal(1, new PanicGoal(golem, 1.5));
 	golem->goalSelector.addGoal(2, new OpenDoorGoal(golem, true));
-	golem->goalSelector.addGoal(3, new RandomStrollGoal(golem, 1.0));
-	golem->goalSelector.addGoal(4, new LookAtPlayerGoal(golem, typeid(Player), 6.0f, 1.0f));
-	golem->goalSelector.addGoal(5, new RandomLookAroundGoal(golem));
+	golem->goalSelector.addGoal(3, new CopperGolemTransportGoal(golem));
+	golem->goalSelector.addGoal(4, new RandomStrollGoal(golem, 1.0));
+	golem->goalSelector.addGoal(5, new LookAtPlayerGoal(golem, typeid(Player), 6.0f, 1.0f));
+	golem->goalSelector.addGoal(6, new RandomLookAroundGoal(golem));
 }
 
 void CopperGolemAi::updateActivity(CopperGolem *golem)
 {
-	// Phase 5b seam. Today the golem is always IDLE: there is no chest to
-	// walk to, because no mob/AI code in this tree has ever accessed a
-	// TileEntity inventory (the only TE access is tile-side, e.g.
-	// ChestTile, and player-UI-side). Building the chest-search (32
-	// horizontal / 8 vertical), 60-tick take-stack, and deposit goals
-	// would be unverifiable new machinery with no Deck build to test it,
-	// so 5b is deferred — see copper-phase5-REPORT.md. When it lands, the
-	// GETTING_ITEM / GETTING_NO_ITEM / DROPPING_ITEM / DROPPING_NO_ITEM
-	// transitions (CopperGolemState) go here, and the golem's held item
-	// (SLOT_WEAPON) is the item being transported.
-	golem->setState(COPPER_GOLEM_STATE_IDLE);
+	// Phase 5b: count down the transport cooldown (server-side only).
+	// The GETTING/DROPPING state itself is owned by
+	// CopperGolemTransportGoal while it runs (it sets the state at the
+	// Java 1 / 9 / 60 tick marks and resets it to IDLE when it stops),
+	// so this deliberately does NOT force the state to IDLE any more —
+	// doing so every tick would clobber the goal's state.
+	if (!golem->level->isClientSide && golem->getTransportCooldown() > 0)
+	{
+		golem->setTransportCooldown(golem->getTransportCooldown() - 1);
+	}
 }

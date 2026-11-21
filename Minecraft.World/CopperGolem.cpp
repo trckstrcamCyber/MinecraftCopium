@@ -35,6 +35,13 @@ CopperGolem::CopperGolem(Level *level) : Golem(level)
 	state = COPPER_GOLEM_STATE_IDLE;
 	antennaItem = nullptr;
 
+	// Transport cooldown (Phase 5b, Java CopperGolem ctor sets the
+	// TRANSPORT_ITEMS_COOLDOWN_TICKS memory to a random 60-100): the
+	// golem does not start transporting immediately on spawn.
+	transportCooldownTicks = CopperGolemAi::TRANSPORT_COOLDOWN_MIN_TICKS +
+		random->nextInt(CopperGolemAi::TRANSPORT_COOLDOWN_MAX_TICKS -
+			CopperGolemAi::TRANSPORT_COOLDOWN_MIN_TICKS + 1);
+
 	// ~1 block tall (the antenna tip reaches ~1.75 blocks visually; the
 	// 10x14 statue column corroborates the ~1-block body). Playtest check:
 	// hitbox vs the model's 24-unit height.
@@ -101,6 +108,23 @@ CopperGolemState CopperGolem::getState()
 void CopperGolem::setState(CopperGolemState state)
 {
 	this->state = state;
+}
+
+int CopperGolem::getTransportCooldown()
+{
+	return transportCooldownTicks;
+}
+
+void CopperGolem::setTransportCooldown(int ticks)
+{
+	transportCooldownTicks = ticks;
+}
+
+void CopperGolem::resetTransportCooldown()
+{
+	transportCooldownTicks = CopperGolemAi::TRANSPORT_COOLDOWN_MIN_TICKS +
+		random->nextInt(CopperGolemAi::TRANSPORT_COOLDOWN_MAX_TICKS -
+			CopperGolemAi::TRANSPORT_COOLDOWN_MIN_TICKS + 1);
 }
 
 shared_ptr<ItemInstance> CopperGolem::getAntennaItem()

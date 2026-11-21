@@ -11,18 +11,25 @@ class CopperGolemAi
 {
 public:
 	// Transport search radii (Java CopperGolemAi
-	// TRANSPORT_ITEM_HORIZONTAL/VERTICAL_SEARCH_RADIUS). Defined here for
-	// Phase 5b; unused until the chest goals land.
+	// TRANSPORT_ITEM_HORIZONTAL/VERTICAL_SEARCH_RADIUS).
 	static const int TRANSPORT_ITEM_HORIZONTAL_SEARCH_RADIUS = 32;
 	static const int TRANSPORT_ITEM_VERTICAL_SEARCH_RADIUS = 8;
+
+	// Transport cooldown (Java CopperGolemAi
+	// TRANSPORT_ITEMS_COOLDOWN_TICKS): after a run the golem waits a
+	// random 60-100 ticks before the next one. Also the initial cooldown
+	// at spawn, so it does not transport immediately.
+	static const int TRANSPORT_COOLDOWN_MIN_TICKS = 60;
+	static const int TRANSPORT_COOLDOWN_MAX_TICKS = 100;
 
 	// Register the golem's goals (called from the CopperGolem ctor).
 	static void registerGoals(CopperGolem *golem);
 
-	// Per-tick activity update (called from CopperGolem::tick()). Today it
-	// only keeps the state at IDLE: the transport state machine (Phase 5b)
-	// has no precedent in this tree — no mob/AI code ever touches a
-	// TileEntity inventory — so the GETTING/DROPPING transitions are not
-	// implemented. When 5b lands, this is where they go.
+	// Per-tick activity update (called from CopperGolem::tick()). Counts
+	// down the transport cooldown (Phase 5b). It deliberately does NOT
+	// force the state to IDLE: the transport goal owns the
+	// GETTING/DROPPING state while it runs and resets it to IDLE when it
+	// stops. (Phase 5 had this forcing IDLE as the 5b seam; that is gone
+	// now that the goal exists.)
 	static void updateActivity(CopperGolem *golem);
 };

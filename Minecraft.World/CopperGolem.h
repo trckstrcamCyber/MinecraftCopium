@@ -17,11 +17,12 @@ class Player;
 // turn into a copper golem statue (Tile 2320), keeping its custom name.
 // Drops 1-3 copper ingots (+looting) on death.
 //
-// Transport (Phase 5b) is NOT implemented: no mob/AI code in this tree ever
-// touches a TileEntity inventory, so there is no precedent to build the
-// chest-search / take-stack / deposit goals on. The CopperGolemState enum
-// below (GETTING/DROPPING states) is defined now and stays unreached until
-// 5b lands; the golem's live state is always IDLE. See copper-phase5-REPORT.md.
+// Transport (Phase 5b) is implemented in CopperGolemTransportGoal: the
+// golem takes one item stack from an open copper chest and deposits it in
+// a nearby normal / trapped chest (Java TransportItemsBetweenContainers,
+// translated to this tree's Goal system). The CopperGolemState enum below
+// (GETTING/DROPPING states) is driven by that goal at the Java 1 / 9 / 60
+// tick marks. See golem-transport-nov20.md.
 enum CopperGolemState
 {
 	COPPER_GOLEM_STATE_IDLE = 0,
@@ -75,6 +76,11 @@ protected:
 private:
 	int64_t nextWeatheringTick;
 	CopperGolemState state;
+	// Transport cooldown (Phase 5b, Java TRANSPORT_ITEMS_COOLDOWN_TICKS):
+	// ticks until the golem may start another transport run. Counts down
+	// in CopperGolemAi::updateActivity; reset to a random 60-100 after a
+	// run (and set that way at spawn so it does not transport at once).
+	int transportCooldownTicks;
 	// Block item carried on the antenna (Java EQUIPMENT_SLOT_ANTENNA, the
 	// SADDLE slot). Starts empty; nothing in the extracted Java text ever
 	// fills it, so shearing it is a no-op until a fill path is settled.
@@ -90,9 +96,14 @@ public:
 	virtual bool isWaxed();
 	virtual void setWaxed(bool waxed);
 
-	// Transport state machine (Phase 5b: always IDLE until 5b lands).
+	// Transport state machine (Phase 5b).
 	virtual CopperGolemState getState();
 	virtual void setState(CopperGolemState state);
+
+	// Transport cooldown (Phase 5b, Java TRANSPORT_ITEMS_COOLDOWN_TICKS).
+	virtual int getTransportCooldown();
+	virtual void setTransportCooldown(int ticks);
+	virtual void resetTransportCooldown();
 
 	// Antenna (shear target).
 	virtual shared_ptr<ItemInstance> getAntennaItem();
