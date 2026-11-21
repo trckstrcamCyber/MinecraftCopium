@@ -9,6 +9,7 @@
 #include "../Minecraft.World/net.minecraft.world.item.h"
 #include "../Minecraft.World/ShelfTileEntity.h"
 #include "../Minecraft.World/ItemInstance.h"
+#include "../Minecraft.World/Icon.h"
 #include "../Minecraft.World/Facing.h"
 
 ShelfTileEntityRenderer::ShelfTileEntityRenderer() : TileEntityRenderer()
