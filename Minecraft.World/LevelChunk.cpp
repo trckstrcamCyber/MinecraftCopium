@@ -2512,7 +2512,17 @@ byteArray LevelChunk::getReorderedBlocksAndData(int x0, int y0, int z0, int xs, 
 			{
 				int slot = (y*xs*zs) + (z*xs) + x;
 
-				data[slot] = getTile(x,y,z);
+				// neoLegacy - morphing round 2 (2026-11-21): extended tile ids (>= 256) do not fit in
+				// this byte buffer. Writing the raw id truncated it to its low byte (2311 chest -> 7
+				// bedrock, 2324 rose gold -> 20 glass, 2318 button -> 14 gold ore, 2306 copper block
+				// -> 2 grass, ...), morphing every extended block in a full-chunk send, even though
+				// the packet also carries the real ids as ext-tile quads - the client only overlays
+				// those where the block byte is the placeholder. The truncated bytes also broke the
+				// reshare self-heal: startSharingTilesAndData compares raw bytes (isSameAs), which
+				// never matched the server's placeholders. Write the placeholder for ids >= 256,
+				// mirroring Level::getBlocksAndData (which returns the stored placeholder bytes).
+				int tileId = getTile(x,y,z);
+				data[slot] = (tileId >= 256) ? (unsigned char)Tile::EXT_TILE_PLACEHOLDER : (unsigned char)tileId;
 			}
 		}
 	}
