@@ -394,7 +394,16 @@ bool CopperGolem::spawnFromBuild(Level *level, int x, int y, int z, int chestFac
 	shared_ptr<CopperGolem> golem = std::make_shared<CopperGolem>(level);
 	golem->setWeatherState(stage);
 	golem->setWaxed(false);
-	golem->moveTo(x + 0.5, y - 1.95, z + 0.5, 0, 0);
+	// Spawn feet on TOP of the copper chest, not at the bottom of the
+	// build column. The iron-golem branch this was copied from clears
+	// all three structure blocks to air, so y - 1.95 (0.05 above the
+	// floor of the lowest cleared cell) is correct there — but here the
+	// copper block at y - 1 becomes a solid chest, so y - 1.95 put the
+	// golem's whole hitbox inside the chest (and the block below it)
+	// and it suffocated. (x, y, z) is the pumpkin cell, cleared to air
+	// above; the chest top face is at y, so feet at y stand the golem
+	// on the chest in the cell the pumpkin occupied.
+	golem->moveTo(x + 0.5, y, z + 0.5, 0, 0);
 	level->addEntity(golem);
 
 	for (int i = 0; i < 120; i++)
