@@ -25,9 +25,9 @@ class Random;
 // Waterlogging is CUT: this engine has no waterlogging.
 // The statue arises when an OXIDIZED golem turns to statue. Breaking it
 // drops the statue as an item (audit fix, Java behavior); it does NOT
-// spawn a golem on break. An axe on a fully-oxidized, unwaxed statue
+// spawn a golem on break. An axe on an unoxidized, unwaxed statue
 // reanimates it into a golem (see use() + removeStatue on the block
-// entity).
+// entity) — only after the wax and all oxidation have been scraped off.
 class CopperGolemStatueBlock : public BaseEntityTile
 {
 	friend class Tile;

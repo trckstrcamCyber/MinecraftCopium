@@ -115,15 +115,24 @@ bool CopperGolemTransportGoal::findTransportPair()
 	int gz = Mth::floor(golem->z);
 	bool carrying = golem->getCarriedItem() != nullptr;
 
-	// One pass over the 32 horizontal / 8 vertical box around the golem
-	// (Java TRANSPORT_ITEM_HORIZONTAL/VERTICAL_SEARCH_RADIUS). Track the
-	// nearest usable source and the nearest usable destination.
+	if (carrying)
+	{
+		// Already holding a stack (an interrupted run): only a
+		// destination is needed, and it must be a chest that accepts
+		// this item — empty, or already holding the same item type
+		// (Java). The nearest chest of any kind is NOT good enough:
+		// that is what made the golem dump items into the first chest
+		// it saw instead of sorting them.
+		return findMatchingDest(golem->getCarriedItem());
+	}
+
+	// Not carrying: find the nearest copper chest holding an item.
+	// The destination is picked after the pickup, once the item type
+	// is known (tickInteract, PHASE_AT_SOURCE) — picking it now would
+	// mean choosing blind.
 	bool foundSource = false;
-	bool foundDest = false;
 	int bestSourceDist = 0;
-	int bestDestDist = 0;
 	int sx = 0, sy = 0, sz = 0;
-	int dx = 0, dy = 0, dz = 0;
 
 	for (int y = gy - CopperGolemAi::TRANSPORT_ITEM_VERTICAL_SEARCH_RADIUS;
 		y <= gy + CopperGolemAi::TRANSPORT_ITEM_VERTICAL_SEARCH_RADIUS; y++)
@@ -135,7 +144,7 @@ bool CopperGolemTransportGoal::findTransportPair()
 				z <= gz + CopperGolemAi::TRANSPORT_ITEM_HORIZONTAL_SEARCH_RADIUS; z++)
 			{
 				int tileId = level->getTile(x, y, z);
-				if (!carrying && tileId == Tile::copper_chest_Id)
+				if (tileId == Tile::copper_chest_Id)
 				{
 					// Source: a copper chest that holds at least one
 					// item. (Java gates on shouldQueueForTarget — the
@@ -157,13 +166,85 @@ bool CopperGolemTransportGoal::findTransportPair()
 						sx = x; sy = y; sz = z;
 					}
 				}
-				else if (tileId == Tile::chest_Id || tileId == Tile::chest_trap_Id)
+			}
+		}
+	}
+
+	if (!foundSource) return false;
+	sourceX = sx; sourceY = sy; sourceZ = sz;
+	return true;
+}
+
+bool CopperGolemTransportGoal::containerAcceptsItem(shared_ptr<Container> container, shared_ptr<ItemInstance> stack)
+{
+	if (container == nullptr || stack == nullptr) return false;
+	// Java: a chest accepts the stack only if it is empty or already
+	// holds the same item type. A chest holding only other types never
+	// accepts it, even with empty slots — that is the sorting rule.
+	bool empty = true;
+	bool hasSameType = false;
+	for (unsigned int i = 0; i < container->getContainerSize(); i++)
+	{
+		shared_ptr<ItemInstance> existing = container->getItem(i);
+		if (existing == nullptr) continue;
+		empty = false;
+		if (existing->sameItem(stack))
+		{
+			hasSameType = true;
+			// Room to merge the whole stack into this one?
+			int limit = container->getMaxStackSize();
+			int itemMax = stack->getMaxStackSize();
+			if (itemMax < limit) limit = itemMax;
+			if (existing->count + stack->count <= limit && container->canPlaceItem(i, stack))
+			{
+				return true;
+			}
+		}
+	}
+	if (empty) return true;
+	if (!hasSameType) return false;
+	// Same type is present but its stacks are full: an empty slot
+	// takes the stack (Java deposits into the frontmost available slot).
+	for (unsigned int i = 0; i < container->getContainerSize(); i++)
+	{
+		if (container->getItem(i) == nullptr && container->canPlaceItem(i, stack))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool CopperGolemTransportGoal::findMatchingDest(shared_ptr<ItemInstance> stack)
+{
+	Level *level = golem->level;
+	int gx = Mth::floor(golem->x);
+	int gy = Mth::floor(golem->y);
+	int gz = Mth::floor(golem->z);
+	bool foundDest = false;
+	int bestDestDist = 0;
+	int dx = 0, dy = 0, dz = 0;
+
+	for (int y = gy - CopperGolemAi::TRANSPORT_ITEM_VERTICAL_SEARCH_RADIUS;
+		y <= gy + CopperGolemAi::TRANSPORT_ITEM_VERTICAL_SEARCH_RADIUS; y++)
+	{
+		for (int x = gx - CopperGolemAi::TRANSPORT_ITEM_HORIZONTAL_SEARCH_RADIUS;
+			x <= gx + CopperGolemAi::TRANSPORT_ITEM_HORIZONTAL_SEARCH_RADIUS; x++)
+		{
+			for (int z = gz - CopperGolemAi::TRANSPORT_ITEM_HORIZONTAL_SEARCH_RADIUS;
+				z <= gz + CopperGolemAi::TRANSPORT_ITEM_HORIZONTAL_SEARCH_RADIUS; z++)
+			{
+				int tileId = level->getTile(x, y, z);
+				if (tileId == Tile::chest_Id || tileId == Tile::chest_trap_Id)
 				{
 					// Destination: a normal or trapped chest that can be
 					// opened (getContainer returns nullptr when a solid
-					// block sits on top or a cat is sitting on it).
+					// block sits on top or a cat is sitting on it) and
+					// that accepts this item (empty, or already holding
+					// the same type). Nearest accepting chest wins.
 					shared_ptr<Container> container = getChestContainer(x, y, z);
 					if (container == nullptr) continue;
+					if (!containerAcceptsItem(container, stack)) continue;
 					int d = (x - gx) * (x - gx) + (y - gy) * (y - gy) + (z - gz) * (z - gz);
 					if (!foundDest || d < bestDestDist)
 					{
@@ -176,16 +257,7 @@ bool CopperGolemTransportGoal::findTransportPair()
 		}
 	}
 
-	if (carrying)
-	{
-		// Already holding a stack: only a destination is needed.
-		if (!foundDest) return false;
-	}
-	else
-	{
-		if (!foundSource || !foundDest) return false;
-		sourceX = sx; sourceY = sy; sourceZ = sz;
-	}
+	if (!foundDest) return false;
 	destX = dx; destY = dy; destZ = dz;
 	return true;
 }
@@ -221,7 +293,10 @@ shared_ptr<ItemInstance> CopperGolemTransportGoal::takeFirstStack(shared_ptr<Con
 	{
 		if (container->getItem(i) != nullptr)
 		{
-			shared_ptr<ItemInstance> stack = container->removeItemNoUpdate(i);
+			// Java: up to 16 items of one type per trip — never a
+			// whole stack. removeItem(slot, count) takes at most
+			// count and leaves the rest in the chest.
+			shared_ptr<ItemInstance> stack = container->removeItem(i, 16);
 			if (stack != nullptr)
 			{
 				container->setChanged();
@@ -235,6 +310,11 @@ shared_ptr<ItemInstance> CopperGolemTransportGoal::takeFirstStack(shared_ptr<Con
 bool CopperGolemTransportGoal::depositStack(shared_ptr<Container> container, shared_ptr<ItemInstance> stack)
 {
 	if (container == nullptr || stack == nullptr) return false;
+	// Java: a chest only takes the stack if it is empty or already
+	// holds the same item type. The destination scan enforces this,
+	// but the chest's contents can change mid-run — never mix a new
+	// type into a chest that holds other items.
+	if (!containerAcceptsItem(container, stack)) return false;
 	// First try to merge into an existing stack of the same item that has
 	// room for the whole stack.
 	for (unsigned int i = 0; i < container->getContainerSize(); i++)
@@ -371,10 +451,22 @@ void CopperGolemTransportGoal::tickInteract(bool isSource)
 		{
 			if (golem->getCarriedItem() != nullptr)
 			{
-				// Got a stack — carry it to the destination.
-				phase = PHASE_TO_DEST;
-				travelTicks = 0;
-				golem->getNavigation()->moveTo(destX + 0.5, destY, destZ + 0.5, 1.0);
+				// Got up to 16 items — now find a chest that takes
+				// them: the nearest wooden/trapped chest that is empty
+				// or already holds this item type. No accepting chest?
+				// The run ends with the item still in hand; the next
+				// run retries the delivery (carrying branch of
+				// findTransportPair).
+				if (findMatchingDest(golem->getCarriedItem()))
+				{
+					phase = PHASE_TO_DEST;
+					travelTicks = 0;
+					golem->getNavigation()->moveTo(destX + 0.5, destY, destZ + 0.5, 1.0);
+				}
+				else
+				{
+					phase = PHASE_DONE;
+				}
 			}
 			else
 			{

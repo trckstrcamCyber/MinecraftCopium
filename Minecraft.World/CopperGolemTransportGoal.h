@@ -22,12 +22,17 @@ class ItemInstance;
 //     a source; any copper chest holding an item is a valid source.)
 //   * Destination: a normal chest (Tile::chest_Id) or trapped chest
 //     (Tile::chest_trap_Id) that can be opened (ChestTile::getContainer
-//     non-null — no solid block on top, no cat sitting on it).
-//   * The golem carries ONE item stack at a time in its main hand
-//     (SLOT_WEAPON, via getCarriedItem / setEquippedSlot). Picking up
-//     moves one stack from the source chest into its hand; dropping
-//     moves it into the destination chest. Source empty ->
-//     GETTING_NO_ITEM; destination full -> DROPPING_NO_ITEM.
+//     non-null — no solid block on top, no cat sitting on it) AND that
+//     accepts the carried item: Java only deposits into a chest that is
+//     empty or already holds the same item type. The destination is
+//     picked AFTER the pickup, once the item type is known — picking
+//     the nearest chest up front is what made the golem dump items
+//     into the first chest it saw instead of sorting them.
+//   * The golem carries up to 16 items of ONE type at a time in its main
+//     hand (SLOT_WEAPON, via getCarriedItem / setEquippedSlot; Java cap).
+//     Picking up moves up to 16 items from the source chest into its
+//     hand; dropping moves them into the destination chest. Source empty
+//     -> GETTING_NO_ITEM; no accepting destination -> DROPPING_NO_ITEM.
 //   * Interaction timing matches Java's onReachedTargetInteraction:
 //     tick 1 opens the chest (startOpen) and takes / deposits the stack
 //     (state set from the result), tick 9 plays the get / drop sound,
@@ -73,21 +78,38 @@ private:
 	// Give up on a leg if the golem has not arrived in 30 seconds.
 	static const int TRAVEL_TIMEOUT_TICKS = 600;
 
-	// Scan the 32/8 box around the golem for a source + destination pair.
-	// Stores them in sourceX/Y/Z and destX/Y/Z. Returns true if a usable
-	// pair exists (or a destination only, when the golem is already
-	// carrying an item from an interrupted run).
+	// Scan the 32/8 box around the golem for work. When the golem is
+	// already carrying an item (interrupted run), finds the nearest
+	// chest that accepts that item (findMatchingDest) and stores it in
+	// destX/Y/Z. When not carrying, finds the nearest copper chest
+	// holding an item and stores it in sourceX/Y/Z — the destination
+	// is NOT picked here, it is picked after the pickup, once the item
+	// type is known (tickInteract, PHASE_AT_SOURCE).
 	bool findTransportPair();
+	// The nearest openable wooden/trapped chest that accepts the given
+	// stack (empty, or already holding the same item type, with room
+	// for it). Stores it in destX/Y/Z. Returns false if no chest in
+	// the 32/8 box accepts the stack.
+	bool findMatchingDest(shared_ptr<ItemInstance> stack);
+	// Java deposit rule: a chest accepts a stack only if it is empty
+	// or already holds the same item type (with room to merge, or an
+	// empty slot to take it). A chest holding only other item types
+	// never accepts it, even if it has empty slots.
+	bool containerAcceptsItem(shared_ptr<Container> container, shared_ptr<ItemInstance> stack);
 	// The openable Container at a chest position (nullptr if the chest is
 	// blocked, has no TE, or is not a chest). Handles double chests via
 	// ChestTile::getContainer (CompoundContainer).
 	shared_ptr<Container> getChestContainer(int x, int y, int z);
 	bool containerHasItem(shared_ptr<Container> container);
-	// Move one whole stack from the first non-empty slot into the golem's
-	// hand (returns the stack, or nullptr if the container is empty).
+	// Move up to 16 items of one type from the first non-empty slot
+	// into the golem's hand (Java cap — never a whole stack). Returns
+	// the taken stack, or nullptr if the container is empty.
 	shared_ptr<ItemInstance> takeFirstStack(shared_ptr<Container> container);
 	// Move a stack into the container (merge into a same-item stack with
-	// room, else an empty slot). Returns false if it does not fit whole.
+	// room, else an empty slot). Refuses a chest that holds only other
+	// item types (Java: empty or same-type only) — the destination scan
+	// enforces this too, this guards against contents changing mid-run.
+	// Returns false if it does not fit whole.
 	bool depositStack(shared_ptr<Container> container, shared_ptr<ItemInstance> stack);
 	bool isAtChest(int cx, int cy, int cz);
 	// One leg of the journey: walk to (cx, cy, cz); on arrival switch to

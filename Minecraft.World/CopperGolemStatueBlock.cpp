@@ -163,16 +163,19 @@ bool CopperGolemStatueBlock::use(Level *level, int x, int y, int z, shared_ptr<P
 		return false;
 	}
 
-	// Axe on a statue: Java reanimates a FULLY OXIDIZED, unwaxed statue
-	// into a copper golem. Any other axe use passes through (PASS) so
-	// the axe's wax-scrape / de-oxidize applies instead.
+	// Axe on a statue: Java reanimates an UNOXIDIZED, unwaxed statue
+	// into a copper golem — only once the wax and every oxidation
+	// stage have been scraped off. An axe on an oxidized statue just
+	// scrapes one stage (the pass-through below); it does NOT reanimate.
+	// (The audit had this backwards: it reanimated a fully-oxidized
+	// statue on one axe use, and never reanimated a scraped-clean one.)
 	shared_ptr<ItemInstance> item = player->inventory->getSelected();
 	if (item != nullptr && dynamic_cast<HatchetItem *>(item->getItem()) != nullptr)
 	{
 		int data = level->getData(x, y, z);
-		if (getOxidation(data) == 3 && ((data >> 2) & 1) == 0)
+		if (getOxidation(data) == 0 && ((data >> 2) & 1) == 0)
 		{
-			// Fully oxidized and unwaxed: reanimate into a golem. The
+			// Unoxidized and unwaxed: reanimate into a golem. The
 			// axe only loses durability (and the click is only
 			// consumed) when a golem was actually created, on the
 			// server. On the client, predict the reanimate (return
@@ -243,7 +246,7 @@ int CopperGolemStatueBlock::getResourceCount(Random *random)
 {
 	// Audit fix (Java): breaking a statue drops the statue as an item.
 	// It does NOT spawn a golem on break — reanimation is via an axe
-	// on a fully-oxidized statue (see use()).
+	// on an unoxidized, unwaxed statue (see use()).
 	return 1;
 }
 
