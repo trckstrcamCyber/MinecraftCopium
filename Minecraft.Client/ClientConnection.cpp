@@ -3549,6 +3549,11 @@ void ClientConnection::handleTileEntityData(shared_ptr<TileEntityDataPacket> pac
 				// neoLegacy - Fancy Beds: BedRenderer reads the variant from the tile entity every frame, so no chunk rebuild is needed
 				dynamic_pointer_cast<BedTileEntity>(te)->load(packet->tag);
 			}
+			else if (packet->type == TileEntityDataPacket::TYPE_SHELF && dynamic_pointer_cast<ShelfTileEntity>(te) != nullptr)
+			{
+				// neoLegacy - Copper Age: ShelfTileEntityRenderer reads the stored items from the tile entity every frame, so no chunk rebuild is needed
+				dynamic_pointer_cast<ShelfTileEntity>(te)->load(packet->tag);
+			}
 		}
 	}
 }

@@ -8,6 +8,8 @@
 #include "ShelfTileEntity.h"
 #include "Facing.h"
 #include "ItemInstance.h"
+#include "net.minecraft.network.packet.h"
+#include "TileEntityDataPacket.h"
 
 ShelfTileEntity::ShelfTileEntity() : TileEntity()
 {
@@ -152,6 +154,17 @@ void ShelfTileEntity::save(CompoundTag *base)
 		}
 	}
 	base->put(L"Items", listTag);
+}
+
+shared_ptr<Packet> ShelfTileEntity::getUpdatePacket()
+{
+	// Round-6 fix (2026-11-20): live-sync the shelf contents to the client.
+	// Bed precedent — save() writes Facing + Items, so the client's load()
+	// restores both and the renderer (which reads the TE every frame) shows
+	// the stored items without a chunk rebuild.
+	CompoundTag *tag = new CompoundTag();
+	save(tag);
+	return std::make_shared<TileEntityDataPacket>(x, y, z, TileEntityDataPacket::TYPE_SHELF, tag);
 }
 
 int ShelfTileEntity::getMaxStackSize() const

@@ -16,6 +16,7 @@ public:
 	static const int TYPE_CONCRETE_COLOR = 6;	// neoLegacy - concrete stairs/slabs color
 	static const int TYPE_BED = 7;				// neoLegacy - Fancy Beds (which bed: color / straw)
 	static const int TYPE_FLOWER_POT = 8;
+	static const int TYPE_SHELF = 9;			// neoLegacy - Copper Age (shelf contents + facing)
 
 	int x, y, z;
 	int type;

@@ -14,11 +14,12 @@ class ItemInstance;
 // TransportItemsBetweenContainers); this tree has no Brain, it has Goals,
 // so the behaviour is translated into a single Goal:
 //
-//   * Source: a copper chest (Tile::copper_chest_Id) that a player (or
-//     another golem) currently has open (ChestTileEntity::openCount > 0,
-//     the Java shouldQueueForTarget gate) and that holds at least one
-//     item. Search radius 32 horizontal / 8 vertical (Java
-//     TRANSPORT_ITEM_HORIZONTAL/VERTICAL_SEARCH_RADIUS).
+//   * Source: a copper chest (Tile::copper_chest_Id) that holds at least
+//     one item. Search radius 32 horizontal / 8 vertical (Java
+//     TRANSPORT_ITEM_HORIZONTAL/VERTICAL_SEARCH_RADIUS). (Java gates on
+//     shouldQueueForTarget — a non-empty opener list — but openCount is
+//     a LIVE viewer count here, so that gate made the golem never find
+//     a source; any copper chest holding an item is a valid source.)
 //   * Destination: a normal chest (Tile::chest_Id) or trapped chest
 //     (Tile::chest_trap_Id) that can be opened (ChestTile::getContainer
 //     non-null — no solid block on top, no cat sitting on it).

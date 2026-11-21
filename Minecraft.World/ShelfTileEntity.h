@@ -57,6 +57,11 @@ public:
 	virtual bool hasCustomName() override;
 	virtual void load(CompoundTag *base) override;
 	virtual void save(CompoundTag *base) override;
+	// Round-6 fix (2026-11-20): live-sync the shelf contents to the client.
+	// Without this the client's ShelfTileEntity never receives the stored
+	// items (base TileEntity::getUpdatePacket returns nullptr), so the
+	// renderer sees an empty shelf. Bed precedent.
+	virtual shared_ptr<Packet> getUpdatePacket() override;
 	virtual int getMaxStackSize() const override;
 	virtual bool stillValid(shared_ptr<Player> player) override;
 	virtual void setChanged() override;

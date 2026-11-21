@@ -137,12 +137,16 @@ bool CopperGolemTransportGoal::findTransportPair()
 				int tileId = level->getTile(x, y, z);
 				if (!carrying && tileId == Tile::copper_chest_Id)
 				{
-					// Source: a copper chest someone currently has open
-					// (Java shouldQueueForTarget — the opener list is
-					// non-empty) that holds at least one item.
+					// Source: a copper chest that holds at least one
+					// item. (Java gates on shouldQueueForTarget — the
+					// opener list is non-empty — but openCount is a LIVE
+					// viewer count here: it is > 0 only while a player
+					// currently has the chest UI open, so gating on it
+					// meant the golem essentially never found a source.
+					// Any copper chest holding an item is a valid source.)
 					shared_ptr<ChestTileEntity> te =
 						dynamic_pointer_cast<ChestTileEntity>(level->getTileEntity(x, y, z));
-					if (te == nullptr || te->openCount <= 0) continue;
+					if (te == nullptr) continue;
 					shared_ptr<Container> container = getChestContainer(x, y, z);
 					if (container == nullptr || !containerHasItem(container)) continue;
 					int d = (x - gx) * (x - gx) + (y - gy) * (y - gy) + (z - gz) * (z - gz);
