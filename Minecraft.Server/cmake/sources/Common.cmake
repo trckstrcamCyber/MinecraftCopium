@@ -485,6 +485,7 @@ set(_MINECRAFT_SERVER_COMMON_ROOT
   "${_MS_SRC}/../Minecraft.Client/SheepFurModel.cpp"
   "${_MS_SRC}/../Minecraft.Client/SheepModel.cpp"
   "${_MS_SRC}/../Minecraft.Client/SheepRenderer.cpp"
+  "${_MS_SRC}/../Minecraft.Client/ShelfTileEntityRenderer.cpp"
   "${_MS_SRC}/../Minecraft.Client/SignModel.cpp"
   "${_MS_SRC}/../Minecraft.Client/SignRenderer.cpp"
   "${_MS_SRC}/../Minecraft.Client/BedRenderer.cpp"
