@@ -14,6 +14,11 @@
 #include "../Minecraft.World/net.minecraft.world.entity.monster.h"
 #include "../Minecraft.World/net.minecraft.h"
 
+ // NOTE: MATERIAL_NAMES holds only the 5 vanilla materials (indices 0-4). Copper
+// (modelIndex 5) and rose gold (modelIndex 6) are NOT in this array, so it must
+// NEVER be indexed with armorItem->modelIndex -- doing so read the wstring stored
+// after the array in .data (corrupt _Mysize ~5.6 MB) and crashed copper equip.
+// getArmorLocation() resolves the material name with a switch instead.
 const wstring HumanoidMobRenderer::MATERIAL_NAMES[5] = { L"cloth", L"chain", L"iron", L"diamond", L"gold" };
 std::map<wstring, ResourceLocation> HumanoidMobRenderer::ARMOR_LOCATION_CACHE;
 
@@ -44,20 +49,28 @@ ResourceLocation *HumanoidMobRenderer::getArmorLocation(ArmorItem *armorItem, in
 
 ResourceLocation *HumanoidMobRenderer::getArmorLocation(ArmorItem *armorItem, int layer, bool overlay)
 {
-	switch(armorItem->modelIndex)
+	// Armor-material name for the texture path. modelIndex is the material index:
+	// 0 cloth, 1 chain, 2 iron, 3 diamond, 4 gold, 5 copper, 6 rose gold.
+	// MATERIAL_NAMES only holds the 5 vanilla entries, so indexing it with 5/6 read
+	// the wstring stored after the array in .data (a corrupt _Mysize of ~5.6 MB) and
+	// the armor-path copy crashed on copper equip (and built a garbage path for rose
+	// gold, so it never loaded). Resolve the name with a switch on a clamped index.
+	int index = armorItem->modelIndex;
+	if (index < 0 || index > 6)
+		index = 0;
+	const wchar_t *materialName;
+	switch (index)
 	{
-	case 0:
-		break;
-	case 1:
-		break;
-	case 2:
-		break;
-	case 3:
-		break;
-	case 4:
-		break;
-	};
-	wstring path = wstring(L"armor/" + MATERIAL_NAMES[armorItem->modelIndex]).append(L"_").append(std::to_wstring(layer == 2 ? 2 : 1)).append((overlay ? L"_b" :L"")).append(L".png");
+	case 0: materialName = L"cloth"; break;
+	case 1: materialName = L"chain"; break;
+	case 2: materialName = L"iron"; break;
+	case 3: materialName = L"diamond"; break;
+	case 4: materialName = L"gold"; break;
+	case 5: materialName = L"copper"; break;
+	case 6: materialName = L"rose_gold"; break;
+	default: materialName = L"cloth"; break;
+	}
+	wstring path = wstring(L"armor/").append(materialName).append(L"_").append(std::to_wstring(layer == 2 ? 2 : 1)).append((overlay ? L"_b" : L"")).append(L".png");
 
 	std::map<wstring, ResourceLocation>::iterator it = ARMOR_LOCATION_CACHE.find(path);
 

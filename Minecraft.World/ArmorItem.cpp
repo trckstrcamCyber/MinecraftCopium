@@ -85,7 +85,9 @@ _ArmorMaterial::ArmorMaterial(int durabilityMultiplier, const int slotProtection
 
 _ArmorMaterial::~ArmorMaterial()
 {
-	delete [] slotProtections;
+	// Do NOT delete slotProtections: the ctor stores a pointer to one of the static
+	// const arrays above (clothArray, chainArray, ...), which this object does not
+	// own. Deleting it would free static storage.
 }
 
 int _ArmorMaterial::getHealthForSlot(int slot) const
