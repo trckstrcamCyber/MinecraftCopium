@@ -413,9 +413,6 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Tile::torch_Id)
 		ITEM(Tile::copper_torch_Id)	// neoLegacy - Copper Age (Phase 3)
 		ITEM(Tile::copper_lantern_Id)	// neoLegacy - Copper Age (Phase 3)
-		ITEM(Tile::lightning_rod_Id)	// neoLegacy - Copper Age (Phase 3)
-		ITEM(Tile::copper_golem_statue_Id)	// neoLegacy - Copper Age (Phase 3, tile only)
-		ITEM(Tile::shelf_Id)	// neoLegacy - Copper Age (Phase 3)
 		ITEM_AUX(Tile::tallgrass_Id, TallGrass::DEAD_SHRUB)
 		ITEM_AUX(Tile::tallgrass_Id, TallGrass::TALL_GRASS)
 		ITEM_AUX(Tile::tallgrass_Id, TallGrass::FERN)
@@ -584,6 +581,8 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Tile::copper_button_Id)	// neoLegacy - Copper Age (Phase 3)
 		ITEM(Tile::wooden_button_Id)
 		ITEM(Tile::copper_bulb_Id)	// neoLegacy - Copper Age (Phase 3)
+		ITEM(Tile::lightning_rod_Id)	// neoLegacy - Copper Age (Phase 3) - Redstone tab
+		ITEM(Tile::copper_golem_statue_Id)	// neoLegacy - Copper Age (Phase 3, tile only) - Redstone tab
 		ITEM(Tile::stone_pressure_plate_Id)
 		ITEM(Tile::wooden_pressure_plate_Id)
 		ITEM(Item::redstone_Id)
@@ -665,6 +664,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Item::bed_Id,14)	// Red
 		ITEM_AUX(Item::bed_Id,15)	// Black
 		ITEM_AUX(Item::bed_Id,16)	// Straw
+		ITEM(Tile::shelf_Id)	// neoLegacy - Copper Age (Phase 3) - after all beds
 		ITEM(Item::bucket_Id)
 		ITEM(Item::lava_bucket_Id)
 		ITEM(Item::water_bucket_Id)
