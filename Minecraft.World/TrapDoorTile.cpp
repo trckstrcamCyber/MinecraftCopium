@@ -7,6 +7,16 @@
 #include "TrapDoorTile.h"
 #include "CopperOxidationTileEntity.h"
 #include "IconRegister.h"
+#include <tuple>
+
+// neoLegacy - Copper Age (review fix, 2026-11-20). Oxidation snapshot
+// for blocks about to be removed, keyed by block position (see
+// DoorTile.cpp — same design). The player-break path removes the tile
+// (and its TE) before spawnResources runs, so onRemoving records the
+// oxidation here first and spawnResources falls back to it when the TE
+// is already gone. Entries are consumed on read; a stale entry is
+// harmless — the next removal at that position overwrites it.
+static std::map<std::tuple<int, int, int>, int> s_removedOxidation;
 
 
 TrapDoorTile::TrapDoorTile(int id, Material *material) : BaseEntityTile(id, material,isSolidRender())
@@ -69,18 +79,36 @@ int TrapDoorTile::getSpawnResourcesAuxValue(int data)
 	// oxidation no longer lives in the nibble, so there is nothing to
 	// read here — the value below only ever reflects legacy nibble bits
 	// (0 for live blocks). Drops go through the spawnResources override,
-	// which reads the CopperOxidationTileEntity. (pick-block also uses
-	// this via Tile::cloneTileData, so a picked copper trapdoor comes
-	// back aux 0 — same as the door; see report.)
+	// which reads the CopperOxidationTileEntity, and pick-block goes
+	// through the cloneTileData override below, which reads the TE too.
 	if (id == Tile::copper_trapdoor_Id) return (data >> 4) & 7;
 	return Tile::getSpawnResourcesAuxValue(data);
+}
+
+// neoLegacy - Copper Age (review fix, 2026-11-20). Snapshot the
+// oxidation just before the block is removed. LevelChunk::setTileAndData
+// calls onRemoving on the server before the tile is replaced and before
+// onRemove drops the TE — but the player-break path
+// (ServerPlayerGameMode::destroyBlock) calls spawnResources only AFTER
+// that removal, so a TE read there would always miss. Recording the
+// oxidation here lets spawnResources fall back to it. Copper trapdoors
+// only; other trapdoors have no oxidation to preserve.
+void TrapDoorTile::onRemoving(Level *level, int x, int y, int z, int data)
+{
+	(void)data;
+	if (id != Tile::copper_trapdoor_Id) return;
+	shared_ptr<TileEntity> te = level->getTileEntity(x, y, z);
+	shared_ptr<CopperOxidationTileEntity> ox = dynamic_pointer_cast<CopperOxidationTileEntity>(te);
+	if (ox != nullptr) s_removedOxidation[std::make_tuple(x, y, z)] = ox->getOxidation();
 }
 
 // neoLegacy - Copper Age (oxidation workaround, 2026-11-20). The base
 // spawnResources drops the item with getSpawnResourcesAuxValue(data),
 // which cannot see the TE — so for copper trapdoors read the TE here
-// and drop with its oxidation aux, mirroring DoorTile. If the TE is
-// missing (already removed), fall back to aux 0.
+// and drop with its oxidation aux, mirroring DoorTile. The TE is
+// usually already gone by the time this runs (the player-break path
+// removes the tile before dropping), so fall back to the oxidation
+// onRemoving snapshotted just before removal.
 void TrapDoorTile::spawnResources(Level *level, int x, int y, int z, int data, float odds, int playerBonusLevel)
 {
 	if (id == Tile::copper_trapdoor_Id)
@@ -90,6 +118,15 @@ void TrapDoorTile::spawnResources(Level *level, int x, int y, int z, int data, f
 		shared_ptr<TileEntity> te = level->getTileEntity(x, y, z);
 		shared_ptr<CopperOxidationTileEntity> oxTe = dynamic_pointer_cast<CopperOxidationTileEntity>(te);
 		if (oxTe != nullptr) ox = oxTe->getOxidation();
+		else
+		{
+			auto it = s_removedOxidation.find(std::make_tuple(x, y, z));
+			if (it != s_removedOxidation.end())
+			{
+				ox = it->second;
+				s_removedOxidation.erase(it);
+			}
+		}
 		int count = getResourceCountForLootBonus(playerBonusLevel, level->random);
 		for (int i = 0; i < count; i++)
 		{

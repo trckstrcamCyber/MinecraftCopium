@@ -22,6 +22,10 @@ public:
 
 	virtual shared_ptr<TileEntity> newTileEntity(Level *level) override;
 	virtual void onRemove(Level *level, int x, int y, int z, int id, int data) override;
+	// neoLegacy - Copper Age (review fix, 2026-11-20). Snapshot the
+	// oxidation before the TE is removed, so spawnResources can still
+	// drop the right aux (see CopperStairTile.cpp).
+	virtual void onRemoving(Level *level, int x, int y, int z, int data) override;
 	virtual void spawnResources(Level *level, int x, int y, int z, int data, float odds, int playerBonusLevel) override;
 	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Pick-block
 	// (middle-click) reads the TE oxidation so the picked stair item

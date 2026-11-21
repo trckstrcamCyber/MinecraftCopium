@@ -3559,8 +3559,10 @@ void ClientConnection::handleTileEntityData(shared_ptr<TileEntityDataPacket> pac
 				dynamic_pointer_cast<CopperOxidationTileEntity>(te)->applyUpdate(packet->tag);
 				// Unlike the chest/statue (drawn by a tile entity renderer every frame), the
 				// door/trapdoor/stairs oxidation is baked into the chunk mesh, so rebuild it
-				// now that the real oxidation has arrived.
-				minecraft->level->setTilesDirty(packet->x, packet->y, packet->z, packet->x, packet->y, packet->z);
+				// now that the real oxidation has arrived. A door's oxidation is read from
+				// the LOWER half's TE by BOTH halves, so rebuild the two-block range
+				// (the packet's TE is the lower half's).
+				minecraft->level->setTilesDirty(packet->x, packet->y - 1, packet->z, packet->x, packet->y + 1, packet->z);
 			}
 			else if (packet->type == TileEntityDataPacket::TYPE_COPPER_CHEST && dynamic_pointer_cast<ChestTileEntity>(te) != nullptr)
 			{

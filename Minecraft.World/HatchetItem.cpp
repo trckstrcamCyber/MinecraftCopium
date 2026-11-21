@@ -53,7 +53,6 @@ static bool scrapeCopper(shared_ptr<ItemInstance> instance, shared_ptr<Player> p
 {
 	int field;
 	int newData = 0;
-	int wx = x, wy = y, wz = z; // the block actually written (the door writes its upper half)
 	// Oxidation stored in a tile entity (chest, door, trapdoor, stairs):
 	// the TE holding it, its position, and the scraped field value. Null
 	// for the nibble-stored families, which use newData instead.
@@ -95,10 +94,11 @@ static bool scrapeCopper(shared_ptr<ItemInstance> instance, shared_ptr<Player> p
 		break;
 	// Door: the field lives in the CopperOxidationTileEntity on the LOWER
 	// half. Clicking either half scrapes the TE below the upper half.
+	// The other half must still be a copper door.
 	case Tile::copper_door_Id:
 	{
 		bool isUpper = (data & 8) != 0;
-		int ux = x, uy = isUpper ? y : y + 1, uz = z;
+		int ux = x, uy = isUpper ? y - 1 : y + 1, uz = z;
 		if (level->getTile(ux, uy, uz) != Tile::copper_door_Id) return false;
 		oxX = x; oxY = isUpper ? y - 1 : y; oxZ = z;
 		oxTe = dynamic_pointer_cast<CopperOxidationTileEntity>(level->getTileEntity(oxX, oxY, oxZ));
@@ -144,20 +144,49 @@ static bool scrapeCopper(shared_ptr<ItemInstance> instance, shared_ptr<Player> p
 			// it live (the chest renderer reads the TE every frame).
 			chestTe->setOxidation(newField);
 			level->broadcastTileEntityUpdate(chestTe);
+			// Double chest: both halves share one oxidation stage
+			// (Cameron's call, 2026-11-20), so the paired half takes
+			// the sampled half's new STAGE, keeping its own waxed bit.
+			// (An unwax scrape leaves the stage unchanged, so the
+			// partner's stage does not move either — only the sampled
+			// half loses its wax.)
+			chestTe->checkNeighbors();
+			shared_ptr<ChestTileEntity> pairTe = chestTe->e.lock();
+			if (pairTe == nullptr) pairTe = chestTe->w.lock();
+			if (pairTe == nullptr) pairTe = chestTe->n.lock();
+			if (pairTe == nullptr) pairTe = chestTe->s.lock();
+			if (pairTe != nullptr)
+			{
+				pairTe->setOxidation((newField & 3) | (pairTe->getOxidation() & 4));
+				level->broadcastTileEntityUpdate(pairTe);
+				level->setTilesDirty(pairTe->x, pairTe->y, pairTe->z, pairTe->x, pairTe->y, pairTe->z);
+			}
 			level->setTilesDirty(x, y, z, x, y, z);
 		}
 		else if (oxTe != nullptr)
 		{
 			// Door/trapdoor/stairs oxidation lives in the TE; the texture
 			// is baked into the chunk mesh, so rebuild it, and broadcast
-			// so clients see it live.
+			// so clients see it live. A door's oxidation is read from
+			// the LOWER half's TE by BOTH halves, so rebuild both halves
+			// (the upper half would otherwise keep the stale texture).
 			oxTe->setOxidation(newField);
 			level->broadcastTileEntityUpdate(oxTe);
-			level->setTilesDirty(oxX, oxY, oxZ, oxX, oxY, oxZ);
+			if (tileId == Tile::copper_door_Id) level->setTilesDirty(oxX, oxY - 1, oxZ, oxX, oxY + 1, oxZ);
+			else level->setTilesDirty(oxX, oxY, oxZ, oxX, oxY, oxZ);
 		}
 		else
 		{
-			level->setTileAndData(wx, wy, wz, tileId, newData, Tile::UPDATE_ALL);
+			// Nibble-stored family. The statue is an entity tile too
+			// (its pose/facing live in the TE), and a same-id
+			// setTileAndData rewrite runs onRemove on the server,
+			// deleting the TE and recreating it with default
+			// pose/facing — so write its data with setData instead
+			// (only the data changes; the statue emits no light). The
+			// other nibble blocks keep setTileAndData (the bulb needs
+			// its light re-check).
+			if (tileId == Tile::copper_golem_statue_Id) level->setData(x, y, z, newData, Tile::UPDATE_ALL);
+			else level->setTileAndData(x, y, z, tileId, newData, Tile::UPDATE_ALL);
 		}
 		instance->hurtAndBreak(1, player);
 	}

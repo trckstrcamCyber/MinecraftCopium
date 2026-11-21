@@ -21,7 +21,9 @@ ResourceLocation ChestRenderer::CHEST_COPPER_WEATHERED_LOCATION = ResourceLocati
 ResourceLocation ChestRenderer::CHEST_COPPER_OXIDIZED_LOCATION = ResourceLocation(TN_TILE_COPPER_CHEST_OXIDIZED);
 // neoLegacy - Copper Age (Phase 4). Copper double-chest sheets (128x64),
 // combined from the jar1201 left/right textures. The two halves of a
-// double chest oxidize independently, so each half binds its own sheet.
+// double chest share one oxidation stage (Cameron's call, 2026-11-20),
+// so the single sheet bound from the rendering half is correct for
+// both halves.
 ResourceLocation ChestRenderer::CHEST_COPPER_LARGE_LOCATION = ResourceLocation(TN_TILE_COPPER_CHEST_LARGE);
 ResourceLocation ChestRenderer::CHEST_COPPER_LARGE_EXPOSED_LOCATION = ResourceLocation(TN_TILE_COPPER_CHEST_LARGE_EXPOSED);
 ResourceLocation ChestRenderer::CHEST_COPPER_LARGE_WEATHERED_LOCATION = ResourceLocation(TN_TILE_COPPER_CHEST_LARGE_WEATHERED);
@@ -53,6 +55,7 @@ void ChestRenderer::render(shared_ptr<TileEntity>  _chest, double x, double y, d
 {
 	// 4J Convert as we aren't using a templated class
 	shared_ptr<ChestTileEntity> chest = dynamic_pointer_cast<ChestTileEntity>(_chest);
+	if (chest == nullptr) return;
 
 	int data;
 
@@ -93,9 +96,10 @@ void ChestRenderer::render(shared_ptr<TileEntity>  _chest, double x, double y, d
 	// old packed-data reading — the caller set TileEntity::data from
 	// the item aux. See the level-less branch above.
 	// neoLegacy - Copper Age (Phase 4). The double-chest form uses the
-	// combined 128x64 sheet (one per oxidation state); each half of a
-	// double chest binds its own sheet, since the halves oxidize
-	// independently. The single-chest texture is unchanged.
+	// combined 128x64 sheet (one per oxidation state); both halves share
+	// one oxidation stage, so the sheet bound from the rendering half is
+	// correct for the whole double chest. The single-chest texture is
+	// unchanged.
 	ResourceLocation *copperLocation = &CHEST_COPPER_LOCATION;
 	ResourceLocation *copperLargeLocation = &CHEST_COPPER_LARGE_LOCATION;
 	int oxidationStage = chest->hasLevel() ? chest->getOxidationStage() : (data >> 3) & 3;

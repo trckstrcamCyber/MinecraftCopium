@@ -46,8 +46,14 @@ public:
 	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Drops
 	// the trapdoor item with the TE's oxidation aux (the base
 	// spawnResources only knows the nibble data, which no longer holds
-	// oxidation). Copper only; other trapdoors use the base behaviour.
+	// oxidation). The TE is usually already gone when this runs, so it
+	// falls back to the oxidation onRemoving snapshotted just before
+	// removal. Copper only; other trapdoors use the base behaviour.
 	virtual void spawnResources(Level *level, int x, int y, int z, int data, float odds, int playerBonusLevel) override;
+	// neoLegacy - Copper Age (review fix, 2026-11-20). Snapshot the
+	// oxidation before the TE is removed, so spawnResources can still
+	// drop the right aux (see TrapDoorTile.cpp).
+	virtual void onRemoving(Level *level, int x, int y, int z, int data) override;
 	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Pick-block
 	// (middle-click) reads the TE oxidation so the picked trapdoor item
 	// matches the placed trapdoor.

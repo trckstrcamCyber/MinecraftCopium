@@ -81,4 +81,6 @@ public:
 	virtual bool hasAnalogOutputSignal() override;
 	virtual int getAnalogOutputSignal(Level *level, int x, int y, int z, int dir) override;
 	virtual int getResourceCount(Random *random) override;
+	virtual int getSpawnResourcesAuxValue(int data) override;
 };
+

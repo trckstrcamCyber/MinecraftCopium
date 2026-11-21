@@ -3449,7 +3449,6 @@ bool Level::advanceCopperOxidation(int x, int y, int z, int tile)
 	int data = getData(x, y, z);
 	int field;
 	int newData = 0;
-	int wx = x, wy = y, wz = z; // the block actually written (the door writes its upper half)
 	// Oxidation stored in a tile entity (chest, door, trapdoor, stairs):
 	// the TE holding it, its position, and the advanced field value. Null
 	// for the nibble-stored families, which use newData instead.
@@ -3490,13 +3489,19 @@ bool Level::advanceCopperOxidation(int x, int y, int z, int tile)
 		newField = field + 1;
 		break;
 	// Door: the field lives in the CopperOxidationTileEntity on the LOWER
-	// half. A sampled lower half advances its own TE; a sampled upper half
-	// advances the TE below it. The other half must still be a copper door
-	// (it could have been removed between the sample and this read).
+	// half. Only a sampled LOWER half advances the door: both halves
+	// share the same TE, so counting upper-half samples too would
+	// weather doors ~2x as fast as every other copper block. The other
+	// half must still be a copper door (it could have been removed
+	// between the sample and this read).
 	case Tile::copper_door_Id:
 	{
 		bool isUpper = (data & 8) != 0;
-		int ux = x, uy = isUpper ? y : y + 1, uz = z;
+		if (isUpper) return false;
+		// isUpper is always false here (upper-half samples returned
+		// above); the ternary is kept so the lower-half resolution
+		// stays obvious and matches HatchetItem::scrapeCopper.
+		int ux = x, uy = isUpper ? y - 1 : y + 1, uz = z;
 		if (getTile(ux, uy, uz) != Tile::copper_door_Id) return false;
 		oxX = x; oxY = isUpper ? y - 1 : y; oxZ = z;
 		oxTe = dynamic_pointer_cast<CopperOxidationTileEntity>(getTileEntity(oxX, oxY, oxZ));
@@ -3539,6 +3544,26 @@ bool Level::advanceCopperOxidation(int x, int y, int z, int tile)
 		// rebuild is needed (setTilesDirty is harmless here).
 		chestTe->setOxidation(newField);
 		broadcastTileEntityUpdate(chestTe);
+		// Double chest: both halves share one oxidation stage
+		// (Cameron's call, 2026-11-20), so the paired half takes the
+		// same new STAGE, keeping its own waxed bit. A waxed half
+		// never advances on its own (field >= 3 returned above), but
+		// when its partner weathers its stage still moves with the
+		// partner — only the waxed bit is its own. A single chest has
+		// no partner (all four neighbour pointers null). checkNeighbors
+		// only pairs same-type chests (isSameChest), so the partner
+		// here is always a copper chest.
+		chestTe->checkNeighbors();
+		shared_ptr<ChestTileEntity> pairTe = chestTe->e.lock();
+		if (pairTe == nullptr) pairTe = chestTe->w.lock();
+		if (pairTe == nullptr) pairTe = chestTe->n.lock();
+		if (pairTe == nullptr) pairTe = chestTe->s.lock();
+		if (pairTe != nullptr)
+		{
+			pairTe->setOxidation((newField & 3) | (pairTe->getOxidation() & 4));
+			broadcastTileEntityUpdate(pairTe);
+			setTilesDirty(pairTe->x, pairTe->y, pairTe->z, pairTe->x, pairTe->y, pairTe->z);
+		}
 		setTilesDirty(x, y, z, x, y, z);
 		return true;
 	}
@@ -3546,13 +3571,24 @@ bool Level::advanceCopperOxidation(int x, int y, int z, int tile)
 	{
 		// Door/trapdoor/stairs oxidation lives in the TE; the texture is
 		// baked into the chunk mesh, so rebuild it, and broadcast so
-		// clients see it live.
+		// clients see it live. A door's oxidation is read from the LOWER
+		// half's TE by BOTH halves, so rebuild both halves (the upper
+		// half would otherwise keep the stale texture).
 		oxTe->setOxidation(newField);
 		broadcastTileEntityUpdate(oxTe);
-		setTilesDirty(oxX, oxY, oxZ, oxX, oxY, oxZ);
+		if (tile == Tile::copper_door_Id) setTilesDirty(oxX, oxY - 1, oxZ, oxX, oxY + 1, oxZ);
+		else setTilesDirty(oxX, oxY, oxZ, oxX, oxY, oxZ);
 		return true;
 	}
-	setTileAndData(wx, wy, wz, tile, newData, Tile::UPDATE_ALL);
+	// Nibble-stored family. The statue is an entity tile too (its
+	// pose/facing live in the TE), and a same-id setTileAndData rewrite
+	// runs onRemove on the server, deleting the TE and recreating it
+	// with default pose/facing — so write its data with setData
+	// instead (only the data changes; the statue emits no light, so
+	// nothing setTileAndData adds is needed). The other nibble blocks
+	// keep setTileAndData (the bulb needs its light re-check).
+	if (tile == Tile::copper_golem_statue_Id) setData(x, y, z, newData, Tile::UPDATE_ALL);
+	else setTileAndData(x, y, z, tile, newData, Tile::UPDATE_ALL);
 	return true;
 }
 

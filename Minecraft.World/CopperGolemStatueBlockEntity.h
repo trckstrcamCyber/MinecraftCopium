@@ -23,11 +23,11 @@ class Packet;
 //
 // removeStatue() (Java :4435) builds the golem back from the statue — same
 // custom name, standing at the block centre, facing the statue's facing,
-// spawn sound played — and returns it. It is implemented but NOT wired to
-// any trigger: the extracted Java text contains exactly one occurrence of
-// removeStatue (the definition) and no caller, so nothing in this tree
-// calls it yet. Breaking the statue drops nothing and spawns no golem
-// until Cameron settles the trigger.
+// spawn sound played — and returns it. It IS wired to a trigger:
+// CopperGolemStatueBlock::use() calls it when an axe is used on a fully
+// oxidized, unwaxed statue (audit fix, Java reanimate). Breaking the
+// statue drops the statue as an item (aux 0 — it places back as an
+// unaffected standing statue); it does NOT spawn a golem on break.
 class CopperGolemStatueBlockEntity : public TileEntity
 {
 public:

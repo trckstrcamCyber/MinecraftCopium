@@ -9,6 +9,7 @@
 #include "net.minecraft.world.entity.player.h"
 #include "net.minecraft.world.h"
 #include "net.minecraft.h"
+#include <tuple>
 
 static std::map<wstring, int> doorItemMap = {
 	{ L"doorWood",   Item::wooden_door_Id   },
@@ -22,6 +23,15 @@ static std::map<wstring, int> doorItemMap = {
 	{ L"doorCopper", Item::copper_door_Id },	// neoLegacy - Copper Age (Phase 3)
 	{ L"doorRoseGold", Item::rose_gold_door_Id }	// neoLegacy - Copper Age (Phase 3)
 };
+
+// neoLegacy - Copper Age (review fix, 2026-11-20). Oxidation snapshot
+// for blocks about to be removed, keyed by block position. The live
+// break path removes the tile (and its TE) before spawnResources runs,
+// so onRemoving records the oxidation here first and spawnResources
+// falls back to it when the TE is already gone. Entries are consumed
+// on read; a stale entry (e.g. a Creative break, which never drops) is
+// harmless — the next removal at that position overwrites it.
+static std::map<std::tuple<int, int, int>, int> s_removedOxidation;
 
 DoorTile::DoorTile(int id, Material *material, const wstring& doorType) : BaseEntityTile(id, material,isSolidRender())
 {
@@ -53,6 +63,12 @@ int DoorTile::getOxidation(LevelSource *level, int x, int y, int z, bool isUpper
 	// half's CopperOxidationTileEntity, not in the nibble. Resolve the
 	// lower half from either half and read its TE (0 if it is missing).
 	int lowerY = isUpper ? y - 1 : y;
+	// The block below an upper half must still be this door: a copper
+	// trapdoor or copper stairs below shares the same TE class, so
+	// without this check an orphaned upper half would read the wrong
+	// block's oxidation (and getCompositeData would read its data as
+	// door data).
+	if (level->getTile(x, lowerY, z) != id) return 0;
 	shared_ptr<TileEntity> te = level->getTileEntity(x, lowerY, z);
 	shared_ptr<CopperOxidationTileEntity> ox = dynamic_pointer_cast<CopperOxidationTileEntity>(te);
 	if (ox == nullptr) return 0;
@@ -344,28 +360,58 @@ int DoorTile::getResource(int data, Random *random, int playerBonusLevel)
 	return doorItemMap[doorType];
 }
 
+// neoLegacy - Copper Age (review fix, 2026-11-20). Snapshot the
+// oxidation just before the block is removed. LevelChunk::setTileAndData
+// calls onRemoving on the server before the tile is replaced and before
+// onRemove drops the TE — but the player-break path
+// (ServerPlayerGameMode::destroyBlock) and the support-loss path
+// (neighborChanged) both call spawnResources only AFTER that removal,
+// so a TE read there would always miss. Recording the oxidation here
+// lets spawnResources fall back to it. Keyed by position: the upper
+// half's snapshot (oxidation 0 — its TE is unused) must not overwrite
+// the lower half's. Copper doors only; other doors have no oxidation
+// to preserve.
+void DoorTile::onRemoving(Level *level, int x, int y, int z, int data)
+{
+	(void)data;
+	if (id != Tile::copper_door_Id) return;
+	shared_ptr<TileEntity> te = level->getTileEntity(x, y, z);
+	shared_ptr<CopperOxidationTileEntity> ox = dynamic_pointer_cast<CopperOxidationTileEntity>(te);
+	if (ox != nullptr) s_removedOxidation[std::make_tuple(x, y, z)] = ox->getOxidation();
+}
+
 // neoLegacy - Copper Age (oxidation workaround, 2026-11-20). The copper
 // door's oxidation lives in the LOWER half's CopperOxidationTileEntity,
 // but the drop is produced from the LOWER half (getResource returns 0
 // for the upper half), so the base spawnResources would always drop an
-// unaffected (aux 0) door item. When the lower half is broken while the
-// upper half is still present (the direct destroyTile path — the common
-// case; destroyTile drops before clearing the tile, so the TE is still
-// there), read the lower half's TE and drop the door item with that aux,
-// so the oxidation round-trips (break -> wax -> place). If the TE is
-// already gone (support lost after the half was removed —
-// neighborChanged drops after removeTile), fall back to the base
-// behaviour (aux 0). Non-copper doors fall through to the base
+// unaffected (aux 0) door item. Read the lower half's TE and drop the
+// door item with that aux, so the oxidation round-trips (break -> wax
+// -> place). The TE is usually already gone by the time this runs —
+// the player-break path (ServerPlayerGameMode::destroyBlock) and the
+// support-loss path (neighborChanged) both remove the tile before
+// dropping — so fall back to the oxidation onRemoving snapshotted just
+// before removal. No upper-half guard: the neighbour cascade removes
+// the upper half before this runs, so requiring it would force the
+// aux-0 base path. Non-copper doors fall through to the base
 // implementation unchanged.
 void DoorTile::spawnResources(Level *level, int x, int y, int z, int data, float odds, int playerBonusLevel)
 {
-	if (id == Tile::copper_door_Id && (data & UPPER_BIT) == 0 && level->getTile(x, y + 1, z) == id)
+	if (id == Tile::copper_door_Id && (data & UPPER_BIT) == 0)
 	{
 		if (level->isClientSide) return;
 		int ox = 0;
 		shared_ptr<TileEntity> te = level->getTileEntity(x, y, z);
 		shared_ptr<CopperOxidationTileEntity> oxTe = dynamic_pointer_cast<CopperOxidationTileEntity>(te);
 		if (oxTe != nullptr) ox = oxTe->getOxidation();
+		else
+		{
+			auto it = s_removedOxidation.find(std::make_tuple(x, y, z));
+			if (it != s_removedOxidation.end())
+			{
+				ox = it->second;
+				s_removedOxidation.erase(it);
+			}
+		}
 		int count = getResourceCountForLootBonus(playerBonusLevel, level->random);
 		for (int i = 0; i < count; i++)
 		{
@@ -424,7 +470,9 @@ int DoorTile::getCompositeData(LevelSource *level, int x, int y, int z)
 	int upperData;
 	if (isUpper)
 	{
-		lowerData = level->getData(x, y - 1, z);
+		// Orphaned upper half (the block below is no longer this door):
+		// its data is not door data — treat as closed, facing 0.
+		lowerData = level->getTile(x, y - 1, z) == id ? level->getData(x, y - 1, z) : 0;
 		upperData = data;
 	}
 	else

@@ -111,12 +111,17 @@ void Drowned::dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel)
 {
 	Mob::dropDeathLoot(wasKilledByPlayer, playerBonusLevel);
 	// neoLegacy - Copper Age (audit fix). Java: drowned drop a copper
-	// ingot 11% of the time (+2% per Looting level, up to 17%).
-	int chance = 11 + 2 * playerBonusLevel;
-	if (chance > 17) chance = 17;
-	if (random->nextFloat() * 100.0f < chance)
+	// ingot 11% of the time (+2% per Looting level, up to 17%) — but
+	// only when killed by a player (or a tamed wolf, which this tree
+	// does not count — same as the base rare-drop path).
+	if (wasKilledByPlayer)
 	{
-		spawnAtLocation(Item::copper_ingot_Id, 1);
+		int chance = 11 + 2 * playerBonusLevel;
+		if (chance > 17) chance = 17;
+		if (random->nextFloat() * 100.0f < chance)
+		{
+			spawnAtLocation(Item::copper_ingot_Id, 1);
+		}
 	}
 }
 

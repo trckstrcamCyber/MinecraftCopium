@@ -11,6 +11,16 @@
 #include "ChestTile.h"
 #include "IconRegister.h"
 #include "Facing.h"
+#include <tuple>
+
+// neoLegacy - Copper Age (review fix, 2026-11-20). Oxidation snapshot
+// for blocks about to be removed, keyed by block position (see
+// DoorTile.cpp — same design). The player-break path removes the tile
+// (and its TE) before spawnResources runs, so onRemoving records the
+// oxidation here first and spawnResources falls back to it when the TE
+// is already gone. Entries are consumed on read; a stale entry is
+// harmless — the next removal at that position overwrites it.
+static std::map<std::tuple<int, int, int>, int> s_removedOxidation;
 
 ChestTile::ChestTile(int id, int type) : BaseEntityTile(id, Material::wood, isSolidRender() )
 {
@@ -93,6 +103,8 @@ void ChestTile::onPlace(Level *level, int x, int y, int z)
 
 void ChestTile::setPlacedBy(Level *level, int x, int y, int z, shared_ptr<LivingEntity> by, shared_ptr<ItemInstance> itemInstance)
 {
+	if (by == nullptr) return;
+
 	int n = level->getTile(x, y, z - 1); // face = 2
 	int s = level->getTile(x, y, z + 1); // face = 3
 	int w = level->getTile(x - 1, y, z); // face = 4
@@ -141,12 +153,20 @@ void ChestTile::setPlacedBy(Level *level, int x, int y, int z, shared_ptr<Living
 	if (id == Tile::copper_chest_Id && itemInstance != nullptr)
 	{
 		shared_ptr<ChestTileEntity> cte = dynamic_pointer_cast<ChestTileEntity>(level->getTileEntity(x, y, z));
-		if (cte != nullptr) cte->setOxidation(itemInstance->getAuxValue() & 7);
+		if (cte != nullptr)
+		{
+			cte->setOxidation(itemInstance->getAuxValue() & 7);
+			// Broadcast so remote players see the placed oxidation live
+			// (the placing player's own client predicts it locally, but
+			// a tile packet carries no TE fields).
+			level->broadcastTileEntityUpdate(cte);
+		}
 	}
 
-	if (itemInstance->hasCustomHoverName())
+	if (itemInstance != nullptr && itemInstance->hasCustomHoverName())
 	{
-		dynamic_pointer_cast<ChestTileEntity>( level->getTileEntity(x, y, z))->setCustomName(itemInstance->getHoverName());
+		shared_ptr<ChestTileEntity> nameTe = dynamic_pointer_cast<ChestTileEntity>(level->getTileEntity(x, y, z));
+		if (nameTe != nullptr) nameTe->setCustomName(itemInstance->getHoverName());
 	}
 
 }
@@ -360,7 +380,9 @@ int ChestTile::getSignal(LevelSource *level, int x, int y, int z, int dir)
 {
 	if (!isSignalSource()) return Redstone::SIGNAL_NONE;
 
-	int openCount = dynamic_pointer_cast<ChestTileEntity>( level->getTileEntity(x, y, z))->openCount;
+	shared_ptr<ChestTileEntity> cte = dynamic_pointer_cast<ChestTileEntity>(level->getTileEntity(x, y, z));
+	if (cte == nullptr) return Redstone::SIGNAL_NONE;
+	int openCount = cte->openCount;
 	return Mth::clamp(openCount, Redstone::SIGNAL_NONE, Redstone::SIGNAL_MAX);
 }
 
@@ -418,31 +440,59 @@ void ChestTile::registerIcons(IconRegister *iconRegister)
 // neoLegacy - Copper Age (oxidation workaround, 2026-11-20). The copper
 // chest's oxidation now lives in the ChestTileEntity, so it cannot be
 // read here — this only gets the (facing-only) data, and bits 3-5 are
-// always 0 on newly placed chests, so this returns 0 for them. A
-// weathered chest therefore drops an unaffected chest item until
-// ChestTile gains a spawnResources override that reads the TE — that
-// needs a ChestTile.h declaration (not in this file's scope), so it is
-// left for the integration step. (Old-save chests may still carry a
-// stale oxidation in data bits 3-5; for those this still returns it.)
+// always 0 on newly placed chests, so this returns 0 for them. Drops go
+// through the spawnResources override below, which reads the TE, and
+// pick-block goes through the cloneTileData override below, which reads
+// the TE too. (Old-save chests may still carry a stale oxidation in
+// data bits 3-5; for those this still returns it — the nibble is 4
+// bits, so at most bit 3 survives and it can return at most 1.)
 int ChestTile::getSpawnResourcesAuxValue(int data)
 {
 	if (id == Tile::copper_chest_Id) return (data >> 3) & 7;
 	return Tile::getSpawnResourcesAuxValue(data);
 }
 
+// neoLegacy - Copper Age (review fix, 2026-11-20). Snapshot the
+// oxidation just before the block is removed. LevelChunk::setTileAndData
+// calls onRemoving on the server before the tile is replaced and before
+// onRemove drops the TE (and spills the contents) — but the player-break
+// path (ServerPlayerGameMode::destroyBlock) calls spawnResources only
+// AFTER that removal, so a TE read there would always miss. Recording
+// the oxidation here lets spawnResources fall back to it. Copper chests
+// only; other chests have no oxidation to preserve.
+void ChestTile::onRemoving(Level *level, int x, int y, int z, int data)
+{
+	(void)data;
+	if (id != Tile::copper_chest_Id) return;
+	shared_ptr<ChestTileEntity> cte = dynamic_pointer_cast<ChestTileEntity>(level->getTileEntity(x, y, z));
+	if (cte != nullptr) s_removedOxidation[std::make_tuple(x, y, z)] = cte->getOxidation();
+}
+
 // neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Breaking a
 // copper chest drops a chest item with the TE oxidation aux (the nibble
 // no longer holds oxidation — getSpawnResourcesAuxValue above can only
-// see the stale bits 3-5 on old saves). Level::destroyTile calls
-// spawnResources before the block is removed, so the TE is still alive
-// here. Non-copper chests fall through to the base implementation.
+// see the stale bits 3-5 on old saves). The TE is usually already gone
+// by the time this runs — the player-break path removes the tile (and
+// its TE) before dropping — so fall back to the oxidation onRemoving
+// snapshotted just before removal. Non-copper chests fall through to
+// the base implementation.
 void ChestTile::spawnResources(Level *level, int x, int y, int z, int data, float odds, int playerBonusLevel)
 {
 	if (id == Tile::copper_chest_Id)
 	{
 		if (level->isClientSide) return;
 		shared_ptr<ChestTileEntity> cte = dynamic_pointer_cast<ChestTileEntity>(level->getTileEntity(x, y, z));
-		int ox = cte != nullptr ? cte->getOxidation() : 0;
+		int ox = 0;
+		if (cte != nullptr) ox = cte->getOxidation();
+		else
+		{
+			auto it = s_removedOxidation.find(std::make_tuple(x, y, z));
+			if (it != s_removedOxidation.end())
+			{
+				ox = it->second;
+				s_removedOxidation.erase(it);
+			}
+		}
 		int count = getResourceCountForLootBonus(playerBonusLevel, level->random);
 		for (int i = 0; i < count; i++)
 		{

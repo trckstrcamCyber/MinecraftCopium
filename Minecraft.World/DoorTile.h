@@ -75,15 +75,20 @@ public:
 	virtual bool use(Level *level, int x, int y, int z, shared_ptr<Player> player, int clickedFace, float clickX, float clickY, float clickZ, bool soundOnly = false); // 4J added soundOnly param
 	void setOpen(Level *level, int x, int y, int z, bool shouldOpen);
 	virtual void neighborChanged(Level *level, int x, int y, int z, int type);
+	// neoLegacy - Copper Age (review fix, 2026-11-20). Snapshot the
+	// oxidation before the TE is removed, so spawnResources can still
+	// drop the right aux (see DoorTile.cpp).
+	virtual void onRemoving(Level *level, int x, int y, int z, int data) override;
 	virtual int getResource(int data, Random *random, int playerBonusLevel);
 	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). The
 	// copper door's oxidation lives in the LOWER half's
 	// CopperOxidationTileEntity, but the drop is produced from the LOWER
 	// half, so this override reads that TE and drops a door item with
-	// the matching oxidation/waxed aux. If the TE is missing (support
-	// lost after the half was already removed), falls back to aux 0 —
-	// the same residual gap the old nibble code had. Non-copper doors
-	// fall through to the base implementation unchanged.
+	// the matching oxidation/waxed aux. The TE is usually already gone
+	// by the time this runs (the player-break path removes the tile
+	// before dropping), so it falls back to the oxidation onRemoving
+	// snapshotted just before removal. Non-copper doors fall through
+	// to the base implementation unchanged.
 	virtual void spawnResources(Level *level, int x, int y, int z, int data, float odds, int playerBonusLevel);
 	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Pick-block
 	// (middle-click) reads the TE oxidation so the picked door item

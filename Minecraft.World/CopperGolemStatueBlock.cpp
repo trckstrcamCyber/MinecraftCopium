@@ -133,6 +133,8 @@ AABB *CopperGolemStatueBlock::getAABB(Level *level, int x, int y, int z)
 
 void CopperGolemStatueBlock::setPlacedBy(Level *level, int x, int y, int z, shared_ptr<LivingEntity> by, shared_ptr<ItemInstance> itemInstance)
 {
+	if (by == nullptr) return;
+
 	// The statue has no item form, so nothing places it by hand — only
 	// turnToStatue (via setTileAndData, which does not call setPlacedBy)
 	// creates one. Implemented defensively: facing from the placer's yaw,
@@ -170,22 +172,29 @@ bool CopperGolemStatueBlock::use(Level *level, int x, int y, int z, shared_ptr<P
 		int data = level->getData(x, y, z);
 		if (getOxidation(data) == 3 && ((data >> 2) & 1) == 0)
 		{
-			// Fully oxidized and unwaxed: reanimate into a golem.
-			if (!level->isClientSide)
+			// Fully oxidized and unwaxed: reanimate into a golem. The
+			// axe only loses durability (and the click is only
+			// consumed) when a golem was actually created, on the
+			// server. On the client, predict the reanimate (return
+			// true) without damaging the axe — the server applies the
+			// 1 durability there, so damaging here too would cost 2.
+			if (level->isClientSide) return true;
+			shared_ptr<CopperGolemStatueBlockEntity> te = dynamic_pointer_cast<CopperGolemStatueBlockEntity>(level->getTileEntity(x, y, z));
+			if (te != nullptr)
 			{
-				shared_ptr<CopperGolemStatueBlockEntity> te = dynamic_pointer_cast<CopperGolemStatueBlockEntity>(level->getTileEntity(x, y, z));
-				if (te != nullptr)
+				shared_ptr<CopperGolem> golem = te->removeStatue();
+				if (golem != nullptr)
 				{
-					shared_ptr<CopperGolem> golem = te->removeStatue();
-					if (golem != nullptr)
-					{
-						level->addEntity(golem);
-						level->removeTile(x, y, z);
-					}
+					level->addEntity(golem);
+					level->removeTile(x, y, z);
+					item->hurtAndBreak(1, player);
+					return true;
 				}
 			}
-			item->hurtAndBreak(1, player);
-			return true;
+			// No golem could be created (TE missing): pass through so
+			// the axe's wax-scrape / de-oxidize applies instead of
+			// consuming the click for nothing.
+			return false;
 		}
 		return false;
 	}
@@ -205,8 +214,10 @@ bool CopperGolemStatueBlock::use(Level *level, int x, int y, int z, shared_ptr<P
 		int nextPose = (te->getPose() + 1) & 3;
 		te->setPose(nextPose);
 		level->broadcastTileEntityUpdate(te);
+		// Only play the sound when the pose actually changed — a
+		// missing TE changes nothing, so it should not sound like it did.
+		level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_COPPER_STATUE_BECOME_STATUE, 1.0f, 1.0f);
 	}
-	level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_COPPER_STATUE_BECOME_STATUE, 1.0f, 1.0f);
 	return true;
 }
 
@@ -221,16 +232,25 @@ int CopperGolemStatueBlock::getAnalogOutputSignal(Level *level, int x, int y, in
 	// the pose lives in the TE, not the nibble.
 	shared_ptr<CopperGolemStatueBlockEntity> te = getStatueTE(level, x, y, z);
 	if (te != nullptr) return te->getPose() + 1;
-	// Fallback: TE missing — decode the (legacy, now always 0) nibble pose.
-	return getPose(level->getData(x, y, z)) + 1;
+	// Fallback: TE missing — the nibble no longer holds the pose (it
+	// moved into the TE), so decoding it could report a stale pose
+	// (an old-save statue with stale bit 3 would read pose 1 instead
+	// of 0). Report no output rather than a wrong pose.
+	return 0;
 }
 
 int CopperGolemStatueBlock::getResourceCount(Random *random)
 {
-	// Audit fix (Java): breaking a statue drops the statue as an item
-	// (base Tile::getResource returns the statue tile id, aux 0, so it
-	// places back as an unaffected standing statue). It does NOT spawn
-	// a golem on break — reanimation is via an axe on a fully-oxidized
-	// statue (see use()).
+	// Audit fix (Java): breaking a statue drops the statue as an item.
+	// It does NOT spawn a golem on break — reanimation is via an axe
+	// on a fully-oxidized statue (see use()).
 	return 1;
+}
+
+int CopperGolemStatueBlock::getSpawnResourcesAuxValue(int data)
+{
+	// Oxidation (+ waxed) lives in the nibble bits 0-2; keep it on
+	// break/pick, like every other oxidizable copper block (Cameron:
+	// a weathered statue drops as a weathered statue).
+	return data & 7;
 }

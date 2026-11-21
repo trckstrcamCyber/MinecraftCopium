@@ -45,6 +45,10 @@ private:
 public:
 	virtual void neighborChanged(Level *level, int x, int y, int z, int type);
 	virtual void onRemove(Level *level, int x, int y, int z, int id, int data);
+	// neoLegacy - Copper Age (review fix, 2026-11-20). Snapshot the
+	// oxidation before the TE is removed, so spawnResources can still
+	// drop the right aux (see ChestTile.cpp).
+	virtual void onRemoving(Level *level, int x, int y, int z, int data) override;
 	virtual bool TestUse();
 	virtual bool use(Level *level, int x, int y, int z, shared_ptr<Player> player, int clickedFace, float clickX, float clickY, float clickZ, bool soundOnly = false); // 4J added soundOnly param
 	virtual shared_ptr<Container> getContainer(Level *level, int x, int y, int z);
@@ -61,8 +65,12 @@ public:
 	virtual int getAnalogOutputSignal(Level *level, int x, int y, int z, int dir);
 
 protected:
-	// neoLegacy - Copper Age (Phase 3). Breaking a copper chest drops a
-	// chest item with the oxidation aux (bits 3-5 of the data).
+	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). Legacy
+	// nibble fallback only: the oxidation lives in the ChestTileEntity
+	// now, so this can only see stale bits 3-5 on old saves (at most
+	// bit 3 — the nibble is 4 bits). Drops and pick-block go through
+	// the spawnResources / cloneTileData overrides below, which read
+	// the TE.
 	virtual int getSpawnResourcesAuxValue(int data) override;
 	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20). The
 	// oxidation lives in the ChestTileEntity now, not in data bits 3-5,

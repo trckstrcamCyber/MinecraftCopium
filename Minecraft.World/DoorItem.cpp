@@ -77,7 +77,12 @@ void DoorItem::place(Level *level, int x, int y, int z, int dir, Tile *tile, int
 	if (doorLeft && !doorRight) flip = true;
 	else if (solidRight > solidLeft) flip = true;
 
-	level->setTileAndData(x, y, z, tile->id, dir, Tile::UPDATE_CLIENTS);
+	// neoLegacy - Copper Age (review fix, 2026-11-20): check that both
+	// halves actually landed before writing oxidation — setTileAndData
+	// returns false when the tile+data are already there (same-value
+	// rewrite), in which case no new TE exists to write and the old
+	// door's oxidation must be left alone.
+	bool placedLower = level->setTileAndData(x, y, z, tile->id, dir, Tile::UPDATE_CLIENTS);
 	// neoLegacy - Copper Age (oxidation workaround, 2026-11-20): the
 	// copper door's oxidation lives in the LOWER half's
 	// CopperOxidationTileEntity, not in the nibble — both halves are
@@ -88,8 +93,8 @@ void DoorItem::place(Level *level, int x, int y, int z, int dir, Tile *tile, int
 	// prediction), skip silently — the server's broadcast syncs it.
 	// Every other door has no oxidation, so this is a no-op for them.
 	int upperData = 8 | (flip ? 1 : 0);
-	level->setTileAndData(x, y + 1, z, tile->id, upperData, Tile::UPDATE_CLIENTS);
-	if (tile->id == Tile::copper_door_Id)
+	bool placedUpper = level->setTileAndData(x, y + 1, z, tile->id, upperData, Tile::UPDATE_CLIENTS);
+	if (tile->id == Tile::copper_door_Id && placedLower && placedUpper)
 	{
 		shared_ptr<TileEntity> te = level->getTileEntity(x, y, z);
 		shared_ptr<CopperOxidationTileEntity> ox = dynamic_pointer_cast<CopperOxidationTileEntity>(te);
