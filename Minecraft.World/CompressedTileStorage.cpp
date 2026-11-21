@@ -639,11 +639,32 @@ int  CompressedTileStorage::get(int x, int y, int z)
 	return 0;
 }
 
+// neoLegacy - returns true if any of the 64 tiles in a packed block references tile-type slot `slot`.
+// The type table uses 255 both as the "free slot" marker and as a real stored value
+// (Tile::EXT_TILE_PLACEHOLDER, the byte stored for every tile id >= 256), so a 255 entry is
+// only free when nothing references it. The decode here must match CompressedTileStorage::get.
+static bool isTileTypeSlotUsed(unsigned char *packed, int bitspertile, int tiletypemask, int indexshift, int indexmask_bits, int indexmask_bytes, int slot)
+{
+	for( int j = 0; j < 64; j++ )
+	{
+		int idx = ( j >> indexshift ) & indexmask_bytes;
+		int bit = ( j & indexmask_bits ) * bitspertile;
+		if( ( ( packed[idx] >> bit ) & tiletypemask ) == slot )
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 // Set an individual tile value
 void CompressedTileStorage::set(int x, int y, int z, int val)
 {
 	EnterCriticalSection(&cs_write);
-	assert(val !=255 );
+	// neoLegacy - 255 IS a legitimate value here now: LevelChunk::setTileAndData stores
+	// Tile::EXT_TILE_PLACEHOLDER (255) for every tile id >= 256, so the old assert(val != 255)
+	// is removed. The packed-table code below must treat a 255 type-table entry as
+	// "possibly in use", not as "free" - see isTileTypeSlotUsed().
 	int block, tile;
 	getBlockAndTile( &block, &tile, x, y, z );
 
@@ -686,13 +707,20 @@ void CompressedTileStorage::set(int x, int y, int z, int val)
 			int indexmask_bytes = 62 >> indexshift;		// will be 7, 15 or 31 (from index values of 0, 1, 2)
 
 			unsigned char *tile_types = data + ( ( blockIndices[block] >> INDEX_OFFSET_SHIFT ) & INDEX_OFFSET_MASK );
+			unsigned char *packed = tile_types + tiletypecount;
 
 			for( int i = 0; i < tiletypecount; i++ )
 			{
-				if( ( tile_types[i] == val ) || ( tile_types[i] == 255 ) )
+				// neoLegacy - 255 is both the "free slot" marker in this table AND a real stored
+				// value (Tile::EXT_TILE_PLACEHOLDER for tile ids >= 256). A 255 slot is only free
+				// if no tile in this block references it; stealing a referenced 255 slot rewrites
+				// every cell that used it - e.g. placing a pumpkin next to a copper block turns the
+				// copper block into a pumpkin and breaks the golem-summon check that reads it back.
+				bool usableSlot = ( tile_types[i] == val ) ||
+					( ( tile_types[i] == 255 ) && !isTileTypeSlotUsed( packed, bitspertile, tiletypemask, indexshift, indexmask_bits, indexmask_bytes, i ) );
+				if( usableSlot )
 				{
 					tile_types[i] = val;
-					unsigned char *packed = tile_types + tiletypecount;
 					int idx = ( tile >> indexshift ) & indexmask_bytes;
 					int bit = ( tile & indexmask_bits ) * bitspertile;
 					packed[idx] &= ~( tiletypemask << bit );
