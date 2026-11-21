@@ -1064,6 +1064,8 @@ set(_MINECRAFT_CLIENT_COMMON_NET_MINECRAFT_CLIENT_RENDERER_TILEENTITY
   "${CMAKE_CURRENT_SOURCE_DIR}/MobSpawnerRenderer.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/PistonPieceRenderer.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/PistonPieceRenderer.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ShelfTileEntityRenderer.cpp"	# neoLegacy - Copper Age (Round 5)
+  "${CMAKE_CURRENT_SOURCE_DIR}/ShelfTileEntityRenderer.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/SignRenderer.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/SignRenderer.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/BedRenderer.cpp"

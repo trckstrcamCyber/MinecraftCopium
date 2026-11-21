@@ -10,6 +10,7 @@
 #include "PistonPieceRenderer.h"
 #include "ChestRenderer.h"
 #include "CopperGolemStatueRenderer.h"	// neoLegacy - Copper Age (Phase 5)
+#include "ShelfTileEntityRenderer.h"	// neoLegacy - Copper Age (Round 5)
 #include "EnchantTableRenderer.h"
 #include "TheEndPortalRenderer.h"
 #include "SkullTileRenderer.h"
@@ -46,6 +47,7 @@ TileEntityRenderDispatcher::TileEntityRenderDispatcher()
 	renderers[eTYPE_PISTONPIECEENTITY] = new PistonPieceRenderer();
 	renderers[eTYPE_CHESTTILEENTITY] = new ChestRenderer();
 	renderers[eTYPE_COPPERGOLEMSTATUETILEENTITY] = new CopperGolemStatueRenderer();	// neoLegacy - Copper Age (Phase 5)
+	renderers[eTYPE_SHELFTILEENTITY] = new ShelfTileEntityRenderer();	// neoLegacy - Copper Age (Round 5)
 	renderers[eTYPE_ENDERCHESTTILEENTITY] = new EnderChestRenderer();
 	renderers[eTYPE_ENCHANTMENTTABLEENTITY] = new EnchantTableRenderer();
 	renderers[eTYPE_THEENDPORTALTILEENTITY] = new TheEndPortalRenderer();
