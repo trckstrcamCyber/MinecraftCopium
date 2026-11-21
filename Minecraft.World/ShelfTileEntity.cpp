@@ -6,11 +6,13 @@
 #include "net.minecraft.world.item.h"
 #include "net.minecraft.world.level.tile.h"
 #include "ShelfTileEntity.h"
+#include "Facing.h"
 #include "ItemInstance.h"
 
 ShelfTileEntity::ShelfTileEntity() : TileEntity()
 {
 	items = new ItemInstanceArray(SLOT_COUNT);
+	facing = Facing::NORTH;
 }
 
 ShelfTileEntity::~ShelfTileEntity()
@@ -26,6 +28,21 @@ bool ShelfTileEntity::isEmpty()
 		if (items->data[i] != nullptr) return false;
 	}
 	return true;
+}
+
+int ShelfTileEntity::getFacing()
+{
+	return facing;
+}
+
+void ShelfTileEntity::setFacing(int facing)
+{
+	// Only the four horizontal facings are valid; anything else would
+	// leave updateShape() on its default branch, so reject it here.
+	if (facing == Facing::NORTH || facing == Facing::SOUTH || facing == Facing::WEST || facing == Facing::EAST)
+	{
+		this->facing = facing;
+	}
 }
 
 unsigned int ShelfTileEntity::getContainerSize()
@@ -91,6 +108,15 @@ bool ShelfTileEntity::hasCustomName()
 void ShelfTileEntity::load(CompoundTag *base)
 {
 	TileEntity::load(base);
+	// Round-5 fix: the facing lives in the TE (see the header). A
+	// missing key (shelves placed before this fix) reads back as 0
+	// via CompoundTag::getByte, which is not a horizontal facing, so
+	// keep the NORTH default in that case.
+	int loadedFacing = base->getByte(L"Facing");
+	if (loadedFacing == Facing::NORTH || loadedFacing == Facing::SOUTH || loadedFacing == Facing::WEST || loadedFacing == Facing::EAST)
+	{
+		facing = loadedFacing;
+	}
 	ListTag<CompoundTag> *inventoryList = (ListTag<CompoundTag> *) base->getList(L"Items");
 	if (items)
 	{
@@ -113,6 +139,7 @@ void ShelfTileEntity::load(CompoundTag *base)
 void ShelfTileEntity::save(CompoundTag *base)
 {
 	TileEntity::save(base);
+	base->putByte(L"Facing", static_cast<byte>(facing));
 	ListTag<CompoundTag> *listTag = new ListTag<CompoundTag>;
 	for (unsigned int i = 0; i < items->length; i++)
 	{
@@ -162,6 +189,7 @@ shared_ptr<TileEntity> ShelfTileEntity::clone()
 {
 	shared_ptr<ShelfTileEntity> result = std::make_shared<ShelfTileEntity>();
 	TileEntity::clone(result);
+	result->facing = facing;
 	for (unsigned int i = 0; i < items->length; i++)
 	{
 		if (items->data[i] != nullptr)

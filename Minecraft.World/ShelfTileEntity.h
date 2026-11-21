@@ -16,6 +16,13 @@ class CompoundTag;
 // the player directly, and ShelfTile::getAnalogOutputSignal reads
 // the fullness. No custom renderer is staged in Phase 6 (see
 // ShelfTile.h), so stored items are not yet visible in-world.
+//
+// Round-5 fix (2026-11-20): the shelf's facing lives HERE, not in
+// the block data. Phase 6 stored it in data bits 3-5, but block data
+// is a 4-bit nibble (SparseDataStorage::set masks with "& 15"), so a
+// Facing value (2-5) shifted left 3 is 16-40 and can never be read
+// back — every shelf rendered with the NORTH shape. The TE persists
+// the facing in its NBT instead (see load/save, key "Facing").
 class ShelfTileEntity : public TileEntity, public Container
 {
 public:
@@ -28,12 +35,17 @@ public:
 
 private:
 	ItemInstanceArray *items;
+	int facing;
 
 public:
 	ShelfTileEntity();
 	virtual ~ShelfTileEntity();
 
 	bool isEmpty();
+
+	// Facing the shelf front points at (Facing::NORTH/SOUTH/WEST/EAST).
+	int getFacing();
+	void setFacing(int facing);
 
 	virtual unsigned int getContainerSize() override;
 	virtual shared_ptr<ItemInstance> getItem(unsigned int slot) override;

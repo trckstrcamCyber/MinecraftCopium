@@ -10,9 +10,12 @@ class IconRegister;
 // 16x16 for the atlas) — it does NOT reuse the wood/log textures.
 //
 // Phase 6: storage + redstone output. The shelf is a BaseEntityTile
-// with a 3-slot ShelfTileEntity. Data bits 3-5 hold the facing
-// (Facing::NORTH/SOUTH/WEST/EAST, set in setPlacedBy); bits 0-2 stay
-// the wood aux, so getSpawnResourcesAuxValue (data & 7) is unchanged.
+// with a 3-slot ShelfTileEntity. The wood aux lives in data bits 0-2,
+// so getSpawnResourcesAuxValue (data & 7) is unchanged.
+// Round-5 fix (2026-11-20): the facing lives in the ShelfTileEntity,
+// NOT in data bits 3-5 — block data is a 4-bit nibble, so the Phase 6
+// "(facing << 3)" write (16-40) could never be read back and every
+// shelf rendered with the NORTH shape. See ShelfTile::updateShape.
 // use() swaps one item with the slot under the click (thirds along
 // the front face); empty hand takes the item. Redstone output is the
 // container-fullness signal (chest precedent).
@@ -39,6 +42,8 @@ public:
 	virtual bool isCubeShaped() override;
 	virtual void updateShape(LevelSource *level, int x, int y, int z, int forceData = -1, shared_ptr<TileEntity> forceEntity = shared_ptr<TileEntity>()) override;
 	virtual void updateDefaultShape() override;
+	virtual AABB *getTileAABB(Level *level, int x, int y, int z) override;
+	virtual AABB *getAABB(Level *level, int x, int y, int z) override;
 
 protected:
 	virtual int getSpawnResourcesAuxValue(int data) override;

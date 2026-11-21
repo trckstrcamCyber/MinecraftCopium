@@ -1,6 +1,10 @@
 // neoLegacy - Copper Age (Phase 6): shelf storage + redstone output.
-// Phase 3 texture/aux behaviour preserved verbatim (woodIcons, facing
-// now in data bits 3-5, getSpawnResourcesAuxValue = data & 7).
+// Phase 3 texture/aux behaviour preserved verbatim (woodIcons,
+// getSpawnResourcesAuxValue = data & 7).
+// Round-5 fix (2026-11-20): the facing lives in the ShelfTileEntity,
+// NOT in data bits 3-5 — block data is a 4-bit nibble, so the Phase 6
+// "(facing << 3)" write could never be read back and every shelf
+// rendered with the NORTH shape. See updateShape()/setPlacedBy().
 #include "stdafx.h"
 #include "ShelfTile.h"
 #include "IconRegister.h"
@@ -8,6 +12,7 @@
 #include "SoundTypes.h"
 #include "AbstractContainerMenu.h"
 #include "net.minecraft.world.level.h"
+#include "net.minecraft.world.phys.h"
 #include "net.minecraft.world.entity.item.h"
 #include "net.minecraft.world.entity.player.h"
 #include "net.minecraft.world.item.h"
@@ -31,9 +36,34 @@ bool ShelfTile::isCubeShaped()
 
 void ShelfTile::updateShape(LevelSource *level, int x, int y, int z, int forceData, shared_ptr<TileEntity> forceEntity)
 {
-	// Facing is data bits 3-5; front faces that direction, body sits
-	// against the opposite wall. 5/16 deep (model z 11-16), full width/height.
-	int facing = (level->getData(x, y, z) >> 3) & 7;
+	// Round-5 fix: the facing lives in the ShelfTileEntity, NOT in
+	// the block data. Block data is a 4-bit nibble
+	// (SparseDataStorage::set masks every write with "& 15", and
+	// get() masks every read the same way), so the Phase 6 encoding
+	// "(data >> 3) & 7" could never yield Facing::SOUTH (3),
+	// WEST (4) or EAST (5): setPlacedBy wrote (facing << 3), i.e.
+	// 16/24/32/40, which reads back as 0 or 8, so (data >> 3) & 7
+	// was 0 or 1 and the switch below always took the NORTH default
+	// — every shelf sat against the wrong wall except a
+	// north-facing one. The TE is the only store with room for it:
+	// wood already takes data bits 0-2, and a facing needs 2 more.
+	// Prefer the TE the caller already has (forceEntity); otherwise
+	// look it up (LevelChunk::getTileEntity creates it lazily, and
+	// returns nullptr while tile entities are disabled). No TE yet
+	// means a freshly placed shelf whose setPlacedBy has not run, or
+	// a pre-fix shelf — NORTH is the safe default either way.
+	int facing = Facing::NORTH;
+	shared_ptr<ShelfTileEntity> shelf = dynamic_pointer_cast<ShelfTileEntity>(forceEntity);
+	if (shelf == nullptr && level != nullptr)
+	{
+		shelf = dynamic_pointer_cast<ShelfTileEntity>(level->getTileEntity(x, y, z));
+	}
+	if (shelf != nullptr)
+	{
+		facing = shelf->getFacing();
+	}
+	// Front faces that direction, body sits against the opposite
+	// wall. 5/16 deep (model z 11-16), full width/height.
 	switch (facing)
 	{
 	case Facing::SOUTH: setShape(0, 0, 0, 1, 1, 5.0f/16.0f); break;
@@ -46,6 +76,22 @@ void ShelfTile::updateShape(LevelSource *level, int x, int y, int z, int forceDa
 void ShelfTile::updateDefaultShape()
 {
 	setShape(0, 0, 11.0f/16.0f, 1, 1, 1);   // NORTH default
+}
+
+// ChestTile pattern: the base getTileAABB/getAABB use the thread-local
+// shape, which is only the NORTH default unless updateShape() has run
+// for this block — so refresh the facing-dependent shape first, or
+// collision/selection would use the wrong side's slab.
+AABB *ShelfTile::getTileAABB(Level *level, int x, int y, int z)
+{
+	updateShape(level, x, y, z, -1, shared_ptr<TileEntity>());
+	return Tile::getTileAABB(level, x, y, z);
+}
+
+AABB *ShelfTile::getAABB(Level *level, int x, int y, int z)
+{
+	updateShape(level, x, y, z, -1, shared_ptr<TileEntity>());
+	return Tile::getAABB(level, x, y, z);
 }
 
 Icon *ShelfTile::getTexture(int face, int data)
@@ -83,14 +129,26 @@ shared_ptr<TileEntity> ShelfTile::newTileEntity(Level *level)
 
 void ShelfTile::setPlacedBy(Level *level, int x, int y, int z, shared_ptr<LivingEntity> by, shared_ptr<ItemInstance> itemInstance)
 {
-	// ChestTile facing convention (front faces the placer). The wood
-	// aux lives in data bits 0-2; the facing goes in bits 3-5.
+	// ChestTile facing convention (front faces the placer).
 	int dir = (Mth::floor(by->yRot * 4 / (360) + 0.5)) & 3;
 	int facing = Facing::NORTH;
 	if (dir == 1) facing = Facing::EAST;
 	if (dir == 2) facing = Facing::SOUTH;
 	if (dir == 3) facing = Facing::WEST;
-	level->setData(x, y, z, (level->getData(x, y, z) & 7) | (facing << 3), Tile::UPDATE_ALL);
+	// Round-5 fix: the facing goes in the TileEntity, NOT in the
+	// block data. The wood aux stays in data bits 0-2 (the placement
+	// data is already just the item aux); ORing (facing << 3) into
+	// the 4-bit data nibble could never be read back — and on a
+	// pre-clamp build it spilled bit 4 into the neighbour block's
+	// nibble. The TE already exists here: Level::setTileAndData
+	// (TileItem::useOn) creates it before setPlacedBy is called.
+	level->setData(x, y, z, level->getData(x, y, z) & 7, Tile::UPDATE_ALL);
+	shared_ptr<ShelfTileEntity> shelf = dynamic_pointer_cast<ShelfTileEntity>(level->getTileEntity(x, y, z));
+	if (shelf != nullptr)
+	{
+		shelf->setFacing(facing);
+		shelf->setChanged();
+	}
 }
 
 void ShelfTile::onRemove(Level *level, int x, int y, int z, int id, int data)
@@ -124,7 +182,11 @@ bool ShelfTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player
 
 	// Slot = thirds along the shelf front face: clickX for a
 	// north/south-facing shelf, clickZ for east/west-facing.
-	int facing = (level->getData(x, y, z) >> 3) & 7;
+	// Round-5 fix: the facing comes from the ShelfTileEntity, not
+	// from the block data (see updateShape() — the data nibble
+	// cannot hold it, so the old "(data >> 3) & 7" read was 0 or 1
+	// and an east/west-facing shelf picked its slot from clickX).
+	int facing = shelf->getFacing();
 	float along = (facing == Facing::EAST || facing == Facing::WEST) ? clickZ : clickX;
 	int slot = static_cast<int>(along * 3.0f);
 	if (slot < 0) slot = 0;
