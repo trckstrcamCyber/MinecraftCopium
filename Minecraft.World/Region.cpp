@@ -238,7 +238,25 @@ int Region::getRawBrightness(int x, int y, int z, bool propagate)
 	int xc = (x >> 4) - xc1;
 	int zc = (z >> 4) - zc1;
 
-	return (*chunks)[xc]->data[zc]->getRawBrightness(x & 15, y, z & 15, level->skyDarken);
+	// neoLegacy - F5-crash follow-up: same bounds + null-chunk guard as getTileEntity() above.
+	// A position in an unloaded neighbour chunk leaves a null slot in chunks[]; dereferencing it
+	// here is a virtual call on a null LevelChunk* (the +0x745e53 server-thread fault family).
+	if (xc < 0 || xc >= static_cast<int>(chunks->length) || zc < 0 || zc >= static_cast<int>((*chunks)[xc]->length))
+	{
+		int br = Level::MAX_BRIGHTNESS - level->skyDarken;
+		if (br < 0) br = 0;
+		return br;
+	}
+
+	LevelChunk *lc = (*chunks)[xc]->data[zc];
+	if (lc == nullptr)
+	{
+		int br = Level::MAX_BRIGHTNESS - level->skyDarken;
+		if (br < 0) br = 0;
+		return br;
+	}
+
+	return lc->getRawBrightness(x & 15, y, z & 15, level->skyDarken);
 }
 
 
@@ -249,7 +267,18 @@ int Region::getData(int x, int y, int z)
 	int xc = (x >> 4) - xc1;
 	int zc = (z >> 4) - zc1;
 
-	return (*chunks)[xc]->data[zc]->getData(x & 15, y, z & 15);
+	// neoLegacy - F5-crash follow-up: same bounds + null-chunk guard as getTileEntity() above.
+	// A position in an unloaded neighbour chunk leaves a null slot in chunks[]; dereferencing it
+	// here is a virtual call on a null LevelChunk* (the +0x745e53 server-thread fault family).
+	if (xc < 0 || xc >= static_cast<int>(chunks->length) || zc < 0 || zc >= static_cast<int>((*chunks)[xc]->length))
+	{
+		return 0;
+	}
+
+	LevelChunk *lc = (*chunks)[xc]->data[zc];
+	if (lc == nullptr) return 0;
+
+	return lc->getData(x & 15, y, z & 15);
 }
 
 Material *Region::getMaterial(int x, int y, int z)
@@ -358,7 +387,18 @@ int Region::getBrightnessPropagate(LightLayer::variety layer, int x, int y, int 
 	int xc = (x >> 4) - xc1;
 	int zc = (z >> 4) - zc1;
 
-	return (*chunks)[xc]->data[zc]->getBrightness(layer, x & 15, y, z & 15);
+	// neoLegacy - F5-crash follow-up: same bounds + null-chunk guard as getTileEntity() above.
+	// A position in an unloaded neighbour chunk leaves a null slot in chunks[]; dereferencing it
+	// here is a virtual call on a null LevelChunk* (the +0x745e53 server-thread fault family).
+	if (xc < 0 || xc >= static_cast<int>(chunks->length) || zc < 0 || zc >= static_cast<int>((*chunks)[xc]->length))
+	{
+		return (int)layer;
+	}
+
+	LevelChunk *lc = (*chunks)[xc]->data[zc];
+	if (lc == nullptr) return (int)layer;
+
+	return lc->getBrightness(layer, x & 15, y, z & 15);
 }
 
 // 4J - brought forward from 1.8.2
@@ -376,7 +416,18 @@ int Region::getBrightness(LightLayer::variety layer, int x, int y, int z)
 	int xc = (x >> 4) - xc1;
 	int zc = (z >> 4) - zc1;
 
-	return (*chunks)[xc]->data[zc]->getBrightness(layer, x & 15, y, z & 15);
+	// neoLegacy - F5-crash follow-up: same bounds + null-chunk guard as getTileEntity() above.
+	// A position in an unloaded neighbour chunk leaves a null slot in chunks[]; dereferencing it
+	// here is a virtual call on a null LevelChunk* (the +0x745e53 server-thread fault family).
+	if (xc < 0 || xc >= static_cast<int>(chunks->length) || zc < 0 || zc >= static_cast<int>((*chunks)[xc]->length))
+	{
+		return (int)layer;
+	}
+
+	LevelChunk *lc = (*chunks)[xc]->data[zc];
+	if (lc == nullptr) return (int)layer;
+
+	return lc->getBrightness(layer, x & 15, y, z & 15);
 }
 
 int Region::getMaxBuildHeight()
