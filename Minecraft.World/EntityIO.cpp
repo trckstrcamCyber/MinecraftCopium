@@ -156,6 +156,10 @@ void EntityIO::staticCtor()
 	setId(Necromancer::create, eTYPE_NECROMANCER, L"Necromancer", 130, eMinecraftColour_Mob_Necromancer_Colour1, eMinecraftColour_Mob_Necromancer_Colour2, IDS_NECROMANCER);	// neoLegacy
 	setId(Basher::create, eTYPE_BASHER, L"Basher", 132, eMinecraftColour_Mob_Basher_Colour1, eMinecraftColour_Mob_Basher_Colour2, IDS_BASHER);	// neoLegacy
 	setId(Marauder::create, eTYPE_MARAUDER, L"Marauder", 133, eMinecraftColour_Mob_Marauder_Colour1, eMinecraftColour_Mob_Marauder_Colour2, IDS_MARAUDER);	// neoLegacy
+	setId(Inquisitor::create, eTYPE_INQUISITOR, L"Inquisitor", 134, eMinecraftColour_Mob_Inquisitor_Colour1, eMinecraftColour_Mob_Inquisitor_Colour2, IDS_INQUISITOR);	// neoLegacy
+	setId(Firecaller::create, eTYPE_FIRECALLER, L"Firecaller", 135, eMinecraftColour_Mob_Firecaller_Colour1, eMinecraftColour_Mob_Firecaller_Colour2, IDS_FIRECALLER);	// neoLegacy
+	setId(Surrendered::create, eTYPE_SURRENDERED, L"Surrendered", 136, eMinecraftColour_Mob_Surrendered_Colour1, eMinecraftColour_Mob_Surrendered_Colour2, IDS_SURRENDERED);	// neoLegacy
+	setId(Invoker::create, eTYPE_INVOKER, L"Invoker", 137, eMinecraftColour_Mob_Invoker_Colour1, eMinecraftColour_Mob_Invoker_Colour2, IDS_INVOKER);	// neoLegacy
 	setId(CopperGolem::create, eTYPE_COPPER_GOLEM, L"CopperGolem", 131, eMinecraftColour_Mob_CopperGolem_Colour1, eMinecraftColour_Mob_CopperGolem_Colour2, IDS_COPPER_GOLEM);	// neoLegacy - Copper Age (Phase 5)	setId(EvokerFangs::create, eTYPE_EVOKER_FANGS, L"EvokerFangs", 121);
 	setId(IceCube::create, eTYPE_ICE_CUBE, L"IceCube", 122);
 	setId(WanderingTrader::create, eTYPE_WANDERING_TRADER, L"WanderingTrader", 113,

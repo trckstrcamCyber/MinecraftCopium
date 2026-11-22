@@ -337,6 +337,14 @@ if __name__=="__main__": notecolors()
    <colour name="Mob_Basher_Colour2" value="4A4A4A"/>
    <colour name="Mob_Marauder_Colour1" value="7A4A2A"/>
    <colour name="Mob_Marauder_Colour2" value="C9A86A"/>
+   <colour name="Mob_Inquisitor_Colour1" value="6E6E7A"/>
+   <colour name="Mob_Inquisitor_Colour2" value="3C3C46"/>
+   <colour name="Mob_Firecaller_Colour1" value="C8501E"/>
+   <colour name="Mob_Firecaller_Colour2" value="6B1F0A"/>
+   <colour name="Mob_Surrendered_Colour1" value="D8D8D8"/>
+   <colour name="Mob_Surrendered_Colour2" value="8A8A8A"/>
+   <colour name="Mob_Invoker_Colour1" value="6A2AA0"/>
+   <colour name="Mob_Invoker_Colour2" value="E0B030"/>
    <colour name="Mob_CopperGolem_Colour1" value="AD5F45"/>
    <colour name="Mob_CopperGolem_Colour2" value="4F9C74"/>   <colour name="Mob_WanderingTrader_Colour1" value="456E92"/>
    <colour name="Mob_WanderingTrader_Colour2" value="E5B34A"/>

@@ -9194,6 +9194,14 @@ wstring CMinecraftApp::getEntityName(eINSTANCEOF type)
 		return app.GetString(IDS_BASHER);
 	case eTYPE_MARAUDER:
 		return app.GetString(IDS_MARAUDER);
+	case eTYPE_INQUISITOR:
+		return app.GetString(IDS_INQUISITOR);
+	case eTYPE_FIRECALLER:
+		return app.GetString(IDS_FIRECALLER);
+	case eTYPE_SURRENDERED:
+		return app.GetString(IDS_SURRENDERED);
+	case eTYPE_INVOKER:
+		return app.GetString(IDS_INVOKER);
 	case eTYPE_COPPER_GOLEM:
 		return app.GetString(IDS_COPPER_GOLEM);	// neoLegacy - Copper Age (Phase 5)	case eTYPE_WANDERING_TRADER:
 		return app.GetString(IDS_WANDERING_TRADER);

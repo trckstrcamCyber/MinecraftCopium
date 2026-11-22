@@ -744,6 +744,10 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Item::spawn_egg_Id, 130); // Necromancer
 		ITEM_AUX(Item::spawn_egg_Id, 132); // Basher
 		ITEM_AUX(Item::spawn_egg_Id, 133); // Marauder
+		ITEM_AUX(Item::spawn_egg_Id, 134); // Inquisitor
+		ITEM_AUX(Item::spawn_egg_Id, 135); // Firecaller
+		ITEM_AUX(Item::spawn_egg_Id, 136); // Surrendered
+		ITEM_AUX(Item::spawn_egg_Id, 137); // Invoker
 		ITEM_AUX(Item::spawn_egg_Id, 131); // Copper Golem // neoLegacy - Copper Age (Phase 5)
 		ITEM_AUX(Item::spawn_egg_Id, 113); // Wandering Trader
 		ITEM(Item::record_13_Id)

@@ -467,6 +467,7 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(17,	6,	L"unusual_dust")
 		ADD_ICON(17,	7,	L"illusionary_dust")
 		ADD_ICON(17,	8,	L"lost_candle")
+		ADD_ICON(17,	9,	L"primal_essence")
 		// neoLegacy - Copper Age (Phase 1): copper ingot / nugget / raw copper, row 18 of the extended item atlas.
 		ADD_ICON(18,	0,	L"copper_ingot")
 		ADD_ICON(18,	1,	L"copper_nugget")
