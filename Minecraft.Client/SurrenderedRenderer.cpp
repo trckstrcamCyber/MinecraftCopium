@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "SurrenderedRenderer.h"
+#include "ModelPart.h"
 #include "../Minecraft.World/Vex.h"
 
 ResourceLocation SurrenderedRenderer::SURRENDERED_LOCATION = ResourceLocation(TN_MOB_SURRENDERED);
