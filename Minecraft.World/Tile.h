@@ -236,10 +236,13 @@ public:
 	static const int SHAPE_BAMBOO = 43;	// neoLegacy
 	// COPPER_MODELS_RENDERER: Java-style multi-cuboid models (lantern body +
 	// cap, rod head + shaft, shelf body + boards + overlay). See TileRenderer.
+	// COPPER_CHAIN_JAVA (2026-11-22): the chain is two crossed flat quads,
+	// not a cuboid -- see tesselateCopperChainInWorld in TileRenderer.cpp.
 	static const int SHAPE_COPPER_LANTERN = 44;
 	static const int SHAPE_LIGHTNING_ROD = 45;
 	static const int SHAPE_SHELF = 46;
-	static const int SHAPE_COUNT = 47;
+	static const int SHAPE_COPPER_CHAIN = 47;
+	static const int SHAPE_COUNT = 48;
 
 	static  Tile **tiles;
 

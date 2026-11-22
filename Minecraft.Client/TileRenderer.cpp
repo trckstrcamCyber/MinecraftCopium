@@ -266,6 +266,71 @@ namespace
 		}
 	}
 
+	// COPPER_CHAIN_JAVA (2026-11-22): Java's chain (template_chain.json,
+	// verified from the official 1.21.9 jar -- see FIX-NOTES.md) is two
+	// full-height (y 0-16), 3-wide, zero-thick flat quads crossed at 45
+	// degrees about Y through the block centre [8,8,8], shade:false. The
+	// square links are PAINTED in the texture, not modelled: plane A samples
+	// texture cols 0-2, plane B cols 3-5. renderCopperModelCuboid cannot
+	// express a zero-thickness plane (its six cuboid faces would collapse),
+	// so the chain has its own emitter, in the style of the engine's
+	// tesselateCrossTexture: each diagonal plane is emitted TWICE, once per
+	// winding, so both faces draw whichever way the viewer looks at it.
+	// (ax,az)-(bx,bz) are the plane's two bottom/top corners in model space
+	// (0..1 inside the block cell); (ox,oy,oz) is where the cell sits (the
+	// block's WORLD position in a chunk build, 0,0,0 in the inventory).
+	// u0pix/u1pix are ICON PIXELS (0-16) via grindstoneU, like every other
+	// copper-model UV in this file; v always spans the full 0-16 height.
+	// writeNormal is true only on the inventory/hand path: chunk geometry is
+	// lit by tex2()/color() and, like every other tesselator here, does not
+	// set a normal. The normal is the geometric normal of the first winding
+	// (cross product of its edges, (-dz, 0, dx) / len); both planes are exact
+	// 45-degree diagonals so |dx| == |dz| and the unit normal is
+	// (+/-1/sqrt(2), 0, +/-1/sqrt(2)) -- no sqrt call needed.
+	static void emitCopperChainPlane(
+		Tesselator *t,
+		Icon *icon,
+		float u0pix, float u1pix,
+		float ax, float az,
+		float bx, float bz,
+		float ox, float oy, float oz,
+		bool writeNormal)
+	{
+		if (icon == nullptr)
+			return;
+
+		const float u0 = grindstoneU(icon, u0pix);
+		const float u1 = grindstoneU(icon, u1pix);
+		const float v0 = grindstoneV(icon, 0.0f);
+		const float v1 = grindstoneV(icon, 16.0f);
+
+		const float dx = bx - ax;
+		const float dz = bz - az;
+		const float k = 0.70710678f; // 1/sqrt(2)
+		const float nx = (dz >= 0.0f) ? -k : k;
+		const float nz = (dx >= 0.0f) ? k : -k;
+
+		auto emit = [&](float px, float py, float pz, float u, float v)
+		{
+			t->vertexUV(ox + px, oy + py, oz + pz, u, v);
+		};
+
+		// Winding 1 (u runs a -> b), seen from the +normal side.
+		if (writeNormal) t->normal(nx, 0.0f, nz);
+		emit(ax, 1.0f, az, u0, v0);
+		emit(ax, 0.0f, az, u0, v1);
+		emit(bx, 0.0f, bz, u1, v1);
+		emit(bx, 1.0f, bz, u1, v0);
+
+		// Winding 2 (u runs b -> a, i.e. mirrored -- Java's flipped face),
+		// seen from the -normal side.
+		if (writeNormal) t->normal(-nx, 0.0f, -nz);
+		emit(bx, 1.0f, bz, u0, v0);
+		emit(bx, 0.0f, bz, u0, v1);
+		emit(ax, 0.0f, az, u1, v1);
+		emit(ax, 1.0f, az, u1, v0);
+	}
+
 	// faceLight (world path only): packed sky/block light for the six
 	// neighbouring cells, indexed by GS_*, with the block's own cell at [6].
 	// nullptr for the inventory/hand path, which uses fixed lighting instead.
@@ -528,6 +593,73 @@ namespace
 		{1, 0, 5, 2},   // south
 		{1, 0, 5, 2},   // west
 		{1, 0, 5, 2}    // east
+	};
+
+	// LANTERN_CAP_HANGING (template_hanging_lantern.json, cap): same UVs
+	// as the standing cap, PLUS the down face Java gives the hanging cap
+	// ([1,10,5,14]). The down face is coplanar with the hanging body top
+	// (y=8) and interior -- see tesselateCopperLanternInWorld.
+	static const GrindstoneUV LANTERN_CAP_HANGING_UV[6] =
+	{
+		{1, 10, 5, 14}, // down (hanging cap only; standing omits it)
+		{1, 10, 5, 14}, // up
+		{1, 0, 5, 2},   // north
+		{1, 0, 5, 2},   // south
+		{1, 0, 5, 2},   // west
+		{1, 0, 5, 2}    // east
+	};
+
+	// LANTERN_HANGER_A / LANTERN_HANGER_B (template_hanging_lantern.json,
+	// hanger bars): Java UVs verbatim. The bars are flat quads rotated 45
+	// degrees about Y; the port approximates them with 1-px-thick crossed
+	// cuboids, so only the two faces of each bar's plane are modelled and
+	// the rest are omitted ({0,0,0,0}). The u-flips are Java's own
+	// (north/south and west/east faces of one flat quad show mirrored
+	// art). NOTE the bars are NOT copies of each other: bar A is 4 tall
+	// (UV rows 1-4) and bar B is 6 tall (UV rows 6-11, with a 2-row
+	// transparent gap mid-bar, rows 8-9).
+	static const GrindstoneUV LANTERN_HANGER_A_UV[6] =
+	{
+		{0, 0, 0, 0},   // no down
+		{0, 0, 0, 0},   // no up
+		{14, 1, 11, 5}, // north (u flipped, Java [14,1,11,5])
+		{11, 1, 14, 5}, // south (Java [11,1,14,5])
+		{0, 0, 0, 0},   // no west
+		{0, 0, 0, 0}    // no east
+	};
+
+	static const GrindstoneUV LANTERN_HANGER_B_UV[6] =
+	{
+		{0, 0, 0, 0},    // no down
+		{0, 0, 0, 0},    // no up
+		{0, 0, 0, 0},    // no north
+		{0, 0, 0, 0},    // no south
+		{14, 6, 11, 12}, // west (u flipped, Java [14,6,11,12])
+		{11, 6, 14, 12}  // east (Java [11,6,14,12])
+	};
+
+	// LANTERN_CHAIN (hanging-lantern chain segment): side-face UVs for the
+	// [6.5,10,6.5]->[9.5,16,9.5] segment, reusing the copper chain block's
+	// own icon (row 34, cols 4-7), so no new atlas cell is needed. U
+	// 6.5-9.5 is the same slice the chain block's own faces show
+	// (renderNorth: U from tileShapeX0/X1 * 16, chain shape x/z 6.5-9.5,
+	// Tile.cpp:575); V 0-6 is the wrapped continuation of the chain block
+	// above, which shows rows 0-15 -- the chain texture tiles vertically
+	// (official row 15 == row 0), so the segment's top row continues the
+	// block above's bottom row with no seam. Down/up are omitted: both
+	// are coplanar with the cap top (y=10) / the block above (y=16), and
+	// emitting them would z-fight (same convention as the cap's omitted
+	// down face). SUPERSEDES the staging-lantern-chain table (V 0-7 for
+	// the old y 9-16 segment under the STANDING cap): the hanging cap top
+	// is y=10, so the segment is 6 tall, not 7.
+	static const GrindstoneUV LANTERN_CHAIN_UV[6] =
+	{
+		{0, 0, 0, 0},        // no down (coplanar with the cap top)
+		{0, 0, 0, 0},        // no up (coplanar with the block above)
+		{6.5f, 0, 9.5f, 6}, // north
+		{6.5f, 0, 9.5f, 6}, // south
+		{6.5f, 0, 9.5f, 6}, // west
+		{6.5f, 0, 9.5f, 6}  // east
 	};
 
 	static const GrindstoneUV ROD_HEAD_UV[6] =
@@ -1092,6 +1224,9 @@ bool TileRenderer::tesselateInWorld( Tile* tt, int x, int y, int z, int forceDat
 		break;
 	case Tile::SHAPE_LIGHTNING_ROD:
 		retVal = tesselateLightningRodInWorld(static_cast<CopperThinTile *>(tt), x, y, z);
+		break;
+	case Tile::SHAPE_COPPER_CHAIN:
+		retVal = tesselateCopperChainInWorld(static_cast<CopperThinTile *>(tt), x, y, z);
 		break;
 	case Tile::SHAPE_SHELF:
 		retVal = tesselateShelfInWorld(static_cast<ShelfTile *>(tt), x, y, z);
@@ -6043,27 +6178,126 @@ bool TileRenderer::tesselateCopperLanternInWorld(CopperThinTile *tt, int x, int 
 	// append quads into the already-active batch. Vertices submitted here
 	// must be in WORLD coordinates.
 	//
-	// Java model (template_lantern.json, standing): body [5,0,5]->[11,7,11]
-	// (squat box, green glass window on all four sides) + cap
-	// [6,7,6]->[10,9,10] (narrower, darker cap on top). The two 45-degree
-	// rotated hanger bars (y 9-11) cannot be expressed with axis-aligned
-	// cuboids and are omitted -- the lantern reads as body + cap, which is
-	// the standing model's silhouette (cf. reference-lantern-java.jpg: squat
-	// box, green windows, dark cap, handle loop on top).
+	// Java models (template_lantern.json / template_hanging_lantern.json,
+	// verified against the official 1.21.9 client jar, SHA-1
+	// ce92fd8d1b2460c41ceda07ae7b3fe863a80d045 -- see
+	// java-1.21.9/RESEARCH.md):
+	//   Standing: body [5,0,5]->[11,7,11] + cap [6,7,6]->[10,9,10] (no
+	//     cap down face) + two 45-degree rotated hanger bars y 9-11.
+	//   Hanging:  body [5,1,5]->[11,8,11] + cap [6,8,6]->[10,10,10]
+	//     (WITH a cap down face, UV [1,10,5,14]) + two UNEQUAL 45-degree
+	//     hanger bars: N/S plane y 11-15 (UV rows 1-4), E/W plane y 10-16
+	//     (UV rows 6-11, with a 2-row transparent gap mid-bar). The
+	//     hanging model contains NO chain element -- a chain above is a
+	//     separate block; the chain segment below is this port's bridge
+	//     from the cap to that block.
+	// There is no hanging state anywhere in the port (CopperThinTile has
+	// no setPlacedBy / neighbour check / hanging bit; updateShape ignores
+	// the level), so hanging is read off the neighbour at render time --
+	// no tile state, no save change, and already-placed lanterns pick it
+	// up as soon as their chunk re-tesselates. Hanging = a copper chain
+	// (tile 2314) or a solid-blocking tile directly above.
+	//   The 45-degree hanger bars cannot be expressed with axis-aligned
+	// cuboids, so they are approximated by two 1-px-thick crossed
+	// cuboids (a + from above, not Java's X): the helper CAN emit
+	// zero-thickness quads (the shelf overlay does), but a flat quad
+	// needs both its faces at the same plane, and 1 px of thickness
+	// keeps the two faces off each other so they cannot z-fight. All
+	// other faces of each bar are omitted ({0,0,0,0}), so edge-on a bar
+	// is invisible, exactly like Java's flat quad.
+	const int aboveId = level->getTile(x, y + 1, z);
+	const bool hanging = (aboveId == Tile::copper_chain_Id ||
+		level->isSolidBlockingTile(x, y + 1, z));
 
-	// Body: [5,0,5] -> [11,7,11]
-	renderCopperModelCuboid(
-		t, level, tt, x, y, z,
-		5.0f / 16.0f, 0.0f, 5.0f / 16.0f,
-		11.0f / 16.0f, 7.0f / 16.0f, 11.0f / 16.0f,
-		faces, LANTERN_BODY_UV, true, 0, b, alpha, faceLight);
+	if (hanging)
+	{
+		// Hanging body: [5,1,5] -> [11,8,11] (exactly +1 Y vs standing;
+		// same UVs as the standing body).
+		renderCopperModelCuboid(
+			t, level, tt, x, y, z,
+			5.0f / 16.0f, 1.0f / 16.0f, 5.0f / 16.0f,
+			11.0f / 16.0f, 8.0f / 16.0f, 11.0f / 16.0f,
+			faces, LANTERN_BODY_UV, true, 0, b, alpha, faceLight);
 
-	// Cap: [6,7,6] -> [10,9,10]
-	renderCopperModelCuboid(
-		t, level, tt, x, y, z,
-		6.0f / 16.0f, 7.0f / 16.0f, 6.0f / 16.0f,
-		10.0f / 16.0f, 9.0f / 16.0f, 10.0f / 16.0f,
-		faces, LANTERN_CAP_UV, true, 0, b, alpha, faceLight);
+		// Hanging cap: [6,8,6] -> [10,10,10], WITH the down face Java
+		// gives it (UV [1,10,5,14]). The down face is coplanar with the
+		// body top (y=8) and interior -- the body sits directly below
+		// it -- so it is invisible from every outside viewpoint; it is
+		// emitted only because Java's hanging template has it. If the
+		// cap/body seam flickers in-game, drop it (set the down entry
+		// of LANTERN_CAP_HANGING_UV to {0,0,0,0}); nothing visible
+		// changes.
+		renderCopperModelCuboid(
+			t, level, tt, x, y, z,
+			6.0f / 16.0f, 8.0f / 16.0f, 6.0f / 16.0f,
+			10.0f / 16.0f, 10.0f / 16.0f, 10.0f / 16.0f,
+			faces, LANTERN_CAP_HANGING_UV, true, 0, b, alpha, faceLight);
+
+		// Hanger bar A (N/S plane, Java [6.5,11,8]->[9.5,15,8]): 1-px-
+		// thick crossed cuboid, z 7.5-8.5, sampling the lantern icon's
+		// hanger art cols 11-13, rows 1-4 (solid ends, hollow middle).
+		renderCopperModelCuboid(
+			t, level, tt, x, y, z,
+			6.5f / 16.0f, 11.0f / 16.0f, 7.5f / 16.0f,
+			9.5f / 16.0f, 15.0f / 16.0f, 8.5f / 16.0f,
+			faces, LANTERN_HANGER_A_UV, true, 0, b, alpha, faceLight);
+
+		// Hanger bar B (E/W plane, Java [8,10,6.5]->[8,16,9.5]): 1-px-
+		// thick crossed cuboid, x 7.5-8.5, sampling rows 6-11 -- note
+		// the 2 transparent rows 8-9 mid-bar, i.e. Java's bar B has a
+		// hole in its middle third. Reaches the cell ceiling (y=16).
+		renderCopperModelCuboid(
+			t, level, tt, x, y, z,
+			7.5f / 16.0f, 10.0f / 16.0f, 6.5f / 16.0f,
+			8.5f / 16.0f, 1.0f, 9.5f / 16.0f,
+			faces, LANTERN_HANGER_B_UV, true, 0, b, alpha, faceLight);
+
+		// Chain segment, ONLY when a copper chain is above (a solid
+		// ceiling needs none: bar B already reaches it). The hanging
+		// model has no chain element, so this bridges the cap top
+		// (y=10) to the cell top (y=16) in the chain block's own
+		// cross-section (x/z 6.5-9.5, Tile.cpp:575), so a chain placed
+		// above forms one continuous vertical line. The segment takes
+		// the LANTERN's oxidation state (data & 3), matching the cap
+		// it hangs from. NOTE: the segment cuboid surrounds the hanger
+		// bars (y 10-16) -- where the chain texture's texels are
+		// transparent the bars show through the segment's faces; judge
+		// in-game whether that reads as chain or clutter.
+		if (aboveId == Tile::copper_chain_Id)
+		{
+			const int data = level->getData(x, y, z);
+			Icon *chainIcon = nullptr;
+			if (Tile::copperChain != nullptr)
+				chainIcon = getTexture(Tile::copperChain, 0, data & 3);
+			// Block-breaking cracks: same substitution as the lantern
+			// icon above, or the cracks would never show on the segment.
+			if (hasFixedTexture()) chainIcon = fixedTexture;
+			Icon *chainFaces[6] = { chainIcon, chainIcon, chainIcon, chainIcon, chainIcon, chainIcon };
+
+			// Chain segment: [6.5,10,6.5] -> [9.5,16,9.5]
+			renderCopperModelCuboid(
+				t, level, tt, x, y, z,
+				6.5f / 16.0f, 10.0f / 16.0f, 6.5f / 16.0f,
+				9.5f / 16.0f, 1.0f, 9.5f / 16.0f,
+				chainFaces, LANTERN_CHAIN_UV, true, 0, b, alpha, faceLight);
+		}
+	}
+	else
+	{
+		// Standing body: [5,0,5] -> [11,7,11]
+		renderCopperModelCuboid(
+			t, level, tt, x, y, z,
+			5.0f / 16.0f, 0.0f, 5.0f / 16.0f,
+			11.0f / 16.0f, 7.0f / 16.0f, 11.0f / 16.0f,
+			faces, LANTERN_BODY_UV, true, 0, b, alpha, faceLight);
+
+		// Standing cap: [6,7,6] -> [10,9,10]
+		renderCopperModelCuboid(
+			t, level, tt, x, y, z,
+			6.0f / 16.0f, 7.0f / 16.0f, 6.0f / 16.0f,
+			10.0f / 16.0f, 9.0f / 16.0f, 10.0f / 16.0f,
+			faces, LANTERN_CAP_UV, true, 0, b, alpha, faceLight);
+	}
 
 	// Keep the collision/render bounds valid for the next block (union of
 	// body + cap; matches the tile's shape bounds in Tile.cpp).
@@ -6123,6 +6357,101 @@ bool TileRenderer::tesselateLightningRodInWorld(CopperThinTile *tt, int x, int y
 	// head + shaft; matches the tile's shape bounds in Tile.cpp).
 	setShape(6.0f / 16.0f, 0.0f, 6.0f / 16.0f,
 		10.0f / 16.0f, 1.0f, 10.0f / 16.0f);
+
+	return true;
+}
+
+bool TileRenderer::tesselateCopperChainInWorld(CopperThinTile *tt, int x, int y, int z)
+{
+	if (tt == nullptr)
+		return false;
+
+	Tesselator *t = Tesselator::getInstance();
+
+	// One icon per oxidation state (waxed reuses the unwaxed icon, as in
+	// CopperThinTile::getTexture); both planes sample it.
+	Icon *icon = getTexture(tt, level, x, y, z, Facing::NORTH);
+	// Block-breaking cracks (LevelRenderer re-tesselates with a fixed
+	// texture): renderNorth et al. substitute it for the face icon, so do
+	// the same here or the cracks would never show on these models.
+	if (hasFixedTexture()) icon = fixedTexture;
+
+	const float b = tt->getBrightness(level, x, y, z);
+	const float alpha = 1.0f;
+
+	// Packed sky/block light for the six neighbouring cells (indexed by GS_*)
+	// and, at [6], the block's own cell -- read through the chunk compiler's
+	// light cache like every other tesselator in this file.
+	int faceLight[7];
+	faceLight[GS_DOWN]  = getLightColor(tt, level, x, y - 1, z);
+	faceLight[GS_UP]    = getLightColor(tt, level, x, y + 1, z);
+	faceLight[GS_NORTH] = getLightColor(tt, level, x, y, z - 1);
+	faceLight[GS_SOUTH] = getLightColor(tt, level, x, y, z + 1);
+	faceLight[GS_WEST]  = getLightColor(tt, level, x - 1, y, z);
+	faceLight[GS_EAST]  = getLightColor(tt, level, x + 1, y, z);
+	faceLight[6]        = getLightColor(tt, level, x, y, z);
+
+	// NOTE: tesselateCopperChainInWorld runs *inside* the chunk compiler's
+	// single begin()/end() pass for the whole chunk section (see
+	// tesselateInWorld above -- none of the other SHAPE_* handlers call
+	// begin()/end() either), so do not call t->begin()/t->end() here: just
+	// append quads into the already-active batch. Vertices submitted here
+	// must be in WORLD coordinates.
+	//
+	// Java model (template_chain.json, official 1.21.9): two full-height
+	// (y 0-16), 3-wide, zero-thick flat quads, rotated 45 degrees about Y
+	// through [8,8,8], shade:false. Plane A (the N/S plane, x 6.5-9.5 at
+	// z=8) samples texture cols 0-2; plane B (the E/W plane, z 6.5-9.5 at
+	// x=8) samples cols 3-5. The square links are painted: bars at texture
+	// rows 1,3,6,9,12,14, with the two planes' side rails offset ~3 rows so
+	// the links interleave. There are NO connector-rod elements.
+	// Rotation: a 1.5 px half-width rotated 45 degrees spans
+	// 1.5 * cos(45) = 1.0607 px along each axis, so the diagonal endpoints
+	// sit at 8 +/- 1.0607 px, i.e. 0.5 +/- 0.0663 in block units -- INSIDE
+	// the tile's 6.5-9.5 shape bounds (Tile.cpp:575), which are kept as the
+	// selection/collision box.
+	//
+	// ATLAS NOTE (no new art needed): the atlas cells (row 34, cols 4-7)
+	// already hold the Java link art PIXEL-EXACT for all four oxidation
+	// states, but SHIFTED +5 px in x: Java strip A (cols 0-2) lives at atlas
+	// cols 5-7, strip B (cols 3-5) at cols 8-10, cols 0-4 and 11-15 empty
+	// (verified with PIL against the 1.21.9 PNGs -- see FIX-NOTES.md). The
+	// shift is a leftover of the old solid-column renderer, which sampled
+	// the icon's middle (U 6.5-9.5). So the planes sample icon pixels 5-8
+	// (A) and 8-11 (B), NOT Java-verbatim 0-3 / 3-6 -- sampling 0-3 would
+	// hit transparent pixels and the chain would vanish. Do NOT "fix" the
+	// UVs to 0-3/3-6 without also redrawing the atlas cells.
+	//
+	// Lighting: Java shade:false, so the chain takes ONE uniform light
+	// value (its own cell, like tesselateCrossTexture) instead of the
+	// per-face shading renderCopperModelCuboid applies to the lantern/rod.
+	if (SharedConstants::TEXTURE_LIGHTING)
+	{
+		t->tex2(faceLight[6]);
+		tessColor(t, 1.0f, 1.0f, 1.0f, alpha);
+	}
+	else
+	{
+		tessColor(t, b, b, b, alpha);
+	}
+
+	const float ox = static_cast<float>(x);
+	const float oy = static_cast<float>(y);
+	const float oz = static_cast<float>(z);
+
+	const float d = 1.5f / 16.0f * 0.70710678f; // 1.5 px half-width * cos(45)
+	const float lo = 0.5f - d; // 0.4337 (6.939 px)
+	const float hi = 0.5f + d; // 0.5663 (9.061 px)
+
+	// Plane A: Java N/S plane, diagonal lo,lo -> hi,hi; atlas strip 5-8.
+	emitCopperChainPlane(t, icon, 5.0f, 8.0f, lo, lo, hi, hi, ox, oy, oz, false);
+	// Plane B: Java E/W plane, diagonal hi,lo -> lo,hi; atlas strip 8-11.
+	emitCopperChainPlane(t, icon, 8.0f, 11.0f, hi, lo, lo, hi, ox, oy, oz, false);
+
+	// Keep the collision/render bounds valid for the next block (matches
+	// the tile's shape bounds in Tile.cpp).
+	setShape(6.5f / 16.0f, 0.0f, 6.5f / 16.0f,
+		9.5f / 16.0f, 1.0f, 9.5f / 16.0f);
 
 	return true;
 }
@@ -6285,6 +6614,39 @@ void TileRenderer::renderLightningRodInventory(CopperThinTile *tt, int data, flo
 	t->end();
 	setShape(6.0f / 16.0f, 0.0f, 6.0f / 16.0f,
 		10.0f / 16.0f, 1.0f, 10.0f / 16.0f);
+}
+
+void TileRenderer::renderCopperChainInventory(CopperThinTile *tt, int data, float brightness, float alpha)
+{
+	if (tt == nullptr)
+		return;
+
+	Tesselator *t = Tesselator::getInstance();
+
+	Icon *icon = getTexture(tt, Facing::NORTH, data);
+
+	// Inventory items use the base (north-facing) JSON model. The inventory
+	// caller has already applied the standard -0.5 model translation, so
+	// this method emits the model in [0,1] coordinates.
+	t->tex2(0xf000f);
+	t->begin();
+
+	// Java shade:false: uniform brightness, no per-face shading (unlike the
+	// lantern/rod inventory paths, which shade each cuboid face).
+	tessColor(t, brightness, brightness, brightness, alpha);
+
+	const float d = 1.5f / 16.0f * 0.70710678f; // 1.5 px half-width * cos(45)
+	const float lo = 0.5f - d;
+	const float hi = 0.5f + d;
+
+	// Same planes, strips and winding as tesselateCopperChainInWorld, with
+	// normals (the inventory/hand path lights with fixed-function normals).
+	emitCopperChainPlane(t, icon, 5.0f, 8.0f, lo, lo, hi, hi, 0.0f, 0.0f, 0.0f, true);
+	emitCopperChainPlane(t, icon, 8.0f, 11.0f, hi, lo, lo, hi, 0.0f, 0.0f, 0.0f, true);
+
+	t->end();
+	setShape(6.5f / 16.0f, 0.0f, 6.5f / 16.0f,
+		9.5f / 16.0f, 1.0f, 9.5f / 16.0f);
 }
 
 void TileRenderer::renderShelfInventory(ShelfTile *tt, int data, float brightness, float alpha)
@@ -9964,6 +10326,27 @@ void TileRenderer::renderTile( Tile* tile, int data, float brightness, float fAl
 		setShape(6.0f / 16.0f, 0.0f, 6.0f / 16.0f,
 			10.0f / 16.0f, 1.0f, 10.0f / 16.0f);
 	}
+	else if (shape == Tile::SHAPE_COPPER_CHAIN)
+	{
+		tile->updateDefaultShape();
+
+		// Match the orientation transform used by the normal block inventory
+		// renderer, then draw the JSON quads around the block center.
+		glRotatef(90, 0, 1, 0);
+		glTranslatef(-0.5f, -0.5f, -0.5f);
+
+		renderCopperChainInventory(
+			static_cast<CopperThinTile *>(tile),
+			data,
+			brightness,
+			fAlpha);
+
+		glTranslatef(0.5f, 0.5f, 0.5f);
+		glRotatef(-90, 0, 1, 0);
+
+		setShape(6.5f / 16.0f, 0.0f, 6.5f / 16.0f,
+			9.5f / 16.0f, 1.0f, 9.5f / 16.0f);
+	}
 	else if (shape == Tile::SHAPE_SHELF)
 	{
 		tile->updateDefaultShape();
@@ -10150,6 +10533,7 @@ bool TileRenderer::canRender( int renderShape )
 	if (renderShape == Tile::SHAPE_GRINDSTONE) return true;
 	if (renderShape == Tile::SHAPE_COPPER_LANTERN) return true;
 	if (renderShape == Tile::SHAPE_LIGHTNING_ROD) return true;
+	if (renderShape == Tile::SHAPE_COPPER_CHAIN) return true;
 	if (renderShape == Tile::SHAPE_SHELF) return true;
 	if (renderShape == Tile::SHAPE_BAMBOO) return true;
 	return false;
