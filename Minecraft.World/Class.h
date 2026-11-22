@@ -182,6 +182,10 @@ enum eINSTANCEOF
 							eTYPE_NECROMANCER		= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x1d,	// neoLegacy
 							eTYPE_BASHER		= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x1e,	// neoLegacy
 							eTYPE_MARAUDER		= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x1f,	// neoLegacy
+							eTYPE_INQUISITOR		= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x20,	// neoLegacy
+							eTYPE_FIRECALLER		= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x21,	// neoLegacy
+							eTYPE_SURRENDERED		= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x22,	// neoLegacy
+							eTYPE_INVOKER		= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x23,	// neoLegacy
 							eTYPE_EVOKER_FANGS	= eTYPE_MOB | 0x6,	// neoLegacy - harmless mob-based entities (see EvokerFangs / IceCube)
 							eTYPE_ICE_CUBE		= eTYPE_MOB | 0x7,	// neoLegacy
 
@@ -494,6 +498,10 @@ public:
 		classes->push_back( SUBCLASS(eTYPE_NECROMANCER	)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
 		classes->push_back( SUBCLASS(eTYPE_BASHER	)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
 		classes->push_back( SUBCLASS(eTYPE_MARAUDER	)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
+		classes->push_back( SUBCLASS(eTYPE_INQUISITOR	)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
+		classes->push_back( SUBCLASS(eTYPE_FIRECALLER	)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
+		classes->push_back( SUBCLASS(eTYPE_SURRENDERED	)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG )->addParent( eTYPE_VEX) );
+		classes->push_back( SUBCLASS(eTYPE_INVOKER	)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
 		classes->push_back( SUBCLASS(eTYPE_EVOKER_FANGS	)->addParent( eTYPE_MOB ) );
 		classes->push_back( SUBCLASS(eTYPE_ICE_CUBE		)->addParent( eTYPE_MOB ) );
 		classes->push_back( SUBCLASS(eTYPE_CREEPER		)->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );

@@ -985,6 +985,8 @@ set(_MINECRAFT_CLIENT_COMMON_NET_MINECRAFT_CLIENT_RENDERER_ENTITY
   "${CMAKE_CURRENT_SOURCE_DIR}/VexModel.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/VexRenderer.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/VexRenderer.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/SurrenderedRenderer.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/SurrenderedRenderer.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/EvokerFangsModel.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/EvokerFangsModel.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/EvokerFangsRenderer.cpp"

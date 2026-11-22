@@ -105,6 +105,7 @@ Item *Item::platinum_hatchet = nullptr;
 Item *Item::unusual_dust = nullptr;
 Item *Item::illusionary_dust = nullptr;
 Item *Item::lost_candle = nullptr;
+Item *Item::primal_essence = nullptr;
 Item *Item::bullet_9mm = nullptr;
 Item *Item::m16 = nullptr;
 Item *Item::bullet_556 = nullptr;
@@ -486,6 +487,8 @@ void Item::staticCtor()
 		->setIconName(L"illusionary_dust")->setDescriptionId(IDS_ITEM_ILLUSIONARY_DUST)->setUseDescriptionId(IDS_DESC_ILLUSIONARY_DUST);
 	Item::lost_candle = (new LostCandleItem(lost_candle_Id - 256))
 		->setIconName(L"lost_candle")->setDescriptionId(IDS_ITEM_LOST_CANDLE)->setUseDescriptionId(IDS_DESC_LOST_CANDLE);
+	Item::primal_essence = (new Item(primal_essence_Id - 256))
+		->setIconName(L"primal_essence")->setDescriptionId(IDS_ITEM_PRIMAL_ESSENCE)->setUseDescriptionId(IDS_DESC_PRIMAL_ESSENCE);
 	Item::crossbow_loaded_firework = (new CrossbowItem(crossbow_loaded_firework_Id - 256, true, true))->handEquipped()
 		->setIconName(L"crossbow_firework")->setMaxDamage(326)->setDescriptionId(IDS_ITEM_CROSSBOW)->setUseDescriptionId(IDS_DESC_CROSSBOW);
 

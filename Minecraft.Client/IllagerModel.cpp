@@ -14,9 +14,11 @@ void IllagerModel::rebuild(ModelPart *part, int u, int v, bool mirror, float x, 
 	part->bMirror = false;
 }
 
-IllagerModel::IllagerModel(int texW, int texH, Hat hatKind) : ZombieModel(0.0f, false)	// 64x64 humanoid, not an armor model
+IllagerModel::IllagerModel(int texW, int texH, Hat hatKind, int extras) : ZombieModel(0.0f, false)	// 64x64 humanoid, not an armor model
 {
 	showCrossedArms = true;
+	staff = nullptr;
+	int robeHeight = (extras & EXTRA_ROBE_22) ? 22 : ((extras & EXTRA_ROBE_20) ? 20 : 18);
 
 	// a bigger skin: every part has to map into it before its boxes are (re)built, the 64x64 layout simply sits in its top left corner
 	if (texW != 64 || texH != 64)
@@ -30,9 +32,29 @@ IllagerModel::IllagerModel(int texW, int texH, Hat hatKind) : ZombieModel(0.0f, 
 	rebuild(head, 0, 0, false, -4, -10, -4, 8, 10, 8, 0.0f);
 	rebuild(body, 16, 20, false, -4, 0, -3, 8, 12, 6, 0.0f);
 	body->texOffs(0, 38);			// the long robe, drawn as part of the body
-	body->addHumanoidBox(-4, 0, -3, 8, 18, 6, 0.5f);
+	body->addHumanoidBox(-4, 0, -3, 8, robeHeight, 6, 0.5f);
 	rebuild(arm0, 40, 46, false, -3, -2, -2, 4, 12, 4, 0.0f);
 	rebuild(arm1, 40, 46, true, -1, -2, -2, 4, 12, 4, 0.0f);
+
+	if (extras & EXTRA_SHOULDER_PADS)
+	{
+		// the Inquisitor's heavy shoulder pads
+		ModelPart *leftPad = new ModelPart(this, 0, 64);
+		leftPad->mirror();
+		leftPad->addBox(-0.7f, -2.0f, -2.0f, 4, 4, 4, 1.1f);
+		arm1->addChild(leftPad);
+		ModelPart *rightPad = new ModelPart(this, 0, 64);
+		rightPad->addBox(-3.3f, -2.0f, -2.0f, 4, 4, 4, 1.1f);
+		arm0->addChild(rightPad);
+	}
+	if (extras & EXTRA_STAFF)
+	{
+		// the Firecaller's staff, in its left hand
+		staff = new ModelPart(this, 112, 0);
+		staff->addBox(0.0f, -4.9f, -9.5f, 1, 28, 1, 0.0f);
+		staff->xRot = 1.2f;
+		arm1->addChild(staff);
+	}
 	rebuild(leg0, 0, 22, false, -2, 0, -2, 4, 12, 4, 0.0f);
 	rebuild(leg1, 0, 22, true, -2, 0, -2, 4, 12, 4, 0.0f);
 
@@ -202,7 +224,28 @@ void IllagerModel::setupAnim(float time, float r, float bob, float yRot, float x
 	if (hair != nullptr)
 	{
 		eINSTANCEOF type = (entity != nullptr) ? entity->GetType() : eTYPE_NOTSET;
-		hair->visible = (type == eTYPE_ILLUSIONER || type == eTYPE_PROVOKER || type == eTYPE_SORCERER || type == eTYPE_ALCHEMIST || type == eTYPE_ARCHIVIST);
+		hair->visible = (type == eTYPE_ILLUSIONER || type == eTYPE_PROVOKER || type == eTYPE_SORCERER || type == eTYPE_ALCHEMIST || type == eTYPE_ARCHIVIST || type == eTYPE_FIRECALLER || type == eTYPE_INVOKER);
+	}
+
+	// the Firecaller leans back a little and, while calm, holds its staff up in the left hand
+	if (illager != nullptr && illager->GetType() == eTYPE_FIRECALLER)
+	{
+		body->xRot = 0.2f;
+		if (staff != nullptr) staff->visible = (pose == Illager::NEUTRAL);
+		if (pose == Illager::NEUTRAL)
+		{
+			arm1->xRot = Mth::cos(time * 0.6662f) * 0.5f * r * 0.5f - 1.2f;
+			arm1->zRot -= Mth::cos(bob * 0.09f) * 0.05f + 0.05f;
+			arm1->xRot -= Mth::sin(bob * 0.067f) * 0.05f;
+		}
+	}
+	else if (staff != nullptr) staff->visible = false;
+
+	// the Invoker hovers: legs trailing, a slight lean, a gentle bob
+	if (illager != nullptr && illager->GetType() == eTYPE_INVOKER)
+	{
+		body->xRot = 0.1f;
+		leg0->xRot = leg1->xRot = 0.15f + Mth::cos(bob * 0.1f) * 0.05f;
 	}
 
 	showCrossedArms = (pose == Illager::CROSSED);

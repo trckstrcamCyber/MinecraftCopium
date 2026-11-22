@@ -15,9 +15,12 @@ ResourceLocation IllagerRenderer::ARCHIVIST_LOCATION = ResourceLocation(TN_MOB_A
 ResourceLocation IllagerRenderer::NECROMANCER_LOCATION = ResourceLocation(TN_MOB_NECROMANCER);
 ResourceLocation IllagerRenderer::BASHER_LOCATION = ResourceLocation(TN_MOB_BASHER);
 ResourceLocation IllagerRenderer::MARAUDER_LOCATION = ResourceLocation(TN_MOB_MARAUDER);
+ResourceLocation IllagerRenderer::INQUISITOR_LOCATION = ResourceLocation(TN_MOB_INQUISITOR);
+ResourceLocation IllagerRenderer::FIRECALLER_LOCATION = ResourceLocation(TN_MOB_FIRECALLER);
+ResourceLocation IllagerRenderer::INVOKER_LOCATION = ResourceLocation(TN_MOB_INVOKER);
 
 // illagers are drawn at 15/16 size like in Java Edition
-IllagerRenderer::IllagerRenderer(int texW, int texH, int hatKind) : HumanoidMobRenderer(new IllagerModel(texW, texH, static_cast<IllagerModel::Hat>(hatKind)), 0.5f, 0.9375f)
+IllagerRenderer::IllagerRenderer(int texW, int texH, int hatKind, int extras) : HumanoidMobRenderer(new IllagerModel(texW, texH, static_cast<IllagerModel::Hat>(hatKind), extras), 0.5f, 0.9375f)
 {
 	createArmorParts();
 }
@@ -49,5 +52,8 @@ ResourceLocation *IllagerRenderer::getTextureLocation(shared_ptr<Entity> mob)
 	if (mob->GetType() == eTYPE_NECROMANCER) return &NECROMANCER_LOCATION;
 	if (mob->GetType() == eTYPE_BASHER) return &BASHER_LOCATION;
 	if (mob->GetType() == eTYPE_MARAUDER) return &MARAUDER_LOCATION;
+	if (mob->GetType() == eTYPE_INQUISITOR) return &INQUISITOR_LOCATION;
+	if (mob->GetType() == eTYPE_FIRECALLER) return &FIRECALLER_LOCATION;
+	if (mob->GetType() == eTYPE_INVOKER) return &INVOKER_LOCATION;
 	return &VINDICATOR_LOCATION;
 }

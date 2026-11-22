@@ -27,6 +27,7 @@ set(_MINECRAFT_SERVER_COMMON_ROOT
   "${_MS_SRC}/../Minecraft.Client/RavagerRenderer.cpp"
   "${_MS_SRC}/../Minecraft.Client/VexModel.cpp"
   "${_MS_SRC}/../Minecraft.Client/VexRenderer.cpp"
+  "${_MS_SRC}/../Minecraft.Client/SurrenderedRenderer.cpp"
   "${_MS_SRC}/../Minecraft.Client/EvokerFangsModel.cpp"
   "${_MS_SRC}/../Minecraft.Client/EvokerFangsRenderer.cpp"
   "${_MS_SRC}/../Minecraft.Client/IceologerModel.cpp"

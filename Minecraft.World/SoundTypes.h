@@ -414,6 +414,28 @@ enum eSOUND_TYPE
 	eSoundType_MOB_BASHER_DEATH,
 	eSoundType_MOB_BASHER_CELEBRATE,
 
+	// neoLegacy - firecaller, inquisitor, surrendered, invoker (files under Windows64Media/Sound/Minecraft/mob/<name>)
+	eSoundType_MOB_FIRECALLER_IDLE,
+	eSoundType_MOB_FIRECALLER_HURT,
+	eSoundType_MOB_FIRECALLER_DEATH,
+	eSoundType_MOB_FIRECALLER_CAST,
+	eSoundType_MOB_INQUISITOR_IDLE,
+	eSoundType_MOB_INQUISITOR_HURT,
+	eSoundType_MOB_INQUISITOR_DEATH,
+	eSoundType_MOB_SURRENDERED_IDLE,
+	eSoundType_MOB_SURRENDERED_HURT,
+	eSoundType_MOB_SURRENDERED_DEATH,
+	eSoundType_MOB_INVOKER_IDLE,
+	eSoundType_MOB_INVOKER_HURT,
+	eSoundType_MOB_INVOKER_DEATH,
+	eSoundType_MOB_INVOKER_CAST,
+	eSoundType_MOB_INVOKER_BIG_CAST,
+	eSoundType_MOB_INVOKER_TELEPORT_CAST,
+	eSoundType_MOB_INVOKER_SUMMON_CAST,
+	eSoundType_MOB_INVOKER_FANGS_CAST,
+	eSoundType_MOB_INVOKER_SHIELD_CREATE,
+	eSoundType_MOB_INVOKER_SHIELD_BREAK,
+
 	// neoLegacy - mace smash (files: Windows64Media/Sound/Minecraft/item/mace/*)
 	eSoundType_ITEM_MACE_SMASH_AIR,			// target was in the air: smash_air1-3
 	eSoundType_ITEM_MACE_SMASH_GROUND,		// target on the ground: smash_ground1-4

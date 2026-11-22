@@ -270,6 +270,7 @@ public:
 	static Item *unusual_dust;
 	static Item *illusionary_dust;
 	static Item *lost_candle;
+	static Item *primal_essence;
 	static Item *bamboo;	// neoLegacy
 	static Item *bamboo_door;
 	static Item *diamond_shovel;
@@ -621,6 +622,7 @@ public:
 	static const int unusual_dust_Id		= 612;
 	static const int illusionary_dust_Id	= 613;
 	static const int lost_candle_Id			= 614;
+	static const int primal_essence_Id		= 615;	// icon: items.png row 17, column 9
 	static const int enchantment_encyclopedia_Id = 600;	// neoLegacy - Enchantment Encyclopedia (kept well clear of the 472+ block for new wood items)
 	static const int diamond_shovel_Id		= 277;
 	static const int diamond_pickaxe_Id		= 278;

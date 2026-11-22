@@ -95,6 +95,7 @@
 #include "IllagerRenderer.h"
 #include "RavagerRenderer.h"
 #include "VexRenderer.h"
+#include "SurrenderedRenderer.h"
 #include "EvokerFangsRenderer.h"
 #include "IceologerRenderer.h"
 #include "IceCubeRenderer.h"
@@ -181,9 +182,13 @@ EntityRenderDispatcher::EntityRenderDispatcher()
 	renderers[eTYPE_SORCERER] = new IllagerRenderer(64, 128, 1);	// neoLegacy - wizard hat, 64x128 skin
 	renderers[eTYPE_ALCHEMIST] = new IllagerRenderer(128, 64, 2);	// neoLegacy - big brim, 128x64 skin
 	renderers[eTYPE_ARCHIVIST] = new IllagerRenderer();	// neoLegacy
-	renderers[eTYPE_NECROMANCER] = new IllagerRenderer();	// neoLegacy
+	renderers[eTYPE_NECROMANCER] = new IllagerRenderer(64, 64, 0, 1);	// neoLegacy - robe 20 high
 	renderers[eTYPE_BASHER] = new IllagerRenderer();	// neoLegacy
 	renderers[eTYPE_MARAUDER] = new IllagerRenderer();	// neoLegacy
+	renderers[eTYPE_INQUISITOR] = new IllagerRenderer(64, 128, 0, 4);	// neoLegacy - 64x128 skin, shoulder pads
+	renderers[eTYPE_FIRECALLER] = new IllagerRenderer(128, 64, 0, 8);	// neoLegacy - 128x64 skin, staff
+	renderers[eTYPE_SURRENDERED] = new SurrenderedRenderer();	// neoLegacy - a skeleton-model Vex
+	renderers[eTYPE_INVOKER] = new IllagerRenderer(128, 128, 0, 2);	// neoLegacy - 128x128 skin, long robe
 	renderers[eTYPE_DROWNED] = new DrownedRenderer();
 	renderers[eTYPE_WANDERING_TRADER] = new WanderingTraderRenderer();
 	

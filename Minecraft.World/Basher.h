@@ -23,14 +23,15 @@ public:
 	// the item standing in for the shield; change this once there is a real one
 	static Item *shieldItem();
 
-private:
+protected:
 	int stunTicks;
 	int blockedCount;
 
 	bool hasShield();
 	void setStunTicks(int ticks);
+	virtual int getStunDuration() { return 60; }	// ticks
+	virtual void onShieldBroken() {}				// the Inquisitor roars here
 
-protected:
 	virtual void registerAttributes();
 	virtual int getAmbientSound();
 	virtual int getHurtSound();

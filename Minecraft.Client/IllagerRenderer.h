@@ -15,10 +15,14 @@ private:
 	static ResourceLocation NECROMANCER_LOCATION;
 	static ResourceLocation BASHER_LOCATION;
 	static ResourceLocation MARAUDER_LOCATION;
+	static ResourceLocation INQUISITOR_LOCATION;
+	static ResourceLocation FIRECALLER_LOCATION;
+	static ResourceLocation INVOKER_LOCATION;
 
 public:
 	// texW / texH: the skin's size; hatKind: an IllagerModel::Hat (0 none, 1 the Sorcerer's wizard hat, 2 the Alchemist's brim)
-	IllagerRenderer(int texW = 64, int texH = 64, int hatKind = 0);
+	// extras: IllagerModel::Extra flags (taller robe, shoulder pads, staff)
+	IllagerRenderer(int texW = 64, int texH = 64, int hatKind = 0, int extras = 0);
 
 protected:
 	virtual void additionalRendering(shared_ptr<LivingEntity> mob, float a);

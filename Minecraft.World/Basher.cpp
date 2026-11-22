@@ -118,9 +118,10 @@ bool Basher::hurt(DamageSource *source, float dmg)
 		{
 			// the shield splinters: stunned, and back to a stone axe
 			playSound(eSoundType_RANDOM_BREAK, 1.0f, 1.0f);
-			setStunTicks(STUN_TICKS);
+			setStunTicks(getStunDuration());
 			blockedCount = 0;
 			setEquippedSlot(SLOT_WEAPON, std::make_shared<ItemInstance>(Item::stone_axe));
+			onShieldBroken();
 			return Illager::hurt(source, dmg);
 		}
 
