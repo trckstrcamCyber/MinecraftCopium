@@ -29,6 +29,8 @@ static const unordered_map<wstring, eINSTANCEOF> s_nameToType = {
     { L"alchemist",         eTYPE_ALCHEMIST         },
     { L"archivist",         eTYPE_ARCHIVIST         },
     { L"necromancer",         eTYPE_NECROMANCER         },
+    { L"basher",         eTYPE_BASHER         },
+    { L"marauder",         eTYPE_MARAUDER         },
     { L"copper_golem",     eTYPE_COPPER_GOLEM      }, // neoLegacy - Copper Age (Phase 5)    { L"wandering_trader", eTYPE_WANDERING_TRADER },
     { L"mooshroom",        eTYPE_MUSHROOMCOW      },
     { L"squid",            eTYPE_SQUID            },

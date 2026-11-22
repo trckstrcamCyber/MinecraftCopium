@@ -473,6 +473,12 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Item::ominous_bottle_Id, 2)	// III
 		ITEM_AUX(Item::ominous_bottle_Id, 3)	// IV
 		ITEM_AUX(Item::ominous_bottle_Id, 4)	// V
+		ITEM(Item::platinum_chunk_Id)		// neoLegacy - Illager Invasion items
+		ITEM(Item::platinum_sheet_Id)
+		ITEM(Item::platinum_hatchet_Id)
+		ITEM(Item::unusual_dust_Id)
+		ITEM(Item::illusionary_dust_Id)
+		ITEM(Item::lost_candle_Id)
 		ITEM_AUX(Tile::wool_Id,14)	// Red
 		ITEM_AUX(Tile::wool_Id,1)	// Orange
 		ITEM_AUX(Tile::wool_Id,4)	// Yellow
@@ -736,6 +742,8 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Item::spawn_egg_Id, 128); // Alchemist
 		ITEM_AUX(Item::spawn_egg_Id, 129); // Archivist
 		ITEM_AUX(Item::spawn_egg_Id, 130); // Necromancer
+		ITEM_AUX(Item::spawn_egg_Id, 132); // Basher
+		ITEM_AUX(Item::spawn_egg_Id, 133); // Marauder
 		ITEM_AUX(Item::spawn_egg_Id, 131); // Copper Golem // neoLegacy - Copper Age (Phase 5)
 		ITEM_AUX(Item::spawn_egg_Id, 113); // Wandering Trader
 		ITEM(Item::record_13_Id)

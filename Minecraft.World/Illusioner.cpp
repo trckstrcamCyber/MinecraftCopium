@@ -230,6 +230,7 @@ static int invisibilityPotionValue()
 void Illusioner::dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel)
 {
 	Monster::dropDeathLoot(wasKilledByPlayer, playerBonusLevel);
+	spawnAtLocation(Item::illusionary_dust_Id, 1);	// the mod's injected loot: one Illusionary Dust every time
 	if (wasKilledByPlayer && random->nextInt(1000) < 20 + playerBonusLevel * 5)
 	{
 		spawnAtLocation(std::make_shared<ItemInstance>(Item::potion, 1, invisibilityPotionValue()), 0.0f);

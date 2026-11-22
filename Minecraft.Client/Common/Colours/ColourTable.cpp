@@ -386,6 +386,10 @@ const wchar_t *ColourTable::ColourTableElements[eMinecraftColour_COUNT] =
 	L"Mob_Archivist_Colour2",
 	L"Mob_Necromancer_Colour1",
 	L"Mob_Necromancer_Colour2",
+	L"Mob_Basher_Colour1",
+	L"Mob_Basher_Colour2",
+	L"Mob_Marauder_Colour1",
+	L"Mob_Marauder_Colour2",
 	L"Mob_CopperGolem_Colour1",	// neoLegacy - Copper Age (Phase 5)
 	L"Mob_CopperGolem_Colour2",	L"Mob_WanderingTrader_Colour1",
 	L"Mob_WanderingTrader_Colour2",

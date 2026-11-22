@@ -148,6 +148,15 @@ void IllagerModel::setupAnim(float time, float r, float bob, float yRot, float x
 		arm1->yRot = 0;
 	}
 
+	if (illager != nullptr && illager->isStunned())
+	{
+		// a Basher with a broken shield: head lolling, arms hanging forward
+		head->zRot = 0.3f * Mth::sin(0.45f * bob);
+		head->xRot = 0.4f;
+		arm0->xRot = -0.25f;
+		arm1->xRot = -0.25f;
+	}
+
 	if (pose == Illager::CELEBRATING)
 	{
 		// both arms thrown up in the air, waving a little (Java: AnimationUtils for the CELEBRATING pose)

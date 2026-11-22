@@ -17,6 +17,7 @@ protected:
 	static const int FLAG_AGGRESSIVE = 1;
 	static const int FLAG_CAPTAIN = 8;
 	static const int FLAG_CELEBRATING = 16;
+	static const int FLAG_STUNNED = 32;		// the Basher after its shield broke
 
 	// server side only (nothing here is synched or saved): raid and patrol membership
 	bool inRaid;
@@ -45,6 +46,7 @@ public:
 
 	// celebrating (arms up, jumping, cheering): set by RaidManager when the village fell. Only shows while the illager has no target.
 	bool isCelebrating();
+	bool isStunned();
 	void setCelebrating(bool celebrate) { celebrateRaid = celebrate; }
 
 	// patrols (a captain with followers, see RaidManager)

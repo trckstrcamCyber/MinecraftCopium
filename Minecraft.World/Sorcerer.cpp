@@ -182,6 +182,10 @@ void Sorcerer::dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel)
 		int count = random->nextInt(2);
 		if (playerBonusLevel > 0) count += random->nextInt(playerBonusLevel + 1);
 		for (int i = 0; i < count; i++) spawnAtLocation(Item::emerald_Id, 1);
+
+		// Unusual Dust (the mod's): 40%, 60% with Looting I and 20% more per further level
+		int dustChance = (playerBonusLevel > 0) ? 60 + 20 * (playerBonusLevel - 1) : 40;
+		if (random->nextInt(100) < dustChance) spawnAtLocation(Item::unusual_dust_Id, 1);
 	}
 }
 

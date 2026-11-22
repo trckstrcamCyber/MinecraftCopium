@@ -37,6 +37,8 @@ static const int WAVE_SORCERERS[8]   = { 0, 0, 0, 0, 0, 1, 1, 1 };
 static const int WAVE_ALCHEMISTS[8]  = { 0, 0, 0, 1, 2, 1, 2, 2 };
 static const int WAVE_ARCHIVISTS[8]  = { 0, 1, 0, 1, 2, 1, 2, 3 };
 static const int WAVE_NECROMANCERS[8] = { 0, 0, 0, 0, 1, 1, 1, 1 };
+static const int WAVE_BASHERS[8]     = { 0, 1, 2, 1, 2, 3, 2, 3 };
+static const int WAVE_MARAUDERS[8]   = { 0, 1, 1, 1, 2, 2, 3, 3 };
 
 // chances (percent) that a caster slot is actually filled, and that an Evoker is an Iceologer in the cold
 static const int CASTER_CHANCE_COLD = 65;
@@ -560,8 +562,8 @@ void RaidManager::spawnWave(Raid &raid)
 	int w = raid.wavesSpawned;
 	if (w > 7) w = 7;	// the bonus wave repeats the last row
 
-	const int TYPES = 11;	// 0 Pillager, 1 Vindicator, 2 Evoker, 3 Witch, 4 Ravager, 5 Provoker, 6 the biome's caster, 7 Sorcerer, 8 Alchemist, 9 Archivist, 10 Necromancer
-	int counts[11] = { WAVE_PILLAGERS[w], WAVE_VINDICATORS[w], WAVE_EVOKERS[w], WAVE_WITCHES[w], WAVE_RAVAGERS[w], WAVE_PROVOKERS[w], WAVE_CASTERS[w], WAVE_SORCERERS[w], WAVE_ALCHEMISTS[w], WAVE_ARCHIVISTS[w], WAVE_NECROMANCERS[w] };
+	const int TYPES = 13;	// 0 Pillager, 1 Vindicator, 2 Evoker, 3 Witch, 4 Ravager, 5 Provoker, 6 the biome's caster, 7 Sorcerer, 8 Alchemist, 9 Archivist, 10 Necromancer, 11 Basher, 12 Marauder
+	int counts[13] = { WAVE_PILLAGERS[w], WAVE_VINDICATORS[w], WAVE_EVOKERS[w], WAVE_WITCHES[w], WAVE_RAVAGERS[w], WAVE_PROVOKERS[w], WAVE_CASTERS[w], WAVE_SORCERERS[w], WAVE_ALCHEMISTS[w], WAVE_ARCHIVISTS[w], WAVE_NECROMANCERS[w], WAVE_BASHERS[w], WAVE_MARAUDERS[w] };
 	int casterChance = (raid.biomeKind == 1) ? CASTER_CHANCE_COLD : (raid.biomeKind == 2 ? CASTER_CHANCE_HOT : CASTER_CHANCE_TEMPERATE);
 	// a higher Bad Omen brings more raiders: one more Pillager and one more Vindicator per level above I (up to four levels)
 	int extra = raid.badOmenLevel - 1;
@@ -594,6 +596,8 @@ void RaidManager::spawnWave(Raid &raid)
 			case 8: mob = std::make_shared<Alchemist>(level); break;
 			case 9: mob = std::make_shared<Archivist>(level); break;
 			case 10: mob = std::make_shared<Necromancer>(level); break;
+			case 11: mob = std::make_shared<Basher>(level); break;
+			case 12: mob = std::make_shared<Marauder>(level); break;
 			default:
 				if (raid.biomeKind == 1) mob = std::make_shared<Iceologer>(level);
 				else mob = std::make_shared<Illusioner>(level);

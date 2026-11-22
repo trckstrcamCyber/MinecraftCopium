@@ -229,6 +229,9 @@ void Archivist::dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel)
 		int count = random->nextInt(2);
 		if (playerBonusLevel > 0) count += random->nextInt(playerBonusLevel + 1);
 		for (int i = 0; i < count; i++) spawnAtLocation(Item::emerald_Id, 1);
+
+		// not from the mod: its Lost Candle only turns up in labyrinth chests, and there is no labyrinth here yet - so an Archivist sometimes carries one (5%, +1% per Looting level)
+		if (random->nextInt(100) < 5 + playerBonusLevel) spawnAtLocation(Item::lost_candle_Id, 1);
 	}
 }
 

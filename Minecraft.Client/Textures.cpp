@@ -221,6 +221,8 @@ const wchar_t *Textures::preLoaded[TN_COUNT] =
 	L"mob/alchemist",
 	L"mob/archivist",
 	L"mob/necromancer",
+	L"mob/basher",
+	L"mob/marauder",
 	L"mob/copper_golem",
 	L"mob/exposed_copper_golem",
 	L"mob/weathered_copper_golem",

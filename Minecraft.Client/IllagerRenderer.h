@@ -13,6 +13,8 @@ private:
 	static ResourceLocation ALCHEMIST_LOCATION;
 	static ResourceLocation ARCHIVIST_LOCATION;
 	static ResourceLocation NECROMANCER_LOCATION;
+	static ResourceLocation BASHER_LOCATION;
+	static ResourceLocation MARAUDER_LOCATION;
 
 public:
 	// texW / texH: the skin's size; hatKind: an IllagerModel::Hat (0 none, 1 the Sorcerer's wizard hat, 2 the Alchemist's brim)

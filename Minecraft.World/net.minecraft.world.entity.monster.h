@@ -23,6 +23,8 @@
 #include "Alchemist.h"
 #include "Archivist.h"
 #include "Necromancer.h"
+#include "Basher.h"
+#include "Marauder.h"
 #include "IceCube.h"
 #include "Drowned.h"
 #include "PigZombie.h"

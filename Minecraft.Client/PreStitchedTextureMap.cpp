@@ -461,6 +461,12 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(17,	0,	L"swordJDemon")
 		ADD_ICON(17,	1,	L"swordCMonster")
 		ADD_ICON(17,	2,	L"ominous_bottle")	// neoLegacy - Ominous Bottle
+		ADD_ICON(17,	3,	L"platinum_chunk")	// neoLegacy - Illager Invasion items
+		ADD_ICON(17,	4,	L"platinum_sheet")
+		ADD_ICON(17,	5,	L"platinum_infused_hatchet")
+		ADD_ICON(17,	6,	L"unusual_dust")
+		ADD_ICON(17,	7,	L"illusionary_dust")
+		ADD_ICON(17,	8,	L"lost_candle")
 		// neoLegacy - Copper Age (Phase 1): copper ingot / nugget / raw copper, row 18 of the extended item atlas.
 		ADD_ICON(18,	0,	L"copper_ingot")
 		ADD_ICON(18,	1,	L"copper_nugget")

@@ -333,6 +333,10 @@ if __name__=="__main__": notecolors()
    <colour name="Mob_Archivist_Colour2" value="E8D8A8"/>
    <colour name="Mob_Necromancer_Colour1" value="2F2F2F"/>
    <colour name="Mob_Necromancer_Colour2" value="7ADBB0"/>
+   <colour name="Mob_Basher_Colour1" value="8C8C8C"/>
+   <colour name="Mob_Basher_Colour2" value="4A4A4A"/>
+   <colour name="Mob_Marauder_Colour1" value="7A4A2A"/>
+   <colour name="Mob_Marauder_Colour2" value="C9A86A"/>
    <colour name="Mob_CopperGolem_Colour1" value="AD5F45"/>
    <colour name="Mob_CopperGolem_Colour2" value="4F9C74"/>   <colour name="Mob_WanderingTrader_Colour1" value="456E92"/>
    <colour name="Mob_WanderingTrader_Colour2" value="E5B34A"/>

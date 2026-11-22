@@ -610,6 +610,10 @@ enum eMinecraftColour
 	eMinecraftColour_Mob_Archivist_Colour2,
 	eMinecraftColour_Mob_Necromancer_Colour1,
 	eMinecraftColour_Mob_Necromancer_Colour2,
+	eMinecraftColour_Mob_Basher_Colour1,
+	eMinecraftColour_Mob_Basher_Colour2,
+	eMinecraftColour_Mob_Marauder_Colour1,
+	eMinecraftColour_Mob_Marauder_Colour2,
 	eMinecraftColour_Mob_CopperGolem_Colour1,	// neoLegacy - Copper Age (Phase 5)
 	eMinecraftColour_Mob_CopperGolem_Colour2,	eMinecraftColour_Mob_WanderingTrader_Colour1,
 	eMinecraftColour_Mob_WanderingTrader_Colour2,

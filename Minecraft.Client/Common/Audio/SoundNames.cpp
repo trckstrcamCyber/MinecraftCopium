@@ -399,6 +399,10 @@ const WCHAR *ConsoleSoundEngine::wchSoundNames[eSoundType_MAX]=
 	L"mob.archivist.hurt",
 	L"mob.archivist.death",
 	L"mob.necromancer.summon",
+	L"mob.basher.idle",
+	L"mob.basher.hurt",
+	L"mob.basher.death",
+	L"mob.basher.celebrate",
 
 	L"item.mace.smash_air",
 	L"item.mace.smash_ground",

@@ -48,6 +48,11 @@ void Illager::tick()
 	Monster::tick();
 }
 
+bool Illager::isStunned()
+{
+	return (getEntityData()->getByte(DATA_FLAGS_ID) & FLAG_STUNNED) != 0;
+}
+
 bool Illager::isCelebrating()
 {
 	return (getEntityData()->getByte(DATA_FLAGS_ID) & FLAG_CELEBRATING) != 0;
@@ -62,6 +67,8 @@ int Illager::getCelebrateSoundId()
 	case eTYPE_PROVOKER:	return eSoundType_MOB_PROVOKER_CELEBRATE;
 	case eTYPE_SORCERER:	return eSoundType_MOB_SORCERER_CELEBRATE;
 	case eTYPE_ARCHIVIST:	return eSoundType_MOB_ARCHIVIST_IDLE;	// the mod has it cheer with its idle sound
+	case eTYPE_BASHER:		return eSoundType_MOB_BASHER_CELEBRATE;
+	case eTYPE_MARAUDER:	return eSoundType_MOB_PILLAGER_CELEBRATE;
 	default:				return eSoundType_MOB_EVOKER_CELEBRATE;
 	}
 }
