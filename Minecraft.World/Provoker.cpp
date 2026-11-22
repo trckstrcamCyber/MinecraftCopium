@@ -84,7 +84,7 @@ Provoker::Provoker(Level *level) : SpellcasterIllager(level)
 void Provoker::registerAttributes()
 {
 	Monster::registerAttributes();
-	getAttribute(SharedMonsterAttributes::MOVEMENT_SPEED)->setBaseValue(0.5f);
+	getAttribute(SharedMonsterAttributes::MOVEMENT_SPEED)->setBaseValue(0.38f);
 	getAttribute(SharedMonsterAttributes::FOLLOW_RANGE)->setBaseValue(18);
 	getAttribute(SharedMonsterAttributes::MAX_HEALTH)->setBaseValue(24);
 }
@@ -133,3 +133,4 @@ int Provoker::getCastingSoundId() { return eSoundType_MOB_EVOKER_CAST; }
 int Provoker::getAmbientSound() { return eSoundType_MOB_PROVOKER_IDLE; }
 int Provoker::getHurtSound() { return eSoundType_MOB_PROVOKER_HURT; }
 int Provoker::getDeathSound() { return eSoundType_MOB_PROVOKER_DEATH; }
+

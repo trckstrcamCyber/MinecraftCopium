@@ -126,7 +126,7 @@ Sorcerer::Sorcerer(Level *level) : SpellcasterIllager(level)
 void Sorcerer::registerAttributes()
 {
 	Monster::registerAttributes();
-	getAttribute(SharedMonsterAttributes::MOVEMENT_SPEED)->setBaseValue(0.5f);
+	getAttribute(SharedMonsterAttributes::MOVEMENT_SPEED)->setBaseValue(0.38f);
 	getAttribute(SharedMonsterAttributes::FOLLOW_RANGE)->setBaseValue(18);
 	getAttribute(SharedMonsterAttributes::MAX_HEALTH)->setBaseValue(32);
 }
@@ -193,3 +193,4 @@ int Sorcerer::getCastingSoundId() { return eSoundType_MOB_SORCERER_COMPLETECAST;
 int Sorcerer::getAmbientSound() { return eSoundType_MOB_SORCERER_IDLE; }
 int Sorcerer::getHurtSound() { return eSoundType_MOB_SORCERER_HURT; }
 int Sorcerer::getDeathSound() { return eSoundType_MOB_SORCERER_DEATH; }
+

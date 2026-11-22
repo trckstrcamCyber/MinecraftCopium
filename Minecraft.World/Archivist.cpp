@@ -180,7 +180,7 @@ Archivist::Archivist(Level *level) : SpellcasterIllager(level)
 void Archivist::registerAttributes()
 {
 	Monster::registerAttributes();
-	getAttribute(SharedMonsterAttributes::MOVEMENT_SPEED)->setBaseValue(0.5f);
+	getAttribute(SharedMonsterAttributes::MOVEMENT_SPEED)->setBaseValue(0.36f);
 	getAttribute(SharedMonsterAttributes::FOLLOW_RANGE)->setBaseValue(18);
 	getAttribute(SharedMonsterAttributes::MAX_HEALTH)->setBaseValue(24);
 }
@@ -239,3 +239,4 @@ int Archivist::getCastingSoundId() { return eSoundType_MOB_SORCERER_COMPLETECAST
 int Archivist::getAmbientSound() { return eSoundType_MOB_ARCHIVIST_IDLE; }
 int Archivist::getHurtSound() { return eSoundType_MOB_ARCHIVIST_HURT; }
 int Archivist::getDeathSound() { return eSoundType_MOB_ARCHIVIST_DEATH; }
+

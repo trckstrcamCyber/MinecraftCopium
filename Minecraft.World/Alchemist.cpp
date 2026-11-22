@@ -51,7 +51,7 @@ Alchemist::Alchemist(Level *level) : Illager(level)
 void Alchemist::registerAttributes()
 {
 	Monster::registerAttributes();
-	getAttribute(SharedMonsterAttributes::MOVEMENT_SPEED)->setBaseValue(0.5f);
+	getAttribute(SharedMonsterAttributes::MOVEMENT_SPEED)->setBaseValue(0.38f);
 	getAttribute(SharedMonsterAttributes::FOLLOW_RANGE)->setBaseValue(18);
 	getAttribute(SharedMonsterAttributes::MAX_HEALTH)->setBaseValue(24);
 }
@@ -142,3 +142,4 @@ void Alchemist::dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel)
 int Alchemist::getAmbientSound() { return eSoundType_MOB_ILLUSIONER_IDLE; }
 int Alchemist::getHurtSound() { return eSoundType_MOB_ILLUSIONER_HURT; }
 int Alchemist::getDeathSound() { return eSoundType_MOB_ILLUSIONER_DEATH; }
+

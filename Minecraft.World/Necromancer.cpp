@@ -131,7 +131,7 @@ Necromancer::Necromancer(Level *level) : SpellcasterIllager(level)
 void Necromancer::registerAttributes()
 {
 	Monster::registerAttributes();
-	getAttribute(SharedMonsterAttributes::MOVEMENT_SPEED)->setBaseValue(0.5f);
+	getAttribute(SharedMonsterAttributes::MOVEMENT_SPEED)->setBaseValue(0.38f);
 	getAttribute(SharedMonsterAttributes::FOLLOW_RANGE)->setBaseValue(18);
 	getAttribute(SharedMonsterAttributes::MAX_HEALTH)->setBaseValue(32);
 }
@@ -211,3 +211,4 @@ int Necromancer::getCastingSoundId() { return eSoundType_MOB_EVOKER_CAST; }
 int Necromancer::getAmbientSound() { return eSoundType_MOB_ILLUSIONER_IDLE; }
 int Necromancer::getHurtSound() { return eSoundType_MOB_ILLUSIONER_HURT; }
 int Necromancer::getDeathSound() { return eSoundType_MOB_ILLUSIONER_DEATH; }
+
