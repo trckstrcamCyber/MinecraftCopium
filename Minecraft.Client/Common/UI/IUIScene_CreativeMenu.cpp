@@ -484,6 +484,10 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Tile::wool_Id,15)	// Black
 		ITEM_AUX(Tile::wool_Id,13)	// Green
 		ITEM_AUX(Tile::wool_Id,12)	// Brown
+
+
+
+
 		ITEM_AUX(Tile::carpet_Id,14)	// Red
 		ITEM_AUX(Tile::carpet_Id,1)	// Orange
 		ITEM_AUX(Tile::carpet_Id,4)	// Yellow
@@ -496,14 +500,11 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Tile::carpet_Id,6)	// Pink
 		ITEM_AUX(Tile::carpet_Id,0)	// White
 		ITEM_AUX(Tile::carpet_Id,8)	// Light Gray
-
-
-
-
 		ITEM_AUX(Tile::carpet_Id,7)	// Gray
 		ITEM_AUX(Tile::carpet_Id,15)	// Black
 		ITEM_AUX(Tile::carpet_Id,13)	// Green
 		ITEM_AUX(Tile::carpet_Id,12)	// Brown
+
 		ITEM_AUX(Tile::stained_glass_Id,14)	// Red
 		ITEM_AUX(Tile::stained_glass_Id,1)	// Orange
 		ITEM_AUX(Tile::stained_glass_Id,4)	// Yellow
@@ -516,11 +517,11 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Tile::stained_glass_Id,6)	// Pink
 		ITEM_AUX(Tile::stained_glass_Id,0)	// White
 		ITEM_AUX(Tile::stained_glass_Id,8)	// Light Gray
-
 		ITEM_AUX(Tile::stained_glass_Id,7)	// Gray
 		ITEM_AUX(Tile::stained_glass_Id,15)	// Black
 		ITEM_AUX(Tile::stained_glass_Id,13)	// Green
 		ITEM_AUX(Tile::stained_glass_Id,12)	// Brown
+
 		ITEM_AUX(Tile::stained_glass_pane_Id,14)	// Red
 		ITEM_AUX(Tile::stained_glass_pane_Id,1)	// Orange
 		ITEM_AUX(Tile::stained_glass_pane_Id,4)	// Yellow
@@ -533,7 +534,6 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Tile::stained_glass_pane_Id,6)	// Pink
 		ITEM_AUX(Tile::stained_glass_pane_Id,0)	// White
 		ITEM_AUX(Tile::stained_glass_pane_Id,8)	// Light Gray
-
 		ITEM_AUX(Tile::stained_glass_pane_Id,7)	// Gray
 		ITEM_AUX(Tile::stained_glass_pane_Id,15)	// Black
 		ITEM_AUX(Tile::stained_glass_pane_Id,13)	// Green
@@ -858,8 +858,8 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::copper_shovel_Id)
 		ITEM(Item::copper_pickaxe_Id)
 		ITEM(Item::copper_axe_Id)
-
 		ITEM(Item::copper_hoe_Id)
+
 		ITEM(Item::crossbow_Id)	// neoLegacy - Crossbow
 		ITEM(Item::iron_helmet_Id)
 		ITEM(Item::iron_chestplate_Id)
@@ -870,12 +870,12 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::iron_pickaxe_Id)
 		ITEM(Item::iron_axe_Id)
 		ITEM(Item::iron_hoe_Id)
+
 		ITEM(Item::arrow_Id)
 		ITEM(Item::rose_gold_helmet_Id)
 		ITEM(Item::rose_gold_chestplate_Id)
 		ITEM(Item::rose_gold_leggings_Id)
 		ITEM(Item::rose_gold_boots_Id)
-
 		ITEM(Item::rose_gold_sword_Id)
 		ITEM(Item::rose_gold_shovel_Id)
 		ITEM(Item::rose_gold_pickaxe_Id)
@@ -888,17 +888,16 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::golden_boots_Id)
 		ITEM(Item::golden_sword_Id)
 		ITEM(Item::golden_shovel_Id)
-
 		ITEM(Item::golden_pickaxe_Id)
 		ITEM(Item::golden_axe_Id)
 		ITEM(Item::golden_hoe_Id)
+
 		ITEM(Item::mace_Id)		// neoLegacy - Mace
 		ITEM(Item::diamond_helmet_Id)
 		ITEM(Item::diamond_chestplate_Id)
 		ITEM(Item::diamond_leggings_Id)
 		ITEM(Item::diamond_boots_Id)
 		ITEM(Item::diamond_sword_Id)
-    
         ITEM(Item::diamond_shovel_Id)
         ITEM(Item::diamond_pickaxe_Id)
         ITEM(Item::diamond_axe_Id)
@@ -917,9 +916,9 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::sandai_kitetsu_Id)
 		ITEM(Item::enma_Id)
 		ITEM(Item::shusui_Id)
-
-
         ITEM(Item::flint_and_steel_Id)
+
+
 		ITEM(Item::fire_charge_Id)
 		ITEM(Item::shears_Id)
 		ITEM(Item::fishing_rod_Id)
@@ -931,6 +930,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::iron_horse_armor_Id)
 		ITEM(Item::copper_horse_armor_Id)
 		ITEM(Item::armor_stand_Id)
+		ITEM(Item::enchantment_encyclopedia_Id)	// neoLegacy - Enchantment Encyclopedia
 
 
 
@@ -939,7 +939,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		{
 			Enchantment *enchantment = Enchantment::enchantments[i];
 			if (enchantment == nullptr || enchantment->category == nullptr) continue;
-		ITEM(Item::enchantment_encyclopedia_Id)	// neoLegacy - Enchantment Encyclopedia
+			list->push_back(Item::enchanted_book->createForEnchantment(new EnchantmentInstance(enchantment, enchantment->getMaxLevel())));
 		}
 
 #ifndef _CONTENT_PACKAGE
@@ -948,7 +948,6 @@ void IUIScene_CreativeMenu::staticCtor()
 			shared_ptr<ItemInstance> debugSword = std::make_shared<ItemInstance>(Item::diamond_sword_Id, 1, 0);
 			debugSword->enchant( Enchantment::damageBonus, 50 );
 			debugSword->setHoverName(L"Sword of Debug");
-			list->push_back(Item::enchanted_book->createForEnchantment(new EnchantmentInstance(enchantment, enchantment->getMaxLevel())));
 			list->push_back(debugSword);
 		}
 #endif
