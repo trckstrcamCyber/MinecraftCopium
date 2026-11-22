@@ -113,16 +113,14 @@ void IUIScene_CreativeMenu::staticCtor()
         ITEM_AUX(Tile::blackstone_block_Id, BlackStoneTile::CHISELED_POLISHED_BLACKSTONE)
         ITEM_AUX(Tile::blackstone_block_Id, BlackStoneTile::CRACKED_POLISHED_BLACKSTONE_BRICKS)
 
-		ITEM(Tile::coal_block_Id)
-		ITEM(Tile::gold_block_Id)
-		ITEM(Tile::iron_block_Id)
-		ITEM(Tile::raw_copper_block_Id)
-		ITEM(Tile::copper_block_Id)	// neoLegacy - Copper Age (Phase 3)
 		ITEM(Tile::cut_copper_Id)	// neoLegacy - Copper Age (Phase 3)
 		ITEM(Tile::chiseled_copper_Id)	// neoLegacy - Copper Age (Phase 3)
 		ITEM(Tile::copper_grate_Id)	// neoLegacy - Copper Age (Phase 3)
+		ITEM(Tile::coal_block_Id)
+		ITEM(Tile::gold_block_Id)
+		ITEM(Tile::iron_block_Id)
+		ITEM(Tile::copper_block_Id)	// neoLegacy - Copper Age (Phase 3)
 		ITEM(Tile::rose_gold_block_Id)	// neoLegacy - Copper Age (Phase 3)
-		ITEM(Tile::raw_rose_gold_block_Id)	// neoLegacy - Copper Age (Phase 3)
 		ITEM(Tile::lapis_block_Id)
 		ITEM(Tile::diamond_block_Id)
 		ITEM(Tile::emerald_block_Id)
@@ -136,6 +134,8 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Tile::gold_ore_Id)
 		ITEM(Tile::emerald_ore_Id)
 		ITEM(Tile::quartz_ore_Id)
+		ITEM(Tile::raw_copper_block_Id)
+		ITEM(Tile::raw_rose_gold_block_Id)	// neoLegacy - Copper Age (Phase 3)
 		ITEM(Tile::bedrock_Id)
 		ITEM_AUX(Tile::planks_Id,0)
 		ITEM_AUX(Tile::planks_Id,TreeTile::SPRUCE_TRUNK)
@@ -468,17 +468,6 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Tile::standing_banner_Id, 7)	// Light Grey
 		ITEM_AUX(Tile::standing_banner_Id, 0)	// Black
 		list->push_back(BannerItem::createOminousBanner());	// neoLegacy - Ominous Banner
-		ITEM_AUX(Item::ominous_bottle_Id, 0)	// Ominous Bottle I
-		ITEM_AUX(Item::ominous_bottle_Id, 1)	// II
-		ITEM_AUX(Item::ominous_bottle_Id, 2)	// III
-		ITEM_AUX(Item::ominous_bottle_Id, 3)	// IV
-		ITEM_AUX(Item::ominous_bottle_Id, 4)	// V
-		ITEM(Item::platinum_chunk_Id)		// neoLegacy - Illager Invasion items
-		ITEM(Item::platinum_sheet_Id)
-		ITEM(Item::platinum_hatchet_Id)
-		ITEM(Item::unusual_dust_Id)
-		ITEM(Item::illusionary_dust_Id)
-		ITEM(Item::lost_candle_Id)
 		ITEM_AUX(Tile::wool_Id,14)	// Red
 		ITEM_AUX(Tile::wool_Id,1)	// Orange
 		ITEM_AUX(Tile::wool_Id,4)	// Yellow
@@ -495,10 +484,6 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Tile::wool_Id,15)	// Black
 		ITEM_AUX(Tile::wool_Id,13)	// Green
 		ITEM_AUX(Tile::wool_Id,12)	// Brown
-
-
-
-
 		ITEM_AUX(Tile::carpet_Id,14)	// Red
 		ITEM_AUX(Tile::carpet_Id,1)	// Orange
 		ITEM_AUX(Tile::carpet_Id,4)	// Yellow
@@ -511,11 +496,14 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Tile::carpet_Id,6)	// Pink
 		ITEM_AUX(Tile::carpet_Id,0)	// White
 		ITEM_AUX(Tile::carpet_Id,8)	// Light Gray
+
+
+
+
 		ITEM_AUX(Tile::carpet_Id,7)	// Gray
 		ITEM_AUX(Tile::carpet_Id,15)	// Black
 		ITEM_AUX(Tile::carpet_Id,13)	// Green
 		ITEM_AUX(Tile::carpet_Id,12)	// Brown
-
 		ITEM_AUX(Tile::stained_glass_Id,14)	// Red
 		ITEM_AUX(Tile::stained_glass_Id,1)	// Orange
 		ITEM_AUX(Tile::stained_glass_Id,4)	// Yellow
@@ -528,11 +516,11 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Tile::stained_glass_Id,6)	// Pink
 		ITEM_AUX(Tile::stained_glass_Id,0)	// White
 		ITEM_AUX(Tile::stained_glass_Id,8)	// Light Gray
+
 		ITEM_AUX(Tile::stained_glass_Id,7)	// Gray
 		ITEM_AUX(Tile::stained_glass_Id,15)	// Black
 		ITEM_AUX(Tile::stained_glass_Id,13)	// Green
 		ITEM_AUX(Tile::stained_glass_Id,12)	// Brown
-
 		ITEM_AUX(Tile::stained_glass_pane_Id,14)	// Red
 		ITEM_AUX(Tile::stained_glass_pane_Id,1)	// Orange
 		ITEM_AUX(Tile::stained_glass_pane_Id,4)	// Yellow
@@ -545,6 +533,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Tile::stained_glass_pane_Id,6)	// Pink
 		ITEM_AUX(Tile::stained_glass_pane_Id,0)	// White
 		ITEM_AUX(Tile::stained_glass_pane_Id,8)	// Light Gray
+
 		ITEM_AUX(Tile::stained_glass_pane_Id,7)	// Gray
 		ITEM_AUX(Tile::stained_glass_pane_Id,15)	// Black
 		ITEM_AUX(Tile::stained_glass_pane_Id,13)	// Green
@@ -670,7 +659,13 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Item::bed_Id,14)	// Red
 		ITEM_AUX(Item::bed_Id,15)	// Black
 		ITEM_AUX(Item::bed_Id,16)	// Straw
-		ITEM(Tile::shelf_Id)	// neoLegacy - Copper Age (Phase 3) - after all beds
+		ITEM_AUX(Tile::shelf_Id, 0)	// Oak shelf (neoLegacy - Copper Age, Phase 3)
+		ITEM_AUX(Tile::shelf_Id, 1)	// Spruce shelf
+		ITEM_AUX(Tile::shelf_Id, 2)	// Birch shelf
+		ITEM_AUX(Tile::shelf_Id, 3)	// Jungle shelf
+		ITEM_AUX(Tile::shelf_Id, 4)	// Acacia shelf
+		ITEM_AUX(Tile::shelf_Id, 5)	// Dark oak shelf
+		ITEM_AUX(Tile::shelf_Id, 6)	// Bamboo shelf
 		ITEM(Item::bucket_Id)
 		ITEM(Item::lava_bucket_Id)
 		ITEM(Item::water_bucket_Id)
@@ -703,7 +698,6 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Item::spawn_egg_Id, 62); // Magma Cube
 		ITEM_AUX(Item::spawn_egg_Id, 65); // Bat
 		ITEM_AUX(Item::spawn_egg_Id, 66); // Witch
-		
 		ITEM_AUX(Item::spawn_egg_Id, 67); // Endermite
 		ITEM_AUX(Item::spawn_egg_Id, 68); // Guardian
 		ITEM_AUX(Item::spawn_egg_Id, 4); // Elder Guardian 
@@ -716,24 +710,24 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Item::spawn_egg_Id, 96); // Mooshroom
 		ITEM_AUX(Item::spawn_egg_Id, 98); // Ozelot
 		ITEM_AUX(Item::spawn_egg_Id, 100 | ((EntityHorse::TYPE_HORSE + 1) << 12)); // Horse
-		
 		ITEM_AUX(Item::spawn_egg_Id, 100 | ((EntityHorse::TYPE_DONKEY + 1) << 12) ); // Donkey
 		ITEM_AUX(Item::spawn_egg_Id, 100 | ((EntityHorse::TYPE_MULE + 1) << 12)); // Mule
 		ITEM_AUX(Item::spawn_egg_Id, 100 | ((EntityHorse::TYPE_SKELETON + 1) << 12)); // Skeleton Horse
 		ITEM_AUX(Item::spawn_egg_Id, 100 | ((EntityHorse::TYPE_UNDEAD + 1) << 12)); // Zombie Horse
-		ITEM_AUX(Item::spawn_egg_Id, 120); // Villager
 		ITEM_AUX(Item::spawn_egg_Id, 101); // Rabbit Brown
 		ITEM_AUX(Item::spawn_egg_Id, 107); // Polar Bear
 		ITEM_AUX(Item::spawn_egg_Id, 109); // Goat
-		ITEM_AUX(Item::spawn_egg_Id, 114); // Jelly Slime
 		ITEM_AUX(Item::spawn_egg_Id, 110); // Camel
 		ITEM_AUX(Item::spawn_egg_Id, 111); // Drowned
 		ITEM_AUX(Item::spawn_egg_Id, 112); // Husk
+		ITEM_AUX(Item::spawn_egg_Id, 113); // Wandering Trader
+		ITEM_AUX(Item::spawn_egg_Id, 114); // Jelly Slime
 		ITEM_AUX(Item::spawn_egg_Id, 115); // Frostbite
 		ITEM_AUX(Item::spawn_egg_Id, 116); // Vindicator
 		ITEM_AUX(Item::spawn_egg_Id, 117); // Evoker
 		ITEM_AUX(Item::spawn_egg_Id, 118); // Vex
 		ITEM_AUX(Item::spawn_egg_Id, 119); // Iceologer
+		ITEM_AUX(Item::spawn_egg_Id, 120); // Villager
 		ITEM_AUX(Item::spawn_egg_Id, 123); // Illusioner
 		ITEM_AUX(Item::spawn_egg_Id, 124); // Pillager
 		ITEM_AUX(Item::spawn_egg_Id, 125); // Ravager
@@ -742,14 +736,13 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Item::spawn_egg_Id, 128); // Alchemist
 		ITEM_AUX(Item::spawn_egg_Id, 129); // Archivist
 		ITEM_AUX(Item::spawn_egg_Id, 130); // Necromancer
+		ITEM_AUX(Item::spawn_egg_Id, 131); // Copper Golem // neoLegacy - Copper Age (Phase 5)
 		ITEM_AUX(Item::spawn_egg_Id, 132); // Basher
 		ITEM_AUX(Item::spawn_egg_Id, 133); // Marauder
 		ITEM_AUX(Item::spawn_egg_Id, 134); // Inquisitor
 		ITEM_AUX(Item::spawn_egg_Id, 135); // Firecaller
 		ITEM_AUX(Item::spawn_egg_Id, 136); // Surrendered
 		ITEM_AUX(Item::spawn_egg_Id, 137); // Invoker
-		ITEM_AUX(Item::spawn_egg_Id, 131); // Copper Golem // neoLegacy - Copper Age (Phase 5)
-		ITEM_AUX(Item::spawn_egg_Id, 113); // Wandering Trader
 		ITEM(Item::record_13_Id)
 		ITEM(Item::record_cat_Id)
 		ITEM(Item::record_blocks_Id)
@@ -856,6 +849,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::stone_axe_Id)
 		ITEM(Item::stone_hoe_Id)
 
+		ITEM(Item::bow_Id)
 		ITEM(Item::copper_helmet_Id)
 		ITEM(Item::copper_chestplate_Id)
 		ITEM(Item::copper_leggings_Id)
@@ -864,15 +858,9 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::copper_shovel_Id)
 		ITEM(Item::copper_pickaxe_Id)
 		ITEM(Item::copper_axe_Id)
-		ITEM(Item::copper_hoe_Id)
 
-		ITEM(Item::bow_Id)
+		ITEM(Item::copper_hoe_Id)
 		ITEM(Item::crossbow_Id)	// neoLegacy - Crossbow
-		ITEM(Item::mac10_Id)		// neoLegacy - MAC-10
-		ITEM(Item::m16_Id)			// neoLegacy - M16
-		ITEM(Item::flintlock_copper_Id)	// neoLegacy - Flintlock Pistols
-		ITEM(Item::flintlock_iron_Id)
-		ITEM(Item::flintlock_gold_Id)
 		ITEM(Item::iron_helmet_Id)
 		ITEM(Item::iron_chestplate_Id)
 		ITEM(Item::iron_leggings_Id)
@@ -882,54 +870,60 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::iron_pickaxe_Id)
 		ITEM(Item::iron_axe_Id)
 		ITEM(Item::iron_hoe_Id)
-
 		ITEM(Item::arrow_Id)
-		ITEM(Item::bullet_9mm_Id)	// neoLegacy - 9mm ammunition
-		ITEM(Item::bullet_556_Id)	// neoLegacy - 5.56 ammunition
+		ITEM(Item::rose_gold_helmet_Id)
+		ITEM(Item::rose_gold_chestplate_Id)
+		ITEM(Item::rose_gold_leggings_Id)
+		ITEM(Item::rose_gold_boots_Id)
+
+		ITEM(Item::rose_gold_sword_Id)
+		ITEM(Item::rose_gold_shovel_Id)
+		ITEM(Item::rose_gold_pickaxe_Id)
+		ITEM(Item::rose_gold_axe_Id)
+		ITEM(Item::rose_gold_hoe_Id)
+		ITEM(Item::clock_Id)
 		ITEM(Item::golden_helmet_Id)
 		ITEM(Item::golden_chestplate_Id)
 		ITEM(Item::golden_leggings_Id)
 		ITEM(Item::golden_boots_Id)
 		ITEM(Item::golden_sword_Id)
 		ITEM(Item::golden_shovel_Id)
+
 		ITEM(Item::golden_pickaxe_Id)
 		ITEM(Item::golden_axe_Id)
 		ITEM(Item::golden_hoe_Id)
-
-		ITEM(Item::rose_gold_helmet_Id)
-		ITEM(Item::rose_gold_chestplate_Id)
-		ITEM(Item::rose_gold_leggings_Id)
-		ITEM(Item::rose_gold_boots_Id)
-		ITEM(Item::rose_gold_sword_Id)
-		ITEM(Item::rose_gold_shovel_Id)
-		ITEM(Item::rose_gold_pickaxe_Id)
-		ITEM(Item::rose_gold_axe_Id)
-		ITEM(Item::rose_gold_hoe_Id)
-    
+		ITEM(Item::mace_Id)		// neoLegacy - Mace
 		ITEM(Item::diamond_helmet_Id)
 		ITEM(Item::diamond_chestplate_Id)
 		ITEM(Item::diamond_leggings_Id)
 		ITEM(Item::diamond_boots_Id)
 		ITEM(Item::diamond_sword_Id)
+    
         ITEM(Item::diamond_shovel_Id)
         ITEM(Item::diamond_pickaxe_Id)
         ITEM(Item::diamond_axe_Id)
         ITEM(Item::diamond_hoe_Id)
+		ITEM(Item::mac10_Id)		// neoLegacy - MAC-10
+		ITEM(Item::m16_Id)			// neoLegacy - M16
+		ITEM(Item::flintlock_copper_Id)	// neoLegacy - Flintlock Pistols
+		ITEM(Item::flintlock_iron_Id)
+		ITEM(Item::flintlock_gold_Id)
+		ITEM(Item::bullet_9mm_Id)	// neoLegacy - 9mm ammunition
+		ITEM(Item::bullet_556_Id)	// neoLegacy - 5.56 ammunition
+		ITEM(Item::jdemon_sword_Id)		// neoLegacy - JDemon sword
+		ITEM(Item::cmonster_sword_Id)	// neoLegacy - CMonster sword
+		ITEM(Item::cursed_hilt_Id)
 		ITEM(Item::wado_ichimonji_Id)
 		ITEM(Item::sandai_kitetsu_Id)
 		ITEM(Item::enma_Id)
 		ITEM(Item::shusui_Id)
-		ITEM(Item::jdemon_sword_Id)		// neoLegacy - JDemon sword
-		ITEM(Item::cmonster_sword_Id)	// neoLegacy - CMonster sword
-		ITEM(Item::mace_Id)		// neoLegacy - Mace
-		ITEM(Item::cursed_hilt_Id)
+
+
         ITEM(Item::flint_and_steel_Id)
-
-
 		ITEM(Item::fire_charge_Id)
-		ITEM(Item::clock_Id)
 		ITEM(Item::shears_Id)
 		ITEM(Item::fishing_rod_Id)
+		ITEM(Item::platinum_hatchet_Id)
 		ITEM(Item::carrot_on_a_stick_Id)
 		ITEM(Item::lead_Id)
 		ITEM(Item::diamond_horse_armor_Id)
@@ -937,7 +931,6 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::iron_horse_armor_Id)
 		ITEM(Item::copper_horse_armor_Id)
 		ITEM(Item::armor_stand_Id)
-		ITEM(Item::enchantment_encyclopedia_Id)	// neoLegacy - Enchantment Encyclopedia
 
 
 
@@ -946,7 +939,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		{
 			Enchantment *enchantment = Enchantment::enchantments[i];
 			if (enchantment == nullptr || enchantment->category == nullptr) continue;
-			list->push_back(Item::enchanted_book->createForEnchantment(new EnchantmentInstance(enchantment, enchantment->getMaxLevel())));
+		ITEM(Item::enchantment_encyclopedia_Id)	// neoLegacy - Enchantment Encyclopedia
 		}
 
 #ifndef _CONTENT_PACKAGE
@@ -955,6 +948,7 @@ void IUIScene_CreativeMenu::staticCtor()
 			shared_ptr<ItemInstance> debugSword = std::make_shared<ItemInstance>(Item::diamond_sword_Id, 1, 0);
 			debugSword->enchant( Enchantment::damageBonus, 50 );
 			debugSword->setHoverName(L"Sword of Debug");
+			list->push_back(Item::enchanted_book->createForEnchantment(new EnchantmentInstance(enchantment, enchantment->getMaxLevel())));
 			list->push_back(debugSword);
 		}
 #endif
@@ -985,6 +979,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::glowstone_dust_Id)
 		ITEM(Item::prismarine_crystals_Id)
 		ITEM(Item::prismarine_shard_Id)
+		ITEM(Item::netherwart_seeds_Id)
 		ITEM(Item::wheat_seeds_Id)
 		ITEM(Item::melon_seeds_Id)
 		ITEM(Item::pumpkin_seeds_Id)
@@ -1004,7 +999,6 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::raw_rose_gold_Id)
 		ITEM(Item::honeycomb_Id)	// neoLegacy - Copper Age (Phase 4)
 		ITEM(Item::rose_gold_nugget_Id)
-		ITEM(Item::netherwart_seeds_Id)
 		ITEM_AUX(Item::dye_Id,1)		// Red
 		ITEM_AUX(Item::dye_Id,14)	// Orange
 		ITEM_AUX(Item::dye_Id,11)	// Yellow
@@ -1021,6 +1015,12 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM_AUX(Item::dye_Id,0)		// black (ink sac)
 		ITEM_AUX(Item::dye_Id,2)		// Green
 		ITEM_AUX(Item::dye_Id,3)		// Brown
+		ITEM(Item::platinum_chunk_Id)		// neoLegacy - Illager Invasion items
+		ITEM(Item::platinum_sheet_Id)
+		ITEM(Item::primal_essence_Id)	// neoLegacy - Illager batch 6 (item 615, Invoker) - added in the shelf/creative reorg: it was the one port item missing from the menu
+		ITEM(Item::unusual_dust_Id)
+		ITEM(Item::illusionary_dust_Id)
+		ITEM(Item::lost_candle_Id)
 
 		// Brewing (TODO)
 		DEF(eCreativeInventory_Brewing)
@@ -1167,6 +1167,11 @@ void IUIScene_CreativeMenu::staticCtor()
 			// tu31 potions
 			ITEM_AUX(Item::potion_Id,MACRO_MAKEPOTION_AUXVAL(MASK_SPLASH, MASK_LEVEL2EXTENDED, MASK_WATERBREATHING)) // i have no idea why water breathing had a level 2 version in the creative menu
 			ITEM_AUX(Item::potion_Id,MACRO_MAKEPOTION_AUXVAL(MASK_SPLASH, MASK_LEVEL2EXTENDED, MASK_JUMPBOOST))
+			ITEM_AUX(Item::ominous_bottle_Id, 0)	// Ominous Bottle I
+			ITEM_AUX(Item::ominous_bottle_Id, 1)	// II
+			ITEM_AUX(Item::ominous_bottle_Id, 2)	// III
+			ITEM_AUX(Item::ominous_bottle_Id, 3)	// IV
+			ITEM_AUX(Item::ominous_bottle_Id, 4)	// V
 			// end of tu31 potions
 
 	if (specs == nullptr) {
@@ -1185,7 +1190,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		specs[eCreativeInventoryTab_Decorations] = new TabSpec(L"Decoration", IDS_GROUPNAME_DECORATIONS, 1, decorationsGroup);
 #endif
 
-		ECreative_Inventory_Groups redAndTranGroup[] = { eCreativeInventory_Transport, eCreativeInventory_Redstone };
+		ECreative_Inventory_Groups redAndTranGroup[] = { eCreativeInventory_Redstone, eCreativeInventory_Transport };
 		specs[eCreativeInventoryTab_RedstoneAndTransport] = new TabSpec(L"RedstoneAndTransport", IDS_GROUPNAME_REDSTONE_AND_TRANSPORT, 2, redAndTranGroup);
 
 		ECreative_Inventory_Groups materialsGroup[] = { eCreativeInventory_Materials };
@@ -1197,7 +1202,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		ECreative_Inventory_Groups toolsGroup[] = { eCreativeInventory_ToolsArmourWeapons };
 		specs[eCreativeInventoryTab_ToolsWeaponsArmor] = new TabSpec(L"Tools", IDS_GROUPNAME_TOOLS_WEAPONS_ARMOR, 1, toolsGroup);
 
-		ECreative_Inventory_Groups brewingGroup[] = { eCreativeInventory_Brewing, eCreativeInventory_Potions_Level2_Extended, eCreativeInventory_Potions_Extended, eCreativeInventory_Potions_Level2, eCreativeInventory_Potions_Basic };
+		ECreative_Inventory_Groups brewingGroup[] = { eCreativeInventory_Brewing, eCreativeInventory_Potions_Basic, eCreativeInventory_Potions_Level2, eCreativeInventory_Potions_Extended, eCreativeInventory_Potions_Level2_Extended };
 
 		// Just use the text LT - the graphic doesn't fit in splitscreen either
 		// In 480p there's not enough room for the LT button, so use text instead
