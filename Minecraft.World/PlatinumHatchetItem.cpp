@@ -78,7 +78,7 @@ void PlatinumHatchetItem::releaseUsing(shared_ptr<ItemInstance> itemInstance, Le
 	hatchet->setHatchet(true);
 	hatchet->setHatchetStack(player->abilities.instabuild ? nullptr : thrown);	// nothing to pick up in creative: the stack stays in the hand
 	level->addEntity(hatchet);
-	level->playSound(player, eSoundType_RANDOM_BOW, 1.0f, 1.0f);
+	level->playSound(player->x, player->y, player->z, eSoundType_RANDOM_BOW, 1.0f, 1.0f);
 
 	if (!player->abilities.instabuild) player->inventory->setItem(player->inventory->selected, nullptr);
 }
