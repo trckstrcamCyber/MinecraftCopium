@@ -172,6 +172,7 @@ namespace
 				level->addEntity(s);
 			}
 		}
+		virtual int getCastWarmupTime() { return 100; }
 		virtual int getCastingTime() { return 100; }
 		virtual int getCastingInterval() { return 340; }
 		virtual int getSpellPrepareSound() { return eSoundType_MOB_INVOKER_SUMMON_CAST; }
@@ -224,6 +225,7 @@ namespace
 			}
 			invoker->fangAoeCooldown = 100;
 		}
+		virtual int getCastWarmupTime() { return 40; }
 		virtual int getCastingTime() { return 40; }
 		virtual int getCastingInterval() { return 100; }
 		virtual int getSpellPrepareSound() { return eSoundType_MOB_INVOKER_FANGS_CAST; }
@@ -269,6 +271,7 @@ namespace
 				}
 			}
 		}
+		virtual int getCastWarmupTime() { return 40; }
 		virtual int getCastingTime() { return 40; }
 		virtual int getCastingInterval() { return 100; }
 		virtual int getSpellPrepareSound() { return eSoundType_MOB_INVOKER_FANGS_CAST; }
