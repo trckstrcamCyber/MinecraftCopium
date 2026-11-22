@@ -11058,4 +11058,22 @@
 	<data name="IDS_DESC_LOST_CANDLE">
 		<value>Use it to sense ore nearby: it chimes and names the ore if there is some within 8 blocks.</value>
 	</data>
+	<data name="IDS_INQUISITOR">
+		<value>Inquisitor</value>
+	</data>
+	<data name="IDS_FIRECALLER">
+		<value>Firecaller</value>
+	</data>
+	<data name="IDS_SURRENDERED">
+		<value>Surrendered</value>
+	</data>
+	<data name="IDS_INVOKER">
+		<value>Invoker</value>
+	</data>
+	<data name="IDS_ITEM_PRIMAL_ESSENCE">
+		<value>Primal Essence</value>
+	</data>
+	<data name="IDS_DESC_PRIMAL_ESSENCE">
+		<value>A swirling essence left behind by an Invoker.</value>
+	</data>
 </root>
