@@ -135,6 +135,13 @@ void Ravager::dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel)
 {
 	Monster::dropDeathLoot(wasKilledByPlayer, playerBonusLevel);
 	spawnAtLocation(Item::saddle_Id, 1);
+
+	// the Illager Invasion mod adds a Platinum Chunk: 50%, 56.25% with Looting I and 6.25% more per further level, when a player kills it
+	if (wasKilledByPlayer)
+	{
+		int chunkChance = (playerBonusLevel > 0) ? 5625 + 625 * (playerBonusLevel - 1) : 5000;
+		if (random->nextInt(10000) < chunkChance) spawnAtLocation(Item::platinum_chunk_Id, 1);
+	}
 }
 
 int Ravager::getAmbientSound() { return eSoundType_MOB_RAVAGER_IDLE; }

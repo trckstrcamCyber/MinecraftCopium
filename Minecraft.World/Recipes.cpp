@@ -1509,6 +1509,12 @@ void Recipes::_compileRecipes()
 		L'#', Tile::jellyBlock,
 		L'D');
 
+	// neoLegacy - Platinum Sheet (Illager Invasion): four Platinum Chunks, shapeless
+	addShapelessRecipy(new ItemInstance(Item::platinum_sheet, 1), //
+		L"iiiig",
+		Item::platinum_chunk, Item::platinum_chunk, Item::platinum_chunk, Item::platinum_chunk,
+		L'D');
+
 	// neoLegacy - Complex Table: an Ice block makes 4 Ice Balls, and 4 Ice Balls make an Ice block again. Both are Complex-Table-only
 	// via isComplexOnly() (keyed on the results: nothing else in the game produces Ice or Ice Balls).
 	addShapedRecipy(new ItemInstance(Item::ice_ball, 4), //

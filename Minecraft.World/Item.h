@@ -264,6 +264,12 @@ public:
 	static Item *crossbow_loaded;	// neoLegacy - Crossbow with an arrow drawn
 	static Item *crossbow_loaded_firework;	// neoLegacy - Crossbow with a firework rocket drawn
 	static Item *ominous_bottle;			// neoLegacy - Ominous Bottle (data 0-4 = level I-V)
+	static Item *platinum_chunk;			// neoLegacy - Illager Invasion items
+	static Item *platinum_sheet;
+	static Item *platinum_hatchet;			// Platinum Infused Hatchet (throwable)
+	static Item *unusual_dust;
+	static Item *illusionary_dust;
+	static Item *lost_candle;
 	static Item *bamboo;	// neoLegacy
 	static Item *bamboo_door;
 	static Item *diamond_shovel;
@@ -609,6 +615,12 @@ public:
 	static const int crossbow_loaded_Id		= 606;	// neoLegacy - loaded Crossbow
 	static const int crossbow_loaded_firework_Id = 607;	// neoLegacy - Crossbow loaded with a firework rocket
 	static const int ominous_bottle_Id		= 608;	// neoLegacy - Ominous Bottle
+	static const int platinum_chunk_Id		= 609;	// neoLegacy - Illager Invasion items (icons: items.png row 17, columns 3-8)
+	static const int platinum_sheet_Id		= 610;
+	static const int platinum_hatchet_Id	= 611;
+	static const int unusual_dust_Id		= 612;
+	static const int illusionary_dust_Id	= 613;
+	static const int lost_candle_Id			= 614;
 	static const int enchantment_encyclopedia_Id = 600;	// neoLegacy - Enchantment Encyclopedia (kept well clear of the 472+ block for new wood items)
 	static const int diamond_shovel_Id		= 277;
 	static const int diamond_pickaxe_Id		= 278;

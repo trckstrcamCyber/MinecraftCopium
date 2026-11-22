@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "IceWandItem.h"
 #include "OminousBottleItem.h"
+#include "PlatinumHatchetItem.h"
+#include "IllusionaryDustItem.h"
+#include "LostCandleItem.h"
 #include "CrossbowItem.h"
 
 #include "net.minecraft.locale.h"
@@ -96,6 +99,12 @@ Item *Item::crossbow = nullptr;	// neoLegacy
 Item *Item::crossbow_loaded = nullptr;
 Item *Item::crossbow_loaded_firework = nullptr;
 Item *Item::ominous_bottle = nullptr;
+Item *Item::platinum_chunk = nullptr;	// neoLegacy - Illager Invasion items
+Item *Item::platinum_sheet = nullptr;
+Item *Item::platinum_hatchet = nullptr;
+Item *Item::unusual_dust = nullptr;
+Item *Item::illusionary_dust = nullptr;
+Item *Item::lost_candle = nullptr;
 Item *Item::bullet_9mm = nullptr;
 Item *Item::m16 = nullptr;
 Item *Item::bullet_556 = nullptr;
@@ -463,6 +472,20 @@ void Item::staticCtor()
 		->setIconName(L"crossbow_arrow")->setMaxDamage(326)->setDescriptionId(IDS_ITEM_CROSSBOW)->setUseDescriptionId(IDS_DESC_CROSSBOW);
 	Item::ominous_bottle = (new OminousBottleItem(ominous_bottle_Id - 256))
 		->setIconName(L"ominous_bottle")->setDescriptionId(IDS_ITEM_OMINOUS_BOTTLE)->setUseDescriptionId(IDS_DESC_OMINOUS_BOTTLE);
+
+	// neoLegacy - Illager Invasion items. Icons are items.png row 17, columns 3-8.
+	Item::platinum_chunk = (new Item(platinum_chunk_Id - 256))
+		->setIconName(L"platinum_chunk")->setDescriptionId(IDS_ITEM_PLATINUM_CHUNK)->setUseDescriptionId(IDS_DESC_PLATINUM_CHUNK);
+	Item::platinum_sheet = (new Item(platinum_sheet_Id - 256))
+		->setIconName(L"platinum_sheet")->setDescriptionId(IDS_ITEM_PLATINUM_SHEET)->setUseDescriptionId(IDS_DESC_PLATINUM_SHEET);
+	Item::platinum_hatchet = (new PlatinumHatchetItem(platinum_hatchet_Id - 256))->handEquipped()
+		->setIconName(L"platinum_infused_hatchet")->setDescriptionId(IDS_ITEM_PLATINUM_HATCHET)->setUseDescriptionId(IDS_DESC_PLATINUM_HATCHET);
+	Item::unusual_dust = (new Item(unusual_dust_Id - 256))
+		->setIconName(L"unusual_dust")->setDescriptionId(IDS_ITEM_UNUSUAL_DUST)->setUseDescriptionId(IDS_DESC_UNUSUAL_DUST);
+	Item::illusionary_dust = (new IllusionaryDustItem(illusionary_dust_Id - 256))
+		->setIconName(L"illusionary_dust")->setDescriptionId(IDS_ITEM_ILLUSIONARY_DUST)->setUseDescriptionId(IDS_DESC_ILLUSIONARY_DUST);
+	Item::lost_candle = (new LostCandleItem(lost_candle_Id - 256))
+		->setIconName(L"lost_candle")->setDescriptionId(IDS_ITEM_LOST_CANDLE)->setUseDescriptionId(IDS_DESC_LOST_CANDLE);
 	Item::crossbow_loaded_firework = (new CrossbowItem(crossbow_loaded_firework_Id - 256, true, true))->handEquipped()
 		->setIconName(L"crossbow_firework")->setMaxDamage(326)->setDescriptionId(IDS_ITEM_CROSSBOW)->setUseDescriptionId(IDS_DESC_CROSSBOW);
 

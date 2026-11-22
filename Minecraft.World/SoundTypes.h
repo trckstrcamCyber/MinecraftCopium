@@ -408,6 +408,12 @@ enum eSOUND_TYPE
 	eSoundType_MOB_ARCHIVIST_DEATH,
 	eSoundType_MOB_NECROMANCER_SUMMON,
 
+	// neoLegacy - basher (files under Windows64Media/Sound/Minecraft/mob/basher)
+	eSoundType_MOB_BASHER_IDLE,
+	eSoundType_MOB_BASHER_HURT,
+	eSoundType_MOB_BASHER_DEATH,
+	eSoundType_MOB_BASHER_CELEBRATE,
+
 	// neoLegacy - mace smash (files: Windows64Media/Sound/Minecraft/item/mace/*)
 	eSoundType_ITEM_MACE_SMASH_AIR,			// target was in the air: smash_air1-3
 	eSoundType_ITEM_MACE_SMASH_GROUND,		// target on the ground: smash_ground1-4

@@ -27,6 +27,8 @@ void ItemSpriteRenderer::render(shared_ptr<Entity> e, double x, double y, double
 	{
 		shared_ptr<Snowball> thrown = dynamic_pointer_cast<Snowball>(e);
 		if (thrown != nullptr && thrown->isIce()) icon = Item::ice_ball->getIcon(0);
+		// neoLegacy - a thrown Platinum Infused Hatchet is a flagged snowball too: draw the hatchet
+		if (thrown != nullptr && thrown->isHatchet() && Item::platinum_hatchet != nullptr) icon = Item::platinum_hatchet->getIcon(0);
 	}
 	if (icon == nullptr)
 	{

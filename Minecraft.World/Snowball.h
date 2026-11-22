@@ -5,6 +5,8 @@ using namespace std;
 
 class HitResult;
 
+class ItemInstance;
+
 class Snowball : public Throwable
 {
 public:
@@ -14,6 +16,7 @@ public:
 private:
 	void _init();
 	static const int DATA_ICE_ID = 8;	// neoLegacy - synched: this "snowball" is an Ice Ball
+	static const int DATA_HATCHET_ID = 9;	// neoLegacy - synched: this "snowball" is a Marauder's thrown hatchet
 
 public:
 	Snowball(Level *level);
@@ -24,8 +27,18 @@ public:
 	// and it loses speed fast, so it hits hard up close and barely stings from far away.
 	void setIce(bool ice);
 	bool isIce();
+
+	// neoLegacy - a thrown Platinum Infused Hatchet (a Marauder's or a player's): drawn as the hatchet, 8 damage, bounces off what it hits and drops where it lands
+	void setHatchet(bool hatchet);
+	bool isHatchet();
+	void setHatchetStack(shared_ptr<ItemInstance> stack);	// the real item to drop for pickup (server only; none for a Marauder's)
 	virtual void tick();
 
 protected:
 	virtual void onHit(HitResult *res);
+
+private:
+	shared_ptr<ItemInstance> hatchetStack;
+	bool hatchetBounced;
+	void onHatchetHit(HitResult *res);
 };

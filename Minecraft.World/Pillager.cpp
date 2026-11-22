@@ -204,6 +204,10 @@ void Pillager::dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel)
 		int count = random->nextInt(2);
 		if (playerBonusLevel > 0) count += random->nextInt(playerBonusLevel + 1);
 		for (int i = 0; i < count; i++) spawnAtLocation(Item::emerald_Id, 1);
+
+		// the Illager Invasion mod adds a Platinum Chunk: 50%, 56.25% with Looting I and 6.25% more per further level
+		int chunkChance = (playerBonusLevel > 0) ? 5625 + 625 * (playerBonusLevel - 1) : 5000;
+		if (random->nextInt(10000) < chunkChance) spawnAtLocation(Item::platinum_chunk_Id, 1);
 	}
 }
 
