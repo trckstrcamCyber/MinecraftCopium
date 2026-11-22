@@ -11016,4 +11016,46 @@
 	<data name="IDS_NECROMANCER">
 		<value>Necromancer</value>
 	</data>
+	<data name="IDS_BASHER">
+		<value>Basher</value>
+	</data>
+	<data name="IDS_MARAUDER">
+		<value>Marauder</value>
+	</data>
+	<data name="IDS_ITEM_PLATINUM_CHUNK">
+		<value>Platinum Chunk</value>
+	</data>
+	<data name="IDS_DESC_PLATINUM_CHUNK">
+		<value>A lump of platinum, dropped by Pillagers and Ravagers. Four of them make a Platinum Sheet.</value>
+	</data>
+	<data name="IDS_ITEM_PLATINUM_SHEET">
+		<value>Platinum Sheet</value>
+	</data>
+	<data name="IDS_DESC_PLATINUM_SHEET">
+		<value>Used to repair the Platinum Infused Hatchet.</value>
+	</data>
+	<data name="IDS_ITEM_PLATINUM_HATCHET">
+		<value>Platinum Infused Hatchet</value>
+	</data>
+	<data name="IDS_DESC_PLATINUM_HATCHET">
+		<value>A throwing axe. Hold to draw, release to throw: it bounces off what it hits and can be picked up again.</value>
+	</data>
+	<data name="IDS_ITEM_UNUSUAL_DUST">
+		<value>Unusual Dust</value>
+	</data>
+	<data name="IDS_DESC_UNUSUAL_DUST">
+		<value>A strange dust left behind by Sorcerers.</value>
+	</data>
+	<data name="IDS_ITEM_ILLUSIONARY_DUST">
+		<value>Illusionary Dust</value>
+	</data>
+	<data name="IDS_DESC_ILLUSIONARY_DUST">
+		<value>Use it to turn invisible for a minute and move faster for ten seconds.</value>
+	</data>
+	<data name="IDS_ITEM_LOST_CANDLE">
+		<value>Lost Candle</value>
+	</data>
+	<data name="IDS_DESC_LOST_CANDLE">
+		<value>Use it to sense ore nearby: it chimes and names the ore if there is some within 8 blocks.</value>
+	</data>
 </root>
