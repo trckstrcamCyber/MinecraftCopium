@@ -40,5 +40,7 @@ protected:
 private:
 	shared_ptr<ItemInstance> hatchetStack;
 	bool hatchetBounced;
+	bool hatchetLanded;	// client-side only: the visual hatchet has stopped at a block; see onHatchetHit
+	int hatchetLandedTicks;	// client-side only: ticks spent frozen; self-removes after 100 if no server removal arrives
 	void onHatchetHit(HitResult *res);
 };

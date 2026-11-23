@@ -19,6 +19,8 @@ void Snowball::_init()
 	getEntityData()->define(DATA_HATCHET_ID, static_cast<byte>(0));	// neoLegacy
 	hatchetBounced = false;
 	hatchetStack = nullptr;
+	hatchetLanded = false;
+	hatchetLandedTicks = 0;
 }
 
 void Snowball::setHatchetStack(shared_ptr<ItemInstance> stack)
@@ -28,24 +30,35 @@ void Snowball::setHatchetStack(shared_ptr<ItemInstance> stack)
 
 // Like a Java trident: damage on the first thing it hits, then it bounces off (nearly all its speed gone, so it drops) and cannot hit anything else.
 // On a block it stops; the real hatchet, if it carries one, is left there for the thrower to pick up.
+// neoLegacy - hatchet bounce fix: the velocity reflect below runs on BOTH sides. The old code returned early on the client
+// (level->isClientSide), so the client-side hatchet never bounced: it flew straight through the mob it hit (and through the
+// ground) until the server-side copy landed and remove() synced. Only the damage, the hit sound, the item drop and the
+// remove() are server-only: Level::playSound fans out to listeners, so playing the sound on the client too would double it.
 void Snowball::onHatchetHit(HitResult *res)
 {
-	if (level->isClientSide) return;
-
 	if (res->entity != nullptr)
 	{
 		if (hatchetBounced) return;
-		DamageSource *damageSource = DamageSource::thrown(shared_from_this(), getOwner());
-		res->entity->hurt(damageSource, 8);
-		delete damageSource;
 		hatchetBounced = true;
 		xd *= -0.01;
 		yd *= -0.1;
 		zd *= -0.01;
+		if (level->isClientSide) return;
+		DamageSource *damageSource = DamageSource::thrown(shared_from_this(), getOwner());
+		res->entity->hurt(damageSource, 8);
+		delete damageSource;
 		playSound(eSoundType_RANDOM_BOW_HIT, 1.0f, 1.0f);
 		return;
 	}
 
+	if (level->isClientSide)
+	{
+		// Client-side only: hold the visual hatchet where it landed until the server removes it.
+		// Without this the client copy keeps falling (gravity still applies in tick) and sinks
+		// through the floor, because the server-owned drop/remove is the only thing that stops it.
+		hatchetLanded = true;
+		return;
+	}
 	if (hatchetStack != nullptr)
 	{
 		spawnAtLocation(hatchetStack, 0.1f);
@@ -76,6 +89,13 @@ bool Snowball::isIce()
 
 void Snowball::tick()
 {
+	if (hatchetLanded)
+	{
+		// Client-side only: frozen where it landed (see onHatchetHit). The server removes the
+		// entity when its own copy lands; this 5 s cap only covers a removal sync that never arrives.
+		if (++hatchetLandedTicks > 100) remove();
+		return;
+	}
 	Throwable::tick();
 	if (isIce())
 	{
