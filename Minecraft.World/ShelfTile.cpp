@@ -25,25 +25,6 @@ ShelfTile::ShelfTile(int id) : BaseEntityTile(id, Material::wood, isSolidRender(
 	for (int i = 0; i < 7; i++) backIcons[i] = nullptr;
 }
 
-const unsigned int ShelfTile::SHELF_NAMES[7] = {
-	IDS_TILE_OAK_SHELF,
-	IDS_TILE_SPRUCE_SHELF,
-	IDS_TILE_BIRCH_SHELF,
-	IDS_TILE_JUNGLE_SHELF,
-	IDS_TILE_ACACIA_SHELF,
-	IDS_TILE_DARK_OAK_SHELF,
-	IDS_TILE_BAMBOO_SHELF
-};
-
-unsigned int ShelfTile::getDescriptionId(int iData)
-{
-	// data bits 0-2 are the wood index (same as getTexture); clamp anything
-	// else (including -1, the no-data call) to oak.
-	int wood = iData & 7;
-	if (wood > 6) wood = 0;
-	return SHELF_NAMES[wood];
-}
-
 bool ShelfTile::isSolidRender(bool)
 {
 	return false;
@@ -258,21 +239,26 @@ bool ShelfTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player
 	if (hand == nullptr)
 	{
 		// Empty hand: take the item in the clicked slot.
+		// SHELF FIX (2026-11-22, swap-delete bug): Java takes by a
+		// strict 1:1 hand<->slot exchange — the stack goes directly
+		// into the hand slot. The old code routed it through
+		// Inventory::add(), which drops it in the FIRST free slot
+		// (or merges it into an existing partial stack) instead of
+		// the hand, and in Creative a full inventory silently
+		// DESTROYS it: Inventory::add() sets count = 0 and returns
+		// true when instabuild is set (Inventory.cpp, instabuild
+		// branch), so the "put it back" fallback below never ran.
+		// Direct assignment cannot fail: the hand slot is empty by
+		// definition here, so no fallback is needed at all.
 		shared_ptr<ItemInstance> stored = shelf->getItem(slot);
 		if (stored == nullptr) return false;
 		shelf->removeItemNoUpdate(slot);
+		player->inventory->setItem(player->inventory->selected, stored);
+		player->inventory->setChanged();
 		shelf->setChanged();
-		if (!player->inventory->add(stored))
-		{
-			// Inventory full: put it back rather than lose it.
-			shelf->setItem(slot, stored);
-			return false;
-		}
 		level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_TAKE_ITEM, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
 		if (shelf->isEmpty()) level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_DEACTIVATE, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
-		// Live-sync: the take only counts once the item landed in the
-		// player's inventory (the add() above can fail and put the
-		// item back, so broadcast here, not at setChanged()).
+		// Live-sync: push the new contents to every client now.
 		// Level::broadcastTileEntityUpdate is a base no-op on the
 		// client Level; ServerLevel sends te->getUpdatePacket()
 		// (TYPE_SHELF, Facing + Items) to every player. Same call
@@ -305,19 +291,26 @@ bool ShelfTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player
 
 	// Slot occupied: swap the WHOLE hand stack for the stored stack
 	// (Java swaps the whole stack, not one item).
+	// SHELF FIX (2026-11-22, swap-delete bug): Java is a strict
+	// 1:1 hand<->slot exchange — the displaced stack goes directly
+	// into the hand slot, never into the inventory at large. The
+	// old code removed the hand stack, then routed the displaced
+	// stack through Inventory::add(): that drops it in the FIRST
+	// free slot (or merges it into an existing partial stack)
+	// instead of the hand, so the player saw the old item vanish
+	// from the interaction — and in Creative a full inventory
+	// silently DESTROYS it: Inventory::add() sets count = 0 and
+	// returns true when instabuild is set (Inventory.cpp), so the
+	// drop fallback below never ran. Direct assignment cannot
+	// fail (the hand slot is freed by the exchange itself), so
+	// the drop fallback is deleted, not moved.
 	int handCount = hand->count;
 	shared_ptr<ItemInstance> placed = std::make_shared<ItemInstance>(hand->id, handCount, hand->getAuxValue());
 	if (hand->hasTag()) placed->setTag(static_cast<CompoundTag *>(hand->getTag()->copy()));
 	shelf->setItem(slot, placed);
-	player->inventory->removeItem(player->inventory->selected, handCount);
+	player->inventory->setItem(player->inventory->selected, stored);
+	player->inventory->setChanged();
 	shelf->setChanged();
-	if (!player->inventory->add(stored))
-	{
-		// Inventory full (hand stack was the only free space): drop the
-		// swapped-out item at the player instead of losing it.
-		shared_ptr<ItemEntity> itemEntity = std::make_shared<ItemEntity>(level, player->x, player->y, player->z, stored);
-		level->addEntity(itemEntity);
-	}
 	level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_SINGLE_SWAP, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
 	// Live-sync: push the swapped contents to every client now.
 	// Level::broadcastTileEntityUpdate is a base no-op on the client

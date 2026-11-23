@@ -54,21 +54,58 @@ void ShelfTileEntityRenderer::render(shared_ptr<TileEntity> _shelf, double x, do
 	else if (facing == Facing::WEST) yaw = 270.0f;
 	else if (facing == Facing::EAST) yaw = 90.0f;
 
-	// The shelf body is a 5/16 slab: front face at 11/16 (NORTH/WEST
-	// sides) or 5/16 (SOUTH/EAST sides) of the block. Items sit just
-	// outside that face. A flat item is a plane at the origin, so it
-	// needs only a hair of clearance; a block item renders as a 0.3125
-	// cube centred on the origin (ItemRenderer's frame path: 1.25 *
-	// 1/4), so its centre must stand half its width plus a gap outside
-	// the face or its back would sink into the slab.
+	// Shelf body (TileRenderer::tesselateShelfInWorld, base faces
+	// north): back panel z 13-16, bottom board z 11-13 (y 0-4), top
+	// board z 11-13 (y 12-16), overlay plane at z 13 (y 4-12). Open
+	// cubby: y 4-12 (board top 0.25), z 11-13 (0.6875-0.8125) — 0.125
+	// deep. Front face plane is at 11/16 (NORTH/WEST) or 5/16
+	// (SOUTH/EAST) of the block.
+	// SHELF FIX (2026-11-23, seating — round 2): the staged Part 3
+	// cut (OUT_BLOCK 0.17 -> 0.0) was NOT enough. Screenshots
+	// 2026-11-23 08:47/08:48 show the lantern floating in front of
+	// the shelf, and the head geometry explains it two ways:
+	//  (a) HEIGHT. A block item's rendered bottom is NOT at ITEM_Y.
+	//      ItemRenderer::render (frame path) translates the temp
+	//      entity by a constant +0.1 bob (age 0, bobOffs 0, a = 0, so
+	//      sin(0)*0.1+0.1 = 0.1 every frame), then the frame path
+	//      adds glTranslatef(0, 0.05, 0) inside the 1.25x scale
+	//      (+0.0625), then renderTile centres the model with
+	//      glTranslatef(-0.5, -0.5, -0.5) at 0.3125 scale (-0.15625).
+	//      Bottom = ITEM_Y + 0.1 + 0.0625 - 0.15625 = ITEM_Y + 0.00625.
+	//      With ITEM_Y 0.4 the bottom sat at 0.406 — 0.156 (2.5 px)
+	//      ABOVE the board top (0.25): the item hovered mid-cubby.
+	//      The same arithmetic holds for the lantern (inventory model
+	//      y 0..9/16, base at 0) and for flat items (billboard quad
+	//      y -0.25..+0.75, FLAT_SCALE 0.6, 1/1.95 frame scale:
+	//      bottom = ITEM_Y + 0.1 - 0.0923 = ITEM_Y + 0.0077 — the
+	//      same bottom as block items, so one knob seats both).
+	//      ITEM_Y 0.24 puts the bottom at 0.246, sunk 0.004 into the
+	//      board top (exact seating would be 0.24375; 0.24 dodges any
+	//      coplanar shimmer). Cube top 0.559 clears the top board
+	//      (0.75); lantern spans 0.246..0.422; flat top 0.555.
+	//  (b) DEPTH. OUT_BLOCK 0.0 centred the cube on the face plane
+	//      (front proud 0.156). Java holds items INSIDE the block,
+	//      slightly in front of the back panel. OUT_BLOCK -0.0625
+	//      centres the 0.3125 cube in the cubby mouth (z 0.75):
+	//      front proud only 0.094, back sunk 0.094 into the back
+	//      panel (hidden); the overlay plane (z 0.8125) slices the
+	//      cube's rear third and still reads as a divider frame. The
+	//      lantern (z half-width 0.0586) then sits 0.691..0.809 —
+	//      entirely inside the cubby, front essentially flush.
+	// OUT_FLAT stays 0.02 (flat items are planes; a plane has no
+	// depth to recess and 0.02 proud is invisible). Scope: this file
+	// only — ItemRenderer is untouched, so no other tile's item
+	// rendering changes.
 	const float FRONT_FAR = 11.0f / 16.0f;
 	const float FRONT_NEAR = 5.0f / 16.0f;
 	const float OUT_FLAT = 0.02f;
-	const float OUT_BLOCK = 0.17f;
-	// Item origin height. ItemRenderer adds a +0.1 bob to the temp
-	// entity (age 0, bobOffs 0), so 0.4 puts the visual centre at
-	// about the block's mid-height.
-	const float ITEM_Y = 0.4f;
+	const float OUT_BLOCK = -0.0625f;
+	// Item origin height. See the seating derivation above: the
+	// rendered bottom is ITEM_Y + 0.00625 (block items) /
+	// ITEM_Y + 0.0077 (flat items), so 0.24 seats the bottom on
+	// the board top (0.25). The +0.1 bob is constant (fresh temp
+	// entity, age 0, bobOffs 0, a = 0), NOT an animation.
+	const float ITEM_Y = 0.24f;
 	// Flat items render 1/1.95 (~0.513) wide in the item-frame path —
 	// wider than a 1/3 slot — so shrink them to slot width. Block
 	// items are already 0.3125 wide and need no shrink.
@@ -120,7 +157,16 @@ void ShelfTileEntityRenderer::render(shared_ptr<TileEntity> _shelf, double x, do
 		// rendered through the entity dispatcher with bItemFrame = true
 		// — that sets ItemRenderer::m_bItemFrame, so flat items keep
 		// the frame orientation instead of billboarding to the camera.
-		shared_ptr<ItemEntity> itemEntity = std::make_shared<ItemEntity>(level, 0, 0, 0, item);
+		// SHELF FIX (2026-11-22, renderer aliasing): the temp entity
+		// MUST hold a CLONE of the stored stack, not the stack itself.
+		// ItemEntity::setItem stores the shared_ptr as-is (and
+		// getItemInstance returns it directly), so setting count = 1
+		// on the temp entity mutated the stored stack every frame —
+		// a stack of 64 came back as 1 the next time the shelf was
+		// used. ItemInstance::clone copies id, count, aux AND the
+		// tag, so the clone renders identically and the stored stack
+		// is never touched.
+		shared_ptr<ItemEntity> itemEntity = std::make_shared<ItemEntity>(level, 0, 0, 0, ItemInstance::clone(item));
 		itemEntity->getItem()->count = 1;
 		itemEntity->bobOffs = 0;
 		EntityRenderDispatcher::instance->render(itemEntity, 0, 0, 0, 0, 0, true);
