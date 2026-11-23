@@ -65,7 +65,9 @@ namespace
 	public:
 		ShockwaveGoal(Invoker *invoker) : SpellcasterUseSpellGoal(invoker) { this->invoker = invoker; }
 
-		virtual bool canUse() { return invoker->getTarget() != nullptr && invoker->areaDamageCooldown < 0; }
+		// neoLegacy - the base gate (live target, not already casting, casting-interval elapsed) used to be bypassed,
+		// so getCastingInterval() was dead code; this goal could also start while another spell was casting.
+		virtual bool canUse() { return SpellcasterUseSpellGoal::canUse() && invoker->areaDamageCooldown < 0; }
 		virtual void start() { SpellcasterUseSpellGoal::start(); invoker->isAoeCasting = true; }
 		virtual void stop() { invoker->isAoeCasting = false; SpellcasterUseSpellGoal::stop(); }
 
@@ -107,7 +109,7 @@ namespace
 		}
 		virtual int getCastWarmupTime() { return 50; }
 		virtual int getCastingTime() { return 50; }
-		virtual int getCastingInterval() { return 400; }
+		virtual int getCastingInterval() { return 300; }	// neoLegacy - was 400 (dead code); now the live gate, matching areaDamageCooldown
 		virtual int getSpellPrepareSound() { return eSoundType_MOB_INVOKER_BIG_CAST; }
 		virtual SpellcasterIllager::Spell getSpell() { return SpellcasterIllager::SPELL_BLINDNESS; }
 	};
@@ -121,7 +123,8 @@ namespace
 
 		virtual bool canUse()
 		{
-			if (invoker->getTarget() == nullptr || invoker->isCastingSpell()) return false;
+			// neoLegacy - see ShockwaveGoal: the base casting-interval gate used to be bypassed.
+			if (!SpellcasterUseSpellGoal::canUse()) return false;
 			return invoker->teleportCooldown < 0 && threatWithin(invoker, 6.0);
 		}
 		virtual void start() { SpellcasterUseSpellGoal::start(); invoker->teleportCooldown = 180; }
@@ -130,7 +133,7 @@ namespace
 		virtual void performSpellCasting() { Sorcerer::randomTeleport(invoker); }
 		virtual int getCastWarmupTime() { return 30; }
 		virtual int getCastingTime() { return 30; }
-		virtual int getCastingInterval() { return 400; }
+		virtual int getCastingInterval() { return 180; }	// neoLegacy - was 400 (dead code); now the live gate, matching teleportCooldown
 		virtual int getSpellPrepareSound() { return eSoundType_MOB_INVOKER_TELEPORT_CAST; }
 		virtual SpellcasterIllager::Spell getSpell() { return SpellcasterIllager::SPELL_BLINDNESS; }
 	};
@@ -204,7 +207,8 @@ namespace
 
 		virtual bool canUse()
 		{
-			if (invoker->getTarget() == nullptr || invoker->isCastingSpell() || invoker->fangAoeCooldown >= 0) return false;
+			// neoLegacy - see ShockwaveGoal: the base casting-interval gate used to be bypassed.
+			if (!SpellcasterUseSpellGoal::canUse() || invoker->fangAoeCooldown >= 0) return false;
 			return !getTargets().empty();
 		}
 
@@ -372,7 +376,11 @@ bool Invoker::isAlliedTo(shared_ptr<LivingEntity> other)
 	if (other == nullptr) return false;
 	if (other->GetType() == eTYPE_SURRENDERED)
 	{
-		shared_ptr<Mob> owner = dynamic_pointer_cast<Surrendered>(other)->getOwner();
+		// neoLegacy - the cast used to be dereferenced unchecked: a Surrendered-typed entity that is not a Surrendered
+		// would crash here with a null virtual call. (Hardening; the type mismatch itself is unproven.)
+		shared_ptr<Surrendered> surrendered = dynamic_pointer_cast<Surrendered>(other);
+		if (surrendered == nullptr) return false;
+		shared_ptr<Mob> owner = surrendered->getOwner();
 		if (owner != nullptr) return owner.get() == this || isAlliedTo(owner);
 	}
 	return SpellcasterIllager::isAlliedTo(other);

@@ -93,7 +93,11 @@ bool Monster::doHurtTarget(shared_ptr<Entity> target)
 		knockback += EnchantmentHelper::getKnockbackBonus(dynamic_pointer_cast<LivingEntity>(shared_from_this()), livingTarget);
 	}
 
-	boolean wasHurt = target->hurt(DamageSource::mobAttack(dynamic_pointer_cast<LivingEntity>(shared_from_this())), dmg);
+	// neoLegacy - DamageSource::mobAttack returns a fresh heap object: delete it after the hit (same pattern as the
+	// Sorcerer leak fix, 9d663e61). Every melee hit by every monster used to leak one DamageSource.
+	DamageSource *ds = DamageSource::mobAttack(dynamic_pointer_cast<LivingEntity>(shared_from_this()));
+	boolean wasHurt = target->hurt(ds, dmg);
+	delete ds;
 
 	if (wasHurt)
 	{

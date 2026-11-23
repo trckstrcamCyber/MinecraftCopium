@@ -135,7 +135,9 @@ void MapItem::update(Level *level, shared_ptr<Entity> player, shared_ptr<MapItem
 			memset( count,0,sizeof(int)*256);
 
 			LevelChunk *lc = level->getChunkAt(xx, zz);
-			if(lc->isEmpty()) continue;
+			// neoLegacy - getChunkAt returns null for a chunk that is not loaded yet (a fresh world right after login,
+			// while the map in the hotbar is already ticking). The old code dereferenced it unconditionally (Crash B).
+			if (lc == nullptr || lc->isEmpty()) continue;
 			int xso = ((xx)) & 15;
 			int zso = ((zz)) & 15;
 			int liquidDepth = 0;
@@ -192,7 +194,9 @@ void MapItem::update(Level *level, shared_ptr<Entity> player, shared_ptr<MapItem
 						}
 						hh += yy / static_cast<double>(scale * scale);
 
-						count[t]++;
+						// neoLegacy - count[] has 256 slots (one per legacy tile id). Extended tiles (id >= 256,
+						// e.g. copper) used to index past the end of this stack array and corrupt the stack.
+						if (t >= 0 && t < 256) count[t]++;
 					}
 				}
 			}

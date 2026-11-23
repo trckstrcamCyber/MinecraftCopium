@@ -49,8 +49,11 @@ namespace
 
 		virtual bool canUse()
 		{
-			if (firecaller->getTarget() == nullptr || firecaller->conjureSkullCooldown > 0) return false;
-			return !firecaller->isCastingSpell() && !somebodyClose();
+			// neoLegacy - the base gate (live target, not already casting, casting-interval elapsed) used to be
+			// bypassed, so getCastingInterval() was dead code and the real cadence was the cooldown field alone.
+			if (!SpellcasterUseSpellGoal::canUse()) return false;
+			if (firecaller->conjureSkullCooldown > 0) return false;
+			return !somebodyClose();
 		}
 
 	protected:
@@ -71,7 +74,7 @@ namespace
 		}
 		virtual int getCastWarmupTime() { return 60; }
 		virtual int getCastingTime() { return 60; }
-		virtual int getCastingInterval() { return 400; }
+		virtual int getCastingInterval() { return 160; }	// neoLegacy - was 400 (dead code); now the live gate, matching conjureSkullCooldown
 		virtual int getSpellPrepareSound() { return eSoundType_MOB_FIRECALLER_CAST; }
 		virtual SpellcasterIllager::Spell getSpell() { return SpellcasterIllager::SPELL_WOLOLO; }
 	};
@@ -85,7 +88,8 @@ namespace
 
 		virtual bool canUse()
 		{
-			if (firecaller->getTarget() == nullptr || firecaller->isCastingSpell()) return false;
+			// neoLegacy - see ConjureMagmaGoal: the base casting-interval gate used to be bypassed.
+			if (!SpellcasterUseSpellGoal::canUse()) return false;
 			return firecaller->areaDamageCooldown <= 0;
 		}
 
@@ -125,7 +129,7 @@ namespace
 		}
 		virtual int getCastWarmupTime() { return 50; }
 		virtual int getCastingTime() { return 50; }
-		virtual int getCastingInterval() { return 400; }
+		virtual int getCastingInterval() { return 300; }	// neoLegacy - was 400 (dead code); now the live gate, matching areaDamageCooldown
 		virtual int getSpellPrepareSound() { return eSoundType_MOB_FIRECALLER_CAST; }
 		virtual SpellcasterIllager::Spell getSpell() { return SpellcasterIllager::SPELL_WOLOLO; }
 	};
@@ -137,8 +141,11 @@ Firecaller::Firecaller(Level *level) : SpellcasterIllager(level)
 	registerAttributes();
 	setHealth(getMaxHealth());
 	xpReward = 10;
-	conjureSkullCooldown = 160;
-	areaDamageCooldown = 300;
+	// neoLegacy - both cooldowns used to start at full (160/300 ticks), so a freshly spawned Firecaller could not use
+	// either spell for its first 8-15 seconds; with a player in melee the magma spell is blocked outright
+	// (somebodyClose), leaving it unable to attack at all until it died. The Evoker has no initial cooldown.
+	conjureSkullCooldown = 0;
+	areaDamageCooldown = 0;
 
 	goalSelector.addGoal(0, new FloatGoal(this));
 	goalSelector.addGoal(2, new SpellcasterCastingSpellGoal(this));

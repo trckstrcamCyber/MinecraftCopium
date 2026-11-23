@@ -54,7 +54,9 @@ BlockRegionUpdatePacket::BlockRegionUpdatePacket(int x, int y, int z, int xs, in
 		bIsFullChunk = true;
 
 		LevelChunk *lc = level->getChunkAt(x,z);
-		rawBuffer = lc->getReorderedBlocksAndData(x&0xF, y, z&0xF, xs, this->ys, zs);
+		// neoLegacy - getChunkAt can return null for an unloaded chunk; sending an empty buffer is safe, dereferencing it is not.
+		if (lc == nullptr) rawBuffer = byteArray();
+		else rawBuffer = lc->getReorderedBlocksAndData(x&0xF, y, z&0xF, xs, this->ys, zs);
 	}
 	else
 	{
@@ -115,6 +117,8 @@ void BlockRegionUpdatePacket::read(DataInputStream *dis) //throws IOException
         size = 0;
     }
 
+	bool decompressOk = true;	// neoLegacy - false when the payload cannot be trusted; the packet is then dropped below
+
 	if(size == 0)
 	{
 		buffer = byteArray();
@@ -136,26 +140,32 @@ void BlockRegionUpdatePacket::read(DataInputStream *dis) //throws IOException
 
 		if( success )
 		{
-			Compression::getCompression()->DecompressLZXRLE( buffer.data, &outputSize, compressedBuffer.data, size);
+			// neoLegacy - a failed decompress used to be ignored: the HRESULT was dropped and the only guard was an
+			// assert, compiled out in release, so a corrupt chunk packet was applied to the world verbatim. The raid
+			// log shows exactly one such failure on the crashing thread right before the fault, and the line appears
+			// in no other log. Drop the packet instead: a missing chunk update is harmless, a corrupt one is not.
+			// The trailer below is still read (framing must stay intact); its tiles are discarded with the packet.
+			HRESULT hr = Compression::getCompression()->DecompressLZXRLE( buffer.data, &outputSize, compressedBuffer.data, size);
+			if (hr != S_OK || buffer.length != outputSize)
+			{
+				app.DebugPrintf("*** BlockRegionUpdatePacket DECOMPRESS FAILED: dropping corrupt chunk packet at (%d,%d) hr=0x%08X expected=%d got=%d compressedSize=%d\n",
+					x>>4, z>>4, (unsigned int)hr, buffer.length, outputSize, size);
+				size = 0;
+				buffer = byteArray();
+				decompressOk = false;
+			}
 		}
 		else
 		{
 			app.DebugPrintf("Not decompressing packet that wasn't fully read\n");
+			decompressOk = false;
 		}
-
-	//	printf("Block (%d %d %d), (%d %d %d) coming in decomp from %d to %d\n",x,y,z,xs,ys,zs,size,outputSize);
-	
 
 		delete [] compressedBuffer.data;
-		if(buffer.length != outputSize)
-		{
-			app.DebugPrintf("*** BlockRegionUpdatePacket DECOMPRESS MISMATCH: expected=%d got=%d xs=%d ys=%d zs=%d fullChunk=%d compressedSize=%d levelIdx=%d\n",
-				buffer.length, outputSize, xs, ys, zs, bIsFullChunk ? 1 : 0, size, levelIdx);
-		}
-		assert(buffer.length == outputSize);
 	}
 
-	// neoLegacy - extended tile ids trailer
+	// neoLegacy - extended tile ids trailer (still read on a corrupt packet so the stream framing stays intact;
+	// the tiles are discarded at the end of read() when decompressOk is false)
 	extTiles.clear();
 	if (chunkFlags & BLOCK_REGION_UPDATE_EXTTILES)
 	{
@@ -173,6 +183,7 @@ void BlockRegionUpdatePacket::read(DataInputStream *dis) //throws IOException
 			extTiles.push_back(tile);
 		}
 	}
+	if (!decompressOk) extTiles.clear();	// neoLegacy - drop the trailer of a corrupt packet (see above)
 }
 
 void BlockRegionUpdatePacket::write(DataOutputStream *dos) // throws IOException

@@ -87,6 +87,7 @@ void EvokerFangs::tick()
 					if (living != nullptr) dealDamageTo(living);
 				}
 			}
+			delete targets;	// neoLegacy - this vector used to leak on every fang bite
 		}
 
 		if (!sentSpikeEvent)
@@ -115,7 +116,14 @@ void EvokerFangs::dealDamageTo(shared_ptr<LivingEntity> target)
 	if (dynamic_cast<Illager *>(target.get()) != nullptr || dynamic_cast<Vex *>(target.get()) != nullptr) return;
 
 	if (caster == nullptr) target->hurt(DamageSource::magic, 6.0f);
-	else target->hurt(DamageSource::indirectMagic(shared_from_this(), caster), 6.0f);
+	else
+	{
+		// neoLegacy - indirectMagic returns a fresh heap object: delete it after the hit (Sorcerer fix pattern,
+		// 9d663e61). Every fang bite used to leak one DamageSource. (DamageSource::magic is a shared static: no delete.)
+		DamageSource *ds = DamageSource::indirectMagic(shared_from_this(), caster);
+		target->hurt(ds, 6.0f);
+		delete ds;
+	}
 }
 
 float EvokerFangs::getAnimationProgress(float a)

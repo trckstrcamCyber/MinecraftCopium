@@ -45,7 +45,11 @@ void SkeletonModel::prepareMobModel(shared_ptr<LivingEntity> mob, float time, fl
 {
 	ZombieModel::prepareMobModel(mob, time, r, a);
 
-	bowAndArrow = dynamic_pointer_cast<Skeleton>(mob)->getSkeletonType() == Skeleton::TYPE_WITHER;
+	// neoLegacy - the Surrendered is drawn with this model but is a Vex, not a Skeleton: the unchecked cast used to
+	// dereference null on the first frame a Surrendered was on screen (Crash A: movq (%rax),%rdx with rax=0, main
+	// thread). A mob is only a Wither skeleton when the cast succeeds (cf. RavagerModel::prepareMobModel).
+	shared_ptr<Skeleton> skeleton = dynamic_pointer_cast<Skeleton>(mob);
+	bowAndArrow = skeleton != nullptr && skeleton->getSkeletonType() == Skeleton::TYPE_WITHER;
 }
 
 void SkeletonModel::setupAnim(float time, float r, float bob, float yRot, float xRot, float scale, shared_ptr<Entity> entity, unsigned int uiBitmaskOverrideAnim)

@@ -416,7 +416,8 @@ void Mob::aiStep()
 		for (auto& it : *entities)
 		{
 			shared_ptr<ItemEntity> entity = dynamic_pointer_cast<ItemEntity>(it);
-			if (entity->removed || entity->getItem() == nullptr) continue;
+			// neoLegacy - hardening: a stale/empty entry in the chunk entity list used to be dereferenced unchecked.
+			if (entity == nullptr || entity->removed || entity->getItem() == nullptr) continue;
 			shared_ptr<ItemInstance> item = entity->getItem();
 			int slot = getEquipmentSlotForItem(item);
 
@@ -1074,6 +1075,8 @@ void Mob::restoreLeashFromSave()
 			for(auto& livingEnt : *livingEnts)
 			{
 				shared_ptr<LivingEntity> le = dynamic_pointer_cast<LivingEntity>(livingEnt);
+				// neoLegacy - hardening: same unchecked-cast pattern as the loot-pickup loop above.
+				if (le == nullptr) continue;
 				if (le->getUUID().compare(leashUuid) == 0)
 				{
 					leashHolder = le;
