@@ -1515,6 +1515,35 @@ void Recipes::_compileRecipes()
 		Item::platinum_chunk, Item::platinum_chunk, Item::platinum_chunk, Item::platinum_chunk,
 		L'T');
 
+	// neoLegacy - Hallowed Gem (Illager Invasion, mod recipe hallowed_gem.json):
+	// 4 Amethyst Shard + 2 Unusual Dust + 2 Illusionary Dust + 1 Diamond, shaped 3x3.
+	// The mod's category is "misc"; there is no Misc group here, so 'T' (Tool) like
+	// the Platinum Sheet above. Group is provisional - see FIX-NOTES.
+	addShapedRecipy(new ItemInstance(Item::hallowed_gem, 1), //
+		L"ssscicicicig",
+		L"#B#", //
+		L"RDR", //
+		L"#B#", //
+
+		L'#', Item::amethyst_shard,
+		L'B', Item::unusual_dust,
+		L'R', Item::illusionary_dust,
+		L'D', Item::diamond,
+		L'T');
+
+	// neoLegacy - Horn of Sight (Illager Invasion, mod recipe horn_of_sight.json):
+	// 1 Hallowed Gem + 3 Gold Ingot + 1 Goat Horn, shaped. Mod category "equipment".
+	addShapedRecipy(new ItemInstance(Item::horn_of_sight, 1), //
+		L"ssscicicig",
+		L" G ", //
+		L"#H#", //
+		L" # ", //
+
+		L'G', Item::hallowed_gem,
+		L'#', Item::gold_ingot,
+		L'H', Item::goat_horn,
+		L'T');
+
 	// neoLegacy - Complex Table: an Ice block makes 4 Ice Balls, and 4 Ice Balls make an Ice block again. Both are Complex-Table-only
 	// via isComplexOnly() (keyed on the results: nothing else in the game produces Ice or Ice Balls).
 	addShapedRecipy(new ItemInstance(Item::ice_ball, 4), //
@@ -2120,6 +2149,8 @@ bool Recipes::isComplexOnly(Recipy *r)
 		|| result->id == Tile::copper_chain_Id
 		|| result->id == Tile::copper_bars_Id
 		|| result->id == Tile::copper_lantern_Id
+		|| result->id == Tile::iron_chain_Id	// neoLegacy - Iron additions (2026-11-22): Complex-Table-only like the copper chain
+		|| result->id == Tile::iron_lantern_Id	// neoLegacy - Iron additions (2026-11-22): Complex-Table-only like the copper lantern
 		|| result->id == Tile::copper_torch_Id
 		|| result->id == Tile::copper_button_Id
 		|| result->id == Tile::lightning_rod_Id

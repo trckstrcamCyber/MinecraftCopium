@@ -594,6 +594,20 @@ for (int i = 0; i < 16; i++)
 		L'#', Tile::copperTorch,
 		L'S');
 
+	// Iron lantern: 8 iron nuggets around a vanilla torch -> 1 (Java
+	// 26.3 data/minecraft/recipe/lantern.json: XXX / X#X / XXX,
+	// X = iron_nugget, # = torch). Same shape as the copper lantern,
+	// which uses a copper torch as its centre instead.
+	r->addShapedRecipy(new ItemInstance(Tile::ironLantern, 1), //
+		L"ssscictg",
+		L"XXX", //
+		L"X#X", //
+		L"XXX", //
+
+		L'X', Item::iron_nugget,
+		L'#', Tile::torch,
+		L'S');
+
 	// ---- button bucket (1) ----
 	// Copper button: 1 cut copper -> 1 (jar1201).
 	// DEVIATION from the brief ("1 ingot -> 1"): the jar makes the button
@@ -615,6 +629,19 @@ for (int i = 0; i < 16; i++)
 
 		L'N', Item::copper_nugget,
 		L'I', Item::copper_ingot,
+		L'S');
+
+	// Iron chain: nugget / ingot / nugget, vertical -> 1 (Java 26.3
+	// data/minecraft/recipe/iron_chain.json: N / I / N, N = iron_nugget,
+	// I = iron_ingot). Same shape as the copper chain.
+	r->addShapedRecipy(new ItemInstance(Tile::ironChain, 1), //
+		L"ssscicig",
+		L"N", //
+		L"I", //
+		L"N", //
+
+		L'N', Item::iron_nugget,
+		L'I', Item::iron_ingot,
 		L'S');
 
 	// Lightning rod: 3 copper ingots, vertical -> 1 (vanilla).
@@ -680,6 +707,30 @@ for (int i = 0; i < 16; i++)
 		L"NNN", //
 
 		L'N', Item::copper_nugget,
+		L'S');
+
+	// Iron ingot -> 9 iron nuggets (Java 26.3
+	// data/minecraft/recipe/iron_nugget.json, shapeless). Workbench
+	// recipe like the gold-nugget exchange (Recipes.cpp), NOT
+	// Complex-Table-only: iron_nugget_Id is deliberately absent from
+	// Recipes::isComplexOnly -- see FIX-NOTES.md.
+	r->addShapelessRecipy(new ItemInstance(Item::iron_nugget, 9), //
+		L"ig",
+		Item::iron_ingot,
+		L'S');
+
+	// 9 iron nuggets -> 1 iron ingot (Java 26.3
+	// data/minecraft/recipe/iron_ingot_from_nuggets.json). Workbench
+	// recipe like the gold one (Recipes.cpp); the result id
+	// (iron_ingot_Id) is shared with vanilla recipes, so it cannot be
+	// made Complex-Table-only without side effects.
+	r->addShapedRecipy(new ItemInstance(Item::iron_ingot, 1), //
+		L"ssscig",
+		L"NNN", //
+		L"NNN", //
+		L"NNN", //
+
+		L'N', Item::iron_nugget,
 		L'S');
 
 	// Rose gold block -> 9 rose-gold ingots (rosegold jar, shapeless).

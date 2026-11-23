@@ -215,10 +215,17 @@ public:
 	bool tesselateCopperLanternInWorld(CopperThinTile *tt, int x, int y, int z);
 	bool tesselateLightningRodInWorld(CopperThinTile *tt, int x, int y, int z);
 	bool tesselateCopperChainInWorld(CopperThinTile *tt, int x, int y, int z);
+	// IRON_ADDITIONS (2026-11-22): iron chain / iron lantern mirror the
+	// copper models exactly (same shapes, same Java UVs). IronThinTile
+	// derives from CopperThinTile, so these take CopperThinTile * too.
+	bool tesselateIronLanternInWorld(CopperThinTile *tt, int x, int y, int z);
+	bool tesselateIronChainInWorld(CopperThinTile *tt, int x, int y, int z);
 	bool tesselateShelfInWorld(ShelfTile *tt, int x, int y, int z);
 	void renderCopperLanternInventory(CopperThinTile *tt, int data, float brightness, float alpha);
 	void renderLightningRodInventory(CopperThinTile *tt, int data, float brightness, float alpha);
 	void renderCopperChainInventory(CopperThinTile *tt, int data, float brightness, float alpha);
+	void renderIronLanternInventory(CopperThinTile *tt, int data, float brightness, float alpha);
+	void renderIronChainInventory(CopperThinTile *tt, int data, float brightness, float alpha);
 	void renderShelfInventory(ShelfTile *tt, int data, float brightness, float alpha);
 	bool tesselateStairsInWorld( StairTile* tt, int x, int y, int z );
 	bool tesselateDoorInWorld( Tile* tt, int x, int y, int z );

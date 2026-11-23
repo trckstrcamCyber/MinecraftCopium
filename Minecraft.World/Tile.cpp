@@ -41,6 +41,7 @@
 #include "CopperSlabTile.h"	// neoLegacy - Copper Age (Phase 3)
 #include "CopperStairTile.h"	// neoLegacy - Copper Age (Phase 3)
 #include "CopperThinTile.h"	// neoLegacy - Copper Age (playtest fix, 2026-11-20)
+#include "IronThinTile.h"	// neoLegacy - Iron additions (2026-11-22)
 #include "CopperTile.h"	// neoLegacy - Copper Age (Phase 3)
 #include "CopperGolemStatueBlock.h"	// neoLegacy - Copper Age (Phase 5)
 #include "ShelfTile.h"	// neoLegacy - Copper Age (Phase 3)
@@ -143,6 +144,8 @@ Tile *Tile::copperTrapdoor = nullptr;
 Tile *Tile::copperChain = nullptr;
 Tile *Tile::copperBars = nullptr;
 Tile *Tile::copperLantern = nullptr;
+Tile *Tile::ironChain = nullptr;	// neoLegacy - Iron additions (2026-11-22): iron chain (2330)
+Tile *Tile::ironLantern = nullptr;	// neoLegacy - Iron additions (2026-11-22): iron lantern (2331)
 Tile *Tile::copperTorch = nullptr;
 Tile *Tile::copperButton = nullptr;
 Tile *Tile::lightningRod = nullptr;
@@ -573,10 +576,16 @@ void Tile::staticCtor()
 	Tile::copperDoor = (new DoorTile(Tile::copper_door_Id, Material::metal, L"doorCopper"))->setDestroyTime(3.0f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_door")->setDescriptionId(IDS_TILE_DOOR_COPPER)->setNotCollectStatistics()->sendTileData()->setUseDescriptionId(IDS_DESC_DOOR_COPPER);
 	Tile::copperTrapdoor = (new TrapDoorTile(Tile::copper_trapdoor_Id, Material::metal))->setBaseItemTypeAndMaterial(Item::eBaseItemType_door, Item::eMaterial_trap)->setDestroyTime(3.0f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_trapdoor")->setDescriptionId(IDS_TILE_COPPER_TRAPDOOR)->setUseDescriptionId(IDS_DESC_TRAPDOOR);
 	Tile::copperChain = (new CopperThinTile(Tile::copper_chain_Id, L"copper_chain", 6.5f/16.0f, 0, 6.5f/16.0f, 9.5f/16.0f, 1, 9.5f/16.0f))						->setBaseItemTypeAndMaterial(Item::eBaseItemType_rod,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_chain")->setDescriptionId(IDS_TILE_COPPER_CHAIN)->setUseDescriptionId(IDS_DESC_COPPER_CHAIN);
+	// Iron chain: same bounds / shape as the copper chain (Tile.h:2330).
+	// No oxidation states -- IronThinTile registers one icon only.
+	Tile::ironChain = (new IronThinTile(Tile::iron_chain_Id, L"iron_chain", 6.5f/16.0f, 0, 6.5f/16.0f, 9.5f/16.0f, 1, 9.5f/16.0f))						->setBaseItemTypeAndMaterial(Item::eBaseItemType_rod,	Item::eMaterial_iron)->setDestroyTime(5.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setIconName(L"iron_chain")->setDescriptionId(IDS_TILE_IRON_CHAIN)->setUseDescriptionId(IDS_DESC_IRON_CHAIN);
 	Tile::copperBars = (new CopperFenceTile(Tile::copper_bars_Id, L"copper_bars"))							->setBaseItemTypeAndMaterial(Item::eBaseItemType_fence,	Item::eMaterial_copper)->setDestroyTime(5.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_bars")->setDescriptionId(IDS_TILE_COPPER_BARS)->setUseDescriptionId(IDS_DESC_COPPER_BARS);
 	// Copper lantern: always lit, so a fixed light emission is correct here
 	// (unlike the bulb, it has no lit/unlit state to vary by).
 	Tile::copperLantern = (new CopperThinTile(Tile::copper_lantern_Id, L"copper_lantern", 5.0f/16.0f, 0, 5.0f/16.0f, 11.0f/16.0f, 9.0f/16.0f, 11.0f/16.0f))						->setBaseItemTypeAndMaterial(Item::eBaseItemType_torch,	Item::eMaterial_copper)->setDestroyTime(3.5f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setLightEmission(1.0f)->setIconName(L"copper_lantern")->setDescriptionId(IDS_TILE_COPPER_LANTERN)->setUseDescriptionId(IDS_DESC_COPPER_LANTERN);
+	// Iron lantern: always lit, like the copper lantern (fixed light
+	// emission; no lit/unlit state to vary by). No oxidation states.
+	Tile::ironLantern = (new IronThinTile(Tile::iron_lantern_Id, L"iron_lantern", 5.0f/16.0f, 0, 5.0f/16.0f, 11.0f/16.0f, 9.0f/16.0f, 11.0f/16.0f))						->setBaseItemTypeAndMaterial(Item::eBaseItemType_torch,	Item::eMaterial_iron)->setDestroyTime(3.5f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setLightEmission(1.0f)->setIconName(L"iron_lantern")->setDescriptionId(IDS_TILE_IRON_LANTERN)->setUseDescriptionId(IDS_DESC_IRON_LANTERN);
 	Tile::copperTorch = (new TorchTile(Tile::copper_torch_Id))												->setBaseItemTypeAndMaterial(Item::eBaseItemType_torch,	Item::eMaterial_copper)->setDestroyTime(0.0f)->setLightEmission(15 / 16.0f)->setSoundType(Tile::SOUND_WOOD)->setIconName(L"copper_torch")->setDescriptionId(IDS_TILE_COPPER_TORCH)->setUseDescriptionId(IDS_DESC_COPPER_TORCH)->disableMipmap();
 	// Copper button: reuses the copper-block texture (0 new atlas cells).
 	Tile::copperButton = (new CopperButtonTile(Tile::copper_button_Id))										->setBaseItemTypeAndMaterial(Item::eBaseItemType_button,	Item::eMaterial_copper)->setDestroyTime(0.5f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_block")->setDescriptionId(IDS_TILE_COPPER_BUTTON)->setUseDescriptionId(IDS_DESC_COPPER_BUTTON);

@@ -468,6 +468,10 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(17,	7,	L"illusionary_dust")
 		ADD_ICON(17,	8,	L"lost_candle")
 		ADD_ICON(17,	9,	L"primal_essence")
+		ADD_ICON(17,	10,	L"hallowed_gem")	// neoLegacy - Illager Invasion recipe items
+		ADD_ICON(17,	11,	L"horn_of_sight")
+		ADD_ICON(17,	12,	L"amethyst_shard")
+		ADD_ICON(17,	13,	L"goat_horn")
 		// neoLegacy - Copper Age (Phase 1): copper ingot / nugget / raw copper, row 18 of the extended item atlas.
 		ADD_ICON(18,	0,	L"copper_ingot")
 		ADD_ICON(18,	1,	L"copper_nugget")
@@ -516,6 +520,11 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(20,	2,	L"rose_mushroom_partial")
 		ADD_ICON(20,	3,	L"rose_mushroom_crumbs")
 		ADD_ICON(20,	4,	L"rosey_beetroot_stew")
+		// neoLegacy - Iron additions (2026-11-22): iron nugget, items row
+		// 20 col 5 -- the next free cell after the Phase 6 rose foods
+		// (row 20 cols 0-4). (Row-20 entries elsewhere in this file belong
+		// to the terrain map.)
+		ADD_ICON(20,	5,	L"iron_nugget")
 		ADD_ICON(4,		5,	L"fishing_rod_uncast")
 		ADD_ICON(4,		6,	L"clock")
 		ADD_ICON(4,		7,	L"bowl")
@@ -1474,6 +1483,15 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(36, 10, L"acacia_shelf_back")
 		ADD_ICON(36, 11, L"dark_oak_shelf_back")
 		ADD_ICON(36, 12, L"bamboo_shelf_back")
+		// neoLegacy - Iron additions (2026-11-22): iron chain + iron
+		// lantern, terrain row 38 (row 37 cols 0-6 are the staged powered
+		// shelf fronts from staging-shelf-java, still unpushed; rows 37-38
+		// were verified empty at head). The iron chain cell carries the
+		// Java art shifted +5 px in x, exactly like the copper chain cells
+		// (row 34, cols 4-7) -- see FIX-NOTES.md. The iron lantern cell is
+		// Java lantern frame 0, unshifted, like the copper lantern cells.
+		ADD_ICON(38, 0,  L"iron_chain")
+		ADD_ICON(38, 1,  L"iron_lantern")
 
 	}
 }

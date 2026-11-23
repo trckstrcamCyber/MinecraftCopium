@@ -10709,6 +10709,9 @@
 	<data name="IDS_ITEM_COPPER_NUGGET">
 		<value>Copper Nugget</value>
 	</data>
+	<data name="IDS_ITEM_IRON_NUGGET">
+		<value>Iron Nugget</value>
+	</data>
 	<data name="IDS_ITEM_RAW_COPPER">
 		<value>Raw Copper</value>
 	</data>
@@ -10720,6 +10723,9 @@
 	</data>
 	<data name="IDS_DESC_COPPER_NUGGET">
 		<value>Nine copper nuggets can be crafted into a copper ingot.</value>
+	</data>
+	<data name="IDS_DESC_IRON_NUGGET">
+		<value>Nine iron nuggets can be crafted into an iron ingot.</value>
 	</data>
 	<data name="IDS_DESC_RAW_COPPER">
 		<value>Mined from copper ore, it can be smelted in a furnace to produce copper ingots.</value>
@@ -10857,6 +10863,12 @@
 	<data name="IDS_TILE_COPPER_LANTERN">
 		<value>Copper Lantern</value>
 	</data>
+	<data name="IDS_TILE_IRON_CHAIN">
+		<value>Iron Chain</value>
+	</data>
+	<data name="IDS_TILE_IRON_LANTERN">
+		<value>Iron Lantern</value>
+	</data>
 	<data name="IDS_TILE_COPPER_TORCH">
 		<value>Copper Torch</value>
 	</data>
@@ -10984,6 +10996,12 @@
 	<data name="IDS_DESC_COPPER_LANTERN">
 		<value>A lantern made from copper. It gives off light.</value>
 	</data>
+	<data name="IDS_DESC_IRON_CHAIN">
+		<value>A decorative chain made from iron nuggets and ingots.</value>
+	</data>
+	<data name="IDS_DESC_IRON_LANTERN">
+		<value>A lantern made from iron. It gives off light.</value>
+	</data>
 	<data name="IDS_DESC_COPPER_TORCH">
 		<value>A torch made from copper. It gives off light.</value>
 	</data>
@@ -11075,5 +11093,29 @@
 	</data>
 	<data name="IDS_DESC_PRIMAL_ESSENCE">
 		<value>A swirling essence left behind by an Invoker.</value>
+	</data>
+	<data name="IDS_ITEM_HALLOWED_GEM">
+		<value>Hallowed Gem</value>
+	</data>
+	<data name="IDS_DESC_HALLOWED_GEM">
+		<value>A rare gem. Used to craft the Horn of Sight.</value>
+	</data>
+	<data name="IDS_ITEM_HORN_OF_SIGHT">
+		<value>Horn of Sight</value>
+	</data>
+	<data name="IDS_DESC_HORN_OF_SIGHT">
+		<value>Blow it to make nearby monsters glow.</value>
+	</data>
+	<data name="IDS_ITEM_AMETHYST_SHARD">
+		<value>Amethyst Shard</value>
+	</data>
+	<data name="IDS_DESC_AMETHYST_SHARD">
+		<value>A shard of amethyst crystal.</value>
+	</data>
+	<data name="IDS_ITEM_GOAT_HORN">
+		<value>Goat Horn</value>
+	</data>
+	<data name="IDS_DESC_GOAT_HORN">
+		<value>A goat horn.</value>
 	</data>
 </root>

@@ -242,7 +242,13 @@ public:
 	static const int SHAPE_LIGHTNING_ROD = 45;
 	static const int SHAPE_SHELF = 46;
 	static const int SHAPE_COPPER_CHAIN = 47;
-	static const int SHAPE_COUNT = 48;
+	// neoLegacy - Iron additions (2026-11-22): iron chain / iron lantern
+	// mirror the copper models exactly (same shapes, same Java UVs); iron
+	// has no oxidation states, so the tiles use IronThinTile, not
+	// CopperThinTile. New shapes 48-49; SHAPE_COUNT 48 -> 50.
+	static const int SHAPE_IRON_CHAIN = 48;
+	static const int SHAPE_IRON_LANTERN = 49;
+	static const int SHAPE_COUNT = 50;
 
 	static  Tile **tiles;
 
@@ -596,6 +602,12 @@ public:
     // Created only by toggling an unlit bulb; never placeable, never a
     // creative entry, never a recipe result.
     static const int copper_bulb_lit_Id = 2329;
+    // neoLegacy - Iron additions (2026-11-22): the next two free extended
+    // ids after the copper/rose-gold block (2304-2329). Iron has no
+    // oxidation states and no lit variant; these two ids are the whole
+    // iron tile set (the iron nugget is an item, id 509).
+    static const int iron_chain_Id = 2330;
+    static const int iron_lantern_Id = 2331;
 
     // neoLegacy - Jelly Block (honey-block behaviour, see JellyBlockTile.h). Uses a free vanilla-range id: extended ids (2304+) have crashed before.
     static const int jelly_block_Id = 210;
@@ -664,6 +676,8 @@ public:
 	static Tile *copperChain;
 	static Tile *copperBars;
 	static Tile *copperLantern;
+	static Tile *ironChain;	// neoLegacy - Iron additions (2026-11-22): iron chain (2330)
+	static Tile *ironLantern;	// neoLegacy - Iron additions (2026-11-22): iron lantern (2331)
 	static Tile *copperTorch;
 	static Tile *copperButton;
 	static Tile *lightningRod;

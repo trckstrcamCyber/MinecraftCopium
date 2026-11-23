@@ -1222,11 +1222,17 @@ bool TileRenderer::tesselateInWorld( Tile* tt, int x, int y, int z, int forceDat
 	case Tile::SHAPE_COPPER_LANTERN:
 		retVal = tesselateCopperLanternInWorld(static_cast<CopperThinTile *>(tt), x, y, z);
 		break;
+	case Tile::SHAPE_IRON_LANTERN:
+		retVal = tesselateIronLanternInWorld(static_cast<CopperThinTile *>(tt), x, y, z);
+		break;
 	case Tile::SHAPE_LIGHTNING_ROD:
 		retVal = tesselateLightningRodInWorld(static_cast<CopperThinTile *>(tt), x, y, z);
 		break;
 	case Tile::SHAPE_COPPER_CHAIN:
 		retVal = tesselateCopperChainInWorld(static_cast<CopperThinTile *>(tt), x, y, z);
+		break;
+	case Tile::SHAPE_IRON_CHAIN:
+		retVal = tesselateIronChainInWorld(static_cast<CopperThinTile *>(tt), x, y, z);
 		break;
 	case Tile::SHAPE_SHELF:
 		retVal = tesselateShelfInWorld(static_cast<ShelfTile *>(tt), x, y, z);
@@ -6206,7 +6212,10 @@ bool TileRenderer::tesselateCopperLanternInWorld(CopperThinTile *tt, int x, int 
 	// other faces of each bar are omitted ({0,0,0,0}), so edge-on a bar
 	// is invisible, exactly like Java's flat quad.
 	const int aboveId = level->getTile(x, y + 1, z);
+	// neoLegacy - Iron additions (2026-11-22): a lantern hangs from an
+	// iron chain as well as a copper chain -- either chain above counts.
 	const bool hanging = (aboveId == Tile::copper_chain_Id ||
+		aboveId == Tile::iron_chain_Id ||
 		level->isSolidBlockingTile(x, y + 1, z));
 
 	if (hanging)
@@ -6252,22 +6261,29 @@ bool TileRenderer::tesselateCopperLanternInWorld(CopperThinTile *tt, int x, int 
 			8.5f / 16.0f, 1.0f, 9.5f / 16.0f,
 			faces, LANTERN_HANGER_B_UV, true, 0, b, alpha, faceLight);
 
-		// Chain segment, ONLY when a copper chain is above (a solid
+		// Chain segment, ONLY when a chain (copper or iron) is above (a solid
 		// ceiling needs none: bar B already reaches it). The hanging
 		// model has no chain element, so this bridges the cap top
 		// (y=10) to the cell top (y=16) in the chain block's own
 		// cross-section (x/z 6.5-9.5, Tile.cpp:575), so a chain placed
-		// above forms one continuous vertical line. The segment takes
-		// the LANTERN's oxidation state (data & 3), matching the cap
-		// it hangs from. NOTE: the segment cuboid surrounds the hanger
+		// above forms one continuous vertical line. For a copper chain the
+		// segment takes the LANTERN's oxidation state (data & 3), matching
+		// the cap it hangs from; for an iron chain above it samples the
+		// single iron icon (iron has no oxidation states). NOTE: the
+		// segment cuboid surrounds the hanger
 		// bars (y 10-16) -- where the chain texture's texels are
 		// transparent the bars show through the segment's faces; judge
 		// in-game whether that reads as chain or clutter.
-		if (aboveId == Tile::copper_chain_Id)
+		if (aboveId == Tile::copper_chain_Id || aboveId == Tile::iron_chain_Id)
 		{
 			const int data = level->getData(x, y, z);
 			Icon *chainIcon = nullptr;
-			if (Tile::copperChain != nullptr)
+			if (aboveId == Tile::iron_chain_Id)
+			{
+				if (Tile::ironChain != nullptr)
+					chainIcon = getTexture(Tile::ironChain, 0, 0);
+			}
+			else if (Tile::copperChain != nullptr)
 				chainIcon = getTexture(Tile::copperChain, 0, data & 3);
 			// Block-breaking cracks: same substitution as the lantern
 			// icon above, or the cracks would never show on the segment.
@@ -6649,6 +6665,348 @@ void TileRenderer::renderCopperChainInventory(CopperThinTile *tt, int data, floa
 		9.5f / 16.0f, 1.0f, 9.5f / 16.0f);
 }
 
+bool TileRenderer::tesselateIronLanternInWorld(CopperThinTile *tt, int x, int y, int z)
+{
+	if (tt == nullptr)
+		return false;
+
+	Tesselator *t = Tesselator::getInstance();
+
+	// One icon, no oxidation states (IronThinTile::getTexture returns the
+	// single iron icon whatever the data bits are); every face of both
+	// boxes samples it.
+	Icon *icon = getTexture(tt, level, x, y, z, Facing::NORTH);
+	// Block-breaking cracks (LevelRenderer re-tesselates with a fixed
+	// texture): renderNorth et al. substitute it for the face icon, so do
+	// the same here or the cracks would never show on these models.
+	if (hasFixedTexture()) icon = fixedTexture;
+	Icon *faces[6] = { icon, icon, icon, icon, icon, icon };
+
+	const float b = tt->getBrightness(level, x, y, z);
+	const float alpha = 1.0f;
+
+	// Packed sky/block light for the six neighbouring cells (indexed by GS_*)
+	// and, at [6], the block's own cell -- read through the chunk compiler's
+	// light cache like every other tesselator in this file.
+	int faceLight[7];
+	faceLight[GS_DOWN]  = getLightColor(tt, level, x, y - 1, z);
+	faceLight[GS_UP]    = getLightColor(tt, level, x, y + 1, z);
+	faceLight[GS_NORTH] = getLightColor(tt, level, x, y, z - 1);
+	faceLight[GS_SOUTH] = getLightColor(tt, level, x, y, z + 1);
+	faceLight[GS_WEST]  = getLightColor(tt, level, x - 1, y, z);
+	faceLight[GS_EAST]  = getLightColor(tt, level, x + 1, y, z);
+	faceLight[6]        = getLightColor(tt, level, x, y, z);
+
+	// NOTE: tesselateIronLanternInWorld runs *inside* the chunk compiler's
+	// single begin()/end() pass for the whole chunk section (see
+	// tesselateInWorld above -- none of the other SHAPE_* handlers call
+	// begin()/end() either), so do not call t->begin()/t->end() here: just
+	// append quads into the already-active batch. Vertices submitted here
+	// must be in WORLD coordinates.
+	//
+	// Java models (template_lantern.json / template_hanging_lantern.json):
+	// geometry identical to the copper lantern's; the iron lantern
+	// texture's layout was verified pixel-identical to the copper
+	// lantern's against mcasset.cloud 26.3 -- see
+	// staging-iron-additions/FIX-NOTES.md.
+	//   Standing: body [5,0,5]->[11,7,11] + cap [6,7,6]->[10,9,10] (no
+	//     cap down face) + two 45-degree rotated hanger bars y 9-11.
+	//   Hanging:  body [5,1,5]->[11,8,11] + cap [6,8,6]->[10,10,10]
+	//     (WITH a cap down face, UV [1,10,5,14]) + two UNEQUAL 45-degree
+	//     hanger bars: N/S plane y 11-15 (UV rows 1-4), E/W plane y 10-16
+	//     (UV rows 6-11, with a 2-row transparent gap mid-bar). The
+	//     hanging model contains NO chain element -- a chain above is a
+	//     separate block; the chain segment below is this port's bridge
+	//     from the cap to that block.
+	// There is no hanging state anywhere in the port (IronThinTile has
+	// no setPlacedBy / neighbour check / hanging bit; updateShape ignores
+	// the level), so hanging is read off the neighbour at render time --
+	// no tile state, no save change, and already-placed lanterns pick it
+	// up as soon as their chunk re-tesselates. Hanging = an iron chain
+	// (tile 2330) or a copper chain (tile 2314) or a solid-blocking tile
+	// directly above.
+	//   The 45-degree hanger bars cannot be expressed with axis-aligned
+	// cuboids, so they are approximated by two 1-px-thick crossed
+	// cuboids (a + from above, not Java's X): the helper CAN emit
+	// zero-thickness quads (the shelf overlay does), but a flat quad
+	// needs both its faces at the same plane, and 1 px of thickness
+	// keeps the two faces off each other so they cannot z-fight. All
+	// other faces of each bar are omitted ({0,0,0,0}), so edge-on a bar
+	// is invisible, exactly like Java's flat quad.
+	const int aboveId = level->getTile(x, y + 1, z);
+	const bool hanging = (aboveId == Tile::iron_chain_Id ||
+		aboveId == Tile::copper_chain_Id ||
+		level->isSolidBlockingTile(x, y + 1, z));
+
+	if (hanging)
+	{
+		// Hanging body: [5,1,5] -> [11,8,11] (exactly +1 Y vs standing;
+		// same UVs as the standing body).
+		renderCopperModelCuboid(
+			t, level, tt, x, y, z,
+			5.0f / 16.0f, 1.0f / 16.0f, 5.0f / 16.0f,
+			11.0f / 16.0f, 8.0f / 16.0f, 11.0f / 16.0f,
+			faces, LANTERN_BODY_UV, true, 0, b, alpha, faceLight);
+
+		// Hanging cap: [6,8,6] -> [10,10,10], WITH the down face Java
+		// gives it (UV [1,10,5,14]). The down face is coplanar with the
+		// body top (y=8) and interior -- the body sits directly below
+		// it -- so it is invisible from every outside viewpoint; it is
+		// emitted only because Java's hanging template has it. If the
+		// cap/body seam flickers in-game, drop it (set the down entry
+		// of LANTERN_CAP_HANGING_UV to {0,0,0,0}); nothing visible
+		// changes.
+		renderCopperModelCuboid(
+			t, level, tt, x, y, z,
+			6.0f / 16.0f, 8.0f / 16.0f, 6.0f / 16.0f,
+			10.0f / 16.0f, 10.0f / 16.0f, 10.0f / 16.0f,
+			faces, LANTERN_CAP_HANGING_UV, true, 0, b, alpha, faceLight);
+
+		// Hanger bar A (N/S plane, Java [6.5,11,8]->[9.5,15,8]): 1-px-
+		// thick crossed cuboid, z 7.5-8.5, sampling the lantern icon's
+		// hanger art cols 11-13, rows 1-4 (solid ends, hollow middle).
+		renderCopperModelCuboid(
+			t, level, tt, x, y, z,
+			6.5f / 16.0f, 11.0f / 16.0f, 7.5f / 16.0f,
+			9.5f / 16.0f, 15.0f / 16.0f, 8.5f / 16.0f,
+			faces, LANTERN_HANGER_A_UV, true, 0, b, alpha, faceLight);
+
+		// Hanger bar B (E/W plane, Java [8,10,6.5]->[8,16,9.5]): 1-px-
+		// thick crossed cuboid, x 7.5-8.5, sampling rows 6-11 -- note
+		// the 2 transparent rows 8-9 mid-bar, i.e. Java's bar B has a
+		// hole in its middle third. Reaches the cell ceiling (y=16).
+		renderCopperModelCuboid(
+			t, level, tt, x, y, z,
+			7.5f / 16.0f, 10.0f / 16.0f, 6.5f / 16.0f,
+			8.5f / 16.0f, 1.0f, 9.5f / 16.0f,
+			faces, LANTERN_HANGER_B_UV, true, 0, b, alpha, faceLight);
+
+		// Chain segment, ONLY when a chain (iron or copper) is above (a
+		// solid ceiling needs none: bar B already reaches it). The hanging
+		// model has no chain element, so this bridges the cap top
+		// (y=10) to the cell top (y=16) in the chain block's own
+		// cross-section (x/z 6.5-9.5, Tile.cpp:575), so a chain placed
+		// above forms one continuous vertical line. The iron lantern has
+		// no oxidation state, so the segment samples the CHAIN above:
+		// the single iron icon for an iron chain, the copper chain's own
+		// oxidation state (its data & 3) for a copper chain. LANTERN_CHAIN_UV
+		// is reused as-is: the iron chain atlas cell carries the same +5 px
+		// shift as the copper one. NOTE: the segment cuboid surrounds the hanger
+		// bars (y 10-16) -- where the chain texture's texels are
+		// transparent the bars show through the segment's faces; judge
+		// in-game whether that reads as chain or clutter.
+		if (aboveId == Tile::iron_chain_Id || aboveId == Tile::copper_chain_Id)
+		{
+			Icon *chainIcon = nullptr;
+			if (aboveId == Tile::iron_chain_Id)
+			{
+				if (Tile::ironChain != nullptr)
+					chainIcon = getTexture(Tile::ironChain, 0, 0);
+			}
+			else if (Tile::copperChain != nullptr)
+				chainIcon = getTexture(Tile::copperChain, 0, level->getData(x, y + 1, z) & 3);
+			// Block-breaking cracks: same substitution as the lantern
+			// icon above, or the cracks would never show on the segment.
+			if (hasFixedTexture()) chainIcon = fixedTexture;
+			Icon *chainFaces[6] = { chainIcon, chainIcon, chainIcon, chainIcon, chainIcon, chainIcon };
+
+			// Chain segment: [6.5,10,6.5] -> [9.5,16,9.5]
+			renderCopperModelCuboid(
+				t, level, tt, x, y, z,
+				6.5f / 16.0f, 10.0f / 16.0f, 6.5f / 16.0f,
+				9.5f / 16.0f, 1.0f, 9.5f / 16.0f,
+				chainFaces, LANTERN_CHAIN_UV, true, 0, b, alpha, faceLight);
+		}
+	}
+	else
+	{
+		// Standing body: [5,0,5] -> [11,7,11]
+		renderCopperModelCuboid(
+			t, level, tt, x, y, z,
+			5.0f / 16.0f, 0.0f, 5.0f / 16.0f,
+			11.0f / 16.0f, 7.0f / 16.0f, 11.0f / 16.0f,
+			faces, LANTERN_BODY_UV, true, 0, b, alpha, faceLight);
+
+		// Standing cap: [6,7,6] -> [10,9,10]
+		renderCopperModelCuboid(
+			t, level, tt, x, y, z,
+			6.0f / 16.0f, 7.0f / 16.0f, 6.0f / 16.0f,
+			10.0f / 16.0f, 9.0f / 16.0f, 10.0f / 16.0f,
+			faces, LANTERN_CAP_UV, true, 0, b, alpha, faceLight);
+	}
+
+	// Keep the collision/render bounds valid for the next block (union of
+	// body + cap; matches the tile's shape bounds in Tile.cpp).
+	setShape(5.0f / 16.0f, 0.0f, 5.0f / 16.0f,
+		11.0f / 16.0f, 9.0f / 16.0f, 11.0f / 16.0f);
+
+	return true;
+}
+
+
+bool TileRenderer::tesselateIronChainInWorld(CopperThinTile *tt, int x, int y, int z)
+{
+	if (tt == nullptr)
+		return false;
+
+	Tesselator *t = Tesselator::getInstance();
+
+	// One icon, no oxidation states (IronThinTile::getTexture returns the
+	// single iron icon); both planes sample it.
+	Icon *icon = getTexture(tt, level, x, y, z, Facing::NORTH);
+	// Block-breaking cracks (LevelRenderer re-tesselates with a fixed
+	// texture): renderNorth et al. substitute it for the face icon, so do
+	// the same here or the cracks would never show on these models.
+	if (hasFixedTexture()) icon = fixedTexture;
+
+	const float b = tt->getBrightness(level, x, y, z);
+	const float alpha = 1.0f;
+
+	// Packed sky/block light for the six neighbouring cells (indexed by GS_*)
+	// and, at [6], the block's own cell -- read through the chunk compiler's
+	// light cache like every other tesselator in this file.
+	int faceLight[7];
+	faceLight[GS_DOWN]  = getLightColor(tt, level, x, y - 1, z);
+	faceLight[GS_UP]    = getLightColor(tt, level, x, y + 1, z);
+	faceLight[GS_NORTH] = getLightColor(tt, level, x, y, z - 1);
+	faceLight[GS_SOUTH] = getLightColor(tt, level, x, y, z + 1);
+	faceLight[GS_WEST]  = getLightColor(tt, level, x - 1, y, z);
+	faceLight[GS_EAST]  = getLightColor(tt, level, x + 1, y, z);
+	faceLight[6]        = getLightColor(tt, level, x, y, z);
+
+	// NOTE: tesselateIronChainInWorld runs *inside* the chunk compiler's
+	// single begin()/end() pass for the whole chunk section (see
+	// tesselateInWorld above -- none of the other SHAPE_* handlers call
+	// begin()/end() either), so do not call t->begin()/t->end() here: just
+	// append quads into the already-active batch. Vertices submitted here
+	// must be in WORLD coordinates.
+	//
+	// Java model (template_iron_chain.json, official 26.3 -- same geometry
+	// as the copper chain's template_chain.json): two full-height
+	// (y 0-16), 3-wide, zero-thick flat quads, rotated 45 degrees about Y
+	// through [8,8,8], shade:false. Plane A (the N/S plane, x 6.5-9.5 at
+	// z=8) samples texture cols 0-2; plane B (the E/W plane, z 6.5-9.5 at
+	// x=8) samples cols 3-5. The square links are painted: bars at texture
+	// rows 1,3,6,9,12,14, with the two planes' side rails offset ~3 rows so
+	// the links interleave. There are NO connector-rod elements.
+	// Rotation: a 1.5 px half-width rotated 45 degrees spans
+	// 1.5 * cos(45) = 1.0607 px along each axis, so the diagonal endpoints
+	// sit at 8 +/- 1.0607 px, i.e. 0.5 +/- 0.0663 in block units -- INSIDE
+	// the tile's 6.5-9.5 shape bounds (Tile.cpp:575), which are kept as the
+	// selection/collision box.
+	//
+	// ATLAS NOTE: the atlas cell (row 38, col 0) holds the Java link art
+	// PIXEL-EXACT, SHIFTED +5 px in x exactly like the copper cells (row
+	// 34, cols 4-7): Java strip A (cols 0-2) lives at atlas cols 5-7,
+	// strip B (cols 3-5) at cols 8-10, cols 0-4 and 11-15 empty (verified
+	// with PIL against the 26.3 PNGs -- see FIX-NOTES.md). The shift is
+	// copied from the copper cells so this tesselator reuses the copper
+	// UVs verbatim. So the planes sample icon pixels 5-8
+	// (A) and 8-11 (B), NOT Java-verbatim 0-3 / 3-6 -- sampling 0-3 would
+	// hit transparent pixels and the chain would vanish. Do NOT "fix" the
+	// UVs to 0-3/3-6 without also redrawing the atlas cells.
+	//
+	// Lighting: Java shade:false, so the chain takes ONE uniform light
+	// value (its own cell, like tesselateCrossTexture) instead of the
+	// per-face shading renderCopperModelCuboid applies to the lantern/rod.
+	if (SharedConstants::TEXTURE_LIGHTING)
+	{
+		t->tex2(faceLight[6]);
+		tessColor(t, 1.0f, 1.0f, 1.0f, alpha);
+	}
+	else
+	{
+		tessColor(t, b, b, b, alpha);
+	}
+
+	const float ox = static_cast<float>(x);
+	const float oy = static_cast<float>(y);
+	const float oz = static_cast<float>(z);
+
+	const float d = 1.5f / 16.0f * 0.70710678f; // 1.5 px half-width * cos(45)
+	const float lo = 0.5f - d; // 0.4337 (6.939 px)
+	const float hi = 0.5f + d; // 0.5663 (9.061 px)
+
+	// Plane A: Java N/S plane, diagonal lo,lo -> hi,hi; atlas strip 5-8.
+	emitCopperChainPlane(t, icon, 5.0f, 8.0f, lo, lo, hi, hi, ox, oy, oz, false);
+	// Plane B: Java E/W plane, diagonal hi,lo -> lo,hi; atlas strip 8-11.
+	emitCopperChainPlane(t, icon, 8.0f, 11.0f, hi, lo, lo, hi, ox, oy, oz, false);
+
+	// Keep the collision/render bounds valid for the next block (matches
+	// the tile's shape bounds in Tile.cpp).
+	setShape(6.5f / 16.0f, 0.0f, 6.5f / 16.0f,
+		9.5f / 16.0f, 1.0f, 9.5f / 16.0f);
+
+	return true;
+}
+
+
+void TileRenderer::renderIronLanternInventory(CopperThinTile *tt, int data, float brightness, float alpha)
+{
+	if (tt == nullptr)
+		return;
+
+	Tesselator *t = Tesselator::getInstance();
+
+	Icon *icon = getTexture(tt, Facing::NORTH, data);
+	Icon *faces[6] = { icon, icon, icon, icon, icon, icon };
+
+	// Inventory items use the base (north-facing) JSON model. The inventory
+	// caller has already applied the standard -0.5 model translation, so
+	// this method emits the model in [0,1] coordinates.
+	t->tex2(0xf000f);
+	t->begin();
+
+	renderCopperModelCuboid(
+		t, nullptr, tt, 0, 0, 0,
+		5.0f / 16.0f, 0.0f, 5.0f / 16.0f,
+		11.0f / 16.0f, 7.0f / 16.0f, 11.0f / 16.0f,
+		faces, LANTERN_BODY_UV, false, 0, brightness, alpha);
+
+	renderCopperModelCuboid(
+		t, nullptr, tt, 0, 0, 0,
+		6.0f / 16.0f, 7.0f / 16.0f, 6.0f / 16.0f,
+		10.0f / 16.0f, 9.0f / 16.0f, 10.0f / 16.0f,
+		faces, LANTERN_CAP_UV, false, 0, brightness, alpha);
+
+	t->end();
+	setShape(5.0f / 16.0f, 0.0f, 5.0f / 16.0f,
+		11.0f / 16.0f, 9.0f / 16.0f, 11.0f / 16.0f);
+}
+
+
+void TileRenderer::renderIronChainInventory(CopperThinTile *tt, int data, float brightness, float alpha)
+{
+	if (tt == nullptr)
+		return;
+
+	Tesselator *t = Tesselator::getInstance();
+
+	Icon *icon = getTexture(tt, Facing::NORTH, data);
+
+	// Inventory items use the base (north-facing) JSON model. The inventory
+	// caller has already applied the standard -0.5 model translation, so
+	// this method emits the model in [0,1] coordinates.
+	t->tex2(0xf000f);
+	t->begin();
+
+	// Java shade:false: uniform brightness, no per-face shading (unlike the
+	// lantern/rod inventory paths, which shade each cuboid face).
+	tessColor(t, brightness, brightness, brightness, alpha);
+
+	const float d = 1.5f / 16.0f * 0.70710678f; // 1.5 px half-width * cos(45)
+	const float lo = 0.5f - d;
+	const float hi = 0.5f + d;
+
+	// Same planes, strips and winding as tesselateIronChainInWorld, with
+	// normals (the inventory/hand path lights with fixed-function normals).
+	emitCopperChainPlane(t, icon, 5.0f, 8.0f, lo, lo, hi, hi, 0.0f, 0.0f, 0.0f, true);
+	emitCopperChainPlane(t, icon, 8.0f, 11.0f, hi, lo, lo, hi, 0.0f, 0.0f, 0.0f, true);
+
+	t->end();
+	setShape(6.5f / 16.0f, 0.0f, 6.5f / 16.0f,
+		9.5f / 16.0f, 1.0f, 9.5f / 16.0f);
+}
 void TileRenderer::renderShelfInventory(ShelfTile *tt, int data, float brightness, float alpha)
 {
 	if (tt == nullptr)
@@ -10307,6 +10665,27 @@ void TileRenderer::renderTile( Tile* tile, int data, float brightness, float fAl
 		setShape(5.0f / 16.0f, 0.0f, 5.0f / 16.0f,
 			11.0f / 16.0f, 9.0f / 16.0f, 11.0f / 16.0f);
 	}
+	else if (shape == Tile::SHAPE_IRON_LANTERN)
+	{
+		tile->updateDefaultShape();
+
+		// Match the orientation transform used by the normal block inventory
+		// renderer, then draw the JSON cuboids around the block center.
+		glRotatef(90, 0, 1, 0);
+		glTranslatef(-0.5f, -0.5f, -0.5f);
+
+		renderIronLanternInventory(
+			static_cast<CopperThinTile *>(tile),
+			data,
+			brightness,
+			fAlpha);
+
+		glTranslatef(0.5f, 0.5f, 0.5f);
+		glRotatef(-90, 0, 1, 0);
+
+		setShape(5.0f / 16.0f, 0.0f, 5.0f / 16.0f,
+			11.0f / 16.0f, 9.0f / 16.0f, 11.0f / 16.0f);
+	}
 	else if (shape == Tile::SHAPE_LIGHTNING_ROD)
 	{
 		tile->updateDefaultShape();
@@ -10336,6 +10715,27 @@ void TileRenderer::renderTile( Tile* tile, int data, float brightness, float fAl
 		glTranslatef(-0.5f, -0.5f, -0.5f);
 
 		renderCopperChainInventory(
+			static_cast<CopperThinTile *>(tile),
+			data,
+			brightness,
+			fAlpha);
+
+		glTranslatef(0.5f, 0.5f, 0.5f);
+		glRotatef(-90, 0, 1, 0);
+
+		setShape(6.5f / 16.0f, 0.0f, 6.5f / 16.0f,
+			9.5f / 16.0f, 1.0f, 9.5f / 16.0f);
+	}
+	else if (shape == Tile::SHAPE_IRON_CHAIN)
+	{
+		tile->updateDefaultShape();
+
+		// Match the orientation transform used by the normal block inventory
+		// renderer, then draw the JSON quads around the block center.
+		glRotatef(90, 0, 1, 0);
+		glTranslatef(-0.5f, -0.5f, -0.5f);
+
+		renderIronChainInventory(
 			static_cast<CopperThinTile *>(tile),
 			data,
 			brightness,
@@ -10532,8 +10932,10 @@ bool TileRenderer::canRender( int renderShape )
 	if (renderShape == Tile::SHAPE_WATER) return true;
 	if (renderShape == Tile::SHAPE_GRINDSTONE) return true;
 	if (renderShape == Tile::SHAPE_COPPER_LANTERN) return true;
+	if (renderShape == Tile::SHAPE_IRON_LANTERN) return true;
 	if (renderShape == Tile::SHAPE_LIGHTNING_ROD) return true;
 	if (renderShape == Tile::SHAPE_COPPER_CHAIN) return true;
+	if (renderShape == Tile::SHAPE_IRON_CHAIN) return true;
 	if (renderShape == Tile::SHAPE_SHELF) return true;
 	if (renderShape == Tile::SHAPE_BAMBOO) return true;
 	return false;

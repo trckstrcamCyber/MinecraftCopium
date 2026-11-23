@@ -61,6 +61,7 @@ Item *Item::arrow = nullptr;
 Item *Item::coal = nullptr;
 Item *Item::diamond = nullptr;
 Item *Item::iron_ingot = nullptr;
+Item *Item::iron_nugget = nullptr;	// neoLegacy - Iron additions (2026-11-22)
 Item *Item::gold_ingot = nullptr;
 Item *Item::copper_ingot = nullptr;
 Item *Item::copper_nugget = nullptr;
@@ -106,6 +107,10 @@ Item *Item::unusual_dust = nullptr;
 Item *Item::illusionary_dust = nullptr;
 Item *Item::lost_candle = nullptr;
 Item *Item::primal_essence = nullptr;
+Item *Item::hallowed_gem = nullptr;	// neoLegacy - Illager Invasion items (recipes)
+Item *Item::horn_of_sight = nullptr;
+Item *Item::amethyst_shard = nullptr;
+Item *Item::goat_horn = nullptr;
 Item *Item::bullet_9mm = nullptr;
 Item *Item::m16 = nullptr;
 Item *Item::bullet_556 = nullptr;
@@ -489,6 +494,18 @@ void Item::staticCtor()
 		->setIconName(L"lost_candle")->setDescriptionId(IDS_ITEM_LOST_CANDLE)->setUseDescriptionId(IDS_DESC_LOST_CANDLE);
 	Item::primal_essence = (new Item(primal_essence_Id - 256))
 		->setIconName(L"primal_essence")->setDescriptionId(IDS_ITEM_PRIMAL_ESSENCE)->setUseDescriptionId(IDS_DESC_PRIMAL_ESSENCE);
+	// neoLegacy - Illager Invasion recipe items. Plain Items, mirroring the
+	// platinum_chunk/sheet registrations above (no base-type call, same as the
+	// other Illager Invasion materials). Horn of Sight's use effect (Glowing)
+	// is NOT implemented here - see FIX-NOTES.
+	Item::hallowed_gem = (new Item(hallowed_gem_Id - 256))
+		->setIconName(L"hallowed_gem")->setDescriptionId(IDS_ITEM_HALLOWED_GEM)->setUseDescriptionId(IDS_DESC_HALLOWED_GEM);
+	Item::horn_of_sight = (new Item(horn_of_sight_Id - 256))
+		->setIconName(L"horn_of_sight")->setDescriptionId(IDS_ITEM_HORN_OF_SIGHT)->setUseDescriptionId(IDS_DESC_HORN_OF_SIGHT);
+	Item::amethyst_shard = (new Item(amethyst_shard_Id - 256))
+		->setIconName(L"amethyst_shard")->setDescriptionId(IDS_ITEM_AMETHYST_SHARD)->setUseDescriptionId(IDS_DESC_AMETHYST_SHARD);
+	Item::goat_horn = (new Item(goat_horn_Id - 256))
+		->setIconName(L"goat_horn")->setDescriptionId(IDS_ITEM_GOAT_HORN)->setUseDescriptionId(IDS_DESC_GOAT_HORN);
 	Item::crossbow_loaded_firework = (new CrossbowItem(crossbow_loaded_firework_Id - 256, true, true))->handEquipped()
 		->setIconName(L"crossbow_firework")->setMaxDamage(326)->setDescriptionId(IDS_ITEM_CROSSBOW)->setUseDescriptionId(IDS_DESC_CROSSBOW);
 
@@ -564,6 +581,7 @@ void Item::staticCtor()
 	Item::gold_ingot = ( new Item(10) )->setIconName(L"ingotGold")					->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_gold)->setDescriptionId(IDS_ITEM_INGOT_GOLD)->setUseDescriptionId(IDS_DESC_INGOT);
 	Item::copper_ingot = ( new Item(Item::copper_ingot_Id - 256) )->setIconName(L"copper_ingot")					->setBaseItemTypeAndMaterial(eBaseItemType_ingot,	eMaterial_copper)->setDescriptionId(IDS_ITEM_COPPER_INGOT)->setUseDescriptionId(IDS_DESC_INGOT);
 	Item::copper_nugget = ( new Item(Item::copper_nugget_Id - 256) )->setIconName(L"copper_nugget")					->setBaseItemTypeAndMaterial(eBaseItemType_ingot,	eMaterial_copper)->setDescriptionId(IDS_ITEM_COPPER_NUGGET)->setUseDescriptionId(IDS_DESC_COPPER_NUGGET);
+	Item::iron_nugget = ( new Item(Item::iron_nugget_Id - 256) )->setIconName(L"iron_nugget")					->setBaseItemTypeAndMaterial(eBaseItemType_ingot,	eMaterial_iron)->setDescriptionId(IDS_ITEM_IRON_NUGGET)->setUseDescriptionId(IDS_DESC_IRON_NUGGET);
 	Item::raw_copper = ( new Item(Item::raw_copper_Id - 256) )->setIconName(L"raw_copper")					->setBaseItemTypeAndMaterial(eBaseItemType_ingot,	eMaterial_copper)->setDescriptionId(IDS_ITEM_RAW_COPPER)->setUseDescriptionId(IDS_DESC_RAW_COPPER);
 	Item::raw_rose_gold = ( new Item(Item::raw_rose_gold_Id - 256) )->setIconName(L"raw_rose_gold")					->setBaseItemTypeAndMaterial(eBaseItemType_ingot,	eMaterial_rose_gold)->setDescriptionId(IDS_ITEM_RAW_ROSE_GOLD)->setUseDescriptionId(IDS_DESC_RAW_ROSE_GOLD);
 	Item::rose_gold_ingot = ( new Item(Item::rose_gold_ingot_Id - 256) )->setIconName(L"rose_gold_ingot")					->setBaseItemTypeAndMaterial(eBaseItemType_ingot,	eMaterial_rose_gold)->setDescriptionId(IDS_ITEM_ROSE_GOLD_INGOT)->setUseDescriptionId(IDS_DESC_INGOT);
@@ -1439,6 +1457,7 @@ const int Item::mace_Id;		// neoLegacy
 const int Item::jelly_ball_Id;	// neoLegacy
 const int Item::copper_ingot_Id;	// neoLegacy - Copper Age (Phase 1)
 const int Item::copper_nugget_Id;	// neoLegacy - Copper Age (Phase 1)
+const int Item::iron_nugget_Id;	// neoLegacy - Iron additions (2026-11-22)
 const int Item::raw_copper_Id;	// neoLegacy - Copper Age (Phase 1)
 const int Item::map_Id				;
 const int Item::shears_Id			;

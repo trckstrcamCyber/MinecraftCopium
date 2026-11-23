@@ -34,6 +34,27 @@ FurnaceRecipes::FurnaceRecipes()
 	addFurnaceRecipy(Item::copper_leggings_Id, new ItemInstance(Item::copper_nugget), .1f);
 	addFurnaceRecipy(Item::copper_boots_Id, new ItemInstance(Item::copper_nugget), .1f);
 	addFurnaceRecipy(Item::copper_horse_armor_Id, new ItemInstance(Item::copper_nugget), .1f);
+
+	// neoLegacy - Iron additions (2026-11-22): iron gear recycles to an
+	// iron nugget (0.1 XP), mirroring the copper gear above. Java 26.3
+	// data/minecraft/recipe/iron_nugget_from_smelting.json lists exactly
+	// these (plus iron_spear and iron_nautilus_armor, which do not exist
+	// in this port); chainmail smelting to iron nuggets is Java-correct
+	// and has no copper equivalent to conflict with.
+	addFurnaceRecipy(Item::iron_sword_Id, new ItemInstance(Item::iron_nugget), .1f);
+	addFurnaceRecipy(Item::iron_pickaxe_Id, new ItemInstance(Item::iron_nugget), .1f);
+	addFurnaceRecipy(Item::iron_axe_Id, new ItemInstance(Item::iron_nugget), .1f);
+	addFurnaceRecipy(Item::iron_shovel_Id, new ItemInstance(Item::iron_nugget), .1f);
+	addFurnaceRecipy(Item::iron_hoe_Id, new ItemInstance(Item::iron_nugget), .1f);
+	addFurnaceRecipy(Item::iron_helmet_Id, new ItemInstance(Item::iron_nugget), .1f);
+	addFurnaceRecipy(Item::iron_chestplate_Id, new ItemInstance(Item::iron_nugget), .1f);
+	addFurnaceRecipy(Item::iron_leggings_Id, new ItemInstance(Item::iron_nugget), .1f);
+	addFurnaceRecipy(Item::iron_boots_Id, new ItemInstance(Item::iron_nugget), .1f);
+	addFurnaceRecipy(Item::iron_horse_armor_Id, new ItemInstance(Item::iron_nugget), .1f);
+	addFurnaceRecipy(Item::chainmail_helmet_Id, new ItemInstance(Item::iron_nugget), .1f);
+	addFurnaceRecipy(Item::chainmail_chestplate_Id, new ItemInstance(Item::iron_nugget), .1f);
+	addFurnaceRecipy(Item::chainmail_leggings_Id, new ItemInstance(Item::iron_nugget), .1f);
+	addFurnaceRecipy(Item::chainmail_boots_Id, new ItemInstance(Item::iron_nugget), .1f);
 	addFurnaceRecipy(new ItemInstance(Item::raw_rose_gold, 1, 0), new ItemInstance(Item::rose_gold_ingot), 1);
 	addFurnaceRecipy(Tile::gold_ore_Id, new ItemInstance(Item::gold_ingot), 1);
 	addFurnaceRecipy(Tile::diamond_ore_Id, new ItemInstance(Item::diamond), 1);

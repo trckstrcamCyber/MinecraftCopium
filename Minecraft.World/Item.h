@@ -217,6 +217,7 @@ public:
 	static Item *coal;
 	static Item *diamond;
 	static Item *iron_ingot;
+	static Item *iron_nugget;	// neoLegacy - Iron additions (2026-11-22)
 	static Item *gold_ingot;
 	static Item *copper_ingot;
 	static Item *copper_nugget;
@@ -271,6 +272,10 @@ public:
 	static Item *illusionary_dust;
 	static Item *lost_candle;
 	static Item *primal_essence;
+	static Item *hallowed_gem;			// neoLegacy - Illager Invasion items (recipes)
+	static Item *horn_of_sight;
+	static Item *amethyst_shard;
+	static Item *goat_horn;
 	static Item *bamboo;	// neoLegacy
 	static Item *bamboo_door;
 	static Item *diamond_shovel;
@@ -608,6 +613,7 @@ public:
 	static const int rose_mushroom_partial_Id	= 506;	// neoLegacy - Copper Age (Phase 6)
 	static const int rose_mushroom_crumbs_Id	= 507;	// neoLegacy - Copper Age (Phase 6)
 	static const int rosey_beetroot_stew_Id	= 508;	// neoLegacy - Copper Age (Phase 6)
+	static const int iron_nugget_Id			= 509;	// neoLegacy - Iron additions (2026-11-22): first free id after the 472-508 copper/rose-gold block (509-599 free at head)
 	static const int mace_Id					= 601;	// neoLegacy - Mace
 	static const int jelly_ball_Id			= 602;	// neoLegacy - Jelly Ball
 	static const int ice_ball_Id			= 603;	// neoLegacy - Ice Ball
@@ -623,6 +629,10 @@ public:
 	static const int illusionary_dust_Id	= 613;
 	static const int lost_candle_Id			= 614;
 	static const int primal_essence_Id		= 615;	// icon: items.png row 17, column 9
+	static const int hallowed_gem_Id			= 616;	// neoLegacy - Illager Invasion items (recipes; icons: items.png row 17, columns 10-13)
+	static const int horn_of_sight_Id			= 617;
+	static const int amethyst_shard_Id		= 618;
+	static const int goat_horn_Id			= 619;
 	static const int enchantment_encyclopedia_Id = 600;	// neoLegacy - Enchantment Encyclopedia (kept well clear of the 472+ block for new wood items)
 	static const int diamond_shovel_Id		= 277;
 	static const int diamond_pickaxe_Id		= 278;
