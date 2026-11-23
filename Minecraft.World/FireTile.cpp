@@ -98,6 +98,7 @@ void FireTile::init()
 	setFlammable(Tile::log_Id, FLAME_HARD, BURN_HARD);
 	setFlammable(Tile::leaves_Id, FLAME_EASY, BURN_EASY);
 	setFlammable(Tile::bookshelf_Id, FLAME_EASY, BURN_MEDIUM);
+	setFlammable(Tile::shelf_Id, FLAME_HARD, BURN_MEDIUM);	// neoLegacy - Copper Age (Phase 7, Java shelf parity): overworld-wood shelf burns like planks (Java: encouragement 30). Crimson/warped variants do not exist in the port (7 woods only).
 	setFlammable(Tile::tnt_Id, FLAME_MEDIUM, BURN_INSTANT);
 	setFlammable(Tile::tallgrass_Id, FLAME_INSTANT, BURN_INSTANT);
 	setFlammable(Tile::wool_Id, FLAME_EASY, BURN_EASY);

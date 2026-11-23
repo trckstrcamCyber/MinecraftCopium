@@ -182,6 +182,23 @@ bool ShelfTileEntity::stillValid(shared_ptr<Player> player)
 void ShelfTileEntity::setChanged()
 {
 	TileEntity::setChanged();
+	// Java-parity staging (2026-11-22): broadcast every content change
+	// to clients from HERE, so every mutator live-syncs without each
+	// caller remembering to broadcast — ShelfTile::use() (place/take/
+	// swap), the powered hotbar swap, AND hopper insert/extract
+	// (HopperTileEntity::tryMoveInItem calls Container::setItem, which
+	// previously never reached a client until a chunk re-send — that is
+	// why hopper-fed shelves looked empty to other players).
+	// Level::broadcastTileEntityUpdate is a base no-op on the client
+	// Level; ServerLevel sends getUpdatePacket() (TYPE_SHELF, Facing +
+	// Items) to every player. level is null while the TE is being
+	// constructed or after removal, so guard it. load() writes items
+	// directly (not via setItem), so a client receiving a packet does
+	// not re-broadcast — no loop.
+	if (level != nullptr)
+	{
+		level->broadcastTileEntityUpdate(shared_from_this());
+	}
 }
 
 void ShelfTileEntity::startOpen()

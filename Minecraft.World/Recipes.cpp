@@ -1470,6 +1470,76 @@ void Recipes::_compileRecipes()
 		L'#', Tile::wood, L'X', Item::book,
 		L'D');
 
+	// neoLegacy - Copper Age (Phase 7, Java shelf parity): Java 1.21.9
+	// shelf recipe — 6 stripped logs of one wood in the top and bottom
+	// rows -> 6 shelves of that wood. NORMAL crafting table (the shelf
+	// is removed from isComplexOnly() below — Java shelves are not a
+	// Complex-Table recipe). Stripped-log aux: oak 0, spruce 1, birch 2,
+	// jungle 3 (stripped_log_Id 240); acacia 0, dark oak 1, bamboo 2
+	// (stripped_log2_Id 241). Shelf aux = the same wood order 0-6.
+	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 0), //
+		L"sssczg",
+		L"###", //
+		L"   ", //
+		L"###", //
+
+		L'#', new ItemInstance(Tile::stripped_log_Id, 1, 0),
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 1), //
+		L"sssczg",
+		L"###", //
+		L"   ", //
+		L"###", //
+
+		L'#', new ItemInstance(Tile::stripped_log_Id, 1, 1),
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 2), //
+		L"sssczg",
+		L"###", //
+		L"   ", //
+		L"###", //
+
+		L'#', new ItemInstance(Tile::stripped_log_Id, 1, 2),
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 3), //
+		L"sssczg",
+		L"###", //
+		L"   ", //
+		L"###", //
+
+		L'#', new ItemInstance(Tile::stripped_log_Id, 1, 3),
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 4), //
+		L"sssczg",
+		L"###", //
+		L"   ", //
+		L"###", //
+
+		L'#', new ItemInstance(Tile::stripped_log2_Id, 1, 0),
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 5), //
+		L"sssczg",
+		L"###", //
+		L"   ", //
+		L"###", //
+
+		L'#', new ItemInstance(Tile::stripped_log2_Id, 1, 1),
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 6), //
+		L"sssczg",
+		L"###", //
+		L"   ", //
+		L"###", //
+
+		L'#', new ItemInstance(Tile::stripped_log2_Id, 1, 2),
+		L'D');
+
 	addShapedRecipy(new ItemInstance(Item::painting, 1), //
 		L"ssscictg",
 		L"###", //
@@ -1574,29 +1644,6 @@ void Recipes::_compileRecipes()
 		L"scig",
 		L"#", //
 		L'#', Item::gold_ingot,
-		L'D');
-
-	// neoLegacy - Iron ingot <-> iron nugget (2026-11-23): moved here from
-	// StructureRecipies.cpp so both sit in the Decoration tab of the recipes
-	// next to the gold ingot <-> gold nugget pair above (group 'D'), mirroring
-	// gold's tags exactly. Still workbench, NOT Complex-Table-only: the 9 -> 1
-	// result (iron_ingot_Id) is shared with vanilla recipes, so it cannot be
-	// gated without side effects (see Recipes::isComplexOnly). The 1 -> 9 was
-	// shapeless in StructureRecipies.cpp; gold's 1 -> 9 is shaped 1-slot
-	// (L"scig"), which is functionally identical for a single ingredient.
-	addShapedRecipy(new ItemInstance(Item::iron_ingot), //
-		L"ssscig",
-		L"###", //
-		L"###", //
-		L"###", //
-
-		L'#', Item::iron_nugget,
-		L'D');
-
-	addShapedRecipy(new ItemInstance(Item::iron_nugget, 9), //
-		L"scig",
-		L"#", //
-		L'#', Item::iron_ingot,
 		L'D');
 
 	// 4J-PB - moving into decorations to make the structures list smaller
@@ -2177,7 +2224,12 @@ bool Recipes::isComplexOnly(Recipy *r)
 		|| result->id == Tile::copper_torch_Id
 		|| result->id == Tile::copper_button_Id
 		|| result->id == Tile::lightning_rod_Id
-		|| result->id == Tile::shelf_Id
+		// neoLegacy - Copper Age (Phase 7, Java shelf parity): the shelf
+		// was REMOVED from this gate. Java shelves craft at a NORMAL
+		// table (6 stripped logs -> 6 shelves, see the recipes above),
+		// so isComplexOnly must return false for shelf results — the
+		// normal table skips Complex-only recipes (line ~2131) and the
+		// Complex Table skips non-Complex ones.
 		|| result->id == Tile::cut_copper_slab_Id
 		|| result->id == Tile::cut_copper_stairs_Id
 		|| result->id == Tile::rose_gold_block_Id
@@ -2201,13 +2253,6 @@ bool Recipes::isComplexOnly(Recipy *r)
 		|| result->id == Item::raw_rose_gold_Id
 		|| result->id == Item::rose_gold_ingot_Id
 		|| result->id == Item::rose_gold_nugget_Id
-		// neoLegacy - Illager Invasion (2026-11-23): the three ported
-		// recipes are Complex-Table-only. The fourth mod recipe (Imbuing
-		// Table) has no block in the port yet, so it has no result id to
-		// gate here -- see FIX-NOTES.
-		|| result->id == Item::platinum_sheet_Id
-		|| result->id == Item::hallowed_gem_Id
-		|| result->id == Item::horn_of_sight_Id
 		|| result->id == Item::rose_gold_sword_Id
 		|| result->id == Item::rose_gold_pickaxe_Id
 		|| result->id == Item::rose_gold_axe_Id

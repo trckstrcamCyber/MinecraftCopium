@@ -1483,6 +1483,18 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(36, 10, L"acacia_shelf_back")
 		ADD_ICON(36, 11, L"dark_oak_shelf_back")
 		ADD_ICON(36, 12, L"bamboo_shelf_back")
+		// Row 37 (cols 0-6): powered shelf fronts (per wood) — Java 1.21.9
+		// powered mode (Phase 7). Same 16x16 layout as the front icons
+		// (row 35, cols 5-11); the divider bars are recolored redstone-red.
+		// ShelfTile::getFrontIcon selects these when data bit 3 is set.
+		// Art is in terrain.png row 37, cols 0-6 (both copies).
+		ADD_ICON(37, 0,  L"oak_shelf_powered")
+		ADD_ICON(37, 1,  L"spruce_shelf_powered")
+		ADD_ICON(37, 2,  L"birch_shelf_powered")
+		ADD_ICON(37, 3,  L"jungle_shelf_powered")
+		ADD_ICON(37, 4,  L"acacia_shelf_powered")
+		ADD_ICON(37, 5,  L"dark_oak_shelf_powered")
+		ADD_ICON(37, 6,  L"bamboo_shelf_powered")
 		// neoLegacy - Iron additions (2026-11-22): iron chain + iron
 		// lantern, terrain row 38 (row 37 cols 0-6 are the staged powered
 		// shelf fronts from staging-shelf-java, still unpushed; rows 37-38

@@ -17,12 +17,14 @@
 #include "net.minecraft.world.entity.player.h"
 #include "net.minecraft.world.item.h"
 #include "Facing.h"
+#include "Direction.h"
 #include "ItemInstance.h"
 
 ShelfTile::ShelfTile(int id) : BaseEntityTile(id, Material::wood, isSolidRender())
 {
 	for (int i = 0; i < 7; i++) woodIcons[i] = nullptr;
 	for (int i = 0; i < 7; i++) backIcons[i] = nullptr;
+	for (int i = 0; i < 7; i++) poweredIcons[i] = nullptr;
 }
 
 bool ShelfTile::isSolidRender(bool)
@@ -118,6 +120,13 @@ Icon *ShelfTile::getFrontIcon(int data)
 {
 	int wood = data & 7;
 	if (wood > 6) wood = 0;
+	// Java 1.21.9 powered mode (Phase 7): bit 3 selects the powered
+	// front icon (same layout, redstone-red dividers). The in-world
+	// model (TileRenderer::tesselateShelfInWorld) calls this with the
+	// block data, so a powered shelf shows the powered front on the
+	// body, boards AND overlay; the inventory form calls it with the
+	// item aux (0-6, bit 3 clear), so it stays unpowered.
+	if (isPowered(data)) return poweredIcons[wood];
 	return woodIcons[wood];
 }
 
@@ -138,10 +147,18 @@ void ShelfTile::registerIcons(IconRegister *iconRegister)
 		L"oak_shelf_back", L"spruce_shelf_back", L"birch_shelf_back", L"jungle_shelf_back",
 		L"acacia_shelf_back", L"dark_oak_shelf_back", L"bamboo_shelf_back"
 	};
+	// Java 1.21.9 powered mode (Phase 7): powered front icons, atlas
+	// row 37 cols 0-6 (PreStitchedTextureMap::loadUVs). Same 16x16
+	// layout as the front icon; the divider bars are redstone-red.
+	static const wchar_t *poweredNames[7] = {
+		L"oak_shelf_powered", L"spruce_shelf_powered", L"birch_shelf_powered", L"jungle_shelf_powered",
+		L"acacia_shelf_powered", L"dark_oak_shelf_powered", L"bamboo_shelf_powered"
+	};
 	for (int i = 0; i < 7; i++)
 	{
 		woodIcons[i] = iconRegister->registerIcon(names[i]);
 		backIcons[i] = iconRegister->registerIcon(backNames[i]);
+		poweredIcons[i] = iconRegister->registerIcon(poweredNames[i]);
 	}
 	icon = woodIcons[0];
 }
@@ -175,14 +192,17 @@ void ShelfTile::setPlacedBy(Level *level, int x, int y, int z, shared_ptr<Living
 	{
 		shelf->setFacing(facing);
 		shelf->setChanged();
-		// Live-sync the facing to clients: without this the client
-		// keeps the default NORTH facing until the next chunk
-		// re-send. Level::broadcastTileEntityUpdate is a base no-op
-		// on the client Level; ServerLevel sends
-		// te->getUpdatePacket() to every player. Same call the
-		// statue pose cycle / chest oxidation use.
-		level->broadcastTileEntityUpdate(shelf);
+		// Live-sync the facing to clients (ShelfTileEntity::setChanged
+		// broadcasts the TE update packet — see the centralization
+		// note there). Level::broadcastTileEntityUpdate is a base no-op
+		// on the client Level; ServerLevel sends te->getUpdatePacket()
+		// to every player. Same call the statue pose cycle / chest
+		// oxidation use.
 	}
+	// Java 1.21.9 powered mode (Phase 7): a shelf placed next to a
+	// powered source starts powered. (The setData above strips bit 3,
+	// so the power check runs after it.)
+	updatePoweredState(level, x, y, z);
 }
 
 void ShelfTile::onRemove(Level *level, int x, int y, int z, int id, int data)
@@ -214,6 +234,18 @@ bool ShelfTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player
 	shared_ptr<ShelfTileEntity> shelf = dynamic_pointer_cast<ShelfTileEntity>(level->getTileEntity(x, y, z));
 	if (shelf == nullptr) return false;
 
+	// Java 1.21.9 powered mode (Phase 7): using a POWERED shelf does
+	// not swap one slot — it swaps the whole powered group's contents
+	// with the player's hotbar (1 shelf -> rightmost 3 slots, 2 ->
+	// rightmost 6, 3 -> all 9). The clicked slot does not matter, and
+	// a powered shelf never does a single-slot swap. Power lives in
+	// data bit 3 (see updatePoweredState).
+	if (isPowered(level->getData(x, y, z)))
+	{
+		swapPoweredGroup(level, x, y, z, player);
+		return true;
+	}
+
 	// Slot = thirds along the shelf front face: clickX for a
 	// north/south-facing shelf, clickZ for east/west-facing.
 	// Round-5 fix: the facing comes from the ShelfTileEntity, not
@@ -235,7 +267,6 @@ bool ShelfTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player
 	}
 
 	shared_ptr<ItemInstance> hand = player->inventory->getSelected();
-	bool wasEmpty = shelf->isEmpty();
 	if (hand == nullptr)
 	{
 		// Empty hand: take the item in the clicked slot.
@@ -256,14 +287,14 @@ bool ShelfTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player
 		player->inventory->setItem(player->inventory->selected, stored);
 		player->inventory->setChanged();
 		shelf->setChanged();
-		level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_TAKE_ITEM, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
-		if (shelf->isEmpty()) level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_DEACTIVATE, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
-		// Live-sync: push the new contents to every client now.
-		// Level::broadcastTileEntityUpdate is a base no-op on the
-		// client Level; ServerLevel sends te->getUpdatePacket()
-		// (TYPE_SHELF, Facing + Items) to every player. Same call
-		// the statue pose cycle / chest oxidation use.
-		level->broadcastTileEntityUpdate(shelf);
+		// Java 1.21.9 sound mapping (Phase 7): there is NO distinct
+		// take-out sound — removal plays single_swap. And activate /
+		// deactivate are POWER sounds (played in updatePoweredState),
+		// not fill/empty sounds, so the old "deactivate when the last
+		// item is taken" call is deleted here.
+		// Live-sync: shelf->setChanged() above broadcasts the TE update
+		// packet (see ShelfTileEntity::setChanged centralization).
+		level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_SINGLE_SWAP, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
 		return true;
 	}
 
@@ -277,15 +308,12 @@ bool ShelfTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player
 		if (hand->hasTag()) placed->setTag(static_cast<CompoundTag *>(hand->getTag()->copy()));
 		shelf->setItem(slot, placed);
 		player->inventory->removeItem(player->inventory->selected, handCount);
-		shelf->setChanged();
+		// Java 1.21.9 sound mapping (Phase 7): activate is a POWER
+		// sound (played in updatePoweredState), not a "first item
+		// placed" sound, so the old wasEmpty/activate call is deleted.
+		// Live-sync: setItem() calls setChanged(), which broadcasts
+		// the TE update packet (see ShelfTileEntity::setChanged).
 		level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_PLACE_ITEM, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
-		if (wasEmpty) level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_ACTIVATE, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
-		// Live-sync: push the new contents to every client now.
-		// Level::broadcastTileEntityUpdate is a base no-op on the
-		// client Level; ServerLevel sends te->getUpdatePacket()
-		// (TYPE_SHELF, Facing + Items) to every player. Same call
-		// the statue pose cycle / chest oxidation use.
-		level->broadcastTileEntityUpdate(shelf);
 		return true;
 	}
 
@@ -310,14 +338,9 @@ bool ShelfTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player
 	shelf->setItem(slot, placed);
 	player->inventory->setItem(player->inventory->selected, stored);
 	player->inventory->setChanged();
-	shelf->setChanged();
+	// Live-sync: setItem() calls setChanged(), which broadcasts the
+	// TE update packet (see ShelfTileEntity::setChanged).
 	level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_SINGLE_SWAP, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
-	// Live-sync: push the swapped contents to every client now.
-	// Level::broadcastTileEntityUpdate is a base no-op on the client
-	// Level; ServerLevel sends te->getUpdatePacket() (TYPE_SHELF,
-	// Facing + Items) to every player. Same call the statue pose
-	// cycle / chest oxidation use.
-	level->broadcastTileEntityUpdate(shelf);
 	return true;
 }
 
@@ -331,14 +354,134 @@ int ShelfTile::getAnalogOutputSignal(Level *level, int x, int y, int z, int dir)
 	// Java: the shelf emits a BINARY signal by filled slots (0-7); the
 	// left slot (from the player's view of the front) is the LSB.
 	// (Not the chest-style container-fullness 0-15.)
+	// Java 1.21.9 (Phase 7): the signal is read from the BACK only.
+	// `dir` is a Direction (SOUTH=0, WEST=1, NORTH=2, EAST=3) giving
+	// the direction FROM the shelf TOWARD the comparator — see
+	// ComparatorTile::getInputSignal, which passes
+	// DIRECTION_OPPOSITE[its input direction]. So the comparator is
+	// on the back side only when dir is the opposite of the shelf's
+	// front direction (Facing -> Direction via FACING_DIRECTION).
+	// (The old code ignored dir entirely, so a comparator on ANY side
+	// read the shelf.)
 	shared_ptr<ShelfTileEntity> shelf = dynamic_pointer_cast<ShelfTileEntity>(level->getTileEntity(x, y, z));
 	if (shelf == nullptr) return 0;
+	int frontDir = Direction::FACING_DIRECTION[shelf->getFacing()];
+	int backDir = Direction::DIRECTION_OPPOSITE[frontDir];
+	if (dir != backDir) return 0;
 	int signal = 0;
 	for (unsigned int i = 0; i < ShelfTileEntity::SLOT_COUNT; i++)
 	{
 		if (shelf->getItem(i) != nullptr) signal |= (1 << i);
 	}
 	return signal;
+}
+
+// Java 1.21.9 powered mode (Phase 7). Power lives in data bit 3
+// (wood keeps bits 0-2); the TileEntity holds no power state, so a
+// setData(UPDATE_ALL) re-tesselates the chunk and the client renderer
+// picks the powered front icon via getFrontIcon.
+void ShelfTile::updatePoweredState(Level *level, int x, int y, int z)
+{
+	int data = level->getData(x, y, z);
+	bool powered = level->hasNeighborSignal(x, y, z);
+	bool wasPowered = isPowered(data);
+	if (powered == wasPowered) return;
+	level->setData(x, y, z, powered ? (data | 8) : (data & ~8), Tile::UPDATE_ALL);
+	level->playSound(x + 0.5, y + 0.5, z + 0.5, powered ? eSoundType_SHELF_ACTIVATE : eSoundType_SHELF_DEACTIVATE, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
+}
+
+void ShelfTile::neighborChanged(Level *level, int x, int y, int z, int type)
+{
+	// HopperTile pattern: re-check power whenever a neighbour changes.
+	updatePoweredState(level, x, y, z);
+}
+
+// Is the block at (x,y,z) a powered shelf facing `facing`? (Group-walk
+// helper: the neighbour must be a shelf, powered (bit 3), with the same
+// TE facing. A missing TE means "not matching".)
+static bool isPoweredShelfAt(Level *level, int x, int y, int z, int facing)
+{
+	if (level->getTile(x, y, z) != Tile::shelf_Id) return false;
+	if (!ShelfTile::isPowered(level->getData(x, y, z))) return false;
+	shared_ptr<ShelfTileEntity> shelf = dynamic_pointer_cast<ShelfTileEntity>(level->getTileEntity(x, y, z));
+	if (shelf == nullptr) return false;
+	return shelf->getFacing() == facing;
+}
+
+int ShelfTile::getPoweredGroup(Level *level, int x, int y, int z, int facing, int *outX, int *outZ)
+{
+	// "Left" is the player's left when facing the shelf front: for a
+	// NORTH-facing shelf the player looks south, so left is +x (EAST);
+	// SOUTH -> -x; WEST -> -z (player looks east, left is north);
+	// EAST -> +z.
+	int leftDx = 0, leftDz = 0;
+	switch (facing)
+	{
+	case Facing::NORTH: leftDx = 1; break;
+	case Facing::SOUTH: leftDx = -1; break;
+	case Facing::WEST:  leftDz = -1; break;
+	case Facing::EAST:  leftDz = 1; break;
+	default: break;
+	}
+	// Java: up to 3 connected, left priority — extend left first, then
+	// right to fill to 3. The clicked shelf is always group member 1.
+	int leftCount = 0, rightCount = 0;
+	int cx = x, cz = z;
+	while (leftCount + rightCount < 2)
+	{
+		int nx = cx + leftDx, nz = cz + leftDz;
+		if (!isPoweredShelfAt(level, nx, y, nz, facing)) break;
+		leftCount++;
+		cx = nx; cz = nz;
+	}
+	cx = x; cz = z;
+	while (leftCount + rightCount < 2)
+	{
+		int nx = cx - leftDx, nz = cz - leftDz;
+		if (!isPoweredShelfAt(level, nx, y, nz, facing)) break;
+		rightCount++;
+		cx = nx; cz = nz;
+	}
+	// Left-to-right: leftmost first.
+	int count = 1 + leftCount + rightCount;
+	int sx = x + leftCount * leftDx, sz = z + leftCount * leftDz;
+	for (int i = 0; i < count; i++)
+	{
+		outX[i] = sx - i * leftDx;
+		outZ[i] = sz - i * leftDz;
+	}
+	return count;
+}
+
+void ShelfTile::swapPoweredGroup(Level *level, int x, int y, int z, shared_ptr<Player> player)
+{
+	shared_ptr<ShelfTileEntity> shelf = dynamic_pointer_cast<ShelfTileEntity>(level->getTileEntity(x, y, z));
+	if (shelf == nullptr) return;
+	int facing = shelf->getFacing();
+	int gx[3], gz[3];
+	int count = getPoweredGroup(level, x, y, z, facing, gx, gz);
+	// Java: the group's shelves (left to right) swap with the hotbar —
+	// 1 shelf -> the 3 rightmost hotbar slots, 2 -> the 6 rightmost,
+	// 3 -> all 9. Each shelf's 3 slots map to 3 consecutive hotbar
+	// slots in order. Whole stacks, direct slot assignment (the Part 1
+	// swap fix: never route through Inventory::add — its instabuild
+	// branch silently destroys stacks in Creative).
+	int base = (count == 1) ? 6 : (count == 2) ? 3 : 0;
+	for (int gi = 0; gi < count; gi++)
+	{
+		shared_ptr<ShelfTileEntity> gshelf = dynamic_pointer_cast<ShelfTileEntity>(level->getTileEntity(gx[gi], y, gz[gi]));
+		if (gshelf == nullptr) continue;
+		for (int s = 0; s < 3; s++)
+		{
+			int h = base + gi * 3 + s;
+			shared_ptr<ItemInstance> shelfItem = gshelf->getItem(s);
+			shared_ptr<ItemInstance> hotItem = player->inventory->getItem(h);
+			gshelf->setItem(s, hotItem);
+			player->inventory->setItem(h, shelfItem);
+		}
+	}
+	player->inventory->setChanged();
+	level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_MULTI_SWAP, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
 }
 
 int ShelfTile::getSpawnResourcesAuxValue(int data)
