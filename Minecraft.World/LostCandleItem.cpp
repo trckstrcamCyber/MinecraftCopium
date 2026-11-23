@@ -18,6 +18,7 @@ static const wchar_t *oreName(int tile)
 	switch (tile)
 	{
 	case Tile::coal_ore_Id: return L"Coal Ore";
+	case Tile::copper_ore_Id: return L"Copper Ore";	// neoLegacy - Copper Age: the branch's own ore, same as the rest
 	case Tile::iron_ore_Id: return L"Iron Ore";
 	case Tile::gold_ore_Id: return L"Gold Ore";
 	case Tile::lapis_ore_Id: return L"Lapis Lazuli Ore";

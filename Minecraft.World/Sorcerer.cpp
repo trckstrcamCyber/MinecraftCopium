@@ -55,7 +55,9 @@ namespace
 					&& !tryFire(level, x, y + 1, z)) { /* nowhere to burn */ }
 			}
 			shared_ptr<Entity> self = sorcerer->shared_from_this();
-			target->hurt(DamageSource::indirectMagic(self, self), 3.0f);
+			DamageSource *ds = DamageSource::indirectMagic(self, self);
+			target->hurt(ds, 3.0f);
+			delete ds;
 		}
 		virtual int getCastWarmupTime() { return 60; }
 		virtual int getCastingTime() { return 60; }
