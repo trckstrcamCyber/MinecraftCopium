@@ -202,6 +202,7 @@ enum eINSTANCEOF
 
 						eTYPE_ENDERMITE	= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x10,
 						eTYPE_ELDER_GUARDIAN = eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x11,
+						eTYPE_SHULKER	= eTYPE_MONSTER | eTYPE_VALID_IN_SPAWNER_FLAG | 0x24,	// TU46: upstream uses 0x12, taken by VINDICATOR at head
 
 
 				eTYPE_AMBIENT			= eTYPE_MOB | BIT_AMBIENT_MOB,
@@ -280,6 +281,8 @@ enum eINSTANCEOF
 	eTYPE_MULTIENTITY_MOB_PART	= (eTYPE_OTHER_ENTITIES + 12),
 	eTYPE_NETHER_SPHERE			= (eTYPE_OTHER_ENTITIES + 13),
 	eTYPE_ENDER_CRYSTAL			= (eTYPE_OTHER_ENTITIES + 14),
+	eTYPE_SHULKER_BULLET		= (eTYPE_OTHER_ENTITIES + 16) | eTYPE_PROJECTILE,
+	eTYPE_AREA_EFFECT_CLOUD		= (eTYPE_OTHER_ENTITIES + 15),
 	
 	
 	// === PARTICLES === //
@@ -566,7 +569,10 @@ public:
 		classes->push_back( SUBCLASS(eTYPE_MULTIENTITY_MOB_PART	)->addParent( eTYPE_ENTITY  ) );
 		classes->push_back( SUBCLASS(eTYPE_NETHER_SPHERE			)->addParent( eTYPE_ENTITY  ) );
 		classes->push_back( SUBCLASS(eTYPE_ENDER_CRYSTAL			)->addParent( eTYPE_ENTITY  ) );
+		classes->push_back( SUBCLASS(eTYPE_AREA_EFFECT_CLOUD		)->addParent( eTYPE_ENTITY  ) );
+		classes->push_back( SUBCLASS(eTYPE_SHULKER_BULLET		)->addParent( eTYPE_ENTITY  )->addParent( eTYPE_PROJECTILE ) );
 		classes->push_back( SUBCLASS(eTYPE_ENDERMITE    )->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
+		classes->push_back( SUBCLASS(eTYPE_SHULKER      )->addParent( eTYPE_MONSTER)->addParent(eTYPE_VALID_IN_SPAWNER_FLAG ) );
 		classes->push_back( SUBCLASS(eType_BREAKINGITEMPARTICLE)->addParent(eTYPE_ENTITY) );
 		classes->push_back( SUBCLASS(eType_BUBBLEPARTICLE)->addParent(eTYPE_ENTITY) );
 		classes->push_back( SUBCLASS(eType_EXPLODEPARTICLE)->addParent(eTYPE_ENTITY) );
