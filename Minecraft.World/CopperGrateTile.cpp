@@ -3,6 +3,17 @@
 #include "IconRegister.h"
 #include "net.minecraft.world.level.h"
 
+const unsigned int CopperGrateTile::COPPER_GRATE_NAMES[8] = {
+	IDS_TILE_COPPER_GRATE,
+	IDS_TILE_EXPOSED_COPPER_GRATE,
+	IDS_TILE_WEATHERED_COPPER_GRATE,
+	IDS_TILE_OXIDIZED_COPPER_GRATE,
+	IDS_TILE_WAXED_COPPER_GRATE,
+	IDS_TILE_WAXED_EXPOSED_COPPER_GRATE,
+	IDS_TILE_WAXED_WEATHERED_COPPER_GRATE,
+	IDS_TILE_WAXED_OXIDIZED_COPPER_GRATE
+};
+
 CopperGrateTile::CopperGrateTile(int id, const wstring &baseIconName)
 	: HalfTransparentTile(id, baseIconName, Material::metal, false)
 {
@@ -38,4 +49,10 @@ int CopperGrateTile::getSpawnResourcesAuxValue(int data)
 {
 	// Breaking a copper grate drops the same oxidation state (waxed included).
 	return data & 7;
+}
+
+unsigned int CopperGrateTile::getDescriptionId(int iData)
+{
+	if (iData < 0) iData = 0;
+	return COPPER_GRATE_NAMES[iData & 7];
 }

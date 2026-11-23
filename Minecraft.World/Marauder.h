@@ -14,6 +14,11 @@ public:
 
 	Marauder(Level *level);
 
+	// arms hang loose while it walks about; raised to attack when it has a
+	// target (same pattern as the Pillager, 2026-11-23). The base Illager
+	// pose is CROSSED when idle, which hides the arms entirely.
+	virtual ArmPose getArmPose();
+
 	virtual void performRangedAttack(shared_ptr<LivingEntity> target, float power);
 	virtual MobGroupData *finalizeMobSpawn(MobGroupData *groupData, int extraData = 0);
 	virtual void dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel);

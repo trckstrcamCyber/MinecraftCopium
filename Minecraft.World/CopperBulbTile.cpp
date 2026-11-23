@@ -4,6 +4,17 @@
 #include "net.minecraft.world.level.h"
 #include "SoundTypes.h"
 
+const unsigned int CopperBulbTile::COPPER_BULB_NAMES[8] = {
+	IDS_TILE_COPPER_BULB,
+	IDS_TILE_EXPOSED_COPPER_BULB,
+	IDS_TILE_WEATHERED_COPPER_BULB,
+	IDS_TILE_OXIDIZED_COPPER_BULB,
+	IDS_TILE_WAXED_COPPER_BULB,
+	IDS_TILE_WAXED_EXPOSED_COPPER_BULB,
+	IDS_TILE_WAXED_WEATHERED_COPPER_BULB,
+	IDS_TILE_WAXED_OXIDIZED_COPPER_BULB
+};
+
 const int CopperBulbTile::LIGHT_LEVELS[4] = { 15, 12, 8, 4 };	// neoLegacy - Copper Age (audit fix): Java light levels by oxidation (was {15,14,13,12})
 
 CopperBulbTile::CopperBulbTile(int id) : MetalTile(id)
@@ -118,4 +129,10 @@ int CopperBulbTile::getSpawnResourcesAuxValue(int data)
 {
 	// Breaking a bulb drops it unlit and unpowered (oxidation + waxed kept).
 	return data & 7;
+}
+
+unsigned int CopperBulbTile::getDescriptionId(int iData)
+{
+	if (iData < 0) iData = 0;
+	return COPPER_BULB_NAMES[iData & 7];
 }

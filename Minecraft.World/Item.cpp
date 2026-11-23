@@ -483,7 +483,7 @@ void Item::staticCtor()
 	Item::platinum_chunk = (new Item(platinum_chunk_Id - 256))
 		->setIconName(L"platinum_chunk")->setDescriptionId(IDS_ITEM_PLATINUM_CHUNK)->setUseDescriptionId(IDS_DESC_PLATINUM_CHUNK);
 	Item::platinum_sheet = (new Item(platinum_sheet_Id - 256))
-		->setIconName(L"platinum_sheet")->setDescriptionId(IDS_ITEM_PLATINUM_SHEET)->setUseDescriptionId(IDS_DESC_PLATINUM_SHEET);
+		->setIconName(L"platinum_sheet")->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_iron)->setDescriptionId(IDS_ITEM_PLATINUM_SHEET)->setUseDescriptionId(IDS_DESC_PLATINUM_SHEET);
 	Item::platinum_hatchet = (new PlatinumHatchetItem(platinum_hatchet_Id - 256))->handEquipped()
 		->setIconName(L"platinum_infused_hatchet")->setDescriptionId(IDS_ITEM_PLATINUM_HATCHET)->setUseDescriptionId(IDS_DESC_PLATINUM_HATCHET);
 	Item::unusual_dust = (new Item(unusual_dust_Id - 256))
@@ -499,9 +499,9 @@ void Item::staticCtor()
 	// other Illager Invasion materials). Horn of Sight's use effect (Glowing)
 	// is NOT implemented here - see FIX-NOTES.
 	Item::hallowed_gem = (new Item(hallowed_gem_Id - 256))
-		->setIconName(L"hallowed_gem")->setDescriptionId(IDS_ITEM_HALLOWED_GEM)->setUseDescriptionId(IDS_DESC_HALLOWED_GEM);
+		->setIconName(L"hallowed_gem")->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_diamond)->setDescriptionId(IDS_ITEM_HALLOWED_GEM)->setUseDescriptionId(IDS_DESC_HALLOWED_GEM);
 	Item::horn_of_sight = (new Item(horn_of_sight_Id - 256))
-		->setIconName(L"horn_of_sight")->setDescriptionId(IDS_ITEM_HORN_OF_SIGHT)->setUseDescriptionId(IDS_DESC_HORN_OF_SIGHT);
+		->setIconName(L"horn_of_sight")->setBaseItemTypeAndMaterial(eBaseItemType_pockettool,	eMaterial_music)->setDescriptionId(IDS_ITEM_HORN_OF_SIGHT)->setUseDescriptionId(IDS_DESC_HORN_OF_SIGHT);
 	Item::amethyst_shard = (new Item(amethyst_shard_Id - 256))
 		->setIconName(L"amethyst_shard")->setDescriptionId(IDS_ITEM_AMETHYST_SHARD)->setUseDescriptionId(IDS_DESC_AMETHYST_SHARD);
 	Item::goat_horn = (new Item(goat_horn_Id - 256))

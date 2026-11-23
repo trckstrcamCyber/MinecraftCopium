@@ -1576,6 +1576,29 @@ void Recipes::_compileRecipes()
 		L'#', Item::gold_ingot,
 		L'D');
 
+	// neoLegacy - Iron ingot <-> iron nugget (2026-11-23): moved here from
+	// StructureRecipies.cpp so both sit in the Decoration tab of the recipes
+	// next to the gold ingot <-> gold nugget pair above (group 'D'), mirroring
+	// gold's tags exactly. Still workbench, NOT Complex-Table-only: the 9 -> 1
+	// result (iron_ingot_Id) is shared with vanilla recipes, so it cannot be
+	// gated without side effects (see Recipes::isComplexOnly). The 1 -> 9 was
+	// shapeless in StructureRecipies.cpp; gold's 1 -> 9 is shaped 1-slot
+	// (L"scig"), which is functionally identical for a single ingredient.
+	addShapedRecipy(new ItemInstance(Item::iron_ingot), //
+		L"ssscig",
+		L"###", //
+		L"###", //
+		L"###", //
+
+		L'#', Item::iron_nugget,
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Item::iron_nugget, 9), //
+		L"scig",
+		L"#", //
+		L'#', Item::iron_ingot,
+		L'D');
+
 	// 4J-PB - moving into decorations to make the structures list smaller
 	// neoLegacy - one sign recipe per plank type (aux = WoodTile data, 6 = bamboo); every one gives THE sign item with that wood as its aux value
 	{
@@ -2178,6 +2201,13 @@ bool Recipes::isComplexOnly(Recipy *r)
 		|| result->id == Item::raw_rose_gold_Id
 		|| result->id == Item::rose_gold_ingot_Id
 		|| result->id == Item::rose_gold_nugget_Id
+		// neoLegacy - Illager Invasion (2026-11-23): the three ported
+		// recipes are Complex-Table-only. The fourth mod recipe (Imbuing
+		// Table) has no block in the port yet, so it has no result id to
+		// gate here -- see FIX-NOTES.
+		|| result->id == Item::platinum_sheet_Id
+		|| result->id == Item::hallowed_gem_Id
+		|| result->id == Item::horn_of_sight_Id
 		|| result->id == Item::rose_gold_sword_Id
 		|| result->id == Item::rose_gold_pickaxe_Id
 		|| result->id == Item::rose_gold_axe_Id

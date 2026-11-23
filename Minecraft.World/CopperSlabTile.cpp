@@ -36,12 +36,24 @@ int CopperSlabTile::getResource(int data, Random *random, int playerBonusLevel)
 	return resourceTileId;
 }
 
+const unsigned int CopperSlabTile::SLAB_NAMES[8] = {
+	IDS_TILE_CUT_COPPER_SLAB,
+	IDS_TILE_EXPOSED_CUT_COPPER_SLAB,
+	IDS_TILE_WEATHERED_CUT_COPPER_SLAB,
+	IDS_TILE_OXIDIZED_CUT_COPPER_SLAB,
+	IDS_TILE_WAXED_CUT_COPPER_SLAB,
+	IDS_TILE_WAXED_EXPOSED_CUT_COPPER_SLAB,
+	IDS_TILE_WAXED_WEATHERED_CUT_COPPER_SLAB,
+	IDS_TILE_WAXED_OXIDIZED_CUT_COPPER_SLAB
+};
+
 unsigned int CopperSlabTile::getDescriptionId(int iData)
 {
-	return IDS_TILE_CUT_COPPER_SLAB;
+	return getAuxName(iData);
 }
 
 int CopperSlabTile::getAuxName(int auxValue)
 {
-	return IDS_TILE_CUT_COPPER_SLAB;
+	if (auxValue < 0 || auxValue > 7) auxValue = 0;
+	return SLAB_NAMES[auxValue & 7];
 }

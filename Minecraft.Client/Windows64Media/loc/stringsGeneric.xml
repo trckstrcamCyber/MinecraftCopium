@@ -10831,7 +10831,7 @@
 	</data>
 	<!-- neoLegacy - Copper Age (Phase 3) -->
 	<data name="IDS_TILE_COPPER_BLOCK">
-		<value>Copper Block</value>
+		<value>Block of Copper</value>
 	</data>
 	<data name="IDS_TILE_CUT_COPPER">
 		<value>Cut Copper</value>
@@ -10884,11 +10884,348 @@
 	<data name="IDS_TILE_SHELF">
 		<value>Shelf</value>
 	</data>
+	<data name="IDS_TILE_OAK_SHELF">
+		<value>Oak Shelf</value>
+	</data>
+	<data name="IDS_TILE_SPRUCE_SHELF">
+		<value>Spruce Shelf</value>
+	</data>
+	<data name="IDS_TILE_BIRCH_SHELF">
+		<value>Birch Shelf</value>
+	</data>
+	<data name="IDS_TILE_JUNGLE_SHELF">
+		<value>Jungle Shelf</value>
+	</data>
+	<data name="IDS_TILE_ACACIA_SHELF">
+		<value>Acacia Shelf</value>
+	</data>
+	<data name="IDS_TILE_DARK_OAK_SHELF">
+		<value>Dark Oak Shelf</value>
+	</data>
+	<data name="IDS_TILE_BAMBOO_SHELF">
+		<value>Bamboo Shelf</value>
+	</data>
 	<data name="IDS_TILE_CUT_COPPER_SLAB">
 		<value>Cut Copper Slab</value>
 	</data>
 	<data name="IDS_TILE_CUT_COPPER_STAIRS">
 		<value>Cut Copper Stairs</value>
+	</data>
+	<!-- neoLegacy - Copper Age variants (2026-11-23): oxidation/waxed names, Java 26.3 -->
+	<data name="IDS_TILE_EXPOSED_COPPER">
+		<value>Exposed Copper</value>
+	</data>
+	<data name="IDS_TILE_WEATHERED_COPPER">
+		<value>Weathered Copper</value>
+	</data>
+	<data name="IDS_TILE_OXIDIZED_COPPER">
+		<value>Oxidized Copper</value>
+	</data>
+	<data name="IDS_TILE_WAXED_COPPER_BLOCK">
+		<value>Waxed Block of Copper</value>
+	</data>
+	<data name="IDS_TILE_WAXED_EXPOSED_COPPER">
+		<value>Waxed Exposed Copper</value>
+	</data>
+	<data name="IDS_TILE_WAXED_WEATHERED_COPPER">
+		<value>Waxed Weathered Copper</value>
+	</data>
+	<data name="IDS_TILE_WAXED_OXIDIZED_COPPER">
+		<value>Waxed Oxidized Copper</value>
+	</data>
+	<data name="IDS_TILE_EXPOSED_CUT_COPPER">
+		<value>Exposed Cut Copper</value>
+	</data>
+	<data name="IDS_TILE_WEATHERED_CUT_COPPER">
+		<value>Weathered Cut Copper</value>
+	</data>
+	<data name="IDS_TILE_OXIDIZED_CUT_COPPER">
+		<value>Oxidized Cut Copper</value>
+	</data>
+	<data name="IDS_TILE_WAXED_CUT_COPPER">
+		<value>Waxed Cut Copper</value>
+	</data>
+	<data name="IDS_TILE_WAXED_EXPOSED_CUT_COPPER">
+		<value>Waxed Exposed Cut Copper</value>
+	</data>
+	<data name="IDS_TILE_WAXED_WEATHERED_CUT_COPPER">
+		<value>Waxed Weathered Cut Copper</value>
+	</data>
+	<data name="IDS_TILE_WAXED_OXIDIZED_CUT_COPPER">
+		<value>Waxed Oxidized Cut Copper</value>
+	</data>
+	<data name="IDS_TILE_EXPOSED_CHISELED_COPPER">
+		<value>Exposed Chiseled Copper</value>
+	</data>
+	<data name="IDS_TILE_WEATHERED_CHISELED_COPPER">
+		<value>Weathered Chiseled Copper</value>
+	</data>
+	<data name="IDS_TILE_OXIDIZED_CHISELED_COPPER">
+		<value>Oxidized Chiseled Copper</value>
+	</data>
+	<data name="IDS_TILE_WAXED_CHISELED_COPPER">
+		<value>Waxed Chiseled Copper</value>
+	</data>
+	<data name="IDS_TILE_WAXED_EXPOSED_CHISELED_COPPER">
+		<value>Waxed Exposed Chiseled Copper</value>
+	</data>
+	<data name="IDS_TILE_WAXED_WEATHERED_CHISELED_COPPER">
+		<value>Waxed Weathered Chiseled Copper</value>
+	</data>
+	<data name="IDS_TILE_WAXED_OXIDIZED_CHISELED_COPPER">
+		<value>Waxed Oxidized Chiseled Copper</value>
+	</data>
+	<data name="IDS_TILE_EXPOSED_COPPER_GRATE">
+		<value>Exposed Copper Grate</value>
+	</data>
+	<data name="IDS_TILE_WEATHERED_COPPER_GRATE">
+		<value>Weathered Copper Grate</value>
+	</data>
+	<data name="IDS_TILE_OXIDIZED_COPPER_GRATE">
+		<value>Oxidized Copper Grate</value>
+	</data>
+	<data name="IDS_TILE_WAXED_COPPER_GRATE">
+		<value>Waxed Copper Grate</value>
+	</data>
+	<data name="IDS_TILE_WAXED_EXPOSED_COPPER_GRATE">
+		<value>Waxed Exposed Copper Grate</value>
+	</data>
+	<data name="IDS_TILE_WAXED_WEATHERED_COPPER_GRATE">
+		<value>Waxed Weathered Copper Grate</value>
+	</data>
+	<data name="IDS_TILE_WAXED_OXIDIZED_COPPER_GRATE">
+		<value>Waxed Oxidized Copper Grate</value>
+	</data>
+	<data name="IDS_TILE_EXPOSED_COPPER_BULB">
+		<value>Exposed Copper Bulb</value>
+	</data>
+	<data name="IDS_TILE_WEATHERED_COPPER_BULB">
+		<value>Weathered Copper Bulb</value>
+	</data>
+	<data name="IDS_TILE_OXIDIZED_COPPER_BULB">
+		<value>Oxidized Copper Bulb</value>
+	</data>
+	<data name="IDS_TILE_WAXED_COPPER_BULB">
+		<value>Waxed Copper Bulb</value>
+	</data>
+	<data name="IDS_TILE_WAXED_EXPOSED_COPPER_BULB">
+		<value>Waxed Exposed Copper Bulb</value>
+	</data>
+	<data name="IDS_TILE_WAXED_WEATHERED_COPPER_BULB">
+		<value>Waxed Weathered Copper Bulb</value>
+	</data>
+	<data name="IDS_TILE_WAXED_OXIDIZED_COPPER_BULB">
+		<value>Waxed Oxidized Copper Bulb</value>
+	</data>
+	<data name="IDS_TILE_EXPOSED_COPPER_CHEST">
+		<value>Exposed Copper Chest</value>
+	</data>
+	<data name="IDS_TILE_WEATHERED_COPPER_CHEST">
+		<value>Weathered Copper Chest</value>
+	</data>
+	<data name="IDS_TILE_OXIDIZED_COPPER_CHEST">
+		<value>Oxidized Copper Chest</value>
+	</data>
+	<data name="IDS_TILE_WAXED_COPPER_CHEST">
+		<value>Waxed Copper Chest</value>
+	</data>
+	<data name="IDS_TILE_WAXED_EXPOSED_COPPER_CHEST">
+		<value>Waxed Exposed Copper Chest</value>
+	</data>
+	<data name="IDS_TILE_WAXED_WEATHERED_COPPER_CHEST">
+		<value>Waxed Weathered Copper Chest</value>
+	</data>
+	<data name="IDS_TILE_WAXED_OXIDIZED_COPPER_CHEST">
+		<value>Waxed Oxidized Copper Chest</value>
+	</data>
+	<data name="IDS_TILE_EXPOSED_COPPER_DOOR">
+		<value>Exposed Copper Door</value>
+	</data>
+	<data name="IDS_TILE_WEATHERED_COPPER_DOOR">
+		<value>Weathered Copper Door</value>
+	</data>
+	<data name="IDS_TILE_OXIDIZED_COPPER_DOOR">
+		<value>Oxidized Copper Door</value>
+	</data>
+	<data name="IDS_TILE_WAXED_COPPER_DOOR">
+		<value>Waxed Copper Door</value>
+	</data>
+	<data name="IDS_TILE_WAXED_EXPOSED_COPPER_DOOR">
+		<value>Waxed Exposed Copper Door</value>
+	</data>
+	<data name="IDS_TILE_WAXED_WEATHERED_COPPER_DOOR">
+		<value>Waxed Weathered Copper Door</value>
+	</data>
+	<data name="IDS_TILE_WAXED_OXIDIZED_COPPER_DOOR">
+		<value>Waxed Oxidized Copper Door</value>
+	</data>
+	<data name="IDS_TILE_EXPOSED_COPPER_TRAPDOOR">
+		<value>Exposed Copper Trapdoor</value>
+	</data>
+	<data name="IDS_TILE_WEATHERED_COPPER_TRAPDOOR">
+		<value>Weathered Copper Trapdoor</value>
+	</data>
+	<data name="IDS_TILE_OXIDIZED_COPPER_TRAPDOOR">
+		<value>Oxidized Copper Trapdoor</value>
+	</data>
+	<data name="IDS_TILE_WAXED_COPPER_TRAPDOOR">
+		<value>Waxed Copper Trapdoor</value>
+	</data>
+	<data name="IDS_TILE_WAXED_EXPOSED_COPPER_TRAPDOOR">
+		<value>Waxed Exposed Copper Trapdoor</value>
+	</data>
+	<data name="IDS_TILE_WAXED_WEATHERED_COPPER_TRAPDOOR">
+		<value>Waxed Weathered Copper Trapdoor</value>
+	</data>
+	<data name="IDS_TILE_WAXED_OXIDIZED_COPPER_TRAPDOOR">
+		<value>Waxed Oxidized Copper Trapdoor</value>
+	</data>
+	<data name="IDS_TILE_EXPOSED_COPPER_CHAIN">
+		<value>Exposed Copper Chain</value>
+	</data>
+	<data name="IDS_TILE_WEATHERED_COPPER_CHAIN">
+		<value>Weathered Copper Chain</value>
+	</data>
+	<data name="IDS_TILE_OXIDIZED_COPPER_CHAIN">
+		<value>Oxidized Copper Chain</value>
+	</data>
+	<data name="IDS_TILE_WAXED_COPPER_CHAIN">
+		<value>Waxed Copper Chain</value>
+	</data>
+	<data name="IDS_TILE_WAXED_EXPOSED_COPPER_CHAIN">
+		<value>Waxed Exposed Copper Chain</value>
+	</data>
+	<data name="IDS_TILE_WAXED_WEATHERED_COPPER_CHAIN">
+		<value>Waxed Weathered Copper Chain</value>
+	</data>
+	<data name="IDS_TILE_WAXED_OXIDIZED_COPPER_CHAIN">
+		<value>Waxed Oxidized Copper Chain</value>
+	</data>
+	<data name="IDS_TILE_EXPOSED_COPPER_BARS">
+		<value>Exposed Copper Bars</value>
+	</data>
+	<data name="IDS_TILE_WEATHERED_COPPER_BARS">
+		<value>Weathered Copper Bars</value>
+	</data>
+	<data name="IDS_TILE_OXIDIZED_COPPER_BARS">
+		<value>Oxidized Copper Bars</value>
+	</data>
+	<data name="IDS_TILE_WAXED_COPPER_BARS">
+		<value>Waxed Copper Bars</value>
+	</data>
+	<data name="IDS_TILE_WAXED_EXPOSED_COPPER_BARS">
+		<value>Waxed Exposed Copper Bars</value>
+	</data>
+	<data name="IDS_TILE_WAXED_WEATHERED_COPPER_BARS">
+		<value>Waxed Weathered Copper Bars</value>
+	</data>
+	<data name="IDS_TILE_WAXED_OXIDIZED_COPPER_BARS">
+		<value>Waxed Oxidized Copper Bars</value>
+	</data>
+	<data name="IDS_TILE_EXPOSED_COPPER_LANTERN">
+		<value>Exposed Copper Lantern</value>
+	</data>
+	<data name="IDS_TILE_WEATHERED_COPPER_LANTERN">
+		<value>Weathered Copper Lantern</value>
+	</data>
+	<data name="IDS_TILE_OXIDIZED_COPPER_LANTERN">
+		<value>Oxidized Copper Lantern</value>
+	</data>
+	<data name="IDS_TILE_WAXED_COPPER_LANTERN">
+		<value>Waxed Copper Lantern</value>
+	</data>
+	<data name="IDS_TILE_WAXED_EXPOSED_COPPER_LANTERN">
+		<value>Waxed Exposed Copper Lantern</value>
+	</data>
+	<data name="IDS_TILE_WAXED_WEATHERED_COPPER_LANTERN">
+		<value>Waxed Weathered Copper Lantern</value>
+	</data>
+	<data name="IDS_TILE_WAXED_OXIDIZED_COPPER_LANTERN">
+		<value>Waxed Oxidized Copper Lantern</value>
+	</data>
+	<data name="IDS_TILE_EXPOSED_LIGHTNING_ROD">
+		<value>Exposed Lightning Rod</value>
+	</data>
+	<data name="IDS_TILE_WEATHERED_LIGHTNING_ROD">
+		<value>Weathered Lightning Rod</value>
+	</data>
+	<data name="IDS_TILE_OXIDIZED_LIGHTNING_ROD">
+		<value>Oxidized Lightning Rod</value>
+	</data>
+	<data name="IDS_TILE_WAXED_LIGHTNING_ROD">
+		<value>Waxed Lightning Rod</value>
+	</data>
+	<data name="IDS_TILE_WAXED_EXPOSED_LIGHTNING_ROD">
+		<value>Waxed Exposed Lightning Rod</value>
+	</data>
+	<data name="IDS_TILE_WAXED_WEATHERED_LIGHTNING_ROD">
+		<value>Waxed Weathered Lightning Rod</value>
+	</data>
+	<data name="IDS_TILE_WAXED_OXIDIZED_LIGHTNING_ROD">
+		<value>Waxed Oxidized Lightning Rod</value>
+	</data>
+	<data name="IDS_TILE_EXPOSED_COPPER_GOLEM_STATUE">
+		<value>Exposed Copper Golem Statue</value>
+	</data>
+	<data name="IDS_TILE_WEATHERED_COPPER_GOLEM_STATUE">
+		<value>Weathered Copper Golem Statue</value>
+	</data>
+	<data name="IDS_TILE_OXIDIZED_COPPER_GOLEM_STATUE">
+		<value>Oxidized Copper Golem Statue</value>
+	</data>
+	<data name="IDS_TILE_WAXED_COPPER_GOLEM_STATUE">
+		<value>Waxed Copper Golem Statue</value>
+	</data>
+	<data name="IDS_TILE_WAXED_EXPOSED_COPPER_GOLEM_STATUE">
+		<value>Waxed Exposed Copper Golem Statue</value>
+	</data>
+	<data name="IDS_TILE_WAXED_WEATHERED_COPPER_GOLEM_STATUE">
+		<value>Waxed Weathered Copper Golem Statue</value>
+	</data>
+	<data name="IDS_TILE_WAXED_OXIDIZED_COPPER_GOLEM_STATUE">
+		<value>Waxed Oxidized Copper Golem Statue</value>
+	</data>
+	<data name="IDS_TILE_EXPOSED_CUT_COPPER_SLAB">
+		<value>Exposed Cut Copper Slab</value>
+	</data>
+	<data name="IDS_TILE_WEATHERED_CUT_COPPER_SLAB">
+		<value>Weathered Cut Copper Slab</value>
+	</data>
+	<data name="IDS_TILE_OXIDIZED_CUT_COPPER_SLAB">
+		<value>Oxidized Cut Copper Slab</value>
+	</data>
+	<data name="IDS_TILE_WAXED_CUT_COPPER_SLAB">
+		<value>Waxed Cut Copper Slab</value>
+	</data>
+	<data name="IDS_TILE_WAXED_EXPOSED_CUT_COPPER_SLAB">
+		<value>Waxed Exposed Cut Copper Slab</value>
+	</data>
+	<data name="IDS_TILE_WAXED_WEATHERED_CUT_COPPER_SLAB">
+		<value>Waxed Weathered Cut Copper Slab</value>
+	</data>
+	<data name="IDS_TILE_WAXED_OXIDIZED_CUT_COPPER_SLAB">
+		<value>Waxed Oxidized Cut Copper Slab</value>
+	</data>
+	<data name="IDS_TILE_EXPOSED_CUT_COPPER_STAIRS">
+		<value>Exposed Cut Copper Stairs</value>
+	</data>
+	<data name="IDS_TILE_WEATHERED_CUT_COPPER_STAIRS">
+		<value>Weathered Cut Copper Stairs</value>
+	</data>
+	<data name="IDS_TILE_OXIDIZED_CUT_COPPER_STAIRS">
+		<value>Oxidized Cut Copper Stairs</value>
+	</data>
+	<data name="IDS_TILE_WAXED_CUT_COPPER_STAIRS">
+		<value>Waxed Cut Copper Stairs</value>
+	</data>
+	<data name="IDS_TILE_WAXED_EXPOSED_CUT_COPPER_STAIRS">
+		<value>Waxed Exposed Cut Copper Stairs</value>
+	</data>
+	<data name="IDS_TILE_WAXED_WEATHERED_CUT_COPPER_STAIRS">
+		<value>Waxed Weathered Cut Copper Stairs</value>
+	</data>
+	<data name="IDS_TILE_WAXED_OXIDIZED_CUT_COPPER_STAIRS">
+		<value>Waxed Oxidized Cut Copper Stairs</value>
 	</data>
 	<data name="IDS_TILE_ROSE_GOLD_BLOCK">
 		<value>Block of Rose Gold</value>

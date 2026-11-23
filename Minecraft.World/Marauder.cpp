@@ -82,6 +82,17 @@ MobGroupData *Marauder::finalizeMobSpawn(MobGroupData *groupData, int extraData)
 	return groupData;
 }
 
+// arms hang loose while it walks about; raised to attack when it has a target
+// (same pattern as Pillager::getArmPose). NEUTRAL has no pose branch in
+// IllagerModel::setupAnim, so the arms stay at their sides on the
+// HumanoidModel walk-swing rest pose -- and IllagerRenderer stops hiding the
+// held hatchet, so an idle Marauder holds it at its side like the Pillager
+// holds its crossbow.
+Illager::ArmPose Marauder::getArmPose()
+{
+	return isAggressive() ? ATTACKING : NEUTRAL;
+}
+
 // the throw: a snowball that is drawn and hurts like a hatchet
 void Marauder::performRangedAttack(shared_ptr<LivingEntity> target, float power)
 {

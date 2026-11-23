@@ -20,6 +20,27 @@ DoorItem::DoorItem(int id, Material *material, const wstring& doorType) :  Item(
 	maxStackSize = 64;
 }
 
+unsigned int DoorItem::getDescriptionId(shared_ptr<ItemInstance> instance)
+{
+	if (doorType == L"doorCopper" && instance != nullptr)
+	{
+		static const unsigned int copperDoorNames[8] = {
+			IDS_ITEM_DOOR_COPPER,
+			IDS_TILE_EXPOSED_COPPER_DOOR,
+			IDS_TILE_WEATHERED_COPPER_DOOR,
+			IDS_TILE_OXIDIZED_COPPER_DOOR,
+			IDS_TILE_WAXED_COPPER_DOOR,
+			IDS_TILE_WAXED_EXPOSED_COPPER_DOOR,
+			IDS_TILE_WAXED_WEATHERED_COPPER_DOOR,
+			IDS_TILE_WAXED_OXIDIZED_COPPER_DOOR
+		};
+		int aux = instance->getAuxValue();
+		if (aux < 0 || aux > 7) aux = 0;
+		return copperDoorNames[aux];
+	}
+	return Item::getDescriptionId(instance);
+}
+
 bool DoorItem::useOn(shared_ptr<ItemInstance> instance, shared_ptr<Player> player, Level *level, int x, int y, int z, int face, float clickX, float clickY, float clickZ, bool bTestUseOnOnly) 
 {
 	if (face != Facing::UP) return false;

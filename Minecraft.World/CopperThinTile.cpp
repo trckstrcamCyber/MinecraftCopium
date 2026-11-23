@@ -3,6 +3,37 @@
 #include "IconRegister.h"
 #include "net.minecraft.world.level.h"
 
+const unsigned int CopperThinTile::COPPER_CHAIN_NAMES[8] = {
+	IDS_TILE_COPPER_CHAIN,
+	IDS_TILE_EXPOSED_COPPER_CHAIN,
+	IDS_TILE_WEATHERED_COPPER_CHAIN,
+	IDS_TILE_OXIDIZED_COPPER_CHAIN,
+	IDS_TILE_WAXED_COPPER_CHAIN,
+	IDS_TILE_WAXED_EXPOSED_COPPER_CHAIN,
+	IDS_TILE_WAXED_WEATHERED_COPPER_CHAIN,
+	IDS_TILE_WAXED_OXIDIZED_COPPER_CHAIN
+};
+const unsigned int CopperThinTile::COPPER_LANTERN_NAMES[8] = {
+	IDS_TILE_COPPER_LANTERN,
+	IDS_TILE_EXPOSED_COPPER_LANTERN,
+	IDS_TILE_WEATHERED_COPPER_LANTERN,
+	IDS_TILE_OXIDIZED_COPPER_LANTERN,
+	IDS_TILE_WAXED_COPPER_LANTERN,
+	IDS_TILE_WAXED_EXPOSED_COPPER_LANTERN,
+	IDS_TILE_WAXED_WEATHERED_COPPER_LANTERN,
+	IDS_TILE_WAXED_OXIDIZED_COPPER_LANTERN
+};
+const unsigned int CopperThinTile::LIGHTNING_ROD_NAMES[8] = {
+	IDS_TILE_LIGHTNING_ROD,
+	IDS_TILE_EXPOSED_LIGHTNING_ROD,
+	IDS_TILE_WEATHERED_LIGHTNING_ROD,
+	IDS_TILE_OXIDIZED_LIGHTNING_ROD,
+	IDS_TILE_WAXED_LIGHTNING_ROD,
+	IDS_TILE_WAXED_EXPOSED_LIGHTNING_ROD,
+	IDS_TILE_WAXED_WEATHERED_LIGHTNING_ROD,
+	IDS_TILE_WAXED_OXIDIZED_LIGHTNING_ROD
+};
+
 CopperThinTile::CopperThinTile(int id, const wstring &baseIconName,
 	float x0, float y0, float z0, float x1, float y1, float z1)
 	: Tile(id, Material::metal, isSolidRender())   // <-- false: solid[] + lightBlock set non-opaque
@@ -74,4 +105,14 @@ int CopperThinTile::getSpawnResourcesAuxValue(int data)
 {
 	// Breaking a copper block drops the same oxidation state (waxed included).
 	return data & 7;
+}
+
+unsigned int CopperThinTile::getDescriptionId(int iData)
+{
+	if (iData < 0) iData = 0;
+	int aux = iData & 7;
+	if (id == Tile::copper_chain_Id) return COPPER_CHAIN_NAMES[aux];
+	if (id == Tile::copper_lantern_Id) return COPPER_LANTERN_NAMES[aux];
+	if (id == Tile::lightning_rod_Id) return LIGHTNING_ROD_NAMES[aux];
+	return Tile::getDescriptionId(iData);
 }

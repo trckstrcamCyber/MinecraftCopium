@@ -41,6 +41,12 @@ public:
 	// the multi-cuboid model. data & 7 is the wood index.
 	Icon *getFrontIcon(int data);
 	Icon *getBackIcon(int data);
+	// Per-wood display names (2026-11-23), same order as registerIcons:
+	// OAK, SPRUCE, BIRCH, JUNGLE, ACACIA, DARK_OAK, BAMBOO. Used by
+	// ShelfTile::getDescriptionId and the MultiTextureTileItem in Tile.cpp
+	// so each shelf variant is named "Oak Shelf", "Spruce Shelf", etc.
+	static const unsigned int SHELF_NAMES[7];
+	virtual unsigned int getDescriptionId(int iData = -1) override;
 	virtual void registerIcons(IconRegister *iconRegister) override;
 	virtual shared_ptr<TileEntity> newTileEntity(Level *level) override;
 	virtual void setPlacedBy(Level *level, int x, int y, int z, shared_ptr<LivingEntity> by, shared_ptr<ItemInstance> itemInstance) override;

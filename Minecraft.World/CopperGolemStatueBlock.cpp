@@ -8,6 +8,17 @@
 #include "net.minecraft.world.level.h"
 #include "SoundTypes.h"
 
+const unsigned int CopperGolemStatueBlock::COPPER_GOLEM_STATUE_NAMES[8] = {
+	IDS_TILE_COPPER_GOLEM_STATUE,
+	IDS_TILE_EXPOSED_COPPER_GOLEM_STATUE,
+	IDS_TILE_WEATHERED_COPPER_GOLEM_STATUE,
+	IDS_TILE_OXIDIZED_COPPER_GOLEM_STATUE,
+	IDS_TILE_WAXED_COPPER_GOLEM_STATUE,
+	IDS_TILE_WAXED_EXPOSED_COPPER_GOLEM_STATUE,
+	IDS_TILE_WAXED_WEATHERED_COPPER_GOLEM_STATUE,
+	IDS_TILE_WAXED_OXIDIZED_COPPER_GOLEM_STATUE
+};
+
 int CopperGolemStatueBlock::makeData(int oxidation, int pose, int facing)
 {
 	return (oxidation & 3) | ((pose & 3) << 3) | ((facing & 3) << 5);
@@ -256,4 +267,10 @@ int CopperGolemStatueBlock::getSpawnResourcesAuxValue(int data)
 	// break/pick, like every other oxidizable copper block (Cameron:
 	// a weathered statue drops as a weathered statue).
 	return data & 7;
+}
+
+unsigned int CopperGolemStatueBlock::getDescriptionId(int iData)
+{
+	if (iData < 0) iData = 0;
+	return COPPER_GOLEM_STATUE_NAMES[iData & 7];
 }

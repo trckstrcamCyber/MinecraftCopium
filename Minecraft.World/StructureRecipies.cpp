@@ -709,29 +709,11 @@ for (int i = 0; i < 16; i++)
 		L'N', Item::copper_nugget,
 		L'S');
 
-	// Iron ingot -> 9 iron nuggets (Java 26.3
-	// data/minecraft/recipe/iron_nugget.json, shapeless). Workbench
-	// recipe like the gold-nugget exchange (Recipes.cpp), NOT
-	// Complex-Table-only: iron_nugget_Id is deliberately absent from
-	// Recipes::isComplexOnly -- see FIX-NOTES.md.
-	r->addShapelessRecipy(new ItemInstance(Item::iron_nugget, 9), //
-		L"ig",
-		Item::iron_ingot,
-		L'S');
-
-	// 9 iron nuggets -> 1 iron ingot (Java 26.3
-	// data/minecraft/recipe/iron_ingot_from_nuggets.json). Workbench
-	// recipe like the gold one (Recipes.cpp); the result id
-	// (iron_ingot_Id) is shared with vanilla recipes, so it cannot be
-	// made Complex-Table-only without side effects.
-	r->addShapedRecipy(new ItemInstance(Item::iron_ingot, 1), //
-		L"ssscig",
-		L"NNN", //
-		L"NNN", //
-		L"NNN", //
-
-		L'N', Item::iron_nugget,
-		L'S');
+	// neoLegacy - Iron ingot <-> iron nugget exchange (2026-11-23): moved to
+	// Recipes.cpp, next to the gold ingot <-> gold nugget pair (group 'D',
+	// Decoration tab of the recipe book). Still workbench, NOT Complex-Table-only:
+	// iron_nugget_Id stays out of Recipes::isComplexOnly, and the 9 -> 1 result
+	// (iron_ingot_Id) is shared with vanilla recipes so it cannot be gated.
 
 	// Rose gold block -> 9 rose-gold ingots (rosegold jar, shapeless).
 	r->addShapelessRecipy(new ItemInstance(Item::rose_gold_ingot, 9), //

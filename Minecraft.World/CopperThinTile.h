@@ -21,6 +21,12 @@ public:
 	virtual Icon *getTexture(int face, int data) override;
 	virtual Icon *getTexture(LevelSource *level, int x, int y, int z, int face) override;
 	virtual void registerIcons(IconRegister *iconRegister) override;
+	// Per-oxidation display names (2026-11-23), Java 26.3. Index = aux 0-7
+	// (0 unaffected, 1 exposed, 2 weathered, 3 oxidized, 4-7 waxed).
+	static const unsigned int COPPER_CHAIN_NAMES[8];
+	static const unsigned int COPPER_LANTERN_NAMES[8];
+	static const unsigned int LIGHTNING_ROD_NAMES[8];
+	virtual unsigned int getDescriptionId(int iData = -1) override;
 	virtual bool isSolidRender(bool isServerLevel = false) override;
 	virtual bool isCubeShaped() override;
 	virtual int getRenderShape() override;

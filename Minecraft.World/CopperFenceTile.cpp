@@ -3,6 +3,17 @@
 #include "IconRegister.h"
 #include "net.minecraft.world.level.h"
 
+const unsigned int CopperFenceTile::COPPER_BARS_NAMES[8] = {
+	IDS_TILE_COPPER_BARS,
+	IDS_TILE_EXPOSED_COPPER_BARS,
+	IDS_TILE_WEATHERED_COPPER_BARS,
+	IDS_TILE_OXIDIZED_COPPER_BARS,
+	IDS_TILE_WAXED_COPPER_BARS,
+	IDS_TILE_WAXED_EXPOSED_COPPER_BARS,
+	IDS_TILE_WAXED_WEATHERED_COPPER_BARS,
+	IDS_TILE_WAXED_OXIDIZED_COPPER_BARS
+};
+
 CopperFenceTile::CopperFenceTile(int id, const wstring &baseIconName)
 	: ThinFenceTile(id, baseIconName, baseIconName, Material::metal, true)
 {
@@ -41,4 +52,10 @@ Icon *CopperFenceTile::getEdgeTexture()
 int CopperFenceTile::getSpawnResourcesAuxValue(int data)
 {
 	return data & 7;
+}
+
+unsigned int CopperFenceTile::getDescriptionId(int iData)
+{
+	if (iData < 0) iData = 0;
+	return COPPER_BARS_NAMES[iData & 7];
 }
