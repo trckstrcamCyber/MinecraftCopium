@@ -63,7 +63,7 @@ void ServerPlayerGameMode::setGameModeForPlayer(GameType *gameModeForPlayer)
 {
 	this->gameModeForPlayer = gameModeForPlayer;
 
-	gameModeForPlayer->updatePlayerAbilities(&(player->abilities));
+	gameModeForPlayer->updatePlayerAbilities(&(player->abilities), player);
 	player->onUpdateAbilities();
 
 }

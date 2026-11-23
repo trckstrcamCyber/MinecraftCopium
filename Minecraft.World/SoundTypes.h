@@ -482,6 +482,24 @@ enum eSOUND_TYPE
 	eSoundType_ENTITY_PAINTING_PLACE,
 	eSoundType_ENTITY_PAINTING_BREAK,
 
+	eSoundType_ENTITY_SHULKER_AMBIENT,
+	eSoundType_ENTITY_SHULKER_CLOSE,
+	eSoundType_ENTITY_SHULKER_DEATH,
+	eSoundType_ENTITY_SHULKER_HURT,
+	eSoundType_ENTITY_SHULKER_HURT_CLOSED,
+	eSoundType_ENTITY_SHULKER_OPEN,
+	eSoundType_ENTITY_SHULKER_SHOOT,
+	eSoundType_ENTITY_SHULKER_BULLET_HIT,
+
+	eSoundType_ENTITY_STRAY_IDLE,
+	eSoundType_ENTITY_STRAY_HURT,
+	eSoundType_ENTITY_STRAY_DEATH,
+	eSoundType_ENTITY_STRAY_STEP,
+	eSoundType_ENTITY_HUSK_IDLE,
+	eSoundType_ENTITY_HUSK_HURT,
+	eSoundType_ENTITY_HUSK_DEATH,
+	eSoundType_ENTITY_HUSK_STEP,
+
 	// neoLegacy - Copper Age (Phase 3). Copper bulb toggle + copper chest
 	// open/close. The oggs are staged for Deck-fetch (jar1201).
 	eSoundType_COPPER_BULB_TOGGLE,
@@ -531,6 +549,9 @@ enum eSOUND_TYPE
 	eSoundType_SHELF_TAKE_ITEM,
 	eSoundType_SHELF_SINGLE_SWAP,
 	eSoundType_SHELF_MULTI_SWAP,
+
+	eSoundType_ENTITY_BOAT_PADDLE_WATER,
+	eSoundType_ENTITY_BOAT_PADDLE_LAND,
 
 	eSoundType_MAX
 };

@@ -469,6 +469,24 @@ const WCHAR *ConsoleSoundEngine::wchSoundNames[eSoundType_MAX]=
 	L"entity.painting.place",					//eSoundType_ENTITY_PAINTING_PLACE,
 	L"entity.painting.break",					//eSoundType_ENTITY_PAINTING_BREAK,
 
+	L"entity.shulker.ambient",
+	L"entity.shulker.close",
+	L"entity.shulker.death",
+	L"entity.shulker.hurt",
+	L"entity.shulker.hurt_closed",
+	L"entity.shulker.open",
+	L"entity.shulker.shoot",
+	L"entity.shulker_bullet.hit",
+
+	L"entity.stray.idle",
+	L"entity.stray.hurt",
+	L"entity.stray.death",
+	L"entity.stray.step",
+	L"entity.husk.idle",
+	L"entity.husk.hurt",
+	L"entity.husk.death",
+	L"entity.husk.step",
+
 	// neoLegacy - Copper Age (Phase 3). Copper bulb toggle + copper chest
 	// open/close. Must stay in the same order as the eSoundType enum.
 	L"block.copper_bulb.toggle",				//eSoundType_COPPER_BULB_TOGGLE,
@@ -513,6 +531,8 @@ const WCHAR *ConsoleSoundEngine::wchSoundNames[eSoundType_MAX]=
 	L"block.shelf.place_item",			//eSoundType_SHELF_TAKE_ITEM,
 	L"block.shelf.single_swap",			//eSoundType_SHELF_SINGLE_SWAP,
 	L"block.shelf.multi_swap",			//eSoundType_SHELF_MULTI_SWAP,
+	L"entity.boat.paddle_water",
+	L"entity.boat.paddle_land",
 };
 
 

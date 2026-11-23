@@ -41,7 +41,7 @@ void MultiPlayerGameMode::creativeDestroyBlock(Minecraft *minecraft, MultiPlayer
 
 void MultiPlayerGameMode::adjustPlayer(shared_ptr<Player> player)
 {
-	localPlayerMode->updatePlayerAbilities(&player->abilities);
+	localPlayerMode->updatePlayerAbilities(&player->abilities, player);
 }
 
 bool MultiPlayerGameMode::isCutScene()
@@ -52,7 +52,7 @@ bool MultiPlayerGameMode::isCutScene()
 void MultiPlayerGameMode::setLocalMode(GameType *mode)
 {
 	localPlayerMode = mode;
-	localPlayerMode->updatePlayerAbilities(&minecraft->player->abilities);
+	localPlayerMode->updatePlayerAbilities(&minecraft->player->abilities, minecraft->player);
 }
 
 void MultiPlayerGameMode::initPlayer(shared_ptr<Player> player)

@@ -81,6 +81,9 @@ static const unordered_map<wstring, eINSTANCEOF> s_nameToType = {
     { L"small_fireball",    eTYPE_SMALL_FIREBALL   },
     { L"wither_skull",      eTYPE_WITHER_SKULL     },
     { L"dragon_fireball",   eTYPE_DRAGON_FIREBALL  },
+    { L"area_effect_cloud", eTYPE_AREA_EFFECT_CLOUD },
+    { L"shulker",           eTYPE_SHULKER          },
+    { L"shulker_bullet",    eTYPE_SHULKER_BULLET   },
     { L"fireworks_rocket", eTYPE_FIREWORKS_ROCKET },
     { L"eyeofender",       eTYPE_EYEOFENDERSIGNAL },
     // hanging

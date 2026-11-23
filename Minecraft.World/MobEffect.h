@@ -133,4 +133,5 @@ public:
 	virtual void removeAttributeModifiers(shared_ptr<LivingEntity> entity, BaseAttributeMap *attributes, int amplifier);
 	virtual void addAttributeModifiers(shared_ptr<LivingEntity> entity, BaseAttributeMap *attributes, int amplifier);
 	virtual double getAttributeModifierValue(int amplifier, AttributeModifier *original);
+	static int getEffectIdByCanonicalName(const std::wstring &name);
 };

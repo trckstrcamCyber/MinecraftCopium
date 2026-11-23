@@ -154,6 +154,9 @@ public:
 	// neoLegacy - " II" style suffix for names; empty when the enchantment only has one level ("Mending", not "Mending I")
 	wstring getLevelSuffix(int level);
 
+	static std::wstring getEnchantmentName(Enchantment *e, int level);
+	static int getEnchantmentIdByCanonicalName(const std::wstring &name);
+
 private:
 	
 };
