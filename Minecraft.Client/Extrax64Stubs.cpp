@@ -208,16 +208,16 @@ void IQNetPlayer::SendData(IQNetPlayer * player, const void* pvData, DWORD dwDat
 						static_cast<const BYTE*>(pvData) + dwDataSize);
 					if (WinsockNetLayer::TryEncryptClientOutgoing(buf.data(), static_cast<int>(dwDataSize)))
 					{
-						WinsockNetLayer::SendOnSocket(sock, buf.data(), static_cast<int>(dwDataSize));
+						WinsockNetLayer::SendOnSocket(m_smallId, sock, buf.data(), static_cast<int>(dwDataSize));
 					}
 					else
 					{
-						WinsockNetLayer::SendOnSocket(sock, pvData, dwDataSize);
+						WinsockNetLayer::SendOnSocket(m_smallId, sock, pvData, dwDataSize);
 					}
 				}
 				else
 				{
-					WinsockNetLayer::SendOnSocket(sock, pvData, dwDataSize);
+					WinsockNetLayer::SendOnSocket(m_smallId, sock, pvData, dwDataSize);
 				}
 			}
 		}

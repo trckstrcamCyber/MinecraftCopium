@@ -6,6 +6,7 @@
 #include "ThreadName.h"
 #include "compression.h"
 #include "../Minecraft.Client/PS3/PS3Extras/ShutdownManager.h"
+#include <utility>
 
 // This should always be enabled, except for debugging use
 #ifndef _DEBUG
@@ -33,7 +34,7 @@ void Connection::_init()
 	disconnectReason = DisconnectPacket::eDisconnect_None;
 	noInputTicks = 0;
 	estimatedRemaining = 0;
-	estimatedRemainingRaw = 0;
+	delayedPacketCount = 0;
 	fakeLag = 0;
 	slowWriteDelay = 50;
 
@@ -149,42 +150,48 @@ void Connection::setListener(PacketListener *packetListener)
 
 void Connection::send(unsigned char* buffer, int size)
 {
-	if (quitting) 	return;
+	if (quitting || buffer == nullptr || size <= 0) return;
+
+	OutgoingMessage message = {};
+	message.rawData.assign(buffer, buffer + size);
+	message.estimatedSize = size;
+	message.createTime = System::currentTimeMillis();
+	message.isRaw = true;
+	message.isSlow = false;
+	message.usePriority = false;
 
 	MemSect(15);
-	// 4J Jev, synchronized (&writeLock)
 	EnterCriticalSection(&writeLock);
 
-	estimatedRemainingRaw += size;
+	outgoing.push(std::move(message));
+	estimatedRemaining += size;
 
-	outgoingRaw.push(std::make_pair(buffer, size));
-
-	// 4J Jev, end synchronized.
 	LeaveCriticalSection(&writeLock);
 	MemSect(0);
 }
 
 void Connection::send(shared_ptr<Packet> packet)
 {
-	if (quitting) 	return;
+	if (quitting || packet == nullptr) return;
 
 	MemSect(15);
-	// 4J Jev, synchronized (&writeLock)
 	EnterCriticalSection(&writeLock);
 
-	estimatedRemaining += packet->getEstimatedSize() + 1;
+	OutgoingMessage message = {};
+	message.packet = packet;
+	message.estimatedSize = packet->getEstimatedSize() + 1;
+	message.createTime = packet->createTime;
+	message.isRaw = false;
+	message.isSlow = packet->shouldDelay;
 	if (packet->shouldDelay) 
 	{
 		// 4J We have delayed it enough by putting it in the slow queue, so don't delay when we actually send it
 		packet->shouldDelay = false;
-		outgoing_slow.push(packet);
+		++delayedPacketCount;
 	}
-	else
-	{
-		outgoing.push(packet);
-	}
+	outgoing.push(std::move(message));
+	estimatedRemaining += packet->getEstimatedSize() + 1;
 
-	// 4J Jev, end synchronized.
 	LeaveCriticalSection(&writeLock);
 	MemSect(0);
 }
@@ -192,167 +199,98 @@ void Connection::send(shared_ptr<Packet> packet)
 
 void Connection::queueSend(shared_ptr<Packet> packet)
 {
-	if (quitting) return;
+	if (quitting || packet == nullptr) return;
 	EnterCriticalSection(&writeLock);
+	OutgoingMessage message = {};
+	message.packet = packet;
+	message.estimatedSize = packet->getEstimatedSize() + 1;
+	message.createTime = packet->createTime;
+	message.isRaw = false;
+	message.isSlow = true;
+	message.usePriority = packet->shouldDelay;
+	outgoing.push(std::move(message));
 	estimatedRemaining += packet->getEstimatedSize() + 1;
-	outgoing_slow.push(packet);
+	++delayedPacketCount;
 	LeaveCriticalSection(&writeLock);
 }
 
 bool Connection::writeTick()
 {
-	bool didSomething = false;
+	if (bufferedDos == nullptr || byteArrayDos == nullptr)
+		return false;
 
-	// 4J Stu - If the connection is closed and the output stream has been deleted
-	if(bufferedDos==nullptr || byteArrayDos==nullptr)
-		return didSomething;
+	OutgoingMessage message = {};
+	bool hasMessage = false;
+	--slowWriteDelay;
 
-	// try {
-	if (!outgoing.empty() && (fakeLag == 0 || System::currentTimeMillis() - outgoing.front()->createTime >= fakeLag))
+	EnterCriticalSection(&writeLock);
+	if (!outgoing.empty())
 	{
-		shared_ptr<Packet> packet;
-
-		EnterCriticalSection(&writeLock);
-
-		packet = outgoing.front();
-		outgoing.pop();
-		estimatedRemaining -= packet->getEstimatedSize() + 1;
-
-		LeaveCriticalSection(&writeLock);
-
-		Packet::writePacket(packet, bufferedDos);
-		
-
-#ifndef _CONTENT_PACKAGE
-		// 4J Added for debugging
-		int playerId = 0;
-		if( !socket->isLocal() ) 
+		const OutgoingMessage& next = outgoing.front();
+		bool fakeLagElapsed = fakeLag == 0 || System::currentTimeMillis() - next.createTime >= fakeLag;
+		bool slowReady = !next.isSlow || slowWriteDelay <= 0;
+		if (fakeLagElapsed && slowReady)
 		{
-			Socket *socket = getSocket();
-			if( socket )
-			{
-				INetworkPlayer *player = socket->getPlayer();
-				if( player )
-				{
-					playerId = player->GetSmallId();
-				}
-			}
-			Packet::recordOutgoingPacket(packet,playerId);
+			message = std::move(outgoing.front());
+			outgoing.pop();
+			estimatedRemaining -= message.estimatedSize;
+			if (message.isSlow)
+				--delayedPacketCount;
+			hasMessage = true;
 		}
-#endif
+	}
+	LeaveCriticalSection(&writeLock);
 
-		// 4J Stu - Changed this so that rather than writing to the network stream through a buffered stream we want to:
-		// a) Only push whole "game" packets to QNet, rather than amalgamated chunks of data that may include many packets, and partial packets
-		// b) To be able to change the priority and queue of a packet if required
-		//sos->writeWithFlags( baos->buf, 0, baos->size(), 0 );
-		//baos->reset();
+	if (!hasMessage)
+		return false;
 
-		writeSizes[packet->getId()] += packet->getEstimatedSize() + 1;
-		didSomething = true;
+	if (message.isRaw)
+	{
+		byteArray rawData;
+		rawData.data = message.rawData.data();
+		rawData.length = static_cast<unsigned int>(message.rawData.size());
+		bufferedDos->write(rawData);
+		writeSizes[message.rawData[0]] += static_cast<int>(message.rawData.size());
+		return true;
 	}
 
-	if (!outgoingRaw.empty())
+	shared_ptr<Packet> packet = message.packet;
+	if (message.usePriority)
 	{
-		std::pair<unsigned char*, int> rawPacket;
-		EnterCriticalSection(&writeLock);
-
-		rawPacket = outgoingRaw.front();
-		outgoingRaw.pop();
-		estimatedRemainingRaw -= rawPacket.second;
-
-		LeaveCriticalSection(&writeLock);
-
-		for (int i = 0; i < rawPacket.second; i++) {
-			byteArrayDos->writeByte(rawPacket.first[i]);
-		}
-
-		// 4J Stu - Changed this so that rather than writing to the network stream through a buffered stream we want to:
-		// a) Only push whole "game" packets to QNet, rather than amalgamated chunks of data that may include many packets, and partial packets
-		// b) To be able to change the priority and queue of a packet if required
-		//sos->writeWithFlags( baos->buf, 0, baos->size(), 0 );
-		//baos->reset();
-
-		int value = rawPacket.first[0];
-		writeSizes[value] += rawPacket.second;
-		didSomething = true;
-	}
-
-	if ((slowWriteDelay-- <= 0) && !outgoing_slow.empty() && (fakeLag == 0 || System::currentTimeMillis() - outgoing_slow.front()->createTime >= fakeLag))
-	{
-		shared_ptr<Packet> packet;
-
-		//synchronized (writeLock) {
-
-		EnterCriticalSection(&writeLock);
-
-		packet = outgoing_slow.front();
-		outgoing_slow.pop();
-		estimatedRemaining -= packet->getEstimatedSize() + 1;
-
-		LeaveCriticalSection(&writeLock);
-
-		// If the shouldDelay flag is still set at this point then we want to write it to QNet as a single packet with priority flags
-		// Otherwise just buffer the packet with other outgoing packets as the java game did
-		if(packet->shouldDelay)
-		{
-			// Flush any buffered data BEFORE writing directly to the socket.
-			// bufferedDos and sos->writeWithFlags both write to the same underlying
-			// socket stream. If bufferedDos has unflushed bytes (from packets written
-			// via the outgoing queue above), writing directly to sos here would send
-			// the delayed packet's bytes BEFORE the buffered bytes, desynchronizing
-			// the TCP stream on the receiving end.
-			bufferedDos->flush();
-
-			Packet::writePacket(packet, byteArrayDos);
-
-			// 4J Stu - Changed this so that rather than writing to the network stream through a buffered stream we want to:
-			// a) Only push whole "game" packets to QNet, rather than amalgamated chunks of data that may include many packets, and partial packets
-			// b) To be able to change the priority and queue of a packet if required
+		bufferedDos->flush();
+		Packet::writePacket(packet, byteArrayDos);
 #ifdef _XBOX
-			int flags = QNET_SENDDATA_LOW_PRIORITY | QNET_SENDDATA_SECONDARY;
+		int flags = QNET_SENDDATA_LOW_PRIORITY | QNET_SENDDATA_SECONDARY;
 #else
-			int flags = NON_QNET_SENDDATA_ACK_REQUIRED;
+		int flags = NON_QNET_SENDDATA_ACK_REQUIRED;
 #endif
-			sos->writeWithFlags( baos->buf, 0, baos->size(), flags  );
-			baos->reset();
-		}
-		else
-		{
-			Packet::writePacket(packet, bufferedDos);
-		}
+		sos->writeWithFlags(baos->buf, 0, baos->size(), flags);
+		baos->reset();
+	}
+	else
+	{
+		Packet::writePacket(packet, bufferedDos);
+	}
 
 #ifndef _CONTENT_PACKAGE
-		// 4J Added for debugging
-		if( !socket->isLocal() ) 
+	int playerId = 0;
+	if (!socket->isLocal())
+	{
+		Socket *currentSocket = getSocket();
+		if (currentSocket != nullptr)
 		{
-			int playerId = 0;
-			if( !socket->isLocal() ) 
-			{
-				Socket *socket = getSocket();
-				if( socket )
-				{
-					INetworkPlayer *player = socket->getPlayer();
-					if( player )
-					{
-						playerId = player->GetSmallId();
-					}
-				}
-				Packet::recordOutgoingPacket(packet,playerId);
-			}
+			INetworkPlayer *player = currentSocket->getPlayer();
+			if (player != nullptr)
+				playerId = player->GetSmallId();
 		}
-#endif	
-
-		writeSizes[packet->getId()] += packet->getEstimatedSize() + 1;
-		slowWriteDelay = 0;
-		didSomething = true;
+		Packet::recordOutgoingPacket(packet, playerId);
 	}
-	/* 4J JEV, removed try/catch
-	} catch (Exception e) {
-	if (!disconnected) handleException(e);
-	return false;
-	} */
+#endif
 
-	return didSomething;
+	writeSizes[packet->getId()] += packet->getEstimatedSize() + 1;
+	if (message.isSlow)
+		slowWriteDelay = 0;
+	return true;
 }
 
 
@@ -611,7 +549,10 @@ void Connection::sendAndQuit()
 
 int Connection::countDelayedPackets()
 {
-	return static_cast<int>(outgoing_slow.size());
+	EnterCriticalSection(&writeLock);
+	int count = delayedPacketCount;
+	LeaveCriticalSection(&writeLock);
+	return count;
 }
 
 

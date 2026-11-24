@@ -2759,13 +2759,14 @@ void ClientConnection::handleEntityEvent(shared_ptr<EntityEventPacket> packet)
 
 shared_ptr<Entity> ClientConnection::getEntity(int entityId)
 {
-	//if (entityId == minecraft->player->entityId)
-	if(entityId == minecraft->localplayers[m_userIndex]->entityId)
+	if (minecraft == nullptr || m_userIndex < 0 || m_userIndex >= XUSER_MAX_COUNT) return nullptr;
+
+	shared_ptr<Player> localPlayer = minecraft->localplayers[m_userIndex];
+	if (localPlayer != nullptr && entityId == localPlayer->entityId)
 	{
-		//return minecraft->player;
-		return minecraft->localplayers[m_userIndex];
+		return localPlayer;
 	}
-	return level->getEntity(entityId);
+	return level != nullptr ? level->getEntity(entityId) : nullptr;
 }
 
 void ClientConnection::handleSetHealth(shared_ptr<SetHealthPacket> packet)
@@ -4270,7 +4271,8 @@ int ClientConnection::HostDisconnectReturned(void *pParam,int iPad,C4JStorage::E
 		if(!pDLCPack->hasPurchasedFile( DLCManager::e_DLCType_Texture, L"" ))
 		{
 			// no upsell, we're about to quit
-			MinecraftServer::getInstance()->setSaveOnExit( false );
+			auto serverInstance = MinecraftServer::getInstance();
+			if (serverInstance != nullptr) serverInstance->setSaveOnExit(false);
 			// flag a app action of exit game
 			app.SetAction(iPad,eAppAction_ExitWorld);
 		}
@@ -4298,7 +4300,8 @@ int ClientConnection::HostDisconnectReturned(void *pParam,int iPad,C4JStorage::E
 		{
 			StorageManager.SetSaveDisabled(false);
 		}
-		MinecraftServer::getInstance()->setSaveOnExit( true );
+		auto serverInstance = MinecraftServer::getInstance();
+		if (serverInstance != nullptr) serverInstance->setSaveOnExit(true);
 		// flag a app action of exit game
 		app.SetAction(iPad,eAppAction_ExitWorld);
 	}
@@ -4317,11 +4320,13 @@ int ClientConnection::ExitGameAndSaveReturned(void *pParam,int iPad,C4JStorage::
 #if defined(_XBOX_ONE) || defined(__ORBIS__)
 				StorageManager.SetSaveDisabled(false);
 #endif
-		MinecraftServer::getInstance()->setSaveOnExit( true );
+		auto serverInstance = MinecraftServer::getInstance();
+		if (serverInstance != nullptr) serverInstance->setSaveOnExit(true);
 	}
 	else
 	{
-		MinecraftServer::getInstance()->setSaveOnExit( false );
+		auto serverInstance = MinecraftServer::getInstance();
+		if (serverInstance != nullptr) serverInstance->setSaveOnExit(false);
 	}
 	// flag a app action of exit game
 	app.SetAction(iPad,eAppAction_ExitWorld);
@@ -4469,13 +4474,10 @@ void ClientConnection::handleUpdateAttributes(shared_ptr<UpdateAttributesPacket>
 	shared_ptr<Entity> entity = getEntity(packet->getEntityId());
 	if (entity == nullptr) return;
 
-	if ( !entity->instanceof(eTYPE_LIVINGENTITY) )
-	{
-		// Entity is not a living entity!
-		assert(0);
-	}
+	shared_ptr<LivingEntity> living = dynamic_pointer_cast<LivingEntity>(entity);
+	if (living == nullptr) return;
 
-	BaseAttributeMap *attributes = (dynamic_pointer_cast<LivingEntity>(entity))->getAttributes();
+	BaseAttributeMap *attributes = living->getAttributes();
 	unordered_set<UpdateAttributesPacket::AttributeSnapshot *> attributeSnapshots = packet->getValues();
 	for ( UpdateAttributesPacket::AttributeSnapshot *attribute : attributeSnapshots )
 	{

@@ -3257,7 +3257,7 @@ void PlayerConnection::handleSignUpdate(shared_ptr<SignUpdatePacket> packet)
 
 void PlayerConnection::handleKeepAlive(shared_ptr<KeepAlivePacket> packet)
 {
-	if (packet->id == lastKeepAliveId)
+	if (packet->id == lastKeepAliveId && lastKeepAliveTime != 0)
 	{
 		int time = static_cast<int>(System::nanoTime() / 1000000 - lastKeepAliveTime);
 		player->latency = (player->latency * 3 + time) / 4;

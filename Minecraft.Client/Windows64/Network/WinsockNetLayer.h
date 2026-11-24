@@ -90,7 +90,7 @@ public:
 	static DisconnectPacket::eDisconnectReason GetJoinRejectReason();
 
 	static bool SendToSmallId(BYTE targetSmallId, const void* data, int dataSize);
-	static bool SendOnSocket(SOCKET sock, const void* data, int dataSize);
+	static bool SendOnSocket(BYTE targetSmallId, SOCKET sock, const void* data, int dataSize);
 
 	// Non-host split-screen: additional TCP connections to host, one per pad
 	static bool JoinSplitScreen(int padIndex, BYTE* outSmallId);
@@ -148,7 +148,7 @@ private:
 	static BYTE s_hostSmallId;
 	static unsigned int s_nextSmallId;
 
-	static CRITICAL_SECTION s_sendLock;
+	static CRITICAL_SECTION s_sendLock[MINECRAFT_NET_MAX_PLAYERS];
 	static CRITICAL_SECTION s_connectionsLock;
 
 	static std::vector<Win64RemoteConnection> s_connections;
@@ -204,7 +204,7 @@ public:
 	/** Store the cipher key received from the server. Does not activate yet. */
 	static void StoreClientCipherKey(const uint8_t key[ServerRuntime::Security::StreamCipher::KEY_SIZE]);
 
-	/** Send MC|CAck directly to socket then activate client send cipher. Atomic under s_sendLock. */
+	/** Send MC|CAck directly to socket then activate client send cipher. Atomic under the host-connection send lock (s_sendLock[0]). */
 	static bool SendAckAndActivateClientSendCipher();
 
 	/** Activate client recv cipher. Called from ClientRecvThreadProc on MC|COn detection. */

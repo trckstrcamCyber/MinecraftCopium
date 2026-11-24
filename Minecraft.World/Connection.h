@@ -3,6 +3,7 @@ using namespace std;
 
 #include "stdafx.h"
 #include <queue>
+#include <vector>
 #include "System.h"
 #include "DataInputStream.h"
 #include "DataOutputStream.h"
@@ -54,9 +55,17 @@ private:
 
 	queue<shared_ptr<Packet> > incoming;			// 4J - was using synchronizedList...
 	CRITICAL_SECTION incoming_cs;		// ... now has this critical section
-	queue<std::pair<unsigned char*, int>> outgoingRaw;			            // 4J - was using synchronizedList - but don't think it is required as usage is wrapped in writeLock critical section
-	queue<shared_ptr<Packet> > outgoing;			// 4J - was using synchronizedList - but don't think it is required as usage is wrapped in writeLock critical section
-	queue<shared_ptr<Packet> > outgoing_slow;		// 4J - was using synchronizedList - but don't think it is required as usage is wrapped in writeLock critical section
+	struct OutgoingMessage
+	{
+		shared_ptr<Packet> packet;
+		vector<unsigned char> rawData;
+		int64_t estimatedSize;
+		int64_t createTime;
+		bool isRaw;
+		bool isSlow;
+		bool usePriority;
+	};
+	queue<OutgoingMessage> outgoing;
 	
 
 	PacketListener *packetListener;
@@ -76,8 +85,8 @@ private:
 	void **disconnectReasonObjects; // 4J a pointer to an array.
 
 	int noInputTicks;
-	int estimatedRemaining;
-	int estimatedRemainingRaw;
+	int64_t estimatedRemaining;
+	int delayedPacketCount;
 
 	int tickCount; // 4J Added
 

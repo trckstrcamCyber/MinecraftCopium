@@ -107,5 +107,11 @@ void AddEntityPacket::handle(PacketListener *listener)
 
 int AddEntityPacket::getEstimatedSize() 
 {
-	return (11 + data > -1 ? 6 : 0) + 2;
+#ifdef _LARGE_WORLDS
+	int posSize = 4 + 4 + 4;
+#else
+	int posSize = 2 + 2 + 2;
+#endif
+
+	return 4 + 1 + posSize + 1 + 1 + 4 + (data > -1 ? (2 + 2 + 2) : 0);
 }

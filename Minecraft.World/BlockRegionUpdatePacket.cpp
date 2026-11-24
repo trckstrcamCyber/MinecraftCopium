@@ -13,6 +13,7 @@
 
 #define BLOCK_REGION_UPDATE_FULLCHUNK 0x01
 #define BLOCK_REGION_UPDATE_EXTTILES 0x04	// neoLegacy - a list of extended tile ids (>= 256) follows the block data
+#define MAX_COMPRESSED_CHUNK_SIZE 5 * 1024 * 1024
 #define BLOCK_REGION_UPDATE_ZEROHEIGHT 0x02	// added so we can still send a byte for ys, which really needs the range 0-256
 
 BlockRegionUpdatePacket::~BlockRegionUpdatePacket()
@@ -74,19 +75,34 @@ BlockRegionUpdatePacket::BlockRegionUpdatePacket(int x, int y, int z, int xs, in
 	}
 	else
 	{
-		// We don't know how this will compress - just make a fixed length buffer to initially decompress into
-		// Some small sets of blocks can end up compressing into something bigger than their source
-		unsigned char *ucTemp = new unsigned char[(256 * 16 * 16 * 5)/2];
-		unsigned int inputSize = (256 * 16 * 16 * 5)/2;
-	
-		Compression::getCompression()->CompressLZXRLE(ucTemp, &inputSize, rawBuffer.data, (unsigned int) rawBuffer.length);
-		//app.DebugPrintf("Chunk (%d,%d) compressed from %d to size %d\n", x>>4, z>>4, rawBuffer.length, inputSize);
-		unsigned char *ucTemp2 = new unsigned char[inputSize];
-		memcpy(ucTemp2,ucTemp,inputSize);
-		delete [] ucTemp;
-		buffer = byteArray(ucTemp2,inputSize);
+		unsigned int outputCapacity = static_cast<unsigned int>(rawBuffer.length) * 2 + 1024;
+		outputCapacity = outputCapacity < MAX_COMPRESSED_CHUNK_SIZE ? outputCapacity : MAX_COMPRESSED_CHUNK_SIZE;
+		unsigned char *compressedBuffer = nullptr;
+		unsigned int compressedSize = 0;
+		HRESULT compressionResult = E_FAIL;
+
+		while (outputCapacity > 0) {
+			compressedBuffer = new unsigned char[outputCapacity];
+			compressedSize = outputCapacity;
+			compressionResult = Compression::getCompression()->CompressLZXRLE(compressedBuffer, &compressedSize, rawBuffer.data, static_cast<unsigned int>(rawBuffer.length));
+			if (compressionResult == S_OK && compressedSize <= outputCapacity) break;
+
+			delete[] compressedBuffer;
+			compressedBuffer = nullptr;
+
+			if (outputCapacity == MAX_COMPRESSED_CHUNK_SIZE) break;
+			outputCapacity = outputCapacity * 2 < MAX_COMPRESSED_CHUNK_SIZE ? outputCapacity * 2 : MAX_COMPRESSED_CHUNK_SIZE;
+		}
+
+		if (compressedBuffer != nullptr) {
+			buffer = byteArray(compressedBuffer, compressedSize);
+			size = compressedSize;
+		} else {
+			size = 0;
+			buffer = byteArray();
+			app.DebugPrintf("[BRUP-READ] *** CHUNK COMPRESSION FAILED at (%d,%d), rawSize=%u hr=0x%08X\n", x >> 4, z >> 4, static_cast<unsigned int>(rawBuffer.length), static_cast<unsigned int>(compressionResult));
+		}
 		delete [] rawBuffer.data;
-		size = inputSize;
 	}
 
 	// neoLegacy - the 8-bit block data above carries a placeholder for tiles with ids >= 256; send the real ids alongside
@@ -111,7 +127,6 @@ void BlockRegionUpdatePacket::read(DataInputStream *dis) //throws IOException
 	levelIdx = ( size >> 30 ) & 3;
 	size &= 0x3fffffff;
 
-	const int MAX_COMPRESSED_CHUNK_SIZE = 5 * 1024 * 1024;
     if (size < 0 || size > MAX_COMPRESSED_CHUNK_SIZE)
     {
         size = 0;

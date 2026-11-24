@@ -68,7 +68,7 @@ BYTE WinsockNetLayer::s_localSmallId = 0;
 BYTE WinsockNetLayer::s_hostSmallId = 0;
 unsigned int WinsockNetLayer::s_nextSmallId = XUSER_MAX_COUNT;
 
-CRITICAL_SECTION WinsockNetLayer::s_sendLock;
+CRITICAL_SECTION WinsockNetLayer::s_sendLock[MINECRAFT_NET_MAX_PLAYERS];
 CRITICAL_SECTION WinsockNetLayer::s_connectionsLock;
 
 std::vector<Win64RemoteConnection> WinsockNetLayer::s_connections;
@@ -135,7 +135,9 @@ bool WinsockNetLayer::Initialize()
 		return false;
 	}
 
-	InitializeCriticalSection(&s_sendLock);
+	for (int i = 0; i < MINECRAFT_NET_MAX_PLAYERS; i++) {
+		InitializeCriticalSection(&s_sendLock[i]);
+	}
 	InitializeCriticalSection(&s_connectionsLock);
 	InitializeCriticalSection(&s_advertiseLock);
 	InitializeCriticalSection(&s_discoveryLock);
@@ -258,7 +260,9 @@ void WinsockNetLayer::Shutdown()
 
 		ResetClientCipher();
 		DeleteCriticalSection(&s_clientCipherLock);
-		DeleteCriticalSection(&s_sendLock);
+		for (int i = 0; i < MINECRAFT_NET_MAX_PLAYERS; i++) {
+			DeleteCriticalSection(&s_sendLock[i]);
+		}
 		DeleteCriticalSection(&s_connectionsLock);
 		DeleteCriticalSection(&s_advertiseLock);
 		DeleteCriticalSection(&s_discoveryLock);
@@ -283,9 +287,9 @@ bool WinsockNetLayer::SendAckAndActivateClientSendCipher()
 	if (s_hostConnectionSocket == INVALID_SOCKET)
 		return false;
 
-	// Atomic: send the MC|CAck plaintext then activate the send cipher, all under s_sendLock.
+	// Atomic: send the MC|CAck plaintext then activate the send cipher, all under the host-connection send lock (s_sendLock[0]).
 	// No other send can interleave between the ack and cipher activation.
-	EnterCriticalSection(&s_sendLock);
+	EnterCriticalSection(&s_sendLock[0]);
 
 	// Write framed packet: 4-byte length header + ack pattern
 	BYTE header[4];
@@ -326,7 +330,7 @@ bool WinsockNetLayer::SendAckAndActivateClientSendCipher()
 		s_hostConnectionSocket = INVALID_SOCKET;
 	}
 
-	LeaveCriticalSection(&s_sendLock);
+	LeaveCriticalSection(&s_sendLock[0]);
 	return ok;
 }
 
@@ -381,9 +385,9 @@ bool WinsockNetLayer::SendCOnAndCommitServerCipher(BYTE smallId)
 		return false;
 	}
 
-	// Atomic: send MC|COn plaintext then commit the cipher, all under s_sendLock.
+	// Atomic: send MC|COn plaintext then commit the cipher, all under this client's send lock (s_sendLock[smallId]).
 	// No other send to this smallId can happen between MC|COn and CommitCipher.
-	EnterCriticalSection(&s_sendLock);
+	EnterCriticalSection(&s_sendLock[smallId]);
 
 	BYTE header[4];
 	header[0] = static_cast<BYTE>((kCipherOnPatternSize >> 24) & 0xFF);
@@ -422,7 +426,7 @@ bool WinsockNetLayer::SendCOnAndCommitServerCipher(BYTE smallId)
 		ClearSocketForSmallId(smallId);
 	}
 
-	LeaveCriticalSection(&s_sendLock);
+	LeaveCriticalSection(&s_sendLock[smallId]);
 	return ok;
 }
 #endif
@@ -968,18 +972,11 @@ int WinsockNetLayer::GetJoinAttempt() { return s_joinAttempt; }
 int WinsockNetLayer::GetJoinMaxAttempts() { return JOIN_MAX_ATTEMPTS; }
 DisconnectPacket::eDisconnectReason WinsockNetLayer::GetJoinRejectReason() { return s_joinRejectReason; }
 
-bool WinsockNetLayer::SendOnSocket(SOCKET sock, const void* data, int dataSize)
+bool WinsockNetLayer::SendOnSocket(BYTE targetSmallId, SOCKET sock, const void* data, int dataSize)
 {
 	if (sock == INVALID_SOCKET || dataSize <= 0 || dataSize > WIN64_NET_MAX_PACKET_SIZE) return false;
 
-	// TODO: s_sendLock is a single global lock for ALL sockets. If one client's
-	// send() blocks (TCP window full, slow WiFi), every other write thread stalls
-	// waiting for this lock — no data flows to any player until the slow send
-	// completes. This scales badly with player count (8+ players = noticeable).
-	// Fix: replace with per-socket locks indexed by smallId (s_perSocketSendLock[256]).
-	// The lock only needs to prevent interleaving of header+payload on the SAME socket;
-	// sends to different sockets are independent and should never block each other.
-	EnterCriticalSection(&s_sendLock);
+	EnterCriticalSection(&s_sendLock[targetSmallId]);
 
 	BYTE header[4];
 	header[0] = static_cast<BYTE>((dataSize >> 24) & 0xFF);
@@ -994,7 +991,7 @@ bool WinsockNetLayer::SendOnSocket(SOCKET sock, const void* data, int dataSize)
 		int sent = send(sock, (const char*)header + totalSent, toSend - totalSent, 0);
 		if (sent == SOCKET_ERROR || sent == 0)
 		{
-			LeaveCriticalSection(&s_sendLock);
+			LeaveCriticalSection(&s_sendLock[targetSmallId]);
 			return false;
 		}
 		totalSent += sent;
@@ -1006,13 +1003,13 @@ bool WinsockNetLayer::SendOnSocket(SOCKET sock, const void* data, int dataSize)
 		int sent = send(sock, static_cast<const char *>(data) + totalSent, dataSize - totalSent, 0);
 		if (sent == SOCKET_ERROR || sent == 0)
 		{
-			LeaveCriticalSection(&s_sendLock);
+			LeaveCriticalSection(&s_sendLock[targetSmallId]);
 			return false;
 		}
 		totalSent += sent;
 	}
 
-	LeaveCriticalSection(&s_sendLock);
+	LeaveCriticalSection(&s_sendLock[targetSmallId]);
 	return true;
 }
 
@@ -1036,11 +1033,11 @@ bool WinsockNetLayer::SendToSmallId(BYTE targetSmallId, const void* data, int da
 			if (ServerRuntime::Security::GetCipherRegistry().TryEncryptOutgoing(
 				targetSmallId, buf.data(), dataSize))
 			{
-				return SendOnSocket(sock, buf.data(), dataSize);
+				return SendOnSocket(targetSmallId, sock, buf.data(), dataSize);
 			}
 		}
 #endif
-		return SendOnSocket(sock, data, dataSize);
+		return SendOnSocket(targetSmallId, sock, data, dataSize);
 	}
 	else
 	{
@@ -1052,10 +1049,10 @@ bool WinsockNetLayer::SendToSmallId(BYTE targetSmallId, const void* data, int da
 				static_cast<const BYTE*>(data) + dataSize);
 			s_clientSendCipher.Encrypt(buf.data(), dataSize);
 			LeaveCriticalSection(&s_clientCipherLock);
-			return SendOnSocket(s_hostConnectionSocket, buf.data(), dataSize);
+			return SendOnSocket(targetSmallId, s_hostConnectionSocket, buf.data(), dataSize);
 		}
 		LeaveCriticalSection(&s_clientCipherLock);
-		return SendOnSocket(s_hostConnectionSocket, data, dataSize);
+		return SendOnSocket(targetSmallId, s_hostConnectionSocket, data, dataSize);
 	}
 }
 

@@ -5,8 +5,7 @@
 #include "PacketListener.h"
 #include "ExplodePacket.h"
 
-
-
+const size_t MAX_EXPLOSION_BLOCKS = 32768;
 ExplodePacket::ExplodePacket() 
 {
 	x = 0;
@@ -51,8 +50,8 @@ void ExplodePacket::read(DataInputStream *dis) //throws IOException
 		z = dis->readDouble();
 		r = dis->readFloat();
 		int count = dis->readInt();
-
-		if (count < 0 || count > 32768) count = 0;
+		if (count < 0) count = 0;
+		if (count > static_cast<int>(MAX_EXPLOSION_BLOCKS)) count = static_cast<int>(MAX_EXPLOSION_BLOCKS);
 
 		int xp = static_cast<int>(x);
 		int yp = static_cast<int>(y);
@@ -81,14 +80,17 @@ void ExplodePacket::write(DataOutputStream *dos) //throws IOException
 		dos->writeDouble(y);
 		dos->writeDouble(z);
 		dos->writeFloat(r);
-		dos->writeInt(static_cast<int>(toBlow.size()));
+
+		const size_t count = toBlow.size() < MAX_EXPLOSION_BLOCKS ? toBlow.size() : MAX_EXPLOSION_BLOCKS;
+		dos->writeInt(static_cast<int>(count));
 
 		int xp = static_cast<int>(x);
 		int yp = static_cast<int>(y);
 		int zp = static_cast<int>(z);
 
-		for ( const TilePos& tp : toBlow )
+		for (size_t i = 0; i < count; ++i)
 		{
+			const TilePos& tp = toBlow[i];
 			int xx = tp.x-xp;
 			int yy = tp.y-yp;
 			int zz = tp.z-zp;
@@ -110,7 +112,8 @@ void ExplodePacket::handle(PacketListener *listener)
 
 int ExplodePacket::getEstimatedSize() 
 {
-	return 8*3+4+4+static_cast<int>(toBlow.size())*3+12;
+	const size_t count = toBlow.size() < MAX_EXPLOSION_BLOCKS ? toBlow.size() : MAX_EXPLOSION_BLOCKS;
+	return 8 * 3 + 4 + 4 + static_cast<int>(count) * 3 + 12;
 }
 
 float ExplodePacket::getKnockbackX()
