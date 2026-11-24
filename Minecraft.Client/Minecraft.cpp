@@ -1573,9 +1573,23 @@ void Minecraft::run_middle()
 
 											player->updateRichPresence();
 											wstring itemName = L"";
+											wstring infoString1 = L"";
+											wstring infoString2 = L"";
+											wstring infoString3 = L"";
+
 											shared_ptr<ItemInstance> selectedItem = player->getSelectedItem();
-											if (selectedItem != nullptr) itemName = selectedItem->getHoverName();
-											ui.SetSelectedItem(iPad, itemName);
+											if (selectedItem != nullptr) {
+												vector<wstring>& hudNames = selectedItem->getHUDText();
+												itemName = hudNames[0];
+
+												for (int i = 1; i < hudNames.size(); i++) {
+													if (i == 1) infoString1 = hudNames[1];
+													if (i == 2) infoString2 = hudNames[2];
+													if (i == 3) infoString3 = hudNames[3];
+												}
+											}
+
+											ui.SetSelectedItem(iPad, itemName, infoString1, infoString2, infoString3);
 										}
 									}
 								}
@@ -2135,7 +2149,7 @@ void Minecraft::run_middle()
 			//pause = g_NetworkManager.IsLocalGame() && g_NetworkManager.GetPlayerCount() == 1 && app.IsPauseMenuDisplayed(ProfileManager.GetPrimaryPad());
 			pause = app.IsAppPaused();
 
-#ifndef _CONTENT_PACKAGE
+//#ifndef _CONTENT_PACKAGE
 			while (System::nanoTime() >= lastTime + 1000000000)
 			{
 				MemSect(31);
@@ -2145,7 +2159,7 @@ void Minecraft::run_middle()
 				lastTime += 1000000000;
 				frames = 0;
 			}
-#endif
+			//}
 			/*
 			} catch (LevelConflictException e) {
 			this.level = null;
@@ -2291,8 +2305,11 @@ void Minecraft::resize(int width, int height)
 {
 	if (width <= 0) width = 1;
 	if (height <= 0) height = 1;
-	this->width = width;
+
+	this->width = RenderManager.IsWidescreen() ? width : (width * 3) / 4;
 	this->height = height;
+	this->width_phys = width;
+	this->height_phys = height;
 
 	if (screen != nullptr)
 	{
@@ -4158,6 +4175,10 @@ void Minecraft::tick(bool bFirst, bool bUpdateTextures)
 		if( selected || wheel != 0 || (player->ullButtonsPressed&(1LL<<MINECRAFT_ACTION_DROP)) )
 		{
 			wstring itemName = L"";
+			wstring infoString1 = L"";
+			wstring infoString2 = L"";
+			wstring infoString3 = L"";
+
 			shared_ptr<ItemInstance> selectedItem = player->getSelectedItem();
 			// Dropping items happens over network, so if we only have one then assume that we dropped it and should hide the item
 			int iCount=0;
@@ -4165,9 +4186,18 @@ void Minecraft::tick(bool bFirst, bool bUpdateTextures)
 			if(selectedItem != nullptr) iCount=selectedItem->GetCount();
 			if(selectedItem != nullptr && !( (player->ullButtonsPressed&(1LL<<MINECRAFT_ACTION_DROP)) && selectedItem->GetCount() == 1))
 			{
-				itemName = selectedItem->getHoverName();
+                vector<wstring>& hudNames = selectedItem->getHUDText();
+				itemName = hudNames[0];
+
+				for (int i = 1; i < hudNames.size(); i++) {
+					if (i == 1) infoString1 = hudNames[1];
+					if (i == 2) infoString2 = hudNames[2];
+					if (i == 3) infoString3 = hudNames[3];
+                }
 			}
-			if( !(player->ullButtonsPressed&(1LL<<MINECRAFT_ACTION_DROP)) || (selectedItem != nullptr && selectedItem->GetCount() <= 1) ) ui.SetSelectedItem( iPad, itemName );
+			if( !(player->ullButtonsPressed&(1LL<<MINECRAFT_ACTION_DROP)) || (selectedItem != nullptr && selectedItem->GetCount() <= 1) ) {
+				ui.SetSelectedItem( iPad, itemName, infoString1, infoString2, infoString3 );
+			}
 		}
 	}
 	else
@@ -4330,9 +4360,23 @@ void Minecraft::tick(bool bFirst, bool bUpdateTextures)
 
 						player->updateRichPresence();
 						wstring itemName = L"";
+						wstring infoString1 = L"";
+						wstring infoString2 = L"";
+						wstring infoString3 = L"";
+
 						shared_ptr<ItemInstance> selectedItem = player->getSelectedItem();
-						if (selectedItem != nullptr) itemName = selectedItem->getHoverName();
-						ui.SetSelectedItem(iPad, itemName);
+						if (selectedItem != nullptr) {
+							vector<wstring>& hudNames = selectedItem->getHUDText();
+							itemName = hudNames[0];
+
+							for (int i = 1; i < hudNames.size(); i++) {
+								if (i == 1) infoString1 = hudNames[1];
+								if (i == 2) infoString2 = hudNames[2];
+								if (i == 3) infoString3 = hudNames[3];
+							}
+						}
+
+						ui.SetSelectedItem(iPad, itemName, infoString1, infoString2, infoString3);
 					}
 				}
 				if (Keyboard.getEventKey() == options.keyFog.key) {

@@ -1040,10 +1040,13 @@ void Tesselator::normal(float x, float y, float z)
 	int8_t zz = (int8_t) (z * 127);
 	_normal = (xx & 0xff) | ((yy & 0xff) << 8) | ((zz & 0xff) << 16);
 #else
-	byte xx = static_cast<byte>(x * 127);
-	byte yy = static_cast<byte>(y * 127);
-	byte zz = static_cast<byte>(z * 127);
-	_normal = (xx & 0xff) | ((yy & 0xff) << 8) | ((zz & 0xff) << 16);
+    int8_t xx = static_cast<int8_t>(x * 127.0f);
+    int8_t yy = static_cast<int8_t>(y * 127.0f);
+    int8_t zz = static_cast<int8_t>(z * 127.0f);
+
+    _normal = (static_cast<uint32_t>(xx) & 0xff) |
+              ((static_cast<uint32_t>(yy) & 0xff) << 8) |
+              ((static_cast<uint32_t>(zz) & 0xff) << 16);
 #endif
 }
 

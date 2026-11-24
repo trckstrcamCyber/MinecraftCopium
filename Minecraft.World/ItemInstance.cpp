@@ -12,6 +12,7 @@
 #include "net.minecraft.world.item.enchantment.h"
 #include "Item.h"
 #include "ItemInstance.h"
+#include "PotionItem.h"
 #include "HtmlString.h"
 #include "../Minecraft.Client/Common/Consoles_App.h"
 #include "ItemNameMap.h"
@@ -730,6 +731,27 @@ bool ItemInstance::hasCustomHoverName()
 	if (tag == nullptr) return false;
 	if (!tag->contains(L"display")) return false;
 	return tag->getCompound(L"display")->contains(L"Name");
+}
+
+vector<wstring>& ItemInstance::getHUDText()
+{
+	if (m_hudText.empty())
+	{
+		m_hudText.push_back(this->getHoverName());
+	}
+
+	if (m_hudText.size() == 1 && (this->id == Item::potion_Id))
+	{
+		// NOTE: PotionItem::getEffectsText is void at head (End version) — it fills
+		// the vector passed in, it does not allocate/return one.
+		vector<HtmlString> lines;
+		((PotionItem*)Item::items[id])->getEffectsText(this, nullptr, &lines);
+		for (HtmlString& htmlString : lines)
+		{
+			m_hudText.push_back(HtmlString::RemoveFormats(htmlString.getString()));
+		}
+	}
+	return m_hudText;
 }
 
 vector<HtmlString> *ItemInstance::getHoverText(shared_ptr<Player> player, bool advanced)

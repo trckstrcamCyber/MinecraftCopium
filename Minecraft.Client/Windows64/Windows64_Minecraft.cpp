@@ -2048,11 +2048,11 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 		// Present the frame. RenderManager.Present() hardcodes SyncInterval=1,
 		// so when VSync is off we bypass it for uncapped frames. In DXGI
 		// exclusive fullscreen this produces real tearing via direct scanout.
-		// Force VSync on the main menu regardless of user setting: an uncapped
-		// simple menu scene drives the GPU to thousands of FPS and causes coil
-		// whine on many cards.
-		const bool forceVSyncForMenu = !app.GetGameStarted();
-		if (!g_bVSync && !forceVSyncForMenu && g_pSwapChain)
+		// Keep VSync enabled on the main menu and while the game is unfocused.
+		// Otherwise an uncapped frame loop can saturate the GPU while the player
+		// is using another window, making the client appear unresponsive.
+		const bool forceVSync = !app.GetGameStarted() || !g_KBMInput.IsWindowFocused();
+		if (!g_bVSync && !forceVSync && g_pSwapChain)
 		{
 			HRESULT hrPresent = g_pSwapChain->Present(0, 0);
 			// If the direct Present fails (e.g. during fullscreen transition),

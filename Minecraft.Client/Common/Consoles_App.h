@@ -579,6 +579,9 @@ public:
 	wstring GetVKReplacement(unsigned int uiVKey, bool override = false);
 	wstring GetIconReplacement(unsigned int uiIcon);
 
+	wchar_t* GetCodeFromColor(eMinecraftColour col);
+	eMinecraftColour GetColorFromCode(wchar_t _char);
+
 	float getAppTime() { return m_Time.fAppTime; }
 	void UpdateTrialPausedTimer() { mfTrialPausedTime+= m_Time.fElapsedTime;}
 

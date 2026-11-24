@@ -39,7 +39,7 @@ public:
 	virtual void ShowUIDebugMarketingGuide(bool show) {}
 
 	virtual void DisplayGamertag(unsigned int iPad, bool show) = 0;
-	virtual void SetSelectedItem(unsigned int iPad, const wstring &name) = 0;
+    virtual void SetSelectedItem(unsigned int iPad, const wstring &label1, const wstring &label2 = L"", const wstring &label3 = L"", const wstring &label4 = L"") = 0;
 	virtual void UpdateSelectedItemPos(unsigned int iPad) = 0;
 
 	virtual void HandleDLCMountingComplete() = 0;

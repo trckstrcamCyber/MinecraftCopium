@@ -46,6 +46,8 @@ private:
 	int auxValue;
 	// 4J-PB - added for trading menu
 	bool m_bForceNumberDisplay;
+	// TU46 rest (B4): cached selected-item HUD text, built lazily by getHUDText()
+	vector<wstring> m_hudText;
 
 	void _init(int id, int count, int auxValue);
 
@@ -137,6 +139,7 @@ public:
 	void setHoverName(const wstring &name);
 	void resetHoverName();
 	bool hasCustomHoverName();
+	vector<wstring>& getHUDText();
 	vector<HtmlString> *getHoverText(shared_ptr<Player> player, bool advanced);
 	vector<HtmlString> *getHoverTextOnly(shared_ptr<Player> player, bool advanced); // 4J Added
 	bool isFoil();

@@ -373,7 +373,8 @@ public:
 	virtual void PlayUISFX(ESoundEffect eSound);
 
 	virtual void DisplayGamertag(unsigned int iPad, bool show);
-	virtual void SetSelectedItem(unsigned int iPad, const wstring &name);
+	virtual void SetSelectedItem(unsigned int iPad, const wstring &label1, const wstring& label2 = L"", const wstring& label3 = L"", const wstring& label4 = L"");
+
 	virtual void UpdateSelectedItemPos(unsigned int iPad);
 
 	virtual void HandleDLCMountingComplete();

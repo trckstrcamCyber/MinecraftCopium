@@ -395,7 +395,7 @@ LPCWSTR CMinecraftApp::GetString(int iID)
     if(key != nullptr)
     {
         LPCWSTR byKey = app.m_stringTable->getString(key);
-        if(byKey != nullptr && byKey[0] != L'\0')
+        if(byKey != nullptr)
         {
             return byKey;
         }
@@ -3284,7 +3284,7 @@ void CMinecraftApp::HandleXuiActions(void)
 
                     if (useAutosaveAnimation)
 					{
-						(new C4JThread(&UIScene_PauseMenu::SaveWorldThreadProc, (void*)true, "AutosaveSaveThread"))->Run();
+						(new C4JThread(&IUIScene_PauseMenu::SaveWorldThreadProc, (void*)true, "AutosaveSaveThread"))->Run();
 						if(app.GetGameHostOption(eGameHostOption_DisableSaving)) StorageManager.SetSaveDisabled(true);
 						ui.ShowSavingMessage(ProfileManager.GetPrimaryPad(), C4JStorage::ESavingMessage_Long);
 					}
@@ -7064,7 +7064,7 @@ wstring CMinecraftApp::EscapeHTMLString(const wstring& desc)
 	return finalString;
 }
 
-eMinecraftColour GetColorFromCode(wchar_t _char) {
+eMinecraftColour CMinecraftApp::GetColorFromCode(wchar_t _char) {
 	switch (_char) {
 	case L'0': return eHTMLColor_0;
 	case L'1': return eHTMLColor_1;
@@ -7083,6 +7083,28 @@ eMinecraftColour GetColorFromCode(wchar_t _char) {
 	case L'e': return eHTMLColor_e;
 	case L'f': return eHTMLColor_f;
 	default: return eMinecraftColour_NOT_SET;
+	}
+}
+
+wchar_t* CMinecraftApp::GetCodeFromColor(eMinecraftColour col) {
+	switch (col) {
+	case eHTMLColor_0: return L"0";
+	case eHTMLColor_1: return L"1";
+	case eHTMLColor_2: return L"2";
+	case eHTMLColor_3: return L"3";
+	case eHTMLColor_4: return L"4";
+	case eHTMLColor_5: return L"5";
+	case eHTMLColor_6: return L"6";
+	case eHTMLColor_7: return L"7";
+	case eHTMLColor_8: return L"8";
+	case eHTMLColor_9: return L"9";
+	case eHTMLColor_a: return L"a";
+	case eHTMLColor_b: return L"b";
+	case eHTMLColor_c: return L"c";
+	case eHTMLColor_d: return L"d";
+	case eHTMLColor_e: return L"e";
+	case eHTMLColor_f: return L"f";
+	case eMinecraftColour_NOT_SET: return L"f";
 	}
 }
 

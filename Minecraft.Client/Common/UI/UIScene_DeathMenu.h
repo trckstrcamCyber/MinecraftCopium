@@ -14,11 +14,12 @@ private:
 	bool m_bIgnoreInput;
 
 	UIControl_Button m_buttonRespawn, m_buttonExitGame;
-	UIControl_Label m_labelTitle;
+	UIControl_Label m_labelTitle, m_labelDeathMessage;
 	UI_BEGIN_MAP_ELEMENTS_AND_NAMES(UIScene)
 		UI_MAP_ELEMENT( m_buttonRespawn, "Respawn")
 		UI_MAP_ELEMENT( m_buttonExitGame, "ExitGame")
 		UI_MAP_ELEMENT( m_labelTitle, "Title")
+		UI_MAP_ELEMENT( m_labelDeathMessage, "DeathMessage")
 	UI_END_MAP_ELEMENTS_AND_NAMES()
 public:
 	UIScene_DeathMenu(int iPad, void *initData, UILayer *parentLayer);

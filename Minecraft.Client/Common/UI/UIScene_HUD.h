@@ -164,7 +164,7 @@ private:
 	void SetHardcoreMode(bool bHardcore);
 
 public:
-	void SetSelectedLabel(const wstring &label);
+	void SetSelectedLabel(const wstring &label, const wstring& infoName1 = L"", const wstring& infoName2 = L"", const wstring& infoName3 = L"");
 	void ShowDisplayName(bool show);
 
 	void handleGameTick();

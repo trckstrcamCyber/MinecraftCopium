@@ -19,6 +19,11 @@ UIScene_DeathMenu::UIScene_DeathMenu(int iPad, void *initData, UILayer *parentLa
 
 	m_labelTitle.setLabel(app.GetString(IDS_YOU_DIED));
 
+	if (Minecraft::GetInstance() != nullptr && Minecraft::GetInstance()->gui != nullptr)
+	{
+		m_labelDeathMessage.setLabel(Minecraft::GetInstance()->gui->getLastDeathMessage(iPad));
+	}
+
 	// 4J Added: In hardcore mode, disable respawn and show hardcore death message
 	Minecraft *pMC = Minecraft::GetInstance();
 	bool isHardcore = false;
@@ -142,8 +147,9 @@ void UIScene_DeathMenu::handlePress(F64 controlId, F64 childId)
 					// 4J Added: Hardcore mode — skip save dialog, exit without saving, delete world
 					if (pMinecraft->level != nullptr && pMinecraft->level->getLevelData()->isHardcore() && g_NetworkManager.IsHost())
 					{
-						MinecraftServer::getInstance()->setSaveOnExit(false);
-						MinecraftServer::getInstance()->setDeleteWorldOnExit(true);
+						auto serverInstance = MinecraftServer::getInstance();
+						if (serverInstance != nullptr) serverInstance->setSaveOnExit(false);
+						if (serverInstance != nullptr) serverInstance->setDeleteWorldOnExit(true);
 						app.SetAction(m_iPad, eAppAction_ExitWorld);
 						break;
 					}

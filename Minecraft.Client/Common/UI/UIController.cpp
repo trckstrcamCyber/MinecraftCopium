@@ -2849,7 +2849,7 @@ void UIController::DisplayGamertag(unsigned int iPad, bool show)
 	}
 }
 
-void UIController::SetSelectedItem(unsigned int iPad, const wstring &name)
+void UIController::SetSelectedItem(unsigned int iPad, const wstring &label1, const wstring& label2, const wstring& label3, const wstring& label4)
 {
 	// control type settings are already disabled whilst in-game
 	// this just serves as an additional check just incase the removal of the option doesnt work for some reason
@@ -2873,7 +2873,7 @@ void UIController::SetSelectedItem(unsigned int iPad, const wstring &name)
 	auto pHUD = m_groups[static_cast<int>(group)]->getHUD();
 	if(pHUD && pHUD->hasMovie())
 	{
-		pHUD->SetSelectedLabel(name);
+		pHUD->SetSelectedLabel(label1, label2, label3, label4);
 	}
 }
 
@@ -3169,7 +3169,11 @@ void UIController::ShowSavingMessage(unsigned int iPad, C4JStorage::ESavingMessa
 		show = true;
 		break;
 	}
-	if(m_groups[static_cast<int>(eUIGroup_Fullscreen)]->getPressStartToPlay()) m_groups[static_cast<int>(eUIGroup_Fullscreen)]->getPressStartToPlay()->showSaveIcon(show);
+	if(m_groups[static_cast<int>(eUIGroup_Fullscreen)]->getPressStartToPlay())
+	{
+		m_groups[static_cast<int>(eUIGroup_Fullscreen)]->getPressStartToPlay()->showSaveIcon(
+			show, eVal == C4JStorage::ESavingMessage_Short);
+	}
 }
 
 void UIController::ShowPlayerDisplayname(bool show)

@@ -247,15 +247,13 @@ public:
 
 	void pauseGame();
 	//    void toggleFullScreen();	// 4J - removed
-private:
-	void resize(int width, int height);
-
 public:
 	// 4J - Moved to per player
 	//bool isRaining ;
 
 	// 4J - Moved to per player
 	//int64_t lastTickTime;
+	void resize(int width, int height);
 
 private:
 	// 4J- per player?

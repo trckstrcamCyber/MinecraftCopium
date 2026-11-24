@@ -22,15 +22,25 @@ UIScene_HUD::UIScene_HUD(int iPad, void *initData, UILayer *parentLayer) : UISce
 	SetSelectedLabel(L"");
 
 	//enable colors for selected item text
-	{
-		IggyValuePath classPath;
-		IggyValuePathMakeNameRef(&classPath, m_rootPath, "SelectedLabel");
+	/*{
+		{
+			IggyValuePath classPath;
+			IggyValuePathMakeNameRef(&classPath, m_rootPath, "SelectedLabel");
 
-		IggyValuePath labelPath;
-		IggyValuePathMakeNameRef(&labelPath, &classPath, "Label");
+			{
+				IggyValuePath labelPath;
+				IggyValuePathMakeNameRef(&labelPath, &classPath, "Label1");
 
-		IggyValueSetBooleanRS(&labelPath, 0, "m_bUseHtmlText", true);
-	}
+				IggyValueSetBooleanRS(&labelPath, 0, "m_bUseHtmlText", true);
+			}
+			{
+				IggyValuePath labelPath;
+				IggyValuePathMakeNameRef(&labelPath, &classPath, "Label2");
+
+				IggyValueSetBooleanRS(&labelPath, 0, "m_bUseHtmlText", true);
+			}
+		}
+	}*/
 
 	//enable colors for boss bar
 	{
@@ -294,7 +304,7 @@ void UIScene_HUD::handleReload()
 	SetSelectedLabel(L"");
 
 	//enable colors for selected item text
-	{
+	/*{
 		IggyValuePath classPath;
 		IggyValuePathMakeNameRef(&classPath, m_rootPath, "SelectedLabel");
 
@@ -302,7 +312,7 @@ void UIScene_HUD::handleReload()
 		IggyValuePathMakeNameRef(&labelPath, &classPath, "Label");
 
 		IggyValueSetBooleanRS(&labelPath, 0, "m_bUseHtmlText", true);
-	}
+	}*/
 
 	//enable colors for boss bar
 	{
@@ -655,25 +665,55 @@ void UIScene_HUD::ShowDragonHealth(bool show)
 	}
 }
 
-void UIScene_HUD::SetSelectedLabel(const wstring &label)
+void UIScene_HUD::SetSelectedLabel(const wstring &label1, const wstring& label2, const wstring& label3, const wstring& label4)
 {
 	// 4J Stu - Timing here is kept the same as on Xbox360, even though we do it differently now and do the fade out in Flash rather than directly setting opacity
-	if(!label.empty()) m_uiSelectedItemOpacityCountDown = SharedConstants::TICKS_PER_SECOND * 3;
-
-	wstring itemName = L"";
-	if (!label.empty()) {
-		itemName = app.EscapeHTMLString(label);
-		itemName = app.FormatColoredString(itemName);
-	}
+	if(!label1.empty()) m_uiSelectedItemOpacityCountDown = SharedConstants::TICKS_PER_SECOND * 3;
 
 	IggyDataValue result;
-	IggyDataValue value[1];
-	IggyStringUTF16 stringVal;
-	stringVal.string = (IggyUTF16*)itemName.c_str();
-	stringVal.length = itemName.length();
-	value[0].type = IGGY_DATATYPE_string_UTF16;
-	value[0].string16 = stringVal;
-	IggyResult out = IggyPlayerCallMethodRS ( getMovie() , &result, IggyPlayerRootPath( getMovie() ), m_funcSetSelectedLabel , 1 , value );
+	IggyDataValue value[5];
+
+	wstring empty = L"\n";
+
+	for (int i = 0; i < 5; i++) {
+		IggyStringUTF16 stringVal;
+		stringVal.string = (IggyUTF16*)empty.c_str();
+		stringVal.length = 0;
+
+		value[i].type = IGGY_DATATYPE_string_UTF16;
+		value[i].string16 = stringVal;
+	}
+
+	wstring labels[4] = { label1, label2, label3, label4 };
+
+	int count = 0;
+	for (const wstring& label : labels) {
+		if (!label.empty()) count++;
+	}
+
+	int startSlot = 5 - count;
+	for (int i = 0; i < count; i++) {
+
+		IggyStringUTF16 stringVal;
+		stringVal.string = (IggyUTF16*)labels[i].c_str();
+		stringVal.length = labels[i].length();
+
+		value[(startSlot-1) + i].type = IGGY_DATATYPE_string_UTF16;
+		value[(startSlot-1) + i].string16 = stringVal;
+	}
+
+	if (count == 4) {
+		wstring string = L"...";
+
+		IggyStringUTF16 stringVal;
+		stringVal.string = (IggyUTF16*)string.c_str();
+		stringVal.length = string.length();
+
+		value[4].type = IGGY_DATATYPE_string_UTF16;
+		value[4].string16 = stringVal;
+	}
+
+	IggyResult out = IggyPlayerCallMethodRS ( getMovie(), &result, IggyPlayerRootPath( getMovie() ), m_funcSetSelectedLabel, 5, value );
 }
 
 void UIScene_HUD::HideSelectedLabel()

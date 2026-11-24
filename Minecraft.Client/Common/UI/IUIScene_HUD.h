@@ -79,7 +79,7 @@ protected:
 
 	virtual void SetHealthAbsorb(int healthAbsorb) = 0;
 
-	virtual void SetSelectedLabel(const wstring &label) = 0;
+	virtual void SetSelectedLabel(const wstring &label1, const wstring& label2 = L"", const wstring& label3 = L"", const wstring& label4 = L"") = 0;
 	virtual void ShowDisplayName(bool show) = 0;
 
 public:
