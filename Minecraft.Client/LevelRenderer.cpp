@@ -3685,24 +3685,6 @@ void LevelRenderer::levelEvent(shared_ptr<Player> source, int type, int x, int y
 	case LevelEvent::PARTICLES_PLANT_GROWTH:
         DyePowderItem::addGrowthParticles(level[playerIndex], x, y, z, data);
         break;
-	case LevelEvent::SOUND_OPEN_WOODEN_DOOR:
-	case LevelEvent::SOUND_CLOSE_WOODEN_DOOR:
-	case LevelEvent::SOUND_OPEN_IRON_DOOR:
-	case LevelEvent::SOUND_CLOSE_IRON_DOOR:
-	case LevelEvent::SOUND_OPEN_WOODEN_TRAP_DOOR:
-	case LevelEvent::SOUND_CLOSE_WOODEN_TRAP_DOOR:
-	case LevelEvent::SOUND_OPEN_IRON_TRAP_DOOR:
-	case LevelEvent::SOUND_CLOSE_IRON_TRAP_DOOR:
-	case LevelEvent::SOUND_OPEN_FENCE_GATE:
-	case LevelEvent::SOUND_CLOSE_FENCE_GATE:
-	{
-		// 4J - added - door sounds
-		int type = static_cast<int>(event->type);
-		int index = type - LevelEvent::SOUND_OPEN_WOODEN_DOOR;
-		eSoundType sound = static_cast<eSoundType>(eSoundType_BLOCK_WOODEN_DOOR_OPEN + index);
-		playSound(sound, x, y, z, 1.0f, 1.0f, false);
-		break;
-	}
 	case LevelEvent::SOUND_OPEN_DOOR:
 		if (Math::random() < 0.5)
 		{
