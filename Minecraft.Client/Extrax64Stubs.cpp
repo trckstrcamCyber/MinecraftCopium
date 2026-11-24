@@ -193,6 +193,15 @@ D3DXVECTOR3& D3DXVECTOR3::operator += (CONST D3DXVECTOR3 & add) { x += add.x; y 
 BYTE IQNetPlayer::GetSmallId() { return m_smallId; }
 void IQNetPlayer::SendData(IQNetPlayer * player, const void* pvData, DWORD dwDataSize, DWORD dwFlags)
 {
+	// Reject invalid sends before anything dereferences pvData/player or
+	// allocates a copy: a null data pointer with a nonzero size is UB in
+	// the vector copy below, a null player crashes the host branch, and a
+	// huge size would try to allocate it before SendOnSocket's 4 MiB check
+	// can reject it.
+	if (player == nullptr) return;
+	if (dwDataSize > WIN64_NET_MAX_PACKET_SIZE) return;
+	if (pvData == nullptr && dwDataSize > 0) return;
+
 	if (WinsockNetLayer::IsActive())
 	{
 		if (!WinsockNetLayer::IsHosting() && !m_isRemote)

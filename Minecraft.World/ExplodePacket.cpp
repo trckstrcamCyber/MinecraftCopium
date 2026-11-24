@@ -49,9 +49,14 @@ void ExplodePacket::read(DataInputStream *dis) //throws IOException
 		y = dis->readDouble();
 		z = dis->readDouble();
 		r = dis->readFloat();
-		int count = dis->readInt();
-		if (count < 0) count = 0;
-		if (count > static_cast<int>(MAX_EXPLOSION_BLOCKS)) count = static_cast<int>(MAX_EXPLOSION_BLOCKS);
+		int wireCount = dis->readInt();
+		if (wireCount < 0) wireCount = 0;
+		// A conforming writer never sends more than MAX_EXPLOSION_BLOCKS
+		// (write() truncates), so anything above that is a corrupt or
+		// non-conforming peer. Keep only the first MAX entries, but still
+		// consume the excess bytes, or the knockback floats below (and the
+		// next packet header) would be parsed from explosion data.
+		int count = wireCount > static_cast<int>(MAX_EXPLOSION_BLOCKS) ? static_cast<int>(MAX_EXPLOSION_BLOCKS) : wireCount;
 
 		int xp = static_cast<int>(x);
 		int yp = static_cast<int>(y);
@@ -62,6 +67,12 @@ void ExplodePacket::read(DataInputStream *dis) //throws IOException
 			int yy = static_cast<signed char>(dis->readByte())+yp;
 			int zz = static_cast<signed char>(dis->readByte())+zp;
 			toBlow.push_back( TilePos(xx, yy, zz) );
+		}
+		for (int i = count; i < wireCount; i++)
+		{
+			dis->readByte();
+			dis->readByte();
+			dis->readByte();
 		}
 	}
 

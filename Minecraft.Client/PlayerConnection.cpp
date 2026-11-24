@@ -1541,6 +1541,10 @@ if (cmd == L"tp" || cmd == L"teleport")
             level->setTileAndUpdate(blockX, blockY, blockZ, tile);
             info(L"Successfully placed block.");
         }
+        else
+        {
+            warn(L"Y coordinate out of range (0-255)");
+        }
 	} else if (cmd == L"fill") {
 	    // this is pretty much a copy of setblock but instead of pasting a block alone we normalize each points and place the blocks one by one in
 		// the world using the imbricated for loop at the bottom
@@ -1591,10 +1595,21 @@ if (cmd == L"tp" || cmd == L"teleport")
         int maxZ = max(blockZ1, blockZ2);
 
         // Limit fill to 32k because if you try to do too many you could certainly break the game, and its on par with java
-        int volume = (maxX - minX + 1) * (maxY - minY + 1) * (maxZ - minZ + 1);
+        // Spans are computed in 64-bit: unbounded X/Z coords can make the int
+        // product overflow and defeat the cap below (server hang / DoS).
+        int64_t spanX = (int64_t)maxX - (int64_t)minX + 1;
+        int64_t spanY = (int64_t)maxY - (int64_t)minY + 1;
+        int64_t spanZ = (int64_t)maxZ - (int64_t)minZ + 1;
+        int64_t volume = spanX * spanY * spanZ;
         if (volume > 32768)
         {
             warn(L"Too many blocks in specified area (max 32768)");
+            return;
+        }
+        if (volume <= 0)
+        {
+            // Both Y corners out of range: clamping made minY > maxY.
+            warn(L"Invalid fill area (Y out of range 0-255)");
             return;
         }
 
@@ -1707,6 +1722,12 @@ if (cmd == L"tp" || cmd == L"teleport")
             warn(L"Unknown entity or failed to summon.");
         }
     } else if (cmd == L"seed") {
+        if (!app.GetGameHostOption(eGameHostOption_CheatsEnabled))
+        {
+            warn(L"Cheats are not enabled on this server.");
+            return;
+        }
+
         if (!player->hasPermission(eGameCommand_Give))
         {
             warn(L"You do not have permission to use this command.");
@@ -1767,6 +1788,18 @@ if (cmd == L"tp" || cmd == L"teleport")
             info(L"World spawn has been set to X: " + to_wstring(spawnX) + L" Y: " + to_wstring(spawnY) + L" Z: " + to_wstring(spawnZ));
         }
     } else if (cmd == L"spawnpoint") {
+        if (!app.GetGameHostOption(eGameHostOption_CheatsEnabled))
+        {
+            warn(L"Cheats are not enabled on this server.");
+            return;
+        }
+
+        if (!player->hasPermission(eGameCommand_Give))
+        {
+            warn(L"You do not have permission to use this command.");
+            return;
+        }
+
         std::wstring targetName, posX, posY, posZ;
         ss >> targetName >> posX >> posY >> posZ;
 
@@ -1848,6 +1881,12 @@ if (cmd == L"tp" || cmd == L"teleport")
                 return;
             }
 
+            if (arg3.empty())
+            {
+                warn(L"Usage: /xp [player] <add|set> <amount> <levels|points>");
+                return;
+            }
+
             isSet = (arg2 == L"set");
             amount = static_cast<int>(std::wcstol(arg3.c_str(), nullptr, 10));
             isLevel = (arg4 == L"levels" || arg4 == L"l" || arg4 == L"L");
@@ -1876,6 +1915,15 @@ if (cmd == L"tp" || cmd == L"teleport")
                 }
             }
         }
+
+        if (amount < 0)
+        {
+            warn(L"Amount must not be negative.");
+            return;
+        }
+        // Clamp to sane maxima.
+        if (isLevel) amount = min(amount, 10000);
+        else amount = min(amount, 1000000);
 
         if (isLevel)
         {
@@ -2088,7 +2136,16 @@ if (cmd == L"tp" || cmd == L"teleport")
             int seconds = durationStr.empty() ? 30 : static_cast<int>(std::wcstol(durationStr.c_str(), nullptr, 10));
             int amplifier = ampStr.empty() ? 0 : static_cast<int>(std::wcstol(ampStr.c_str(), nullptr, 10));
 
-            int durationTicks = seconds * 20;
+            if (seconds < 0 || amplifier < 0)
+            {
+                warn(L"Duration and amplifier must not be negative.");
+                return;
+            }
+            // Clamp to sane maxima; multiply in 64-bit so the tick count cannot overflow.
+            if (seconds > 1000000) seconds = 1000000;
+            if (amplifier > 255) amplifier = 255;
+
+            int durationTicks = (int)((int64_t)seconds * 20);
 
             if (effectId > 0 && effectId < MobEffect::NUM_EFFECTS && MobEffect::effects[effectId] != nullptr)
             {
@@ -2143,6 +2200,12 @@ if (cmd == L"tp" || cmd == L"teleport")
 
         shared_ptr<ServerPlayer> foundPlayer = server->getPlayers()->getPlayer(targetPlayer);
 
+        if (!foundPlayer)
+        {
+            warn(L"Player not found: " + targetPlayer);
+            return;
+        }
+
         // Note: I added this because in some specific case kicking yourself can be helpful
         // Maybe the message could be tweaked a bit.. Idk, edit it if you have a better idea than me
 
@@ -2153,12 +2216,49 @@ if (cmd == L"tp" || cmd == L"teleport")
             return;
         }
 
+        if (foundPlayer->connection == nullptr)
+        {
+            warn(L"Cannot kick " + targetPlayer + L".");
+            return;
+        }
+
+#if defined(_WINDOWS64) && defined(MINECRAFT_SERVER_BUILD)
+        // On dedicated servers, a non-host kicker must be in ops.json (mirrors handleKickPlayer),
+        // and non-host moderators cannot kick the host or other moderators.
+        {
+            INetworkPlayer *networkPlayer = getNetworkPlayer();
+            bool isHost = (networkPlayer != nullptr && networkPlayer->IsHost());
+            if (!isHost)
+            {
+                PlayerUID kickerXuid = m_offlineXUID;
+                if (kickerXuid == INVALID_XUID) kickerXuid = m_onlineXUID;
+                if (!ServerRuntime::Access::IsPlayerOp(kickerXuid))
+                {
+                    warn(L"You do not have permission to use this command.");
+                    return;
+                }
+
+                INetworkPlayer *targetNetworkPlayer = foundPlayer->connection->getNetworkPlayer();
+                if (foundPlayer->isModerator() ||
+                    (targetNetworkPlayer != nullptr && targetNetworkPlayer->IsHost()))
+                {
+                    warn(L"You cannot kick the host or another operator.");
+                    return;
+                }
+            }
+        }
+#endif
+
         foundPlayer->connection->setWasKicked();
 
         foundPlayer->connection->send(
             std::make_shared<DisconnectPacket>(DisconnectPacket::eDisconnect_Kicked));
 
-        server->getPlayers()->kickPlayerByShortId(foundPlayer->connection->getNetworkPlayer()->GetSmallId());
+        INetworkPlayer *targetNetworkPlayer = foundPlayer->connection->getNetworkPlayer();
+        if (targetNetworkPlayer != nullptr)
+        {
+            server->getPlayers()->kickPlayerByShortId(targetNetworkPlayer->GetSmallId());
+        }
 
         shared_ptr<ChatPacket> kickMessage(
             std::make_shared<ChatPacket>(
@@ -2213,6 +2313,11 @@ if (cmd == L"tp" || cmd == L"teleport")
         }
 
         Enchantment *e = Enchantment::enchantments[enchantmentId];
+        if (enchantmentLevel < e->getMinLevel() || enchantmentLevel > e->getMaxLevel())
+        {
+            warn(L"Enchantment level must be between " + to_wstring(e->getMinLevel()) + L" and " + to_wstring(e->getMaxLevel()) + L".");
+            return;
+        }
         if (!e->canEnchant(selectedItem))
         {
             warn(L"This item cannot be enchanted with " + Enchantment::getEnchantmentName(e, enchantmentLevel) + L".");
@@ -2281,6 +2386,25 @@ if (cmd == L"tp" || cmd == L"teleport")
             warn(targetName + L" is already an operator !");
             return;
         }
+
+#if defined(_WINDOWS64) && defined(MINECRAFT_SERVER_BUILD)
+        // On dedicated servers, OP can only be granted if the target is in ops.json
+        // (mirrors the packet path: prevents runtime OP escalation via /op).
+        if (targetPlayer->connection == nullptr)
+        {
+            warn(L"Cannot op " + targetName + L".");
+            return;
+        }
+        {
+            PlayerUID targetXuid = targetPlayer->connection->m_offlineXUID;
+            if (targetXuid == INVALID_XUID) targetXuid = targetPlayer->connection->m_onlineXUID;
+            if (!ServerRuntime::Access::IsPlayerOp(targetXuid))
+            {
+                warn(L"Cannot op " + targetName + L": player is not in ops.json.");
+                return;
+            }
+        }
+#endif
 
         info(targetName + L" is now an operator.");
 

@@ -403,8 +403,20 @@ int IUIScene_PauseMenu::SaveWorldThreadProc( LPVOID lpParameter )
 		}
 
 #if !defined(MINECRAFT_SERVER_BUILD) && (defined(_WINDOWS64) || defined(_DURANGO) || defined(__ORBIS__))
+		// Wait for the in-flight background save to be handed to storage,
+		// with a timeout: if the completion callback never fires (storage
+		// error, or a write that never completes), do not hang the game
+		// here — log and continue. A start failure is already handled
+		// inside flushPendingBackgroundSave(), which drops the result and
+		// clears the flag; a later Flush() falls back to a synchronous save.
+		int bgWaitIterations = 0;
 		while (ConsoleSaveFileOriginal::hasPendingBackgroundSave())
 		{
+			if (++bgWaitIterations > 3000) // ~30 s at 10 ms per iteration
+			{
+				app.DebugPrintf("SaveWorldThreadProc: timed out waiting for background save\n");
+				break;
+			}
 			ConsoleSaveFileOriginal::flushPendingBackgroundSave();
 			Sleep(10);
 		}

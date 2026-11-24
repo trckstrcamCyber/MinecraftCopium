@@ -7213,6 +7213,7 @@ wchar_t* CMinecraftApp::GetCodeFromColor(eMinecraftColour col) {
 	case eHTMLColor_e: return L"e";
 	case eHTMLColor_f: return L"f";
 	case eMinecraftColour_NOT_SET: return L"f";
+	default: return L"f";
 	}
 }
 

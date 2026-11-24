@@ -313,6 +313,9 @@ bool Enchantment::canEnchant(shared_ptr<ItemInstance> item)
 // 4J Added
 wstring Enchantment::getLevelString(int level)
 {
+	// Levels outside the 1-10 string table must not be mislabelled as level I:
+	// show the number instead (e.g. "Sharpness 100").
+	if (level < 1 || level > 10) return std::to_wstring(level);
 	int stringId = IDS_ENCHANTMENT_LEVEL_1;
 	switch(level)
 	{

@@ -78,7 +78,7 @@ public:
 	virtual void ReleaseSaveAccess();
 
 #if defined(MINECRAFT_SERVER_BUILD) || defined(_WINDOWS64) || defined(_DURANGO) || defined(__ORBIS__)
-	static void flushPendingBackgroundSave();
+	static bool flushPendingBackgroundSave();
 	static bool hasPendingBackgroundSave();
 #endif
 

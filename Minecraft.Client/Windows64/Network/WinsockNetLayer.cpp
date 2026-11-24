@@ -260,6 +260,16 @@ void WinsockNetLayer::Shutdown()
 
 		ResetClientCipher();
 		DeleteCriticalSection(&s_clientCipherLock);
+		// Quiesce in-flight senders before destroying the send locks:
+		// s_active = false (above) stops new sends via SendToSmallId, and
+		// the sockets were all closed above (which fails any send blocked
+		// in send()), but a sender already inside SendOnSocket may still
+		// hold a lock. Taking each lock once waits for its current holder
+		// to finish, so no sender can be inside a lock when it is deleted.
+		for (int i = 0; i < MINECRAFT_NET_MAX_PLAYERS; i++) {
+			EnterCriticalSection(&s_sendLock[i]);
+			LeaveCriticalSection(&s_sendLock[i]);
+		}
 		for (int i = 0; i < MINECRAFT_NET_MAX_PLAYERS; i++) {
 			DeleteCriticalSection(&s_sendLock[i]);
 		}
@@ -719,6 +729,11 @@ bool WinsockNetLayer::JoinGame(const char* ip, int port)
 	DWORD noTimeout = 0;
 	setsockopt(s_hostConnectionSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&noTimeout, sizeof(noTimeout));
 
+	// Bound send() so a stalled/dead peer cannot hold s_sendLock[]
+	// forever inside SendOnSocket() (see M14).
+	DWORD sendTimeout = 30000;
+	setsockopt(s_hostConnectionSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&sendTimeout, sizeof(sendTimeout));
+
 	s_localSmallId = assignedSmallId;
 
 	// Save the host IP and port so JoinSplitScreen can connect to the same host
@@ -914,6 +929,11 @@ DWORD WINAPI WinsockNetLayer::JoinThreadProc(LPVOID param)
 	DWORD noTimeout = 0;
 	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&noTimeout, sizeof(noTimeout));
 
+	// Bound send() so a stalled/dead peer cannot hold s_sendLock[]
+	// forever inside SendOnSocket() (see M14).
+	DWORD sendTimeout = 30000;
+	setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&sendTimeout, sizeof(sendTimeout));
+
 	s_hostConnectionSocket = sock;
 	s_joinAssignedSmallId = assignedSmallId;
 	s_joinState = eJoinState_Success;
@@ -1019,9 +1039,16 @@ bool WinsockNetLayer::SendToSmallId(BYTE targetSmallId, const void* data, int da
 
 	if (s_isHost)
 	{
+		// Hold the per-target send lock across the socket lookup and the
+		// send: otherwise a concurrent close can free the socket (and
+		// Winsock can reuse the handle) between GetSocketForSmallId() and
+		// SendOnSocket(). The lock is a recursive CRITICAL_SECTION, so
+		// SendOnSocket() re-entering it on this thread is safe.
+		EnterCriticalSection(&s_sendLock[targetSmallId]);
 		SOCKET sock = GetSocketForSmallId(targetSmallId);
-		if (sock == INVALID_SOCKET) return false;
-
+		bool result = false;
+		if (sock != INVALID_SOCKET)
+		{
 #if defined(MINECRAFT_SERVER_BUILD)
 		// Encrypt outgoing data if a cipher is active for this connection.
 		// TryEncryptOutgoing atomically checks and encrypts under a single lock
@@ -1033,11 +1060,16 @@ bool WinsockNetLayer::SendToSmallId(BYTE targetSmallId, const void* data, int da
 			if (ServerRuntime::Security::GetCipherRegistry().TryEncryptOutgoing(
 				targetSmallId, buf.data(), dataSize))
 			{
-				return SendOnSocket(targetSmallId, sock, buf.data(), dataSize);
+				result = SendOnSocket(targetSmallId, sock, buf.data(), dataSize);
+				LeaveCriticalSection(&s_sendLock[targetSmallId]);
+				return result;
 			}
 		}
 #endif
-		return SendOnSocket(targetSmallId, sock, data, dataSize);
+			result = SendOnSocket(targetSmallId, sock, data, dataSize);
+		}
+		LeaveCriticalSection(&s_sendLock[targetSmallId]);
+		return result;
 	}
 	else
 	{
@@ -1287,6 +1319,11 @@ DWORD WINAPI WinsockNetLayer::AcceptThreadProc(LPVOID param)
 
 		int noDelay = 1;
 		setsockopt(clientSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&noDelay, sizeof(noDelay));
+
+		// Bound send() so a stalled/dead peer cannot hold s_sendLock[]
+		// forever inside SendOnSocket() (see M14).
+		DWORD sendTimeout = 30000;
+		setsockopt(clientSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&sendTimeout, sizeof(sendTimeout));
 
 #if defined(MINECRAFT_SERVER_BUILD)
 		std::string remoteIp;
@@ -1563,6 +1600,11 @@ DWORD WINAPI WinsockNetLayer::RecvThreadProc(LPVOID param)
 	}
 	LeaveCriticalSection(&s_connectionsLock);
 
+	// The socket handle is closed above; clear it from the smallId map too,
+	// or GetSocketForSmallId() keeps returning the closed handle (and Winsock
+	// may later reuse that handle number for a different player).
+	ClearSocketForSmallId(clientSmallId);
+
 	EnterCriticalSection(&s_disconnectLock);
 	s_disconnectedSmallIds.push_back(clientSmallId);
 	LeaveCriticalSection(&s_disconnectLock);
@@ -1615,6 +1657,10 @@ void WinsockNetLayer::PushFreeSmallId(BYTE smallId)
 
 void WinsockNetLayer::CloseConnectionBySmallId(BYTE smallId)
 {
+	// Take the per-target send lock first (lock order: s_sendLock, then
+	// s_connectionsLock) so a send in flight on this socket finishes before
+	// the socket is closed under it.
+	EnterCriticalSection(&s_sendLock[smallId]);
 	EnterCriticalSection(&s_connectionsLock);
 	for (size_t i = 0; i < s_connections.size(); i++)
 	{
@@ -1627,6 +1673,10 @@ void WinsockNetLayer::CloseConnectionBySmallId(BYTE smallId)
 		}
 	}
 	LeaveCriticalSection(&s_connectionsLock);
+	LeaveCriticalSection(&s_sendLock[smallId]);
+	// The socket handle is closed above; clear it from the smallId map too
+	// (same stale-handle hazard as the RecvThreadProc exit path).
+	ClearSocketForSmallId(smallId);
 }
 
 BYTE WinsockNetLayer::GetSplitScreenSmallId(int padIndex)
@@ -1680,6 +1730,11 @@ bool WinsockNetLayer::JoinSplitScreen(int padIndex, BYTE* outSmallId)
 
 	int noDelay = 1;
 	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&noDelay, sizeof(noDelay));
+
+	// Bound send() so a stalled/dead peer cannot hold s_sendLock[]
+	// forever inside SendOnSocket() (see M14).
+	DWORD sendTimeout = 30000;
+	setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&sendTimeout, sizeof(sendTimeout));
 
 	if (connect(sock, result->ai_addr, (int)result->ai_addrlen) == SOCKET_ERROR)
 	{

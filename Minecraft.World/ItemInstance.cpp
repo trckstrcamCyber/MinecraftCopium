@@ -395,11 +395,14 @@ void ItemInstance::setAuxValue(int value)
 	{
 		auxValue = 0;
 	}
+	// The aux value feeds getHoverName(), which getHUDText() caches.
+	m_hudText.clear();
 }
 
 void ItemInstance::setRawAuxValue(int value)
 {
 	auxValue = value;
+	m_hudText.clear();
 }
 
 int ItemInstance::getMaxDamage()
@@ -432,6 +435,7 @@ bool ItemInstance::hurt(int dmg, Random *random)
 	}
 
 	auxValue += dmg;
+	m_hudText.clear();
 
 	return auxValue > getMaxDamage();
 }
@@ -682,6 +686,8 @@ void ItemInstance::setTag(CompoundTag *tag)
 {
 	delete this->tag;
 	this->tag = tag;
+	// The display.Name tag feeds getHoverName(), which getHUDText() caches.
+	m_hudText.clear();
 }
 
 wstring ItemInstance::getHoverName()
@@ -706,6 +712,7 @@ void ItemInstance::setHoverName(const wstring &name)
 	if (tag == nullptr) tag = new CompoundTag();
 	if (!tag->contains(L"display")) tag->putCompound(L"display", new CompoundTag());
 	tag->getCompound(L"display")->putString(L"Name", name);
+	m_hudText.clear();
 }
 
 void ItemInstance::resetHoverName()
@@ -714,6 +721,7 @@ void ItemInstance::resetHoverName()
 	if (!tag->contains(L"display")) return;
 	CompoundTag *display = tag->getCompound(L"display");
 	display->remove(L"Name");
+	m_hudText.clear();
 
 	if (display->isEmpty())
 	{

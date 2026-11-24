@@ -679,16 +679,36 @@ void ConsoleSaveFileOriginal::Flush(bool autosave, bool updateThumbnail )
 {
 #if defined(MINECRAFT_SERVER_BUILD) || defined(_WINDOWS64) || defined(_DURANGO) || defined(__ORBIS__)
 #if defined(MINECRAFT_SERVER_BUILD)
-	const bool useBackgroundSave = true;
+	bool useBackgroundSave = true;
 #else
-	const bool useBackgroundSave = autosave;
+	bool useBackgroundSave = autosave;
 #endif
+	// Claim the background-save slot under s_bgSaveMutex: wait for any
+	// in-flight background save, then hold the mutex through the snapshot
+	// and s_bgSaveActive.store(true) below, so two concurrent Flush()
+	// calls cannot both snapshot and both publish into the single
+	// s_bgResult (the second would overwrite the first and lose a save).
+	// The mutex is released while sleeping: flushPendingBackgroundSave()
+	// needs it to hand the finished save to storage, which is what clears
+	// s_bgSaveActive via SaveSaveDataCallback.
+	// If the wait times out (the completion callback never fires, e.g. a
+	// storage error), fall back to a synchronous save instead of spinning
+	// forever — but do NOT start a second background save while one is
+	// still (apparently) in flight.
+	std::unique_lock<std::mutex> bgClaimLock(s_bgSaveMutex);
+	int bgWaitIterations = 0;
+	while (s_bgSaveActive.load(std::memory_order_acquire))
 	{
-		while (s_bgSaveActive.load(std::memory_order_acquire))
+		if (++bgWaitIterations > 3000) // ~30 s at 10 ms per iteration
 		{
-			Sleep(10);
+			app.DebugPrintf("Flush: timed out waiting for background save; using synchronous save\n");
+			useBackgroundSave = false;
+			bgClaimLock.unlock();
+			break;
 		}
-		std::lock_guard<std::mutex> pendingSaveLock(s_bgSaveMutex);
+		bgClaimLock.unlock();
+		Sleep(10);
+		bgClaimLock.lock();
 	}
 #endif
 
@@ -749,12 +769,29 @@ void ConsoleSaveFileOriginal::Flush(bool autosave, bool updateThumbnail )
 				TelemetryManager->RecordLevelSaveOrCheckpoint(ProfileManager.GetPrimaryPad(), uid, fileSize);
 
 				s_bgSaveActive.store(true, std::memory_order_release);
+				// Claim established (the flag now serialises other
+				// Flush() calls); release the mutex before spawning the
+				// thread, which re-takes it to publish the result.
+				bgClaimLock.unlock();
 				ReleaseSaveAccess();
 
 				std::thread([snap, compData, fileSize, thumb, thumbSz, meta, metaLen, this]() {
 					Compression::UseDefaultThreadStorage();
 					unsigned int compLen = fileSize + 8;
-					Compression::getCompression()->Compress(compData + 8, &compLen, snap, fileSize);
+					// compData is only fileSize + 8 bytes, smaller than the
+					// worst-case bound for incompressible data, so Compress
+					// can fail. Never publish a failed compress: the header
+					// below would describe garbage and the save written
+					// from it would fail to decompress on load. Drop this
+					// autosave (logged) and clear the flag so the game does
+					// not wait forever for a save that will never arrive.
+					if (Compression::getCompression()->Compress(compData + 8, &compLen, snap, fileSize) != S_OK)
+					{
+						app.DebugPrintf("Background autosave compression failed; dropping save\n");
+						delete[] snap;
+						s_bgSaveActive.store(false, std::memory_order_release);
+						return;
+					}
 					ZeroMemory(compData, 8);
 					memcpy(compData + 4, &fileSize, sizeof(fileSize));
 
@@ -779,6 +816,11 @@ void ConsoleSaveFileOriginal::Flush(bool autosave, bool updateThumbnail )
 			app.DebugPrintf("Background autosave snapshot allocation failed; using synchronous save\n");
 		}
 	}
+		// Not taking the background path (disabled, timed out waiting, or
+		// an allocation failed): release the claim so a concurrent Flush()
+		// is not blocked for the whole synchronous save.
+		if (bgClaimLock.owns_lock())
+			bgClaimLock.unlock();
 	#endif
 
 	// Assume that the compression will make it smaller so initially attempt to allocate the current file size
@@ -1249,19 +1291,34 @@ void *ConsoleSaveFileOriginal::getWritePointer(FileEntry *file)
 }
 
 #if defined(MINECRAFT_SERVER_BUILD) || defined(_WINDOWS64) || defined(_DURANGO) || defined(__ORBIS__)
-void ConsoleSaveFileOriginal::flushPendingBackgroundSave()
+// Returns false when there is no pending result, or when SaveSaveData
+// refuses to start the write (in which case the pending result is dropped
+// and the background-save flag cleared, so callers do not wait forever
+// for a callback that will never fire). Returns true when the write was
+// started; the actual write is not done until SaveSaveDataCallback fires.
+bool ConsoleSaveFileOriginal::flushPendingBackgroundSave()
 {
 	std::lock_guard<std::mutex> lk(s_bgSaveMutex);
 	if (!s_bgResult.pending)
-		return;
+		return false;
 
 	StorageManager.SetSaveImages(
 		s_bgResult.thumbData, s_bgResult.thumbSize,
 		nullptr, 0, s_bgResult.textMeta, s_bgResult.textMetaBytes);
-	StorageManager.SaveSaveData(&ConsoleSaveFileOriginal::SaveSaveDataCallback, s_bgResult.owner);
+	C4JStorage::ESaveGameState saveState = StorageManager.SaveSaveData(&ConsoleSaveFileOriginal::SaveSaveDataCallback, s_bgResult.owner);
 
 	s_bgResult.pending = false;
+	if (saveState != C4JStorage::ESaveGame_Save)
+	{
+		// The write never started, so the callback will never fire and
+		// s_bgSaveActive would stay set forever. Drop the result and
+		// clear the flag so the next Flush() can proceed.
+		app.DebugPrintf("flushPendingBackgroundSave: SaveSaveData failed to start; dropping background save\n");
+		s_bgSaveActive.store(false, std::memory_order_release);
+		return false;
+	}
 	// the actual write isnt done until SaveSaveDataCallback fires
+	return true;
 }
 
 bool ConsoleSaveFileOriginal::hasPendingBackgroundSave()

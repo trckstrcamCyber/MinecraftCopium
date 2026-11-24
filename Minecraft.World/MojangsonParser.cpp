@@ -219,7 +219,6 @@ Tag* MojangsonCompoundParser::parse() {
         Tag* tag = parser->parse();
         tag->setName(parser->a);
         compound->put(parser->a, tag);
-        delete tag;
     }
     return compound;
 }

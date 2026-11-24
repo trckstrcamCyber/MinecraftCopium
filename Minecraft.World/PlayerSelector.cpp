@@ -168,6 +168,10 @@ bool PlayerSelector::matchesType(shared_ptr<Entity> e, const wstring& selectorTy
         return isPlayer;                               // only players for @a/@p/@r
     }
 
+    // @a/@p/@r are player-only regardless of type= (Java semantics):
+    // a non-player must never match, even inverted (e.g. @a[type=!zombie]).
+    if (selectorType != L"e" && !e->instanceof(eTYPE_PLAYER)) return false;
+
     bool matches;
     if (typeVal == L"player")
         matches = e->instanceof(eTYPE_PLAYER);
@@ -289,16 +293,16 @@ bool PlayerSelector::matchesNbt(shared_ptr<Entity> e, const map<wstring, wstring
 
     CompoundTag* filter = nullptr;
     try { filter = MojangsonParser::parse(nbtVal); }
-    catch (...) { return !invert; }
+    catch (...) { return false; }
 
     CompoundTag entityNbt(L"");           
-   if (e == nullptr) return !invert;
+   if (e == nullptr) { delete filter; return false; }
 
 try {
     e->saveWithoutId(&entityNbt);
 } catch (...) {
     delete filter;
-    return !invert;
+    return false;
 }
 
     auto* allTags = filter->getAllTags(); 

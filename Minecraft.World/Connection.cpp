@@ -228,8 +228,11 @@ bool Connection::writeTick()
 	{
 		const OutgoingMessage& next = outgoing.front();
 		bool fakeLagElapsed = fakeLag == 0 || System::currentTimeMillis() - next.createTime >= fakeLag;
-		bool slowReady = !next.isSlow || slowWriteDelay <= 0;
-		if (fakeLagElapsed && slowReady)
+		// Slow packets used to gate on slowWriteDelay too, but that countdown
+		// only ever stalls the head of the queue (chat, movement, disconnect
+		// all wait behind one delayed packet) and is never re-armed, so it
+		// only ever delayed the start of a connection. Gate on fakeLag only.
+		if (fakeLagElapsed)
 		{
 			message = std::move(outgoing.front());
 			outgoing.pop();
@@ -358,8 +361,18 @@ close("disconnect.genericReason", "Internal exception: " + e.toString());
 void Connection::close(DisconnectPacket::eDisconnectReason reason, ...)
 {
 //	printf("Con:0x%x close\n",this);
-	if (!running) return;
-//	printf("Con:0x%x close doing something\n",this);
+	// Claim the close under threadCounterLock: close() can be called
+	// concurrently from tick(), sendAndQuit() and the runClose /
+	// runSendAndQuit threads. Without this, two callers can both pass the
+	// running check and both delete the streams below (double-delete).
+	EnterCriticalSection(&threadCounterLock);
+	if (!running)
+	{
+		LeaveCriticalSection(&threadCounterLock);
+		return;
+	}
+	running = false;
+	LeaveCriticalSection(&threadCounterLock);
 	disconnected = true;
 
 	va_list input;
@@ -400,7 +413,7 @@ void Connection::close(DisconnectPacket::eDisconnectReason reason, ...)
 
 //	CreateThread(nullptr, 0, runClose, this, 0, &closeThreadID);
 
-	running = false;
+	// (running was already set to false under threadCounterLock at the top of close().)
 
 	if( dis ) dis->close();		// The input stream needs closed before the readThread, or the readThread
 						// may get stuck whilst blocking waiting on a read
