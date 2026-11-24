@@ -111,6 +111,12 @@ CopperGolemState CopperGolem::getState()
 
 void CopperGolem::setState(CopperGolemState state)
 {
+	// Clamp: a corrupt/modded save can store any int for GolemState
+	// (readAdditionalSaveData casts it straight to the enum). Unknown
+	// states are treated as non-interacting by the model, but clamping
+	// here keeps the synched byte a valid state for every consumer.
+	if (state < COPPER_GOLEM_STATE_IDLE || state > COPPER_GOLEM_STATE_DROPPING_NO_ITEM)
+		state = COPPER_GOLEM_STATE_IDLE;
 	entityData->set(DATA_STATE_ID, static_cast<byte>(state));
 }
 
@@ -432,9 +438,9 @@ bool CopperGolem::mobInteract(shared_ptr<Player> player)
 		if (!level->isClientSide)
 		{
 			shear();
+			item->hurtAndBreak(1, player);
+			playSound(eSoundType_MOB_SHEEP_SHEAR, 1, 1);
 		}
-		item->hurtAndBreak(1, player);
-		playSound(eSoundType_MOB_SHEEP_SHEAR, 1, 1);
 		return true;
 	}
 
@@ -463,8 +469,8 @@ bool CopperGolem::mobInteract(shared_ptr<Player> player)
 			{
 				setWaxed(false);
 				nextWeatheringTick = -1;
+				item->hurtAndBreak(1, player);
 			}
-			item->hurtAndBreak(1, player);
 			return true;
 		}
 		if (getWeatherState() > WEATHER_STATE_UNAFFECTED)
@@ -474,8 +480,8 @@ bool CopperGolem::mobInteract(shared_ptr<Player> player)
 			{
 				setWeatherState(getWeatherState() - 1);
 				nextWeatheringTick = -1;
+				item->hurtAndBreak(1, player);
 			}
-			item->hurtAndBreak(1, player);
 			return true;
 		}
 	}

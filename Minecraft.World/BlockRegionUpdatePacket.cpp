@@ -255,6 +255,8 @@ void BlockRegionUpdatePacket::handle(PacketListener *listener)
 
 int BlockRegionUpdatePacket::getEstimatedSize() 
 {
-	return 17 + size + (extTiles.empty() ? 0 : 4 + static_cast<int>(extTiles.size() / 4) * 5);
+	// 18-byte header: flags(1) + x(4) + y(2) + z(4) + xs-1(1) +
+	// ys-1(1) + zs-1(1) + sizeAndLevel(4) — see write().
+	return 18 + size + (extTiles.empty() ? 0 : 4 + static_cast<int>(extTiles.size() / 4) * 5);
 }
 

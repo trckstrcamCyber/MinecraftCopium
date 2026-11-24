@@ -23,7 +23,7 @@ int ChestTileEntity::getContainerType()
 
 void ChestTileEntity::_init(bool isBonusChest)
 {
-	items = new ItemInstanceArray(9 * 4);
+	items = new ItemInstanceArray(9 * 3); // == getContainerSize(); load() also allocates 27 (was 9 * 4)
 
 	hasCheckedNeighbors = false;
 	this->isBonusChest = isBonusChest;
@@ -166,7 +166,12 @@ void ChestTileEntity::load(CompoundTag *base)
 	}
 	items = new ItemInstanceArray(getContainerSize());
 	if (base->contains(L"CustomName")) name = base->getString(L"CustomName");
-	for (int i = 0; i < inventoryList->size(); i++)
+	// A tag without an "Items" list (hand-edited / truncated save):
+	// getList() returns null — skip the item loop, items stay empty.
+	// (ShelfTileEntity::load() returns early here; this keeps loading
+	// so the bonus flag below is still read.)
+	int inventorySize = inventoryList != nullptr ? inventoryList->size() : 0;
+	for (int i = 0; i < inventorySize; i++)
 	{
 		CompoundTag *tag = inventoryList->get(i);
 		unsigned int slot = tag->getByte(L"Slot") & 0xff;

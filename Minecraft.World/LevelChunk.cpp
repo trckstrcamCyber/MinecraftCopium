@@ -982,7 +982,7 @@ bool LevelChunk::setTileAndData(int x, int y, int z, int _tile, int _data)
 	int zOffs = this->z * 16 + z;
 
 	Tile *oldTile = Tile::tiles[old];
-	if (oldTile == nullptr & old != 0) return false; // tu31 tutorial world fix
+	if (oldTile == nullptr && old != 0) return false; // tu31 tutorial world fix
 	if (old != 0 && !level->isClientSide)
 	{
 		oldTile->onRemoving(level, xOffs, y, zOffs, oldData);
@@ -2520,7 +2520,11 @@ byteArray LevelChunk::getReorderedBlocksAndData(int x0, int y0, int z0, int xs, 
 				// reshare self-heal: startSharingTilesAndData compares raw bytes (isSameAs), which
 				// never matched the server's placeholders. Write the placeholder for ids >= 256,
 				// mirroring Level::getBlocksAndData (which returns the stored placeholder bytes).
-				int tileId = getTile(x,y,z);
+				// Region offsets: the data/light loops below use
+				// x0/y0/z0; the tile loop must too (today the only
+				// caller passes 0,0,0, but any other origin would
+				// read the wrong tiles).
+				int tileId = getTile(x + x0, y + y0, z + z0);
 				data[slot] = (tileId >= 256) ? (unsigned char)Tile::EXT_TILE_PLACEHOLDER : (unsigned char)tileId;
 			}
 		}

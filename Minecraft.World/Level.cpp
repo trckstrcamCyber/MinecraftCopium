@@ -3440,7 +3440,7 @@ void Level::tickCopperWeathering()
 // door's LOWER half) — the nibble has no room for it alongside the
 // structural bits — so those cases read/write the TE and broadcast the
 // change instead of calling setTileAndData. The statue keeps its field
-// in nibble bits 0-1 and is unchanged.
+// in nibble bits 0-2 and is unchanged.
 // Returns true if the block advanced.
 bool Level::advanceCopperOxidation(int x, int y, int z, int tile)
 {
