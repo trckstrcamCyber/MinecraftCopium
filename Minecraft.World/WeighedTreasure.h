@@ -1,6 +1,8 @@
 #pragma once
 
+#include <vector>
 #include "WeighedRandom.h"
+#include "LootTableManager.h"
 
 class WeighedTreasure : public WeighedRandomItem
 {
@@ -15,5 +17,7 @@ public:
 
 	static void addChestItems(Random *random, WeighedTreasureArray items, shared_ptr<Container> dest, int numRolls);
 	static void addDispenserItems(Random *random, WeighedTreasureArray items, shared_ptr<DispenserTileEntity> dest, int numRolls);
+	static void addChestItems(Random *random, const std::vector<LootTableDropResult> &drops, shared_ptr<Container> dest);
+	static void addDispenserItems(Random *random, const std::vector<LootTableDropResult> &drops, shared_ptr<DispenserTileEntity> dest);
 	static WeighedTreasureArray addToTreasure(WeighedTreasureArray items, WeighedTreasure *extra);
 };
