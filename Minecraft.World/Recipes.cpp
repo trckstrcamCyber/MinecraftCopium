@@ -1675,6 +1675,29 @@ void Recipes::_compileRecipes()
 		L'#', Item::gold_ingot,
 		L'D');
 
+	// neoLegacy - Iron ingot <-> iron nugget (2026-11-23): moved here from
+	// StructureRecipies.cpp so both sit in the Decoration tab of the recipes
+	// next to the gold ingot <-> gold nugget pair above (group 'D'), mirroring
+	// gold's tags exactly. Still workbench, NOT Complex-Table-only: the 9 -> 1
+	// result (iron_ingot_Id) is shared with vanilla recipes, so it cannot be
+	// gated without side effects (see Recipes::isComplexOnly). The 1 -> 9 was
+	// shapeless in StructureRecipies.cpp; gold's 1 -> 9 is shaped 1-slot
+	// (L"scig"), which is functionally identical for a single ingredient.
+	addShapedRecipy(new ItemInstance(Item::iron_ingot), //
+		L"ssscig",
+		L"###", //
+		L"###", //
+		L"###", //
+
+		L'#', Item::iron_nugget,
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Item::iron_nugget, 9), //
+		L"scig",
+		L"#", //
+		L'#', Item::iron_ingot,
+		L'D');
+
 	// 4J-PB - moving into decorations to make the structures list smaller
 	// neoLegacy - one sign recipe per plank type (aux = WoodTile data, 6 = bamboo); every one gives THE sign item with that wood as its aux value
 	{
@@ -2223,6 +2246,11 @@ bool Recipes::isComplexOnly(Recipy *r)
 		|| result->id == Item::ice_ball_Id		// neoLegacy - Ice Ball <-> Ice
 		|| result->id == Tile::ice_Id
 		|| result->id == Item::enchantment_encyclopedia_Id	// neoLegacy - Enchantment Encyclopedia
+		// neoLegacy - Illager Invasion recipes: Complex-Table-only, like the
+		// copper recipes below (registered in the shared list, gated here).
+		|| result->id == Item::platinum_sheet_Id
+		|| result->id == Item::hallowed_gem_Id
+		|| result->id == Item::horn_of_sight_Id
 		// neoLegacy - Copper Age (Phase 3). Every Phase 3 recipe result is
 		// Complex-Table-only. Tiles (2305 raw copper block + 2306-2319 +
 		// 2321-2327; the golem statue 2320 had no recipe in Phase 3, and

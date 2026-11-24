@@ -129,6 +129,18 @@ void BlockRegionUpdatePacket::read(DataInputStream *dis) //throws IOException
 
     if (size < 0 || size > MAX_COMPRESSED_CHUNK_SIZE)
     {
+        // neoLegacy - oversize payload: still consume the declared bytes so
+        // the stream framing stays intact for the packets that follow; the
+        // packet itself is dropped (size = 0 below). skip() may skip fewer
+        // bytes than asked, so loop until the payload is gone or the stream
+        // is exhausted.
+        int64_t toDiscard = size;
+        while (toDiscard > 0)
+        {
+            int64_t skipped = dis->skip(toDiscard);
+            if (skipped <= 0) break;
+            toDiscard -= skipped;
+        }
         size = 0;
     }
 
@@ -173,6 +185,8 @@ void BlockRegionUpdatePacket::read(DataInputStream *dis) //throws IOException
 		else
 		{
 			app.DebugPrintf("Not decompressing packet that wasn't fully read\n");
+			size = 0;
+			buffer = byteArray();
 			decompressOk = false;
 		}
 

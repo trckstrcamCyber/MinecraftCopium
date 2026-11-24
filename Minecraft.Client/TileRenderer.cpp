@@ -6223,9 +6223,13 @@ bool TileRenderer::tesselateCopperLanternInWorld(CopperThinTile *tt, int x, int 
 	const int aboveId = level->getTile(x, y + 1, z);
 	// neoLegacy - Iron additions (2026-11-22): a lantern hangs from an
 	// iron chain as well as a copper chain -- either chain above counts.
+	// A lantern standing on a solid block below is standing, even with a
+	// solid block or a chain directly above it (1-high gap): rendering it
+	// hanging would mismatch its standing selection box.
 	const bool hanging = (aboveId == Tile::copper_chain_Id ||
 		aboveId == Tile::iron_chain_Id ||
-		level->isSolidBlockingTile(x, y + 1, z));
+		level->isSolidBlockingTile(x, y + 1, z)) &&
+		!level->isSolidBlockingTile(x, y - 1, z);
 
 	if (hanging)
 	{
@@ -6743,9 +6747,13 @@ bool TileRenderer::tesselateIronLanternInWorld(CopperThinTile *tt, int x, int y,
 	// other faces of each bar are omitted ({0,0,0,0}), so edge-on a bar
 	// is invisible, exactly like Java's flat quad.
 	const int aboveId = level->getTile(x, y + 1, z);
+	// A lantern standing on a solid block below is standing, even with a
+	// solid block or a chain directly above it (1-high gap): rendering it
+	// hanging would mismatch its standing selection box.
 	const bool hanging = (aboveId == Tile::iron_chain_Id ||
 		aboveId == Tile::copper_chain_Id ||
-		level->isSolidBlockingTile(x, y + 1, z));
+		level->isSolidBlockingTile(x, y + 1, z)) &&
+		!level->isSolidBlockingTile(x, y - 1, z);
 
 	if (hanging)
 	{

@@ -15,6 +15,12 @@ private:
 	wstring baseIconName;
 	Icon *stateIcons[4];
 	float sx0, sy0, sz0, sx1, sy1, sz1;
+	// Support rules (2026-11-24): a chain hangs from a solid block or
+	// another chain above it; a lantern hangs from a chain/solid block
+	// above, or stands on a solid block below. The lightning rod has no
+	// support rule (unchanged behaviour).
+	bool isSupported(Level *level, int x, int y, int z);
+	bool checkCanSurvive(Level *level, int x, int y, int z);
 public:
 	CopperThinTile(int id, const wstring &baseIconName,
 		float x0, float y0, float z0, float x1, float y1, float z1);
@@ -32,6 +38,9 @@ public:
 	virtual int getRenderShape() override;
 	virtual void updateShape(LevelSource *level, int x, int y, int z, int forceData = -1, shared_ptr<TileEntity> forceEntity = shared_ptr<TileEntity>()) override;
 	virtual void updateDefaultShape() override;
+	virtual bool mayPlace(Level *level, int x, int y, int z) override;
+	virtual void onPlace(Level *level, int x, int y, int z) override;
+	virtual void neighborChanged(Level *level, int x, int y, int z, int type) override;
 protected:
 	virtual int getSpawnResourcesAuxValue(int data) override;
 };

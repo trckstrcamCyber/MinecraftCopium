@@ -77,6 +77,62 @@ void CopperThinTile::updateDefaultShape()
 	setShape(sx0, sy0, sz0, sx1, sy1, sz1);
 }
 
+bool CopperThinTile::mayPlace(Level *level, int x, int y, int z)
+{
+	// The target cell must be empty/replaceable (base rule) and the block
+	// must have support: chains hang from above, lanterns hang from above
+	// or stand on a solid block below. The lightning rod has no support
+	// rule (unchanged behaviour).
+	return Tile::mayPlace(level, x, y, z) && isSupported(level, x, y, z);
+}
+
+void CopperThinTile::onPlace(Level *level, int x, int y, int z)
+{
+	// Backstop for placement paths that bypass mayPlace (e.g. /setblock):
+	// an unsupported chain/lantern pops immediately instead of floating.
+	checkCanSurvive(level, x, y, z);
+}
+
+void CopperThinTile::neighborChanged(Level *level, int x, int y, int z, int type)
+{
+	// Support removed above/below: drop the block instead of floating
+	// (TorchTile pattern: spawnResources + removeTile).
+	checkCanSurvive(level, x, y, z);
+}
+
+bool CopperThinTile::isSupported(Level *level, int x, int y, int z)
+{
+	// The lightning rod has no support rule (unchanged behaviour).
+	if (id == Tile::lightning_rod_Id) return true;
+
+	int above = level->getTile(x, y + 1, z);
+	bool chainAbove = (above == Tile::copper_chain_Id || above == Tile::iron_chain_Id);
+	bool solidAbove = level->isSolidBlockingTileInLoadedChunk(x, y + 1, z, true);
+	if (id == Tile::copper_chain_Id || id == Tile::iron_chain_Id)
+	{
+		// A chain hangs from a solid block or another chain above it.
+		return chainAbove || solidAbove;
+	}
+	// A lantern hangs from a chain/solid block above, or stands on a
+	// solid block below.
+	bool solidBelow = level->isSolidBlockingTileInLoadedChunk(x, y - 1, z, true);
+	return solidBelow || chainAbove || solidAbove;
+}
+
+bool CopperThinTile::checkCanSurvive(Level *level, int x, int y, int z)
+{
+	if (!isSupported(level, x, y, z))
+	{
+		if (level->getTile(x, y, z) == id)
+		{
+			spawnResources(level, x, y, z, level->getData(x, y, z), 0);
+			level->removeTile(x, y, z);
+		}
+		return false;
+	}
+	return true;
+}
+
 Icon *CopperThinTile::getTexture(int face, int data)
 {
 	// Waxed (bit 2) reuses the unwaxed texture for the same oxidation state.

@@ -167,7 +167,7 @@ void MapItem::update(Level *level, shared_ptr<Entity> player, shared_ptr<MapItem
 								ok = true;
 								t = lc->getTile(xs + xso, yy - 1, zs + zso);
 								if (t == 0) ok = false;
-								else if (yy > 0 && t > 0 && Tile::tiles[t]->material->color == MaterialColor::none)
+								else if (yy > 0 && t > 0 && (t >= Tile::TILE_NUM_COUNT || Tile::tiles[t] == nullptr || Tile::tiles[t]->material->color == MaterialColor::none))
 								{
 									ok = false;
 								}
@@ -181,7 +181,7 @@ void MapItem::update(Level *level, shared_ptr<Entity> player, shared_ptr<MapItem
 
 							} while (yy > 0 && !ok);
 
-							if (yy > 0 && t != 0 && Tile::tiles[t]->material->isLiquid())
+							if (yy > 0 && t != 0 && t < Tile::TILE_NUM_COUNT && Tile::tiles[t] != nullptr && Tile::tiles[t]->material->isLiquid())
 							{
 								int y = yy - 1;
 								int below = 0;
@@ -189,7 +189,7 @@ void MapItem::update(Level *level, shared_ptr<Entity> player, shared_ptr<MapItem
 								{
 									below = lc->getTile(xs + xso, y--, zs + zso);
 									liquidDepth++;
-								} while (y > 0 && below != 0 && Tile::tiles[below]->material->isLiquid());
+								} while (y > 0 && below != 0 && below < Tile::TILE_NUM_COUNT && Tile::tiles[below] != nullptr && Tile::tiles[below]->material->isLiquid());
 							}
 						}
 						hh += yy / static_cast<double>(scale * scale);
@@ -219,7 +219,7 @@ void MapItem::update(Level *level, shared_ptr<Entity> player, shared_ptr<MapItem
 			if (diff < -0.6) br = 0;
 
 			int col = 0;
-			if (tBest > 0)
+			if (tBest > 0 && tBest < Tile::TILE_NUM_COUNT && Tile::tiles[tBest] != nullptr)
 			{
 				MaterialColor *mc = Tile::tiles[tBest]->material->color;
 				if (mc == MaterialColor::water)

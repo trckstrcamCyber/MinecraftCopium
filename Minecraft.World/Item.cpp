@@ -470,11 +470,11 @@ void Item::staticCtor()
 	// neoLegacy - Ice Ball: dropped by Frostbites, crafted from Ice, and the ingredient that brews a Potion of Freezing.
 	// Icon: items.png row 31, col 13.
 	Item::ice_ball = (new SnowballItem(ice_ball_Id - 256, true))
-		->setIconName(L"ice_ball")->setDescriptionId(IDS_ITEM_ICE_BALL)->setUseDescriptionId(IDS_DESC_ICE_BALL)->setPotionBrewingFormula(PotionBrewing::MOD_ICEBALL);
+		->setIconName(L"ice_ball")->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_snow)->setDescriptionId(IDS_ITEM_ICE_BALL)->setUseDescriptionId(IDS_DESC_ICE_BALL)->setPotionBrewingFormula(PotionBrewing::MOD_ICEBALL);
 
 	// neoLegacy - Ice Wand (from the FrozenFiend mod): right-click a creature to drop an Ice Cube on it. Icon: items.png row 31, col 14.
 	Item::ice_wand = (new IceWandItem(ice_wand_Id - 256))->handEquipped()
-		->setIconName(L"ice_wand")->setMaxDamage(64)->setDescriptionId(IDS_ITEM_ICE_WAND)->setUseDescriptionId(IDS_DESC_ICE_WAND);
+		->setIconName(L"ice_wand")->setBaseItemTypeAndMaterial(eBaseItemType_pockettool,	eMaterial_magic)->setMaxDamage(64)->setDescriptionId(IDS_ITEM_ICE_WAND)->setUseDescriptionId(IDS_DESC_ICE_WAND);
 
 	// neoLegacy - Crossbow: two ids, empty and loaded (the loaded one is only ever made by drawing the empty one). Icons: items.png (31,15) and (30,9).
 	// In the crafting menu the crossbow shares the bow's column (base type bow), right below the bow and above the arrow.
@@ -484,23 +484,23 @@ void Item::staticCtor()
 	Item::crossbow_loaded = (new CrossbowItem(crossbow_loaded_Id - 256, true))->handEquipped()
 		->setIconName(L"crossbow_arrow")->setMaxDamage(326)->setDescriptionId(IDS_ITEM_CROSSBOW)->setUseDescriptionId(IDS_DESC_CROSSBOW);
 	Item::ominous_bottle = (new OminousBottleItem(ominous_bottle_Id - 256))
-		->setIconName(L"ominous_bottle")->setDescriptionId(IDS_ITEM_OMINOUS_BOTTLE)->setUseDescriptionId(IDS_DESC_OMINOUS_BOTTLE);
+		->setIconName(L"ominous_bottle")->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_magic)->setDescriptionId(IDS_ITEM_OMINOUS_BOTTLE)->setUseDescriptionId(IDS_DESC_OMINOUS_BOTTLE);
 
 	// neoLegacy - Illager Invasion items. Icons are items.png row 17, columns 3-8.
 	Item::platinum_chunk = (new Item(platinum_chunk_Id - 256))
-		->setIconName(L"platinum_chunk")->setDescriptionId(IDS_ITEM_PLATINUM_CHUNK)->setUseDescriptionId(IDS_DESC_PLATINUM_CHUNK);
+		->setIconName(L"platinum_chunk")->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_iron)->setDescriptionId(IDS_ITEM_PLATINUM_CHUNK)->setUseDescriptionId(IDS_DESC_PLATINUM_CHUNK);
 	Item::platinum_sheet = (new Item(platinum_sheet_Id - 256))
 		->setIconName(L"platinum_sheet")->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_iron)->setDescriptionId(IDS_ITEM_PLATINUM_SHEET)->setUseDescriptionId(IDS_DESC_PLATINUM_SHEET);
 	Item::platinum_hatchet = (new PlatinumHatchetItem(platinum_hatchet_Id - 256))->handEquipped()
 		->setIconName(L"platinum_infused_hatchet")->setDescriptionId(IDS_ITEM_PLATINUM_HATCHET)->setUseDescriptionId(IDS_DESC_PLATINUM_HATCHET);
 	Item::unusual_dust = (new Item(unusual_dust_Id - 256))
-		->setIconName(L"unusual_dust")->setDescriptionId(IDS_ITEM_UNUSUAL_DUST)->setUseDescriptionId(IDS_DESC_UNUSUAL_DUST);
+		->setIconName(L"unusual_dust")->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_magic)->setDescriptionId(IDS_ITEM_UNUSUAL_DUST)->setUseDescriptionId(IDS_DESC_UNUSUAL_DUST);
 	Item::illusionary_dust = (new IllusionaryDustItem(illusionary_dust_Id - 256))
-		->setIconName(L"illusionary_dust")->setDescriptionId(IDS_ITEM_ILLUSIONARY_DUST)->setUseDescriptionId(IDS_DESC_ILLUSIONARY_DUST);
+		->setIconName(L"illusionary_dust")->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_magic)->setDescriptionId(IDS_ITEM_ILLUSIONARY_DUST)->setUseDescriptionId(IDS_DESC_ILLUSIONARY_DUST);
 	Item::lost_candle = (new LostCandleItem(lost_candle_Id - 256))
-		->setIconName(L"lost_candle")->setDescriptionId(IDS_ITEM_LOST_CANDLE)->setUseDescriptionId(IDS_DESC_LOST_CANDLE);
+		->setIconName(L"lost_candle")->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_magic)->setDescriptionId(IDS_ITEM_LOST_CANDLE)->setUseDescriptionId(IDS_DESC_LOST_CANDLE);
 	Item::primal_essence = (new Item(primal_essence_Id - 256))
-		->setIconName(L"primal_essence")->setDescriptionId(IDS_ITEM_PRIMAL_ESSENCE)->setUseDescriptionId(IDS_DESC_PRIMAL_ESSENCE);
+		->setIconName(L"primal_essence")->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_magic)->setDescriptionId(IDS_ITEM_PRIMAL_ESSENCE)->setUseDescriptionId(IDS_DESC_PRIMAL_ESSENCE);
 	// neoLegacy - Illager Invasion recipe items. Plain Items, mirroring the
 	// platinum_chunk/sheet registrations above (no base-type call, same as the
 	// other Illager Invasion materials). Horn of Sight's use effect (Glowing)
@@ -510,9 +510,9 @@ void Item::staticCtor()
 	Item::horn_of_sight = (new Item(horn_of_sight_Id - 256))
 		->setIconName(L"horn_of_sight")->setBaseItemTypeAndMaterial(eBaseItemType_pockettool,	eMaterial_music)->setDescriptionId(IDS_ITEM_HORN_OF_SIGHT)->setUseDescriptionId(IDS_DESC_HORN_OF_SIGHT);
 	Item::amethyst_shard = (new Item(amethyst_shard_Id - 256))
-		->setIconName(L"amethyst_shard")->setDescriptionId(IDS_ITEM_AMETHYST_SHARD)->setUseDescriptionId(IDS_DESC_AMETHYST_SHARD);
+		->setIconName(L"amethyst_shard")->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_quartz)->setDescriptionId(IDS_ITEM_AMETHYST_SHARD)->setUseDescriptionId(IDS_DESC_AMETHYST_SHARD);
 	Item::goat_horn = (new Item(goat_horn_Id - 256))
-		->setIconName(L"goat_horn")->setDescriptionId(IDS_ITEM_GOAT_HORN)->setUseDescriptionId(IDS_DESC_GOAT_HORN);
+		->setIconName(L"goat_horn")->setBaseItemTypeAndMaterial(eBaseItemType_pockettool,	eMaterial_music)->setDescriptionId(IDS_ITEM_GOAT_HORN)->setUseDescriptionId(IDS_DESC_GOAT_HORN);
 	Item::crossbow_loaded_firework = (new CrossbowItem(crossbow_loaded_firework_Id - 256, true, true))->handEquipped()
 		->setIconName(L"crossbow_firework")->setMaxDamage(326)->setDescriptionId(IDS_ITEM_CROSSBOW)->setUseDescriptionId(IDS_DESC_CROSSBOW);
 
