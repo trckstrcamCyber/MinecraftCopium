@@ -215,13 +215,14 @@ bool PlayerSelector::matchesTeam(shared_ptr<Entity> e, const map<wstring, wstrin
     wstring teamVal = getArg(args, L"team");
     if (teamVal.empty()) return true;
 
-    bool invert = false;
-    if (teamVal[0] == L'!') { invert = true; teamVal = teamVal.substr(1); }
-
-    // No scoreboard system
-    wstring entityTeam = L"";  // placeholder: implement when scoreboard exists
-    bool matches = (entityTeam == teamVal);
-    return invert ? !matches : matches;
+    // No scoreboard system: Scoreboard.cpp is entirely stubbed (getPlayersTeam
+    // returns nullptr, addPlayerToTeam is a no-op), so no entity can be on any
+    // team. A team filter can therefore never match — in either polarity.
+    // Returning false instead of comparing against the placeholder empty team
+    // stops team=!X from silently matching everything (a mass-kill via /kill)
+    // until teams exist.
+    (void)e;
+    return false;
 }
 
 bool PlayerSelector::matchesName(shared_ptr<Entity> e, const map<wstring, wstring>& args)

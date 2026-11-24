@@ -59,6 +59,14 @@ Compression *Compression::getCompression()
 
 HRESULT Compression::CompressLZXRLE(void *pDestination, unsigned int *pDestSize, void *pSource, unsigned int SrcSize)
 {
+	// Empty input: the do/while RLE loop below always runs once and would
+	// dereference pSource. An empty input compresses to empty output.
+	if (SrcSize == 0)
+	{
+		*pDestSize = 0;
+		return S_OK;
+	}
+
 	EnterCriticalSection(&rleCompressLock);
 	//static unsigned char rleBuf[1024*100];
 
@@ -139,6 +147,14 @@ HRESULT Compression::CompressLZXRLE(void *pDestination, unsigned int *pDestSize,
 
 HRESULT Compression::CompressRLE(void *pDestination, unsigned int *pDestSize, void *pSource, unsigned int SrcSize)
 {
+	// Empty input: the do/while RLE loop below always runs once and would
+	// dereference pSource. An empty input compresses to empty output.
+	if (SrcSize == 0)
+	{
+		*pDestSize = 0;
+		return S_OK;
+	}
+
 	EnterCriticalSection(&rleCompressLock);
 	//static unsigned char rleBuf[1024*100];
 

@@ -882,6 +882,10 @@ void ConsoleSaveFileOriginal::Flush(bool autosave, bool updateThumbnail )
 
 	if(compData != nullptr)
 	{
+		// If compression fails the buffer holds garbage; never publish it —
+		// drop this save (the previous on-disk save stays intact) and let
+		// the next Flush() retry. Same policy as the background-save path.
+		HRESULT compressResult = S_OK;
 		// No compression on PS3 - see comment above
 #ifndef __PS3__
 		// Re-compress all save data before we save it to disk
@@ -892,7 +896,7 @@ void ConsoleSaveFileOriginal::Flush(bool autosave, bool updateThumbnail )
 		// AP - compress via the access function. This uses a special RLE format
 		VirtualCompress(compData+8,&compLength,pvSaveMem,fileSize);
 #else
-		Compression::getCompression()->Compress(compData+8,&compLength,pvSaveMem,fileSize);
+		compressResult = Compression::getCompression()->Compress(compData+8,&compLength,pvSaveMem,fileSize);
 #endif
 		QueryPerformanceCounter( &qwNewTime );
 
@@ -963,8 +967,15 @@ void ConsoleSaveFileOriginal::Flush(bool autosave, bool updateThumbnail )
 		StorageManager.SetSaveImages(pbThumbnailData,dwThumbnailDataSize,pbDataSaveImage,dwDataSizeSaveImage,bTextMetadata,iTextMetadataBytes);
 		app.DebugPrintf("Save thumbnail size %d\n",dwThumbnailDataSize);
 
-		// save the data
-		StorageManager.SaveSaveData( &ConsoleSaveFileOriginal::SaveSaveDataCallback, this );
+		// save the data (only if compression succeeded — see above)
+		if (compressResult == S_OK)
+		{
+			StorageManager.SaveSaveData( &ConsoleSaveFileOriginal::SaveSaveDataCallback, this );
+		}
+		else
+		{
+			app.DebugPrintf("Flush: synchronous save compression failed; dropping save\n");
+		}
 #ifndef _CONTENT_PACKAGE
 		if( app.DebugSettingsOn())
 		{

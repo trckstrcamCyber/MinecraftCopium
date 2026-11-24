@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <cmath>
 #include "PlayerConnection.h"
 #include "ServerPlayer.h"
 #include "ServerLevel.h"
@@ -1693,6 +1694,17 @@ if (cmd == L"tp" || cmd == L"teleport")
         double spawnY = parseCoord(strY, player->y);
         double spawnZ = parseCoord(strZ, player->z);
 
+        // wcstod accepts "nan"/"inf" and huge values; narrowing those to int
+        // or storing them in an entity is UB / a NaN position.
+        if (!std::isfinite(spawnX) || !std::isfinite(spawnY) || !std::isfinite(spawnZ) ||
+            spawnX > 2147483647.0 || spawnX < -2147483647.0 ||
+            spawnY > 2147483647.0 || spawnY < -2147483647.0 ||
+            spawnZ > 2147483647.0 || spawnZ < -2147483647.0)
+        {
+            warn(L"Coordinates must be finite and within range.");
+            return;
+        }
+
         if (entityName.find(L"minecraft:") == 0)
         {
             entityName = entityName.substr(10);
@@ -1783,6 +1795,17 @@ if (cmd == L"tp" || cmd == L"teleport")
             double spawnY = parseCoord(posY, player->y);
             double spawnZ = parseCoord(posZ, player->z);
 
+            // wcstod accepts "nan"/"inf" and huge values; narrowing those to
+            // int in setSpawn is UB.
+            if (!std::isfinite(spawnX) || !std::isfinite(spawnY) || !std::isfinite(spawnZ) ||
+                spawnX > 2147483647.0 || spawnX < -2147483647.0 ||
+                spawnY > 2147483647.0 || spawnY < -2147483647.0 ||
+                spawnZ > 2147483647.0 || spawnZ < -2147483647.0)
+            {
+                warn(L"Coordinates must be finite and within range.");
+                return;
+            }
+
             level->getLevelData()->setSpawn(spawnX, spawnY, spawnZ);
 
             info(L"World spawn has been set to X: " + to_wstring(spawnX) + L" Y: " + to_wstring(spawnY) + L" Z: " + to_wstring(spawnZ));
@@ -1836,6 +1859,17 @@ if (cmd == L"tp" || cmd == L"teleport")
         double spawnX = parseCoord(posX, player->x);
         double spawnY = parseCoord(posY, player->y);
         double spawnZ = parseCoord(posZ, player->z);
+
+        // wcstod accepts "nan"/"inf" and huge values; narrowing those to int
+        // in Pos is UB.
+        if (!std::isfinite(spawnX) || !std::isfinite(spawnY) || !std::isfinite(spawnZ) ||
+            spawnX > 2147483647.0 || spawnX < -2147483647.0 ||
+            spawnY > 2147483647.0 || spawnY < -2147483647.0 ||
+            spawnZ > 2147483647.0 || spawnZ < -2147483647.0)
+        {
+            warn(L"Coordinates must be finite and within range.");
+            return;
+        }
 
         Pos *newSpawn = new Pos(spawnX, spawnY, spawnZ);
 
