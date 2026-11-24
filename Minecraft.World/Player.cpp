@@ -1232,7 +1232,10 @@ void Player::die(DamageSource *source)
 	{
 		drop(std::make_shared<ItemInstance>(Item::apple, 1), true);
 	}
-	if (!level->getGameRules()->getBoolean(GameRules::RULE_KEEPINVENTORY))
+	// neoLegacy - Creative players keep their inventory on death (vanilla Java behaviour):
+	// the old check only honoured the keepInventory gamerule, so a Creative-mode
+	// death (e.g. /kill) dropped everything at the death spot and the player respawned empty.
+	if (!level->getGameRules()->getBoolean(GameRules::RULE_KEEPINVENTORY) && !abilities.instabuild)
 	{
 		inventory->dropAll();
 	}
@@ -3202,7 +3205,7 @@ void Player::restoreFrom(shared_ptr<Player> oldPlayer, bool restoreAll)
 #if defined(MINECRAFT_SERVER_BUILD)
 	else if (oldPlayer->fk_hasDeathState)
 	{
-		if (oldPlayer->fk_deathKeepInventory || level->getGameRules()->getBoolean(GameRules::RULE_KEEPINVENTORY))
+		if (oldPlayer->fk_deathKeepInventory || oldPlayer->abilities.instabuild || level->getGameRules()->getBoolean(GameRules::RULE_KEEPINVENTORY))
 		{
 			inventory->replaceWith(oldPlayer->inventory);
 		}
@@ -3222,7 +3225,7 @@ void Player::restoreFrom(shared_ptr<Player> oldPlayer, bool restoreAll)
 		setScore(oldPlayer->getScore());
 	}
 #endif
-	else if (level->getGameRules()->getBoolean(GameRules::RULE_KEEPINVENTORY))
+	else if (level->getGameRules()->getBoolean(GameRules::RULE_KEEPINVENTORY) || oldPlayer->abilities.instabuild)
 	{
 		inventory->replaceWith(oldPlayer->inventory);
 

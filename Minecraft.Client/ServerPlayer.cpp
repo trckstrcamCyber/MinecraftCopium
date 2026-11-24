@@ -834,7 +834,7 @@ void ServerPlayer::die(DamageSource *source)
 		server->getPlayers()->banPlayerForHardcoreDeath(this);
 	}
 
-	if (keepInventory == 0 && !level->getGameRules()->getBoolean(GameRules::RULE_KEEPINVENTORY))
+	if (keepInventory == 0 && !level->getGameRules()->getBoolean(GameRules::RULE_KEEPINVENTORY) && !abilities.instabuild)
 	{
 		inventory->dropAll();
 	}
@@ -852,7 +852,7 @@ void ServerPlayer::die(DamageSource *source)
 		server->getPlayers()->banPlayerForHardcoreDeath(this);
 	}
 
-	if (!level->getGameRules()->getBoolean(GameRules::RULE_KEEPINVENTORY))
+	if (!level->getGameRules()->getBoolean(GameRules::RULE_KEEPINVENTORY) && !abilities.instabuild)
 	{
 		inventory->dropAll();
 	}
