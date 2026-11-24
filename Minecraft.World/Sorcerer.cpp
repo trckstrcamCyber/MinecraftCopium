@@ -136,10 +136,10 @@ void Sorcerer::registerAttributes()
 // Settles onto the ground the way the EnderMan does (it is the engine's own proven way of finding a legal spot)
 bool Sorcerer::tryRandomTeleport()
 {
-	return randomTeleport(this);
+	return randomTeleport(this, eSoundType_MOB_SORCERER_COMPLETECAST);
 }
 
-bool Sorcerer::randomTeleport(Mob *mob)
+bool Sorcerer::randomTeleport(Mob *mob, int completeSoundId)
 {
 	Level *level = mob->level;
 	Random *random = mob->getRandom();
@@ -159,7 +159,7 @@ bool Sorcerer::randomTeleport(Mob *mob)
 		while (!landed && yt > 0)
 		{
 			int t = level->getTile(xt, yt - 1, zt);
-			if (t == 0 || !(Tile::tiles[t]->material->blocksMotion())) yt--;
+			if (t <= 0 || t >= Tile::TILE_NUM_COUNT || Tile::tiles[t] == nullptr || !(Tile::tiles[t]->material->blocksMotion())) yt--;
 			else landed = true;
 		}
 		if (!landed) continue;
@@ -167,8 +167,8 @@ bool Sorcerer::randomTeleport(Mob *mob)
 		mob->setPos(nx, yt, nz);
 		if (level->getCubes(mob->shared_from_this(), mob->bb)->empty() && !level->containsAnyLiquid(mob->bb))
 		{
-			level->playSound(xo, yo, zo, eSoundType_MOB_SORCERER_COMPLETECAST, 1.0f, 1.0f);
-			mob->playSound(eSoundType_MOB_SORCERER_COMPLETECAST, 1.0f, 1.0f);
+			level->playSound(xo, yo, zo, completeSoundId, 1.0f, 1.0f);
+			mob->playSound(completeSoundId, 1.0f, 1.0f);
 			mob->getNavigation()->stop();
 			return true;
 		}

@@ -370,11 +370,15 @@ void RaidManager::detectBadOmen()
 		}
 		else if (index >= 0)
 		{
-			bool ranOut = omens[index].duration <= 40;
+			// The omen is sampled once a second, so the last recorded duration is at most 20 ticks stale: a natural
+			// expiry always has a last-seen duration of 1..20, while milk/death with more than ~20 ticks left shows
+			// a higher one. Also require the player to still be alive, so a raid cannot start after the omen
+			// was cleared by dying.
+			bool ranOut = omens[index].duration <= 20;
 			int amplifier = omens[index].amplifier;
 			omens.erase(omens.begin() + index);
 
-			if (ranOut && inVillage) startOrRaiseRaid(village, amplifier + 1);
+			if (ranOut && inVillage && player->isAlive()) startOrRaiseRaid(village, amplifier + 1);
 		}
 	}
 
@@ -401,8 +405,11 @@ void RaidManager::startOrRaiseRaid(shared_ptr<Village> village, int badOmenLevel
 		{
 			if (raids[i].wavesSpawned == 0 && raids[i].badOmenLevel < 5)
 			{
+				int oldLevel = raids[i].badOmenLevel;
 				raids[i].badOmenLevel += badOmenLevel;
 				if (raids[i].badOmenLevel > 5) raids[i].badOmenLevel = 5;
+				// The bonus wave is for omen level > 1: if this raise crosses that line before the first wave, add it now.
+				if (oldLevel <= 1 && raids[i].badOmenLevel > 1) raids[i].totalWaves += 1;
 			}
 			return;
 		}

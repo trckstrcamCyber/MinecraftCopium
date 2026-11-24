@@ -54,6 +54,8 @@ void SkeletonModel::prepareMobModel(shared_ptr<LivingEntity> mob, float time, fl
 
 void SkeletonModel::setupAnim(float time, float r, float bob, float yRot, float xRot, float scale, shared_ptr<Entity> entity, unsigned int uiBitmaskOverrideAnim)
 {
-	bowAndArrow=true;
+	// neoLegacy - only a real Skeleton takes the bow pose: prepareMobModel clears bowAndArrow for the Surrendered
+	// (a Vex drawn with this model), and forcing it true here posed it as bow-holding every frame.
+	if (dynamic_pointer_cast<Skeleton>(entity) != nullptr) bowAndArrow = true;
 	ZombieModel::setupAnim(time, r, bob, yRot, xRot, scale, entity, uiBitmaskOverrideAnim);
 }

@@ -106,7 +106,9 @@ namespace
 			}
 			else
 			{
-				if (--timer <= 0 && canSee)
+				// Only count down while the target is visible: if sight is lost the timer used to keep
+				// decrementing, so the Pillager fired the instant it saw the target again with no re-aim.
+				if (canSee && --timer <= 0)
 				{
 					mob->performRangedAttack(target, 1.0f);
 					mob->setCrossbowLoaded(false);

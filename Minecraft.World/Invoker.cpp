@@ -68,8 +68,8 @@ namespace
 		// neoLegacy - the base gate (live target, not already casting, casting-interval elapsed) used to be bypassed,
 		// so getCastingInterval() was dead code; this goal could also start while another spell was casting.
 		virtual bool canUse() { return SpellcasterUseSpellGoal::canUse() && invoker->areaDamageCooldown < 0; }
-		virtual void start() { SpellcasterUseSpellGoal::start(); invoker->isAoeCasting = true; }
-		virtual void stop() { invoker->isAoeCasting = false; SpellcasterUseSpellGoal::stop(); }
+		virtual void start() { SpellcasterUseSpellGoal::start(); }
+		virtual void stop() { SpellcasterUseSpellGoal::stop(); }
 
 	protected:
 		virtual void performSpellCasting()
@@ -85,7 +85,7 @@ namespace
 				{
 					shared_ptr<LivingEntity> e = dynamic_pointer_cast<LivingEntity>(found->at(i));
 					if (e == nullptr || !e->isAlive()) continue;
-					if (dynamic_cast<Illager *>(e.get()) != nullptr || e->GetType() == eTYPE_SURRENDERED || e->GetType() == eTYPE_RAVAGER) continue;
+					if (dynamic_cast<Illager *>(e.get()) != nullptr || e->GetType() == eTYPE_SURRENDERED || e->GetType() == eTYPE_RAVAGER || e->GetType() == eTYPE_VEX) continue;
 					if (e->instanceof(eTYPE_PLAYER) && dynamic_pointer_cast<Player>(e)->abilities.instabuild) continue;
 
 					double dx = e->x - invoker->x, dz = e->z - invoker->z;
@@ -105,7 +105,6 @@ namespace
 				}
 				delete found;
 			}
-			invoker->isAoeCasting = false;
 		}
 		virtual int getCastWarmupTime() { return 50; }
 		virtual int getCastingTime() { return 50; }
@@ -130,7 +129,7 @@ namespace
 		virtual void start() { SpellcasterUseSpellGoal::start(); invoker->teleportCooldown = 180; }
 
 	protected:
-		virtual void performSpellCasting() { Sorcerer::randomTeleport(invoker); }
+		virtual void performSpellCasting() { Sorcerer::randomTeleport(invoker, eSoundType_MOB_INVOKER_TELEPORT_CAST); }
 		virtual int getCastWarmupTime() { return 30; }
 		virtual int getCastingTime() { return 30; }
 		virtual int getCastingInterval() { return 180; }	// neoLegacy - was 400 (dead code); now the live gate, matching teleportCooldown
@@ -270,8 +269,9 @@ namespace
 				{
 					double d = 1.25 * (i + 1);
 					conjureFang(invoker, invoker->x + Mth::cos(f) * d, invoker->z + Mth::sin(f) * d, minY, maxY, f, i);
-					conjureFang(invoker, invoker->x + Mth::cos(f + 0.4f) * d, invoker->z + Mth::sin(f + 0.3f) * d, minY, maxY, f, i);
-					conjureFang(invoker, invoker->x + Mth::cos(f - 0.4f) * d, invoker->z + Mth::sin(f - 0.3f) * d, minY, maxY, f, i);
+					// neoLegacy - a side line sits at f +/- 0.4: the same offset in sin and cos, or the line skews (was 0.3 in sin)
+					conjureFang(invoker, invoker->x + Mth::cos(f + 0.4f) * d, invoker->z + Mth::sin(f + 0.4f) * d, minY, maxY, f, i);
+					conjureFang(invoker, invoker->x + Mth::cos(f - 0.4f) * d, invoker->z + Mth::sin(f - 0.4f) * d, minY, maxY, f, i);
 				}
 			}
 		}
@@ -292,7 +292,6 @@ Invoker::Invoker(Level *level) : SpellcasterIllager(level)
 	areaDamageCooldown = 0;
 	teleportCooldown = 0;
 	fangAoeCooldown = 0;
-	isAoeCasting = false;
 	shielded = false;
 
 	goalSelector.addGoal(0, new FloatGoal(this));

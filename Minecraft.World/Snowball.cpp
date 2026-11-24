@@ -17,10 +17,12 @@ void Snowball::_init()
 	this->defineSynchedData();
 	getEntityData()->define(DATA_ICE_ID, static_cast<byte>(0));	// neoLegacy
 	getEntityData()->define(DATA_HATCHET_ID, static_cast<byte>(0));	// neoLegacy
+	getEntityData()->define(DATA_HATCHET_BOUNCED_ID, static_cast<byte>(0));	// neoLegacy
 	hatchetBounced = false;
 	hatchetStack = nullptr;
 	hatchetLanded = false;
 	hatchetLandedTicks = 0;
+	hatchetBouncedTicks = 0;
 }
 
 void Snowball::setHatchetStack(shared_ptr<ItemInstance> stack)
@@ -44,6 +46,8 @@ void Snowball::onHatchetHit(HitResult *res)
 		yd *= -0.1;
 		zd *= -0.01;
 		if (level->isClientSide) return;
+		// neoLegacy - tell the client copy this hatchet bounced, so its visual matches even if it never detects the hit itself
+		getEntityData()->set(DATA_HATCHET_BOUNCED_ID, static_cast<byte>(1));
 		DamageSource *damageSource = DamageSource::thrown(shared_from_this(), getOwner());
 		res->entity->hurt(damageSource, 8);
 		delete damageSource;
@@ -95,6 +99,20 @@ void Snowball::tick()
 		// entity when its own copy lands; this 5 s cap only covers a removal sync that never arrives.
 		if (++hatchetLandedTicks > 100) remove();
 		return;
+	}
+	// neoLegacy - the server's copy bounced off a mob before this copy detected the hit: mirror the bounce so the
+	// visual matches the server outcome (the flag is set server-side in onHatchetHit).
+	if (level->isClientSide && isHatchet() && !hatchetBounced && getEntityData()->getByte(DATA_HATCHET_BOUNCED_ID) != 0)
+	{
+		hatchetBounced = true;
+		xd *= -0.01;
+		yd *= -0.1;
+		zd *= -0.01;
+	}
+	if (level->isClientSide && hatchetBounced && !hatchetLanded)
+	{
+		// Bounced off a mob and never hit a block (void/water): give up after 5 s, like a landed hatchet.
+		if (++hatchetBouncedTicks > 100) { remove(); return; }
 	}
 	Throwable::tick();
 	if (isIce())

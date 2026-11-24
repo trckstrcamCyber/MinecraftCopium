@@ -97,7 +97,7 @@ void Alchemist::performRangedAttack(shared_ptr<LivingEntity> target, float power
 	{
 		// a lobbed potion, aimed like the Witch's
 		shared_ptr<ThrownPotion> potion = std::make_shared<ThrownPotion>(level, self, potionValue);
-		potion->xRot -= -20;
+		potion->xRot += 20;	// neoLegacy - was written as -= -20; same value, and shoot() recomputes xRot from the velocity below
 		double xd = (target->x + target->xd) - x;
 		double yd = (target->y + target->getHeadHeight() - 1.1f) - y;
 		double zd = (target->z + target->zd) - z;

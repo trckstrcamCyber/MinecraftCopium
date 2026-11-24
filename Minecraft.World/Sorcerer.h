@@ -18,7 +18,7 @@ public:
 
 	// the teleport spell: somewhere within about 12 blocks, on solid ground, out of the water. false if nothing suitable was found.
 	bool tryRandomTeleport();
-	static bool randomTeleport(Mob *mob);	// the same blink for any mob (the Invoker uses it)
+	static bool randomTeleport(Mob *mob, int completeSoundId);	// the same blink for any mob (the Invoker uses it); completeSoundId plays at both ends of the blink
 
 protected:
 	virtual void registerAttributes();

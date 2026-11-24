@@ -108,7 +108,8 @@ namespace
 				{
 					shared_ptr<LivingEntity> e = dynamic_pointer_cast<LivingEntity>(found->at(i));
 					if (e == nullptr || !e->isAlive()) continue;
-					if (dynamic_cast<Illager *>(e.get()) != nullptr || e->GetType() == eTYPE_SURRENDERED || e->GetType() == eTYPE_RAVAGER) continue;
+					if (dynamic_cast<Illager *>(e.get()) != nullptr || e->GetType() == eTYPE_SURRENDERED || e->GetType() == eTYPE_RAVAGER || e->GetType() == eTYPE_VEX) continue;
+					if (e->instanceof(eTYPE_PLAYER) && dynamic_pointer_cast<Player>(e)->abilities.instabuild) continue;
 
 					e->yd += 1.2;
 					e->hurtMarked = true;

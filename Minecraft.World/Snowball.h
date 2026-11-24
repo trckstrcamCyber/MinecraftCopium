@@ -17,6 +17,7 @@ private:
 	void _init();
 	static const int DATA_ICE_ID = 8;	// neoLegacy - synched: this "snowball" is an Ice Ball
 	static const int DATA_HATCHET_ID = 9;	// neoLegacy - synched: this "snowball" is a Marauder's thrown hatchet
+	static const int DATA_HATCHET_BOUNCED_ID = 10;	// neoLegacy - synched: the server's copy bounced off a mob
 
 public:
 	Snowball(Level *level);
@@ -42,5 +43,6 @@ private:
 	bool hatchetBounced;
 	bool hatchetLanded;	// client-side only: the visual hatchet has stopped at a block; see onHatchetHit
 	int hatchetLandedTicks;	// client-side only: ticks spent frozen; self-removes after 100 if no server removal arrives
+	int hatchetBouncedTicks;	// client-side only: ticks since the bounce; self-removes after 100 if it never lands
 	void onHatchetHit(HitResult *res);
 };

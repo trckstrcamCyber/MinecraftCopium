@@ -145,7 +145,7 @@ void Necromancer::newServerAiStep()
 	int64_t now = level->getGameTime();
 	shared_ptr<LivingEntity> target = getTarget();
 
-	if (now % 5 == 0 || now % 20 == 0)
+	if (now % 5 == 0)	// neoLegacy - was '|| now % 20 == 0', implied since 20 is a multiple of 5
 	{
 		AABB *box = bb->grow(10.0, 10.0, 10.0);
 		vector<shared_ptr<Entity> > *found = level->getEntitiesOfClass(typeid(Monster), box);

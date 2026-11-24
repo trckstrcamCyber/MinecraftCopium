@@ -21,7 +21,6 @@
 #include "SoundTypes.h"
 #include "Basher.h"
 
-static const int STUN_TICKS = 60;	// three seconds
 static const int BLOCKS_BEFORE_BREAK = 4;
 
 Item *Basher::shieldItem() { return Item::iron_door; }
