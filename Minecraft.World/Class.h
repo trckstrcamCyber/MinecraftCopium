@@ -329,6 +329,8 @@ enum eINSTANCEOF
 
 	//TU 31
 	eType_WAKEPARTICLE,
+	eType_ENDRODPARTICLE,
+	eType_FALLINGDUSTPARTICLE,
 
 	//neoLegacy
 	eType_MACEEFFECTPARTICLE,
@@ -364,6 +366,7 @@ enum eINSTANCEOF
 		eTYPE_COPPERGOLEMSTATUETILEENTITY	= eTYPE_TILEENTITY | 0x19, // neoLegacy - Copper Age (Phase 5)
 		eTYPE_SHELFTILEENTITY				= eTYPE_TILEENTITY | 0x1a, // neoLegacy - Copper Age (Phase 6)
 		eTYPE_COPPEROXIDATIONTILEENTITY		= eTYPE_TILEENTITY | 0x1b, // neoLegacy - Copper Age (oxidation workaround, 2026-11-20)
+		eTYPE_THEENDGATEWAYTILEENTITY		= eTYPE_TILEENTITY | 0x1c, // TU46 - The End (upstream 0x14 collides with CONCRETECOLOR)
 		
 		eTYPE_DISPENSERTILEENTITY			= eTYPE_TILEENTITY | BIT_DISPENSERTILEENTITY,
 			eTYPE_DROPPERTILEENTITY			= eTYPE_DISPENSERTILEENTITY | 0x1,
@@ -587,6 +590,8 @@ public:
 		classes->push_back( SUBCLASS(eType_SNOWSHOVELPARTICLE)->addParent(eTYPE_ENTITY) );
 		classes->push_back( SUBCLASS(eType_SPLASHPARTICLE)->addParent(eTYPE_ENTITY) );
 		classes->push_back( SUBCLASS(eType_WAKEPARTICLE)->addParent(eTYPE_ENTITY) );
+		classes->push_back( SUBCLASS(eType_ENDRODPARTICLE)->addParent(eTYPE_ENTITY) );
+		classes->push_back( SUBCLASS(eType_FALLINGDUSTPARTICLE)->addParent(eTYPE_ENTITY) );
 		classes->push_back( SUBCLASS(eType_MACEEFFECTPARTICLE)->addParent(eTYPE_ENTITY) );
 		classes->push_back( SUBCLASS(eType_TAKEANIMATIONPARTICLE)->addParent(eTYPE_ENTITY) );
 		classes->push_back( SUBCLASS(eType_TERRAINPARTICLE)->addParent(eTYPE_ENTITY) );
@@ -634,6 +639,7 @@ public:
 		classes->push_back( SUBCLASS(eTYPE_COPPERGOLEMSTATUETILEENTITY	)->addParent( eTYPE_TILEENTITY			) ); // neoLegacy - Copper Age (Phase 5)
 		classes->push_back( SUBCLASS(eTYPE_SHELFTILEENTITY				)->addParent( eTYPE_TILEENTITY			) ); // neoLegacy - Copper Age (Phase 6)
 		classes->push_back( SUBCLASS(eTYPE_COPPEROXIDATIONTILEENTITY		)->addParent( eTYPE_TILEENTITY			) ); // neoLegacy - Copper Age (oxidation workaround, 2026-11-20)
+		classes->push_back( SUBCLASS(eTYPE_THEENDGATEWAYTILEENTITY		)->addParent( eTYPE_TILEENTITY			) ); // TU46 - The End
 		classes->push_back( SUBCLASS(eTYPE_DISPENSERTILEENTITY			)->addParent( eTYPE_TILEENTITY			) );
 		classes->push_back( SUBCLASS(eTYPE_DROPPERTILEENTITY			)->addParent( eTYPE_DISPENSERTILEENTITY ) );
 		

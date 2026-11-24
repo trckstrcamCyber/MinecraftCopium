@@ -13,11 +13,14 @@ public:
 	static const int TYPE_ZOMBIE = 2;
 	static const int TYPE_CHAR = 3;
 	static const int TYPE_CREEPER = 4;
+	static const int TYPE_DRAGON = 5;
 
 private:
 	int skullType;
 	int rotation;
 	wstring extraType;
+	int mouthAnimation;
+	bool powered;
 
 public:
 	SkullTileEntity();
@@ -30,6 +33,8 @@ public:
 	int getRotation();
 	void setRotation(int rot);
 	wstring getExtraType();
+	virtual void tick();
+	float getMouthAnimation(float a);
 
 	// 4J Added
 	virtual shared_ptr<TileEntity> clone();

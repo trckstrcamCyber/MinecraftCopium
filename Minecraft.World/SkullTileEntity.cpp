@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "com.mojang.nbt.h"
 #include "net.minecraft.network.packet.h"
+#include "net.minecraft.world.level.h"
 #include "SkullTileEntity.h"
 
 SkullTileEntity::SkullTileEntity()
@@ -8,6 +9,8 @@ SkullTileEntity::SkullTileEntity()
 	skullType = 0;
 	rotation = 0;
 	extraType = L"";
+	mouthAnimation = 0;
+	powered = false;
 }
 
 void SkullTileEntity::save(CompoundTag *tag)
@@ -69,4 +72,23 @@ shared_ptr<TileEntity> SkullTileEntity::clone()
 	result->rotation = rotation;
 	result->extraType = extraType;
 	return result;
+}
+void SkullTileEntity::tick()
+{
+	if (skullType != TYPE_DRAGON || level == nullptr) return;
+
+	if (level->hasNeighborSignal(x, y, z))
+	{
+		powered = true;
+		++mouthAnimation;
+	}
+	else
+	{
+		powered = false;
+	}
+}
+
+float SkullTileEntity::getMouthAnimation(float a)
+{
+	return powered ? static_cast<float>(mouthAnimation) + a : static_cast<float>(mouthAnimation);
 }

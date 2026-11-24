@@ -371,6 +371,13 @@ Item* Item::prismarine_crystal = nullptr;
 Item* Item::prismarine_shard = nullptr;
 
 Item* Item::elytra = nullptr;
+Item* Item::chorus_fruit = nullptr;
+Item* Item::chorus_fruit_popped = nullptr;
+Item* Item::end_crystal = nullptr;
+Item* Item::dragon_breath = nullptr;
+Item* Item::spectral_arrow = nullptr;
+Item* Item::tipped_arrow = nullptr;
+PotionItem* Item::lingering_potion = nullptr;
 
 Item* Item::beetroot = nullptr;
 Item* Item::beetroot_seeds = nullptr;
@@ -832,6 +839,13 @@ void Item::staticCtor()
 	Item::prismarine_crystal = (new Item(154))->setIconName(L"prismarineCrystal")->setDescriptionId(IDS_ITEM_PRISMARINE_CRYSTAL)->setUseDescriptionId(IDS_ITEM_PRISMARINE_CRYSTAL_DESC);
 	Item::prismarine_shard = (new Item(153))->setIconName(L"prismarineShard")->setDescriptionId(IDS_ITEM_PRISMARINE_SHARD)->setUseDescriptionId(IDS_ITEM_PRISMARINE_SHARD_DESC);
 	Item::elytra = (new ElytraItem())->setBaseItemTypeAndMaterial(eBaseItemType_chestplate, eMaterial_cloth)->setIconName(L"elytra")->setDescriptionId(IDS_ITEM_ELYTRA)->setUseDescriptionId(IDS_ITEM_ELYTRA);
+	Item::chorus_fruit = static_cast<FoodItem*>((new ChorusFruitItem(chorus_fruit_Id - 256, 4, FoodConstants::FOOD_SATURATION_LOW))->setIconName(L"chorus_fruit")->setDescriptionId(IDS_ITEM_CHORUS_FRUIT)->setUseDescriptionId(IDS_DESC_ITEM_CHORUS_FRUIT))->setCanAlwaysEat();
+	Item::chorus_fruit_popped = (new Item(chorus_fruit_popped_Id - 256))->setBaseItemTypeAndMaterial(eBaseItemType_undefined, eMaterial_purpur)->setIconName(L"chorus_fruit_popped")->setDescriptionId(IDS_ITEM_CHORUS_FRUIT_POPPED)->setUseDescriptionId(IDS_DESC_ITEM_CHORUS_FRUIT_POPPED);
+	Item::end_crystal = (new EndCrystalItem(end_crystal_Id - 256))->setIconName(L"end_crystal")->setDescriptionId(IDS_ITEM_END_CRYSTAL)->setUseDescriptionId(IDS_DESC_ITEM_END_CRYSTAL);
+	Item::dragon_breath = (new Item(dragon_breath_Id - 256))->setBaseItemTypeAndMaterial(eBaseItemType_undefined, eMaterial_ender)->setIconName(L"dragon_breath")->setPotionBrewingFormula(PotionBrewing::MOD_GUNPOWDER)->setCraftingRemainingItem(Item::glassBottle)->setDescriptionId(IDS_ITEM_DRAGON_BREATH)->setUseDescriptionId(IDS_DESC_ITEM_DRAGON_BREATH);
+	Item::spectral_arrow = (new Item(spectral_arrow_Id - 256))->setIconName(L"spectral_arrow")->setBaseItemTypeAndMaterial(eBaseItemType_bow, eMaterial_arrow)->setDescriptionId(IDS_ITEM_SPECTRAL_ARROW)->setUseDescriptionId(IDS_DESC_SPECTRAL_ARROW);
+	Item::tipped_arrow = (new TippedArrowItem(tipped_arrow_Id - 256))->setIconName(L"tipped_arrow_base")->setBaseItemTypeAndMaterial(eBaseItemType_bow, eMaterial_arrow)->setDescriptionId(IDS_ITEM_TIPPED_ARROW)->setUseDescriptionId(IDS_DESC_TIPPED_ARROW);
+	Item::lingering_potion = static_cast<PotionItem *>((new LingeringPotionItem(lingering_potion_Id - 256))->setIconName(L"potion_bottle_lingering")->setDescriptionId(IDS_ITEM_LINGERING_POTION)->setUseDescriptionId(IDS_DESC_POTION));
 
 	Item::beetroot = (new FoodItem(178, 1, 0.6f, false))->setIconName(L"beetroot")->setDescriptionId(IDS_BEETROOT)->setUseDescriptionId(IDS_DESC_BEETROOT);
 	Item::beetroot_seeds = (new SeedItem(179, Tile::beetroots_Id, Tile::farmland_Id))->setIconName(L"beetroot_seeds")->setDescriptionId(IDS_BEETROOT_SEEDS)->setUseDescriptionId(IDS_DESC_BEETROOT_SEEDS);
@@ -1516,5 +1530,12 @@ const int Item::quartz_Id		;
 const int Item::beetroot_Id		;
 const int Item::beetroot_seeds_Id	;
 const int Item::beetroot_soup_Id	;
+const int Item::chorus_fruit_Id;
+const int Item::chorus_fruit_popped_Id;
+const int Item::end_crystal_Id;
+const int Item::dragon_breath_Id;
+const int Item::spectral_arrow_Id;
+const int Item::tipped_arrow_Id;
+const int Item::lingering_potion_Id;
 #endif
 

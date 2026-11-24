@@ -11,6 +11,50 @@
 
 WeighedTreasureArray MineShaftPieces::smallTreasureItems;;
 
+namespace
+{
+int getMineShaftPlanksData(bool mesaWood)
+{
+	return mesaWood ? 5 : 0;
+}
+
+int getMineShaftFenceId(bool mesaWood)
+{
+	return mesaWood ? Tile::dark_oak_fence_Id : Tile::fence_Id;
+}
+
+bool isMesaTerrainBlock(int block)
+{
+	return block == Tile::stone_Id || block == Tile::dirt_Id || block == Tile::sand_Id
+		|| block == Tile::gravel_Id || block == Tile::sandstone_Id || block == Tile::clay_Id
+		|| block == Tile::stained_hardened_clay_Id || block == Tile::hardened_clay_Id
+		|| block == Tile::red_sandstone_Id;
+}
+
+bool hasSupportAbove(Level* level, StructurePiece* piece, BoundingBox* chunkBB,
+	int x0, int x1, int y, int z, bool mesaWood)
+{
+	bool checkedSupport = false;
+	for (int x = x0; x <= x1; ++x)
+	{
+		const int worldX = piece->getWorldX(x, z);
+		const int worldY = piece->getWorldY(y + 1);
+		const int worldZ = piece->getWorldZ(x, z);
+		if (!chunkBB->isInside(worldX, worldY, worldZ))
+		{
+			continue;
+		}
+		checkedSupport = true;
+		const int block = piece->getBlock(level, x, y + 1, z, chunkBB);
+		if (block == 0 || (mesaWood && !isMesaTerrainBlock(block)))
+		{
+			return false;
+		}
+	}
+	return checkedSupport;
+}
+}
+
 void MineShaftPieces::staticCtor()
 {
 	smallTreasureItems = WeighedTreasureArray(13);
@@ -38,7 +82,7 @@ void MineShaftPieces::loadStatic()
 	StructureFeatureIO::setPieceId( eStructurePiece_MineShaftStairs, MineShaftStairs::Create, L"MSStairs");
 }
 
-StructurePiece *MineShaftPieces::createRandomShaftPiece(list<StructurePiece *> *pieces, Random *random, int footX, int footY, int footZ, int direction, int genDepth)
+StructurePiece *MineShaftPieces::createRandomShaftPiece(list<StructurePiece *> *pieces, Random *random, int footX, int footY, int footZ, int direction, int genDepth, bool mesaWood)
 {
 	int randomSelection = random->nextInt(100);
 	if (randomSelection >= 80)
@@ -46,7 +90,7 @@ StructurePiece *MineShaftPieces::createRandomShaftPiece(list<StructurePiece *> *
 		BoundingBox *crossingBox = MineShaftCrossing::findCrossing(pieces, random, footX, footY, footZ, direction);
 		if (crossingBox != nullptr)
 		{
-			return new MineShaftCrossing(genDepth, random, crossingBox, direction);
+			return new MineShaftCrossing(genDepth, random, crossingBox, direction, mesaWood);
 		}
 	}
 	else if (randomSelection >= 70)
@@ -54,7 +98,7 @@ StructurePiece *MineShaftPieces::createRandomShaftPiece(list<StructurePiece *> *
 		BoundingBox *stairsBox = MineShaftStairs::findStairs(pieces, random, footX, footY, footZ, direction);
 		if (stairsBox != nullptr)
 		{
-			return new MineShaftPieces::MineShaftStairs(genDepth, random, stairsBox, direction);
+			return new MineShaftPieces::MineShaftStairs(genDepth, random, stairsBox, direction, mesaWood);
 		}
 	}
 	else
@@ -62,7 +106,7 @@ StructurePiece *MineShaftPieces::createRandomShaftPiece(list<StructurePiece *> *
 		BoundingBox *corridorBox = MineShaftCorridor::findCorridorSize(pieces, random, footX, footY, footZ, direction);
 		if (corridorBox != nullptr)
 		{
-			return new MineShaftCorridor(genDepth, random, corridorBox, direction);
+			return new MineShaftCorridor(genDepth, random, corridorBox, direction, mesaWood);
 		}
 	}
 
@@ -80,7 +124,8 @@ StructurePiece *MineShaftPieces::generateAndAddPiece(StructurePiece *startPiece,
 		return nullptr;
 	}
 
-	StructurePiece *newPiece = createRandomShaftPiece(pieces, random, footX, footY, footZ, direction, depth + 1);
+	const bool mesaWood = static_cast<MineShaftRoom*>(startPiece)->usesMesaWood();
+	StructurePiece *newPiece = createRandomShaftPiece(pieces, random, footX, footY, footZ, direction, depth + 1, mesaWood);
 	if (newPiece != nullptr)
 	{
 		MemSect(50);
@@ -93,11 +138,12 @@ StructurePiece *MineShaftPieces::generateAndAddPiece(StructurePiece *startPiece,
 
 MineShaftPieces::MineShaftRoom::MineShaftRoom()
 {
-	// for reflection
+	mesaWood = false;
 }
 
-MineShaftPieces::MineShaftRoom::MineShaftRoom(int genDepth, Random *random, int west, int north) : StructurePiece(genDepth)
+MineShaftPieces::MineShaftRoom::MineShaftRoom(int genDepth, Random *random, int west, int north, bool mesaWood) : StructurePiece(genDepth)
 {
+	this->mesaWood = mesaWood;
 	boundingBox = new BoundingBox(west, 50, north, west + 7 + random->nextInt(6), 54 + random->nextInt(6), north + 7 + random->nextInt(6));
 }
 
@@ -215,6 +261,7 @@ bool MineShaftPieces::MineShaftRoom::postProcess(Level *level, Random *random, B
 
 void MineShaftPieces::MineShaftRoom::addAdditonalSaveData(CompoundTag *tag)
 {
+	tag->putBoolean(L"Mesa", mesaWood);
 	ListTag<IntArrayTag> *entrances = new ListTag<IntArrayTag>(L"Entrances");
 	for (auto& bb : childEntranceBoxes)
 	{
@@ -225,6 +272,7 @@ void MineShaftPieces::MineShaftRoom::addAdditonalSaveData(CompoundTag *tag)
 
 void MineShaftPieces::MineShaftRoom::readAdditonalSaveData(CompoundTag *tag)
 {
+	mesaWood = tag->getBoolean(L"Mesa");
 	ListTag<IntArrayTag> *entrances = (ListTag<IntArrayTag> *) tag->getList(L"Entrances");
 	for (int i = 0; i < entrances->size(); i++)
 	{
@@ -234,7 +282,7 @@ void MineShaftPieces::MineShaftRoom::readAdditonalSaveData(CompoundTag *tag)
 
 MineShaftPieces::MineShaftCorridor::MineShaftCorridor()
 {
-	// for reflection
+	mesaWood = false;
 }
 
 void MineShaftPieces::MineShaftCorridor::addAdditonalSaveData(CompoundTag *tag)
@@ -243,6 +291,7 @@ void MineShaftPieces::MineShaftCorridor::addAdditonalSaveData(CompoundTag *tag)
 	tag->putBoolean(L"sc", spiderCorridor);
 	tag->putBoolean(L"hps", hasPlacedSpider);
 	tag->putInt(L"Num", numSections);
+	tag->putBoolean(L"Mesa", mesaWood);
 }
 
 void MineShaftPieces::MineShaftCorridor::readAdditonalSaveData(CompoundTag *tag)
@@ -251,11 +300,13 @@ void MineShaftPieces::MineShaftCorridor::readAdditonalSaveData(CompoundTag *tag)
 	spiderCorridor = tag->getBoolean(L"sc");
 	hasPlacedSpider = tag->getBoolean(L"hps");
 	numSections = tag->getInt(L"Num");
+	mesaWood = tag->getBoolean(L"Mesa");
 }
 
-MineShaftPieces::MineShaftCorridor::MineShaftCorridor(int genDepth, Random *random, BoundingBox *corridorBox, int direction)
+MineShaftPieces::MineShaftCorridor::MineShaftCorridor(int genDepth, Random *random, BoundingBox *corridorBox, int direction, bool mesaWood)
 	: StructurePiece(genDepth)
 {
+	this->mesaWood = mesaWood;
 	orientation = direction;
 	boundingBox = corridorBox;
 	hasRails = random->nextInt(3) == 0;
@@ -456,6 +507,8 @@ bool MineShaftPieces::MineShaftCorridor::postProcess(Level *level, Random *rando
 	const int y0 = 0;
 	const int y1 = DEFAULT_SHAFT_HEIGHT - 1;
 	const int length = (numSections * DEFAULT_SHAFT_LENGTH) - 1;
+	const int planksData = getMineShaftPlanksData(mesaWood);
+	const int fenceId = getMineShaftFenceId(mesaWood);
 
 	// corridor air
 	generateBox(level, chunkBB, x0, 0, y0, x1, y1 - 1, length, 0, 0, false);
@@ -472,17 +525,19 @@ bool MineShaftPieces::MineShaftCorridor::postProcess(Level *level, Random *rando
 
 		int z = 2 + section * DEFAULT_SHAFT_LENGTH;
 
-		// 4J-PB - Bringing forward the changes in 1.2.3
-		generateBox(level, chunkBB, x0, y0, z, x0, y1 - 1, z, Tile::fence_Id, 0, false);
-		generateBox(level, chunkBB, x1, y0, z, x1, y1 - 1, z, Tile::fence_Id, 0, false);
-		if (random->nextInt(4) == 0)
+		if (hasSupportAbove(level, this, chunkBB, x0, x1, y1, z, mesaWood))
 		{
-			generateBox(level, chunkBB, x0, y1, z, x0, y1, z, Tile::planks_Id, 0, false);
-			generateBox(level, chunkBB, x1, y1, z, x1, y1, z, Tile::planks_Id, 0, false);
-		}
-		else
-		{
-			generateBox(level, chunkBB, x0, y1, z, x1, y1, z, Tile::planks_Id, 0, false);
+			generateBox(level, chunkBB, x0, y0, z, x0, y1 - 1, z, fenceId, 0, fenceId, 0, false);
+			generateBox(level, chunkBB, x1, y0, z, x1, y1 - 1, z, fenceId, 0, fenceId, 0, false);
+			if (random->nextInt(4) == 0)
+			{
+				generateBox(level, chunkBB, x0, y1, z, x0, y1, z, Tile::planks_Id, planksData, Tile::planks_Id, planksData, false);
+				generateBox(level, chunkBB, x1, y1, z, x1, y1, z, Tile::planks_Id, planksData, Tile::planks_Id, planksData, false);
+			}
+			else
+			{
+				generateBox(level, chunkBB, x0, y1, z, x1, y1, z, Tile::planks_Id, planksData, Tile::planks_Id, planksData, false);
+			}
 		}
 		maybeGenerateBlock(level, chunkBB, random, .1f, x0, y1, z - 1, Tile::web_Id, 0);
 		maybeGenerateBlock(level, chunkBB, random, .1f, x1, y1, z - 1, Tile::web_Id, 0);
@@ -520,15 +575,17 @@ bool MineShaftPieces::MineShaftCorridor::postProcess(Level *level, Random *rando
 		}
 	}
 
-	// prevent air floating
-	for (int x = x0; x <= x1; x++)
+	if (planksData == 0)
 	{
-		for (int z = 0; z <= length; z++)
+		for (int x = x0; x <= x1; x++)
 		{
-			int block = getBlock(level, x, -1, z, chunkBB);
-			if (block == 0)
+			for (int z = 0; z <= length; z++)
 			{
-				placeBlock(level, Tile::planks_Id, 0, x, -1, z, chunkBB);
+				int block = getBlock(level, x, -1, z, chunkBB);
+				if (block == 0)
+				{
+					placeBlock(level, Tile::planks_Id, planksData, x, -1, z, chunkBB);
+				}
 			}
 		}
 	}
@@ -550,23 +607,25 @@ bool MineShaftPieces::MineShaftCorridor::postProcess(Level *level, Random *rando
 
 MineShaftPieces::MineShaftCrossing::MineShaftCrossing()
 {
-	// for reflection
+	mesaWood = false;
 }
 
 void MineShaftPieces::MineShaftCrossing::addAdditonalSaveData(CompoundTag *tag)
 {
 	tag->putBoolean(L"tf", isTwoFloored);
 	tag->putInt(L"D", direction);
+	tag->putBoolean(L"Mesa", mesaWood);
 }
 
 void MineShaftPieces::MineShaftCrossing::readAdditonalSaveData(CompoundTag *tag)
 {
 	isTwoFloored = tag->getBoolean(L"tf");
 	direction = tag->getInt(L"D");
+	mesaWood = tag->getBoolean(L"Mesa");
 }
 
-MineShaftPieces::MineShaftCrossing::MineShaftCrossing(int genDepth, Random *random, BoundingBox *crossingBox, int direction)
-	: StructurePiece(genDepth), direction(direction), isTwoFloored( crossingBox->getYSpan() > DEFAULT_SHAFT_HEIGHT )
+MineShaftPieces::MineShaftCrossing::MineShaftCrossing(int genDepth, Random *random, BoundingBox *crossingBox, int direction, bool mesaWood)
+	: StructurePiece(genDepth), direction(direction), isTwoFloored( crossingBox->getYSpan() > DEFAULT_SHAFT_HEIGHT ), mesaWood(mesaWood)
 {
 	boundingBox = crossingBox;
 }
@@ -660,6 +719,7 @@ bool MineShaftPieces::MineShaftCrossing::postProcess(Level *level, Random *rando
 	{
 		return false;
 	}
+	const int planksData = getMineShaftPlanksData(mesaWood);
 
 	// corridor air
 	if (isTwoFloored)
@@ -677,22 +737,32 @@ bool MineShaftPieces::MineShaftCrossing::postProcess(Level *level, Random *rando
 	}
 
 	// support pillars
-	generateBox(level, chunkBB, boundingBox->x0 + 1, boundingBox->y0, boundingBox->z0 + 1, boundingBox->x0 + 1, boundingBox->y1, boundingBox->z0 + 1, Tile::planks_Id, 0, false);
-	generateBox(level, chunkBB, boundingBox->x0 + 1, boundingBox->y0, boundingBox->z1 - 1, boundingBox->x0 + 1, boundingBox->y1, boundingBox->z1 - 1, Tile::planks_Id, 0, false);
-	generateBox(level, chunkBB, boundingBox->x1 - 1, boundingBox->y0, boundingBox->z0 + 1, boundingBox->x1 - 1, boundingBox->y1, boundingBox->z0 + 1, Tile::planks_Id, 0, false);
-	generateBox(level, chunkBB, boundingBox->x1 - 1, boundingBox->y0, boundingBox->z1 - 1, boundingBox->x1 - 1, boundingBox->y1, boundingBox->z1 - 1, Tile::planks_Id, 0, false);
-
-	// prevent air floating
-	// note: use world coordinates because the corridor hasn't defined
-	// orientation
-	for (int x = boundingBox->x0; x <= boundingBox->x1; x++)
+	const int supportXs[] = { boundingBox->x0 + 1, boundingBox->x0 + 1, boundingBox->x1 - 1, boundingBox->x1 - 1 };
+	const int supportZs[] = { boundingBox->z0 + 1, boundingBox->z1 - 1, boundingBox->z0 + 1, boundingBox->z1 - 1 };
+	for (int i = 0; i < 4; ++i)
 	{
-		for (int z = boundingBox->z0; z <= boundingBox->z1; z++)
+		const int x = supportXs[i];
+		const int z = supportZs[i];
+		const int blockAbove = getBlock(level, x, boundingBox->y1 + 1, z, chunkBB);
+		if (blockAbove != 0 && (!mesaWood || isMesaTerrainBlock(blockAbove)))
 		{
-			int block = getBlock(level, x, boundingBox->y0 - 1, z, chunkBB);
-			if (block == 0)
+			generateBox(level, chunkBB, x, boundingBox->y0, z, x, boundingBox->y1, z,
+				Tile::planks_Id, planksData, Tile::planks_Id, planksData, false);
+		}
+	}
+
+	if (planksData == 0)
+	{
+		// The crossing has no orientation, so these are world coordinates.
+		for (int x = boundingBox->x0; x <= boundingBox->x1; x++)
+		{
+			for (int z = boundingBox->z0; z <= boundingBox->z1; z++)
 			{
-				placeBlock(level, Tile::planks_Id, 0, x, boundingBox->y0 - 1, z, chunkBB);
+				int block = getBlock(level, x, boundingBox->y0 - 1, z, chunkBB);
+				if (block == 0)
+				{
+					placeBlock(level, Tile::planks_Id, planksData, x, boundingBox->y0 - 1, z, chunkBB);
+				}
 			}
 		}
 	}
@@ -702,22 +772,25 @@ bool MineShaftPieces::MineShaftCrossing::postProcess(Level *level, Random *rando
 
 MineShaftPieces::MineShaftStairs::MineShaftStairs()
 {
-	// for reflection
+	mesaWood = false;
 }
 
-MineShaftPieces::MineShaftStairs::MineShaftStairs(int genDepth, Random *random, BoundingBox *stairsBox, int direction) : StructurePiece(genDepth)
+MineShaftPieces::MineShaftStairs::MineShaftStairs(int genDepth, Random *random, BoundingBox *stairsBox, int direction, bool mesaWood) : StructurePiece(genDepth)
 {
 	this->orientation = direction;
+	this->mesaWood = mesaWood;
 	boundingBox = stairsBox;
 }
 
 
 void MineShaftPieces::MineShaftStairs::addAdditonalSaveData(CompoundTag *tag)
 {
+	tag->putBoolean(L"Mesa", mesaWood);
 }
 
 void MineShaftPieces::MineShaftStairs::readAdditonalSaveData(CompoundTag *tag)
 {
+	mesaWood = tag->getBoolean(L"Mesa");
 }
 
 BoundingBox *MineShaftPieces::MineShaftStairs::findStairs(list<StructurePiece *> *pieces, Random *random, int footX, int footY, int footZ, int direction)

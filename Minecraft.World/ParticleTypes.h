@@ -44,6 +44,8 @@ enum ePARTICLE_TYPE
 	eParticleType_mobAppearance,
 	eParticleType_jelly,		// neoLegacy - pink blobs from a Jelly Slime (tinted snowball icon)
 	eParticleType_thrownegg,
+	eParticleType_endRod,
+	eParticleType_fallingDust,
 
 	// 4J-JEV: In the java, the particle name was used to sneak parameters in for the Terrain and IconCrack particle constructors.
 	

@@ -279,14 +279,14 @@ bool TrapDoorTile::use(Level *level, int x, int y, int z, shared_ptr<Player> pla
 	if (soundOnly)
 	{
 		// 4J - added - just do enough to play the sound
-		level->levelEvent(player, LevelEvent::SOUND_OPEN_DOOR, x, y, z, 0);
+		level->levelEvent(player, getToggleSound((level->getData(x, y, z) & 4) == 0), x, y, z, 0);
 		return false;
 	}
 
 	int dir = level->getData(x, y, z);
 	level->setData(x, y, z, dir ^ 4, Tile::UPDATE_CLIENTS);
 
-	level->levelEvent(player, LevelEvent::SOUND_OPEN_DOOR, x, y, z, 0);
+	level->levelEvent(player, getToggleSound((dir & 4) == 0), x, y, z, 0);
 	return true;
 }
 
@@ -300,7 +300,7 @@ void TrapDoorTile::setOpen(Level *level, int x, int y, int z, bool shouldOpen)
 
 	level->setData(x, y, z, dir ^ 4, Tile::UPDATE_CLIENTS);
 
-	level->levelEvent(nullptr, LevelEvent::SOUND_OPEN_DOOR, x, y, z, 0);
+	level->levelEvent(nullptr, getToggleSound(shouldOpen), x, y, z, 0);
 }
 
 void TrapDoorTile::neighborChanged(Level *level, int x, int y, int z, int type)
@@ -413,4 +413,9 @@ bool TrapDoorTile::attachesTo(int id)
 	Tile *tile = Tile::tiles[id];
 
 	return tile != nullptr && (tile->material->isSolidBlocking() && tile->isCubeShaped()) || tile == Tile::glowstone || (dynamic_cast<HalfSlabTile *>(tile) != nullptr) || (dynamic_cast<StairTile *>(tile) != nullptr);
+}
+int TrapDoorTile::getToggleSound(bool open)
+{
+	if (material == Material::metal) return open ? LevelEvent::SOUND_OPEN_IRON_TRAP_DOOR : LevelEvent::SOUND_CLOSE_IRON_TRAP_DOOR;
+	return open ? LevelEvent::SOUND_OPEN_WOODEN_TRAP_DOOR : LevelEvent::SOUND_CLOSE_WOODEN_TRAP_DOOR;
 }

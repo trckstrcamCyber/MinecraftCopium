@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "SoundTypes.h"
 #include "net.minecraft.world.entity.player.h"
 #include "net.minecraft.world.inventory.h"
 #include "net.minecraft.world.level.h"
@@ -287,6 +288,7 @@ bool EnchantmentMenu::clickMenuButton(shared_ptr<Player> player, int i)
 				delete newEnchantment;
 				cachedEnchantments[i] = nullptr;
 				slotsChanged(1);// Removed enchantSlots parameter as the function can reference it directly
+				level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_BLOCK_ENCHANTMENT_TABLE_ENCHANT, 1.0f, level->random->nextFloat() * 0.1f + 0.9f);
 			}
 		}
 		if (!player->abilities.instabuild) lapisSlot->removeItem(1, i+1);

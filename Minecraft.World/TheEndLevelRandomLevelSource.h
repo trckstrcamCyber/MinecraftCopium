@@ -2,6 +2,8 @@
 
 #include "ChunkSource.h"
 class PerlinNoise;
+class EndIslandFeature;
+class EndCityFeature;
 
 class TheEndLevelRandomLevelSource : public ChunkSource
 {
@@ -29,8 +31,16 @@ public:
 private:
 	Level *level;
 
+	bool modernEnd;
+	EndIslandFeature *islandFeature;
+	EndCityFeature *endCityFeature;
+
+	static double outerIslandProximity(int chunkX, int chunkZ);
+	static bool outerIslandCheck(int chunkX, int chunkZ);
+	float getIslandHeightValue(int chunkX, int chunkZ, int xOffset, int zOffset);
+
 public:
-	TheEndLevelRandomLevelSource(Level *level, int64_t seed);
+	TheEndLevelRandomLevelSource(Level *level, int64_t seed, bool modernEnd = false);
 	~TheEndLevelRandomLevelSource();
 
 	void prepareHeights(int xOffs, int zOffs, byteArray blocks, BiomeArray biomes);

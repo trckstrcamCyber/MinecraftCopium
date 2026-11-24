@@ -13,6 +13,9 @@
 #include "../Minecraft.Client/PlayerConnection.h"
 #include "com.mojang.nbt.h"
 #include "Arrow.h"
+#include "net.minecraft.world.effect.h"
+#include "net.minecraft.world.item.alchemy.h"
+#include "MobEffectInstance.h"
 #include "ExplosiveEnchantment.h"
 
 // 4J : WESTY : Added for other award, kill creeper with arrow.
@@ -46,6 +49,10 @@ void Arrow::_init()
 	life = 0;
 
 	baseDamage = ARROW_BASE_DAMAGE;
+	inGroundTime = 0;
+	customEffectId = -1;
+	customEffectDuration = 0;
+	customEffectAmplifier = 0;
 	knockback = 0;
 	explosiveLevel = 0; // neoLegacy Added
 	pierceLevel = 0;
@@ -130,6 +137,8 @@ Arrow::Arrow(Level *level, shared_ptr<LivingEntity> mob, float power) : Entity( 
 void Arrow::defineSynchedData()
 {
 	entityData->define(ID_FLAGS, static_cast<byte>(0));
+	entityData->define(ID_ARROW_TYPE, static_cast<byte>(TYPE_NORMAL));
+	entityData->define(ID_POTION, 0);
 }
 
 
@@ -187,6 +196,25 @@ void Arrow::lerpMotion(double xd, double yd, double zd)
 void Arrow::tick() 
 {
 	Entity::tick();
+
+	if (level->isClientSide)
+	{
+		int arrowType = getArrowType();
+		if (arrowType == TYPE_SPECTRAL && !inGround)
+		{
+			level->addParticle(eParticleType_instantSpell, x, y, z, 0, 0, 0);
+		}
+		else if (arrowType == TYPE_TIPPED)
+		{
+			int col = PotionBrewing::getColorValue(getPotionValue(), false);
+			int count = inGround ? ((inGroundTime++ % 5) == 0 ? 1 : 0) : 2;
+			for (int i = 0; i < count; i++)
+			{
+				level->addParticle(eParticleType_mobSpell, x + (random->nextDouble() - 0.5) * bbWidth, y + random->nextDouble() * bbHeight, z + (random->nextDouble() - 0.5) * bbWidth,
+					((col >> 16) & 0xff) / 255.0, ((col >> 8) & 0xff) / 255.0, (col & 0xff) / 255.0);
+			}
+		}
+	}
 
 
 	if (xRotO == 0 && yRotO == 0) 
@@ -334,6 +362,7 @@ void Arrow::tick()
 					if (!level->isClientSide)
 					{
 						mob->setArrowCount(mob->getArrowCount() + 1);
+						applyArrowEffects(mob);
 					}
 					if (knockback > 0)
 					{
@@ -504,6 +533,14 @@ void Arrow::addAdditonalSaveData(CompoundTag *tag)
 	tag->putByte(L"inGround", static_cast<byte>(inGround ? 1 : 0));
 	tag->putByte(L"pickup", static_cast<byte>(pickup));
 	tag->putDouble(L"damage", baseDamage);
+	tag->putByte(L"ArrowType", static_cast<byte>(getArrowType()));
+	tag->putInt(L"Potion", getPotionValue());
+	if (customEffectId >= 0)
+	{
+		tag->putInt(L"CustomEffect", customEffectId);
+		tag->putInt(L"CustomEffectDuration", customEffectDuration);
+		tag->putInt(L"CustomEffectAmplifier", customEffectAmplifier);
+	}
 	tag->putByte(L"pierce", static_cast<byte>(pierceLevel));
 	tag->putByte(L"torch", static_cast<byte>(torchArrow ? 1 : 0));
 	tag->putByte(L"looting", static_cast<byte>(lootingLevel + 1));	// stored +1 so that "not set" (-1) is 0 and no sign handling is needed
@@ -521,6 +558,11 @@ void Arrow::readAdditionalSaveData(CompoundTag *tag)
 	if (tag->contains(L"damage"))
 	{
 		baseDamage = tag->getDouble(L"damage");
+	}
+	if (tag->contains(L"ArrowType"))
+	{
+		setArrowType(tag->getByte(L"ArrowType"), tag->getInt(L"Potion"));
+		if (tag->contains(L"CustomEffect")) setCustomEffect(tag->getInt(L"CustomEffect"), tag->getInt(L"CustomEffectDuration"), tag->getInt(L"CustomEffectAmplifier"));
 	}
 
 	if (tag->contains(L"pierce")) pierceLevel = static_cast<int>(tag->getByte(L"pierce"));
@@ -545,7 +587,7 @@ void Arrow::playerTouch(shared_ptr<Player> player)
 
 	if (pickup == PICKUP_ALLOWED)
 	{
-		if (!player->inventory->add(std::make_shared<ItemInstance>(Item::arrow, 1)))
+		if (!player->inventory->add(getPickupItem()))
 		{
 			bRemove = false;
 		}
@@ -607,6 +649,99 @@ bool Arrow::isCritArrow()
 	byte flags = entityData->getByte(ID_FLAGS);
 	return (flags & FLAG_CRIT) != 0;
 }
+void Arrow::setArrowType(int type, int potionValue)
+{
+	entityData->set(ID_ARROW_TYPE, static_cast<byte>(type));
+	entityData->set(ID_POTION, type == TYPE_TIPPED ? potionValue : 0);
+}
+
+int Arrow::getArrowType()
+{
+	return entityData->getByte(ID_ARROW_TYPE);
+}
+
+int Arrow::getPotionValue()
+{
+	return entityData->getInteger(ID_POTION);
+}
+
+bool Arrow::isArrowItem(int itemId)
+{
+	return itemId == Item::arrow_Id || itemId == Item::spectral_arrow_Id || itemId == Item::tipped_arrow_Id;
+}
+
+void Arrow::setFromItem(shared_ptr<ItemInstance> item)
+{
+	if (item == nullptr || item->id == Item::arrow_Id)
+	{
+		setArrowType(TYPE_NORMAL);
+	}
+	else if (item->id == Item::spectral_arrow_Id)
+	{
+		setArrowType(TYPE_SPECTRAL);
+	}
+	else if (item->id == Item::tipped_arrow_Id)
+	{
+		setArrowType(TYPE_TIPPED, item->getAuxValue());
+	}
+}
+
+shared_ptr<ItemInstance> Arrow::getPickupItem()
+{
+	switch (getArrowType())
+	{
+	case TYPE_SPECTRAL:
+		return std::make_shared<ItemInstance>(Item::spectral_arrow, 1);
+	case TYPE_TIPPED:
+		return std::make_shared<ItemInstance>(Item::tipped_arrow_Id, 1, getPotionValue());
+	default:
+		return std::make_shared<ItemInstance>(Item::arrow, 1);
+	}
+}
+
+void Arrow::applyArrowEffects(shared_ptr<LivingEntity> mob)
+{
+	int arrowType = getArrowType();
+	if (arrowType == TYPE_SPECTRAL)
+	{
+		mob->addEffect(new MobEffectInstance(MobEffect::glowing->id, SPECTRAL_GLOW_DURATION, 0));
+	}
+	else if (arrowType == TYPE_TIPPED)
+	{
+		if (customEffectId >= 0)
+		{
+			mob->addEffect(new MobEffectInstance(customEffectId, customEffectDuration, customEffectAmplifier));
+			return;
+		}
+		vector<MobEffectInstance *> *effects = PotionBrewing::getEffects(getPotionValue(), false);
+		if (effects == nullptr) return;
+		for (auto &effect : *effects)
+		{
+			MobEffect *mobEffect = MobEffect::effects[effect->getId()];
+			if (mobEffect != nullptr)
+			{
+				if (mobEffect->isInstantenous())
+				{
+					mobEffect->applyInstantenousEffect(dynamic_pointer_cast<LivingEntity>(owner), mob, effect->getAmplifier(), 1.0);
+				}
+				else
+				{
+					mob->addEffect(new MobEffectInstance(effect->getId(), max(effect->getDuration() / 8, 1), effect->getAmplifier()));
+				}
+			}
+			delete effect;
+		}
+		delete effects;
+	}
+}
+
+void Arrow::setCustomEffect(int effectId, int duration, int amplifier)
+{
+	customEffectId = effectId;
+	customEffectDuration = duration;
+	customEffectAmplifier = amplifier;
+}
+
 
 // neoLegacy Added - Torched. The block that was hit is (hitX, hitY, hitZ) and `face` is the side of it that was struck.
 void Arrow::landTorch(int hitX, int hitY, int hitZ, int face)

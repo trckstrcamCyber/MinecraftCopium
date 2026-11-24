@@ -12,6 +12,7 @@ public:
 
 public:
 	static const double SPLASH_RANGE;
+	static const int LINGERING_FLAG = 0x10000;
 
 private:
 	static const double SPLASH_RANGE_SQ;
@@ -35,6 +36,7 @@ protected:
 public:
 	void setPotionValue(int potionValue);
 	int getPotionValue();
+	bool isLingering();
 
 protected:
 	virtual void onHit(HitResult *res);

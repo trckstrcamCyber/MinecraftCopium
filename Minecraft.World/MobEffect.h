@@ -36,6 +36,10 @@ public:
 		e_MobEffectIcon_HeroOfTheVillage,
 		e_MobEffectIcon_BadOmen,
 		e_MobEffectIcon_Freezing,
+		e_MobEffectIcon_Glowing,
+		e_MobEffectIcon_Levitation,
+		e_MobEffectIcon_Luck,
+		e_MobEffectIcon_Unluck,
 
 		e_MobEffectIcon_COUNT,
 	};
@@ -75,10 +79,10 @@ public:
 	static MobEffect *reserved_25;
 	static MobEffect *reserved_26;
 	static MobEffect *reserved_27;
-	static MobEffect *reserved_28;
-	static MobEffect *reserved_29;
-	static MobEffect *reserved_30;
-	static MobEffect *reserved_31;
+	static MobEffect *glowing;
+	static MobEffect *levitation;
+	static MobEffect *luck;
+	static MobEffect *unluck;
 
 	const int id;
 

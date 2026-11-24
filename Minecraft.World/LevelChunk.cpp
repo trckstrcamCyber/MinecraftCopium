@@ -1414,9 +1414,8 @@ void LevelChunk::addTileEntity(shared_ptr<TileEntity> te)
 	setTileEntity(xx, yy, zz, te);
 	if( loaded )
 	{
-		EnterCriticalSection(&level->m_tileEntityListCS);
-		level->tileEntityList.push_back(te);
-		LeaveCriticalSection(&level->m_tileEntityListCS);
+		vector<shared_ptr<TileEntity> > added(1, te);
+		level->addAllPendingTileEntities(added);
 	}
 }
 

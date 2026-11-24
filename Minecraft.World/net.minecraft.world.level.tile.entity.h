@@ -18,6 +18,7 @@
 #include "TileEntity.h"
 #include "PistonMovingPiece.h"
 #include "TheEndPortalTileEntity.h"
+#include "TheEndGatewayTileEntity.h"
 #include "SkullTileEntity.h"
 #include "EnderChestTileEntity.h"
 #include "ItemFrame.h"

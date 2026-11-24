@@ -32,6 +32,7 @@
 #include "RandomLookAroundGoal.h"
 #include "RandomStrollGoal.h"
 #include "RangedAttackGoal.h"
+#include "RangedBowAttackGoal.h"
 #include "RestrictOpenDoorGoal.h"
 #include "RestrictSunGoal.h"
 #include "RunAroundLikeCrazyGoal.h"

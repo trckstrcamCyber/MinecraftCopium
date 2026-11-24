@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "EndDragonFight.h"
 #include "net.minecraft.world.level.h"
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.world.entity.h"
@@ -14,6 +15,9 @@
 #include "net.minecraft.world.level.pathfinder.h"
 #include "SharedConstants.h"
 #include "EnderDragon.h"
+#include "AreaEffectCloud.h"
+#include "MobEffectInstance.h"
+#include "net.minecraft.world.effect.h"
 
 #define PRINT_DRAGON_STATE_CHANGE_MESSAGES 1
 
@@ -438,26 +442,40 @@ void EnderDragon::aiStep()
 			findNewTarget();
 		}
 
-		if( getSynchedAction() == e_EnderdragonAction_Sitting_Flaming || getSynchedAction() == e_EnderdragonAction_Landing )
+		if (getSynchedAction() == e_EnderdragonAction_Sitting_Flaming && m_actionTicks == 50)
 		{
-			if( m_actionTicks < (FLAME_TICKS - 10) )
-			{
-				vector<shared_ptr<Entity> > *targets = level->getEntities(shared_from_this(), m_acidArea);
+            if (!level->isClientSide)
+            {
+                Vec3 *v = getHeadLookVector(1.0f);
+                Vec3 *look = v->normalize();
 
-				if ( targets )
-				{
-					for (auto& it : *targets )
-					{
-						if ( it->instanceof(eTYPE_LIVINGENTITY))
-						{
-							//app.DebugPrintf("Attacking entity with acid\n");
-							shared_ptr<LivingEntity> e = dynamic_pointer_cast<LivingEntity>(it);
-							e->hurt(DamageSource::dragonbreath, 2);
-						}
-					}
-				}
-			}
-		}
+                const double cloudX = head->x - look->x * 5.0 * 0.5;
+                const double cloudZ = head->z - look->z * 5.0 * 0.5;
+                double cloudY = head->y + head->bbHeight * 0.5f;
+
+                while (level->isEmptyTile(Mth::floor(cloudX), Mth::floor(cloudY), Mth::floor(cloudZ)))
+                {
+                    cloudY -= 1.0;
+                    if (cloudY < 0.0)
+                    {
+                        break;
+                    }
+                }
+                if (cloudY > 0.0)
+                {
+                    cloudY = static_cast<double>(Mth::floor(cloudY) + 1);
+
+                    std::shared_ptr<AreaEffectCloud> cloud = std::make_shared<AreaEffectCloud>(level, cloudX, cloudY, cloudZ);
+                    cloud->setOwner(static_pointer_cast<LivingEntity>(shared_from_this()));
+                    cloud->setRadius(5.0f);
+                    cloud->setDuration(60);
+                    cloud->setParticle(eParticleType_dragonbreath);
+                    cloud->addEffect(new MobEffectInstance(MobEffect::harm->id, 1, 1));
+                    cloud->setParticleSpawnRateOnTick(10);
+                    level->addEntity(cloud);
+                }
+            }
+        }
 		if( getSynchedAction() == e_EnderdragonAction_Sitting_Flaming )
 		{
 			// No movement
@@ -1244,7 +1262,9 @@ void EnderDragon::tickDeath()
 			zo = 0;
 		}
 		// 4J-PB changed to center this between the pillars
-		spawnExitPortal(0,0);//Mth::floor(x), Mth::floor(z));
+		EndDragonFight *fight = EndDragonFight::get(level);
+		if (fight != nullptr) fight->onDragonKilled();
+		else spawnExitPortal(0,0);//Mth::floor(x), Mth::floor(z));
 		remove();
 	}
 }

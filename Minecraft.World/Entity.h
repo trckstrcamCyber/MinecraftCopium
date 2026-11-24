@@ -93,6 +93,7 @@ public:
 	float walkDist;
 	float moveDist;
 	float fallDistance;
+	float fallDamageMultiplier;
 
 private:
 	int nextStep;
@@ -356,6 +357,8 @@ public:
 	virtual bool isInvisible();
 	virtual bool isInvisibleTo(shared_ptr<Player> plr);
 	virtual void setInvisible(bool value);
+	virtual bool isGlowing();
+	virtual void setGlowing(bool value);
 	virtual bool isUsingItemFlag();
 	virtual void setUsingItemFlag(bool value);
 

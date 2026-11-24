@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "../Minecraft.World/SkullTileEntity.h"
 #include "ItemRenderer.h"
 #include "TileRenderer.h"
 #include "EntityRenderDispatcher.h"
@@ -393,7 +394,7 @@ void ItemRenderer::renderGuiItem(Font *font, Textures *textures, shared_ptr<Item
 {
 	int itemId = item->id;
 	int itemAuxValue = item->getAuxValue();
-	Icon *itemIcon = item->getIcon();
+	Icon *itemIcon = m_guiIconOverride != nullptr ? m_guiIconOverride : item->getIcon();
 
 	if (dynamic_cast<SkullItem*>(item->getItem()) != nullptr && SkullTileRenderer::instance != nullptr)
 	{
@@ -407,8 +408,15 @@ void ItemRenderer::renderGuiItem(Font *font, Textures *textures, shared_ptr<Item
 		glTranslatef(x, y, 0.0f);
 		glScalef(16.0f * fScaleX, 16.0f * fScaleY, 1.0f);
 		glTranslatef(0.5f, 0.725f, 0.0f);
+		if (itemAuxValue == SkullTileEntity::TYPE_DRAGON) glTranslatef(-2.0f / 16.0f, -1.0f / 16.0f, 0.0f);
 		glRotatef(180.0f - 30.0f, 1.0f, 0.0f, 0.0f);
 		glRotatef(-45.0f, 0.0f, 1.0f, 0.0f);
+		if (itemAuxValue == SkullTileEntity::TYPE_DRAGON)
+		{
+			glTranslatef(0.0f, 0.25f, 0.0f);
+			glScalef(0.6f, 0.6f, 0.6f);
+			glTranslatef(0.0f, -0.25f, 0.0f);
+		}
 		SkullTileRenderer::instance->renderSkull(-0.5f, 0.0f, -0.5f, Facing::UP, 0.0f, itemAuxValue, extra);
 		glPopMatrix();
 		return;
@@ -713,27 +721,6 @@ void ItemRenderer::renderGuiItemDecorations(Font *font, Textures *textures, shar
         glEnable(GL_DEPTH_TEST);
         glColor4f(1, 1, 1, 1);
     }
-	else if(item->hasPotionStrengthBar())
-	{
-		glDisable(GL_LIGHTING);
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_TEXTURE_2D);
-
-		Tesselator *t = Tesselator::getInstance();
-
-		fillRect(t, x + 3, y + 13, 11, 2, 0x000000);
-		//fillRect(t, x + 2, y + 13, 13, 1, 0x1dabc0);
-		fillRect(t, x + 3, y + 13, m_iPotionStrengthBarWidth[item->GetPotionStrength()], 2, 0x00e1eb);
-		fillRect(t, x + 2 + 3, y + 13, 1, 2, 0x000000);
-		fillRect(t, x + 2 + 3+3, y + 13, 1, 2, 0x000000);
-		fillRect(t, x + 2 + 3+3+3, y + 13, 1, 2, 0x000000);
-
-
-		glEnable(GL_TEXTURE_2D);
-		glEnable(GL_LIGHTING);
-		glEnable(GL_DEPTH_TEST);
-		glColor4f(1, 1, 1, 1);
-	}
 	glDisable(GL_BLEND);
 }
 

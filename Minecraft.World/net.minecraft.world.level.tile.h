@@ -151,6 +151,12 @@
 #include "MagmaTile.h"
 #include "BoneBlockTile.h"
 #include "BannerTile.h"
+#include "EndRodTile.h"
+#include "EndGatewayTile.h"
+#include "ChorusPlantTile.h"
+#include "ChorusFlowerTile.h"
+#include "PurpurPillarTile.h"
+#include "PurpurSlabTile.h"
 
 #include "CalciteTile.h"
 #include "ConcreteTile.h"

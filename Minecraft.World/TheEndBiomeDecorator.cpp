@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "TheEndBiomeDecorator.h"
+#include "LevelData.h"
 #include "net.minecraft.world.level.h"
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.world.level.levelgen.feature.h"
@@ -53,7 +54,8 @@ void TheEndBiomeDecorator::decorate()
 		if((xo == SpikeValA[i].iChunkX) && (zo == SpikeValA[i].iChunkZ))
 		{
 			// in the right chunk
-			spikeFeature->placeWithIndex(level, random, SpikeValA[i].x, level->GetHighestY(), SpikeValA[i].z,i,SpikeValA[i].radius);
+			int spikeBase = (level->getLevelData() != nullptr && level->getLevelData()->isModernEnd()) ? SPIKE_BASE_Y : level->GetHighestY();
+			spikeFeature->placeWithIndex(level, random, SpikeValA[i].x, spikeBase, SpikeValA[i].z,i,SpikeValA[i].radius);
 		}
 	}
 	if (xo == 0 && zo == 0)

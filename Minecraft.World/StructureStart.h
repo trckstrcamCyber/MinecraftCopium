@@ -21,7 +21,7 @@ public:
 	~StructureStart();
 	BoundingBox *getBoundingBox();
 	list<StructurePiece *> *getPieces();
-	void postProcess(Level *level, Random *random, BoundingBox *chunkBB);
+	virtual void postProcess(Level *level, Random *random, BoundingBox *chunkBB);
 protected:
 	void calculateBoundingBox();
 

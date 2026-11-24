@@ -133,6 +133,7 @@ shared_ptr<ItemInstance> BucketItem::use(shared_ptr<ItemInstance> itemInstance, 
 			if (level->getMaterial(xt, yt, zt) == Material::water && level->getData(xt, yt, zt) == 0)
 			{
 				level->removeTile(xt, yt, zt);
+				player->playSound(eSoundType_ITEM_BUCKET_FILL, 1.0f, 1.0f);
 				delete hr;
 				if (player->abilities.instabuild)
 				{
@@ -161,6 +162,7 @@ shared_ptr<ItemInstance> BucketItem::use(shared_ptr<ItemInstance> itemInstance, 
 					);
 
 				level->removeTile(xt, yt, zt);
+				player->playSound(eSoundType_ITEM_BUCKET_FILL_LAVA, 1.0f, 1.0f);
 				delete hr;
 				if (player->abilities.instabuild)
 				{
@@ -233,6 +235,7 @@ bool BucketItem::emptyBucket(Level *level, int xt, int yt, int zt)
 				level->destroyTile(xt, yt, zt, true);
 			}
 			level->setTileAndData(xt, yt, zt, content, 0, Tile::UPDATE_ALL);
+			level->playSound(xt + 0.5f, yt + 0.5f, zt + 0.5f, content == Tile::flowing_lava_Id ? eSoundType_ITEM_BUCKET_EMPTY_LAVA : eSoundType_ITEM_BUCKET_EMPTY, 1.0f, 1.0f);
 		}
 
 		return true;

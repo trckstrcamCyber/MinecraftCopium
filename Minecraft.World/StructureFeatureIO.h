@@ -15,6 +15,7 @@ enum EStructureStart
 	eStructureStart_ScatteredFeatureStart,
 	eStructureStart_Monument,
 	eStructureStart_PillagerOutpostStart,	// neoLegacy
+	eStructureStart_EndCity,
 };
 
 enum EStructurePiece
@@ -94,6 +95,8 @@ enum EStructurePiece
 
 	// Pillager Outpost
 	eStructurePiece_PillagerOutpostPiece,
+
+	eStructurePiece_EndCityPiece,
 };
 
 class StructureFeatureIO

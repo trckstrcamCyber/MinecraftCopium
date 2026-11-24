@@ -4,7 +4,7 @@ using namespace std;
 #include "Monster.h"
 #include "RangedAttackMob.h"
 
-class RangedAttackGoal;
+class RangedBowAttackGoal;
 class MeleeAttackGoal;
 
 class Skeleton : public Monster, public RangedAttackMob
@@ -15,18 +15,22 @@ public:
 
 private:
 	static const int DATA_TYPE_ID = 13;
+	static const int DATA_AGGRESSIVE_ID = 14;
 
 public:
 	static const int TYPE_DEFAULT = 0;
 	static const int TYPE_WITHER = 1;
+	static const int TYPE_STRAY = 2;
 
 private:
-	RangedAttackGoal *bowGoal;
+	RangedBowAttackGoal *bowGoal;
 	MeleeAttackGoal *meleeGoal;
 
 public:
 	Skeleton(Level *level);
 	virtual ~Skeleton();
+	bool isAggressive();
+	void setAggressive(bool aggressive);
 
 protected:
 	virtual void registerAttributes();

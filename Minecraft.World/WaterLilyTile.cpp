@@ -13,9 +13,7 @@ WaterlilyTile::WaterlilyTile(int id) : Bush(id)
 // 4J Added override
 void WaterlilyTile::updateDefaultShape()
 {
-	float ss = 0.5f;
-	float hh = 0.25f / 16.0f;
-	setShape(0.5f - ss, 0, 0.5f - ss, 0.5f + ss, hh, 0.5f + ss);
+	setShape(1.0f / 16.0f, 0, 1.0f / 16.0f, 15.0f / 16.0f, 1.5f / 16.0f, 15.0f / 16.0f);
 }
 
 int WaterlilyTile::getRenderShape()

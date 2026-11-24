@@ -2,6 +2,7 @@
 #include "net.minecraft.world.h"
 #include "net.minecraft.world.level.h"
 #include "net.minecraft.world.level.dimension.h"
+#include "net.minecraft.world.level.biome.h"
 #include "net.minecraft.world.level.tile.entity.h"
 #include "net.minecraft.world.item.h"
 #include "net.minecraft.world.item.enchantment.h"
@@ -30,7 +31,7 @@ Skeleton::Skeleton(Level *level) : Monster( level )
 	registerAttributes();
 	setHealth(getMaxHealth());
 
-	bowGoal = new RangedAttackGoal(this, this, 1.0, SharedConstants::TICKS_PER_SECOND * 1, SharedConstants::TICKS_PER_SECOND * 3, 15);
+	bowGoal = new RangedBowAttackGoal(this, 1.0, SharedConstants::TICKS_PER_SECOND * 1, 15);
 	meleeGoal = new MeleeAttackGoal(this, eTYPE_PLAYER, 1.2, false);
 
 	goalSelector.addGoal(1, new FloatGoal(this));
@@ -64,6 +65,17 @@ void Skeleton::defineSynchedData()
 	Monster::defineSynchedData();
 
 	entityData->define(DATA_TYPE_ID, static_cast<byte>(TYPE_DEFAULT));
+	entityData->define(DATA_AGGRESSIVE_ID, static_cast<byte>(0));
+}
+
+bool Skeleton::isAggressive()
+{
+	return entityData->getByte(DATA_AGGRESSIVE_ID) != 0;
+}
+
+void Skeleton::setAggressive(bool aggressive)
+{
+	entityData->set(DATA_AGGRESSIVE_ID, static_cast<byte>(aggressive ? 1 : 0));
 }
 
 bool Skeleton::useNewAi()
@@ -73,22 +85,22 @@ bool Skeleton::useNewAi()
 
 int Skeleton::getAmbientSound() 
 {
-	return eSoundType_MOB_SKELETON_AMBIENT;
+	return getSkeletonType() == TYPE_STRAY ? eSoundType_ENTITY_STRAY_IDLE : eSoundType_MOB_SKELETON_AMBIENT;
 }
 
 int Skeleton::getHurtSound()
 {
-	return eSoundType_MOB_SKELETON_HURT;
+	return getSkeletonType() == TYPE_STRAY ? eSoundType_ENTITY_STRAY_HURT : eSoundType_MOB_SKELETON_HURT;
 }
 
 int Skeleton::getDeathSound() 
 {
-	return eSoundType_MOB_SKELETON_DEATH;
+	return getSkeletonType() == TYPE_STRAY ? eSoundType_ENTITY_STRAY_DEATH : eSoundType_MOB_SKELETON_DEATH;
 }
 
 void Skeleton::playStepSound(int xt, int yt, int zt, int t)
 {
-	playSound(eSoundType_MOB_SKELETON_STEP, 0.15f, 1);
+	playSound(getSkeletonType() == TYPE_STRAY ? eSoundType_ENTITY_STRAY_STEP : eSoundType_MOB_SKELETON_STEP, 0.15f, 1);
 }
 
 bool Skeleton::doHurtTarget(shared_ptr<Entity> target)
@@ -111,10 +123,16 @@ MobType Skeleton::getMobType()
 
 void Skeleton::aiStep()
 {
+	if (!level->isClientSide)
+	{
+		shared_ptr<ItemInstance> carried = getCarriedItem();
+		if (carried == nullptr || carried->id != Item::bow_Id) setAggressive(getTarget() != nullptr);
+	}
+
 	if (level->isDay() && !level->isClientSide)
 	{
 		float br = getBrightness(1);
-		if (br > 0.5f && random->nextFloat() * 30 < (br - 0.4f) * 2 && level->canSeeSky(Mth::floor(x), static_cast<int>(floor(y + 0.5)), Mth::floor(z)))
+		if (br > 0.5f && random->nextFloat() * 30 < (br - 0.4f) * 2 && level->canSeeSky(Mth::floor(x), Mth::floor(y + getHeadHeight()), Mth::floor(z)))
 		{
 			bool burn = true;
 
@@ -195,6 +213,14 @@ void Skeleton::dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel)
 			spawnAtLocation(Item::coal_Id, 1);
 		}
 	}
+	else if (getSkeletonType() == TYPE_STRAY && wasKilledByPlayer)
+	{
+		int count = random->nextInt(2 + playerBonusLevel);
+		for (int i = 0; i < count; i++)
+		{
+			spawnAtLocation(std::make_shared<ItemInstance>(Item::tipped_arrow_Id, 1, MASK_SLOWNESS), 0);
+		}
+	}
 
 	Monster::dropDeathLoot(wasKilledByPlayer, playerBonusLevel);
 }
@@ -229,10 +255,22 @@ MobGroupData *Skeleton::finalizeMobSpawn(MobGroupData *groupData, int extraData 
 	}
 	else
 	{
-		goalSelector.addGoal(4, bowGoal, false);
-
+		if (extraData == TYPE_STRAY + 1)
+		{
+			setSkeletonType(TYPE_STRAY);
+		}
+		else if (extraData == 0 && level->dimension->id == 0)
+		{
+			Biome *biome = level->getBiome(Mth::floor(x), Mth::floor(z));
+			if ((biome == Biome::iceFlats || biome == Biome::iceMountains || biome == Biome::iceSpikes)
+				&& level->canSeeSky(Mth::floor(x), Mth::floor(y), Mth::floor(z)) && random->nextInt(5) != 0)
+			{
+				setSkeletonType(TYPE_STRAY);
+			}
+		}
 		populateDefaultEquipmentSlots();
 		populateDefaultEquipmentEnchantments();
+		reassessWeaponGoal();
 	}
 
 	setCanPickUpLoot(random->nextFloat() < MAX_PICKUP_LOOT_CHANCE * level->getDifficulty(x, y, z));
@@ -258,6 +296,7 @@ void Skeleton::reassessWeaponGoal()
 
 	if (carried != nullptr && carried->id == Item::bow_Id)
 	{
+		bowGoal->setMinAttackInterval(level->difficulty == 3 ? 20 : 40);
 		goalSelector.addGoal(4, bowGoal, false);
 	}
 	else
@@ -285,6 +324,11 @@ void Skeleton::performRangedAttack(shared_ptr<LivingEntity> target, float power)
 	if (EnchantmentHelper::getEnchantmentLevel(Enchantment::arrowFire->id, getCarriedItem()) > 0 || getSkeletonType() == TYPE_WITHER)
 	{
 		arrow->setOnFire(100);
+	}
+	if (getSkeletonType() == TYPE_STRAY)
+	{
+		arrow->setArrowType(Arrow::TYPE_TIPPED, MASK_SLOWNESS);
+		arrow->setCustomEffect(MobEffect::movementSlowdown->id, 30 * SharedConstants::TICKS_PER_SECOND, 0);
 	}
 
 	playSound(eSoundType_RANDOM_BOW, 1.0f, 1 / (getRandom()->nextFloat() * 0.4f + 0.8f));

@@ -17,6 +17,10 @@ public:
 
 private:
 	static const int DATA_REMAINING_LIFE = 8;
+	static const int DATA_SHOW_BOTTOM = 9;
+	static const int DATA_BEAM_TARGET_X = 10;
+	static const int DATA_BEAM_TARGET_Y = 11;
+	static const int DATA_BEAM_TARGET_Z = 12;
 
 	void _init(Level *level);
 
@@ -39,4 +43,14 @@ public:
 	virtual float getShadowHeightOffs();
 	virtual bool isPickable();
 	virtual bool hurt(DamageSource *source, float damage);
+
+	void setShowBottom(bool show);
+	bool showsBottom();
+
+	void setBeamTarget(int x, int y, int z);
+	void clearBeamTarget();
+	bool hasBeamTarget();
+	int getBeamTargetX();
+	int getBeamTargetY();
+	int getBeamTargetZ();
 };

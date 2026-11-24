@@ -236,32 +236,27 @@ wstring PotionItem::getHoverName(shared_ptr<ItemInstance> itemInstance)
 	return elementName;
 }
 
-void PotionItem::appendHoverText(shared_ptr<ItemInstance> itemInstance, shared_ptr<Player> player, vector<HtmlString> *lines, bool advanced)
-{
-	if (itemInstance->getAuxValue() == 0)
-	{
-		return;
-	}
-	vector<MobEffectInstance *> *effects = ((PotionItem *) Item::potion)->getMobEffects(itemInstance);
+void PotionItem::getEffectsText(shared_ptr<ItemInstance> itemInstance, shared_ptr<Player> player, vector<HtmlString>* lines) {
+	vector<MobEffectInstance*>* effects = ((PotionItem*)Item::potion)->getMobEffects(itemInstance);
 	attrAttrModMap modifiers;
 	if (effects != nullptr && !effects->empty())
 	{
 		//for (MobEffectInstance effect : effects)
-		for(auto& effect : *effects)
+		for (auto& effect : *effects)
 		{
-			wstring effectString = app.GetString( effect->getDescriptionId() );
+			wstring effectString = app.GetString(effect->getDescriptionId());
 
-			MobEffect *mobEffect = MobEffect::effects[effect->getId()];
-			unordered_map<Attribute*, AttributeModifier*> *effectModifiers = mobEffect->getAttributeModifiers();
+			MobEffect* mobEffect = MobEffect::effects[effect->getId()];
+			unordered_map<Attribute*, AttributeModifier*>* effectModifiers = mobEffect->getAttributeModifiers();
 
 			if (effectModifiers != nullptr && effectModifiers->size() > 0)
 			{
-				for(auto& it : *effectModifiers)
+				for (auto& it : *effectModifiers)
 				{
 					// 4J - anonymous modifiers added here are destroyed shortly?
-					AttributeModifier *original = it.second;
-					AttributeModifier *modifier = new AttributeModifier(mobEffect->getAttributeModifierValue(effect->getAmplifier(), original), original->getOperation());
-					modifiers.insert( std::pair<eATTRIBUTE_ID, AttributeModifier*>( it.first->getId(), modifier) );
+					AttributeModifier* original = it.second;
+					AttributeModifier* modifier = new AttributeModifier(mobEffect->getAttributeModifierValue(effect->getAmplifier(), original), original->getOperation());
+					modifiers.insert(std::pair<eATTRIBUTE_ID, AttributeModifier*>(it.first->getId(), modifier));
 				}
 			}
 
@@ -271,29 +266,31 @@ void PotionItem::appendHoverText(shared_ptr<ItemInstance> itemInstance, shared_p
 			if (effect->getAmplifier() > 0)
 			{
 				wstring potencyString = L"";
-				switch(effect->getAmplifier())
+				switch (effect->getAmplifier())
 				{
 				case 1:
 					potencyString = L" ";
-					potencyString += app.GetString( IDS_POTION_POTENCY_1 );
+					potencyString += app.GetString(IDS_POTION_POTENCY_1);
 					break;
 				case 2:
 					potencyString = L" ";
-					potencyString += app.GetString( IDS_POTION_POTENCY_2 );
+					potencyString += app.GetString(IDS_POTION_POTENCY_2);
 					break;
 				case 3:
 					potencyString = L" ";
-					potencyString += app.GetString( IDS_POTION_POTENCY_3 );
+					potencyString += app.GetString(IDS_POTION_POTENCY_3);
 					break;
 				default:
-					potencyString = app.GetString( IDS_POTION_POTENCY_0 );
+					potencyString = app.GetString(IDS_POTION_POTENCY_0);
 					break;
 				}
 				effectString += potencyString; // + I18n.get("potion.potency." + effect.getAmplifier()).trim();
 			}
-			if (effect->getDuration() > SharedConstants::TICKS_PER_SECOND)
+			int shownDuration = static_cast<int>(effect->getDuration() * getTooltipDurationScale());
+			if (shownDuration > SharedConstants::TICKS_PER_SECOND)
 			{
-				effectString += L" (" + MobEffect::formatDuration(effect) + L")";
+				MobEffectInstance shown(effect->getId(), shownDuration, effect->getAmplifier());
+				effectString += L" (" + MobEffect::formatDuration(&shown) + L")";
 			}
 
 			eMinecraftColour color = eMinecraftColour_NOT_SET;
@@ -332,6 +329,15 @@ void PotionItem::appendHoverText(shared_ptr<ItemInstance> itemInstance, shared_p
 	}
 }
 
+void PotionItem::appendHoverText(shared_ptr<ItemInstance> itemInstance, shared_ptr<Player> player, vector<HtmlString> *lines, bool advanced)
+{
+	if (itemInstance->getAuxValue() == 0) {
+		return;
+	}
+
+	getEffectsText(itemInstance, player, lines);
+}
+
 bool PotionItem::isFoil(shared_ptr<ItemInstance> itemInstance)
 {
 	vector<MobEffectInstance *> *mobEffects = getMobEffects(itemInstance);
@@ -356,6 +362,7 @@ unsigned int PotionItem::getUseDescriptionId(shared_ptr<ItemInstance> instance)
 	else if( MACRO_POTION_IS_WATERBREATHING(brew)) return IDS_POTION_DESC_WATERBREATHING;
 	else if( MACRO_POTION_IS_JUMPBOOST(brew)) return IDS_POTION_DESC_JUMPBOOST;
 	else if( MACRO_POTION_IS_FREEZING(brew)) return IDS_POTION_DESC_FREEZING;	// neoLegacy
+	else if( MACRO_POTION_IS_LUCK(brew)) return IDS_POTION_DESC_LUCK;
 	return IDS_POTION_DESC_EMPTY;
 }
 

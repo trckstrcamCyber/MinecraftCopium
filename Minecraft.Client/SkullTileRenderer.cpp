@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "SkullTileRenderer.h"
 #include "SkeletonHeadModel.h"
+#include "DragonHeadModel.h"
 #include "PlayerRenderer.h"
 #include "../Minecraft.World/SkullTileEntity.h"
 #include "../Minecraft.World/net.minecraft.h"
@@ -12,23 +13,26 @@ ResourceLocation SkullTileRenderer::SKELETON_LOCATION = ResourceLocation(TN_MOB_
 ResourceLocation SkullTileRenderer::WITHER_SKELETON_LOCATION = ResourceLocation(TN_MOB_WITHER_SKELETON);
 ResourceLocation SkullTileRenderer::ZOMBIE_LOCATION = ResourceLocation(TN_MOB_ZOMBIE);
 ResourceLocation SkullTileRenderer::CREEPER_LOCATION = ResourceLocation(TN_MOB_CREEPER);
+ResourceLocation SkullTileRenderer::DRAGON_LOCATION = ResourceLocation(TN_MOB_ENDERDRAGON);
 
 SkullTileRenderer::SkullTileRenderer()
 {
 	skeletonModel = new SkeletonHeadModel(0, 0, 64, 32);
 	zombieModel = new SkeletonHeadModel(0, 0, 64, 32);
+	dragonModel = new DragonHeadModel();
 }
 
 SkullTileRenderer::~SkullTileRenderer()
 {
 	delete skeletonModel;
 	delete zombieModel;
+	delete dragonModel;
 }
 
 void SkullTileRenderer::render(shared_ptr<TileEntity> _skull, double x, double y, double z, float a, bool setColor, float alpha, bool useCompiled)
 {
 	shared_ptr<SkullTileEntity> skull = dynamic_pointer_cast<SkullTileEntity>(_skull);
-	renderSkull(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), skull->getData() & SkullTile::PLACEMENT_MASK, skull->getRotation() * 360 / 16.0f, skull->getSkullType(), skull->getExtraType());
+	renderSkull(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), skull->getData() & SkullTile::PLACEMENT_MASK, skull->getRotation() * 360 / 16.0f, skull->getSkullType(), skull->getExtraType(), skull->getMouthAnimation(a));
 }
 
 void SkullTileRenderer::init(TileEntityRenderDispatcher *tileEntityRenderDispatcher)
@@ -37,7 +41,7 @@ void SkullTileRenderer::init(TileEntityRenderDispatcher *tileEntityRenderDispatc
 	instance = this;
 }
 
-void SkullTileRenderer::renderSkull(float x, float y, float z, int face, float rot, int type, const wstring &extra)
+void SkullTileRenderer::renderSkull(float x, float y, float z, int face, float rot, int type, const wstring &extra, float mouthAnimation)
 {
 	Model *model = skeletonModel;
 
@@ -59,6 +63,10 @@ void SkullTileRenderer::renderSkull(float x, float y, float z, int face, float r
 	}
 	case SkullTileEntity::TYPE_CREEPER:
 		bindTexture(&CREEPER_LOCATION);
+		break;
+	case SkullTileEntity::TYPE_DRAGON:
+		bindTexture(&DRAGON_LOCATION);
+		model = dragonModel;
 		break;
 	case SkullTileEntity::TYPE_SKELETON:
 	default:
@@ -102,7 +110,7 @@ void SkullTileRenderer::renderSkull(float x, float y, float z, int face, float r
 
 	glEnable(GL_ALPHA_TEST);
 
-	model->render(nullptr, 0, 0, 0, rot, 0, scale,true);
+	model->render(nullptr, mouthAnimation, 0, 0, rot, 0, scale,true);
 
 	glPopMatrix();
 }

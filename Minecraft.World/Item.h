@@ -95,7 +95,8 @@ public:
 		eMaterial_darkwood,
 		eMaterial_crossbow,	// neoLegacy
 		eMaterial_copper,	// neoLegacy - Copper Age (Phase 1)
-		eMaterial_rose_gold	// neoLegacy - Copper Age (Phase 2)
+		eMaterial_rose_gold,	// neoLegacy - Copper Age (Phase 2)
+		eMaterial_purpur
 
 	}
 	eMaterial;
@@ -533,6 +534,13 @@ public:
 	static Item* prismarine_crystal;
 	static Item* prismarine_shard;
 	static Item* elytra;
+	static Item* chorus_fruit;
+	static Item* chorus_fruit_popped;
+	static Item* end_crystal;
+	static Item* dragon_breath;
+	static Item* spectral_arrow;
+	static Item* tipped_arrow;
+	static PotionItem* lingering_potion;
 
 	static Item* beetroot;
 	static Item* beetroot_seeds;
@@ -847,6 +855,13 @@ public:
 	static const int dark_oak_door_Id = 431;
 
 
+	static const int chorus_fruit_Id = 432;
+	static const int chorus_fruit_popped_Id = 433;
+	static const int end_crystal_Id = 426;
+	static const int dragon_breath_Id = 437;
+	static const int spectral_arrow_Id = 439;
+	static const int tipped_arrow_Id = 440;
+	static const int lingering_potion_Id = 441;
 	static const int elytra_Id = 443;
 
 	static const int beetroot_Id = 434;
@@ -998,6 +1013,7 @@ public:
 	virtual int getEnchantmentValue();
 	virtual bool hasMultipleSpriteLayers();
 	virtual Icon *getLayerIcon(int auxValue, int spriteLayer);
+	virtual Icon *GetOverrideCountIcon(shared_ptr<ItemInstance> itemInstance, shared_ptr<Player> player) { return nullptr; }
 	virtual bool mayBePlacedInAdventureMode();
 	virtual bool isValidRepairItem(shared_ptr<ItemInstance> source, shared_ptr<ItemInstance> repairItem);
 	virtual void registerIcons(IconRegister *iconRegister);

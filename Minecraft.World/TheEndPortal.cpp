@@ -33,8 +33,7 @@ shared_ptr<TileEntity> TheEndPortal::newTileEntity(Level *level)
 
 void TheEndPortal::updateShape(LevelSource *level, int x, int y, int z, int forceData, shared_ptr<TileEntity> forceEntity) // 4J added forceData, forceEntity param
 {
-	float r = 1 / 16.0f;
-	setShape(0, 0, 0, 1, r, 1);
+	setShape(0, 0, 0, 1, 0.75f, 1);
 }
 
 bool TheEndPortal::shouldRenderFace(LevelSource *level, int x, int y, int z, int face)

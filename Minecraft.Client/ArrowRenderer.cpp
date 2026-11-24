@@ -4,6 +4,8 @@
 #include "../Minecraft.World/Mth.h"
 
 ResourceLocation ArrowRenderer::ARROW_LOCATION = ResourceLocation(TN_ITEM_ARROWS);
+ResourceLocation ArrowRenderer::SPECTRAL_ARROW_LOCATION = ResourceLocation(TN_ITEM_SPECTRAL_ARROW);
+ResourceLocation ArrowRenderer::TIPPED_ARROW_LOCATION = ResourceLocation(TN_ITEM_TIPPED_ARROW);
 
 void ArrowRenderer::render(shared_ptr<Entity> _arrow, double x, double y, double z, float rot, float a)
 {
@@ -89,5 +91,11 @@ void ArrowRenderer::render(shared_ptr<Entity> _arrow, double x, double y, double
 
 ResourceLocation *ArrowRenderer::getTextureLocation(shared_ptr<Entity> mob)
 {
+	shared_ptr<Arrow> arrow = dynamic_pointer_cast<Arrow>(mob);
+	if (arrow != nullptr)
+	{
+		if (arrow->getArrowType() == Arrow::TYPE_SPECTRAL) return &SPECTRAL_ARROW_LOCATION;
+		if (arrow->getArrowType() == Arrow::TYPE_TIPPED) return &TIPPED_ARROW_LOCATION;
+	}
     return &ARROW_LOCATION;
 }

@@ -301,6 +301,7 @@ void Entity::_init(bool useSmallId, Level *level)
 	moveDist = 0.0f;
 
 	fallDistance = 0;
+	fallDamageMultiplier = 1.0f;
 
 	nextStep = 1;
 
@@ -1108,7 +1109,10 @@ void Entity::checkFallDamage(double ya, bool onGround)
 	{
 		if (fallDistance > 0)
 		{
+			int landedOn = level->getTile(Mth::floor(x), Mth::floor(y - 0.2f - heightOffset), Mth::floor(z));
+			fallDamageMultiplier = (landedOn > 0 && Tile::tiles[landedOn] != nullptr) ? Tile::tiles[landedOn]->getFallDamageMultiplier() : 1.0f;
 			causeFallDamage(fallDistance);
+			fallDamageMultiplier = 1.0f;
 			fallDistance = 0;
 		}
 	}
@@ -1756,17 +1760,17 @@ void Entity::ride(shared_ptr<Entity> e)
 		{
 			// 4J Stu - Position should already be updated before the SetEntityLinkPacket comes in
 			if(!level->isClientSide) moveTo(riding->x, riding->bb->y0 + riding->bbHeight, riding->z, yRot, xRot);
-			riding->rider = weak_ptr<Entity>();
+			riding->removeRider(shared_from_this());
 		}
 		riding = nullptr;
 		return;
 	}
 	if (riding != nullptr)
 	{
-		riding->rider = weak_ptr<Entity>();
+		riding->removeRider(shared_from_this());
 	}
 	riding = e;
-	e->rider = shared_from_this();
+	e->addRider(shared_from_this());
 }
 
 void Entity::lerpTo(double x, double y, double z, float yRot, float xRot, int steps)
@@ -1905,6 +1909,15 @@ bool Entity::isInvisibleTo(shared_ptr<Player> plr)
 void Entity::setInvisible(bool value)
 {
 	setSharedFlag(FLAG_INVISIBLE, value);
+}
+
+bool Entity::isGlowing()
+{
+	return false;
+}
+
+void Entity::setGlowing(bool value)
+{
 }
 
 bool Entity::isWeakened()
@@ -2153,7 +2166,7 @@ void Entity::changeDimension(int i)
 		if (lastDimension == 1 && i == 1)
 		{
 			Pos *spawnPos = newLevel->getSharedSpawnPos();
-			spawnPos->y = level->getTopSolidBlock(spawnPos->x, spawnPos->z);
+			spawnPos->y = newLevel->getTopSolidBlock(spawnPos->x, spawnPos->z);
 			newEntity->moveTo(spawnPos->x, spawnPos->y, spawnPos->z, newEntity->yRot, newEntity->xRot);
 			delete spawnPos;
 		}

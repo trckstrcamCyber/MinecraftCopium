@@ -50,6 +50,10 @@ class BeetrootTile;
 class MagmaTile;
 class BoneBlockTile;
 class BannerTile;
+class EndRodTile;
+class EndGatewayTile;
+class ChorusPlantTile;
+class ChorusFlowerTile;
 class LuckyBlockTile;
 class GrindstoneTile;
 class ObserverTile;
@@ -248,7 +252,10 @@ public:
 	// CopperThinTile. New shapes 48-49; SHAPE_COUNT 48 -> 50.
 	static const int SHAPE_IRON_CHAIN = 48;
 	static const int SHAPE_IRON_LANTERN = 49;
-	static const int SHAPE_COUNT = 50;
+	static const int SHAPE_END_ROD = 50;
+	static const int SHAPE_CHORUS_PLANT = 51;
+	static const int SHAPE_CHORUS_FLOWER = 52;
+	static const int SHAPE_COUNT = 53;
 
 	static  Tile **tiles;
 
@@ -491,18 +498,18 @@ public:
 	static const int jungle_door_Id = 195;
 	static const int acacia_door_Id = 196;
 	static const int dark_oak_door_Id = 197;
-	//end_rod 			198
-	//chorus_plant 		199
-	//chorus_flower 	200
-	//purpur_block      201
-	//purpur_pillar		202
-	//purpur_stairs     203
-	//purpur_double_slab 204
-	//purpur_slab		205
+	static const int end_rod_Id = 2332;
+	static const int chorus_plant_Id = 2333;
+	static const int chorus_flower_Id = 2334;
+	static const int purpur_block_Id = 2335;
+	static const int purpur_pillar_Id = 2336;
+	static const int purpur_stairs_Id = 2337;
+	static const int purpur_double_slab_Id = 2338;
+	static const int purpur_slab_Id = 2339;
 	static const int end_bricks_Id = 206;
 	static const int beetroots_Id = 207;
 	static const int grass_path_Id = 208;
-	//end_gateway		209
+	static const int end_gateway_Id = 2340;
 	static const int frosted_ice_Id = 212;
 	static const int magma_block_Id = 213;
 	static const int nether_wart_block_Id = 214;
@@ -869,6 +876,15 @@ public:
 	static Tile* nether_wart_block;
 	static Tile* red_nether_brick;
 	static BoneBlockTile* bone_block;
+	static EndRodTile* end_rod;
+	static EndGatewayTile* end_gateway;
+	static ChorusPlantTile* chorus_plant;
+	static ChorusFlowerTile* chorus_flower;
+	static Tile* purpur_block;
+	static Tile* purpur_pillar;
+	static Tile* purpur_stairs;
+	static HalfSlabTile* purpurSlab;
+	static HalfSlabTile* purpurSlabHalf;
 	static Tile* seaLantern;
 	static Tile* prismarine;
 
@@ -1083,6 +1099,7 @@ public:
 	virtual int getPistonPushReaction();
 	virtual float getShadeBrightness(LevelSource *level, int x, int y, int z);	// 4J - brought forward from 1.8.2
 	virtual void fallOn(Level *level, int x, int y, int z, shared_ptr<Entity> entity, float fallDistance);
+	virtual float getFallDamageMultiplier() { return 1.0f; }
 	virtual int cloneTileId(Level *level, int x, int y, int z);
 	virtual int cloneTileData(Level *level, int x, int y, int z);
 	virtual void playerWillDestroy(Level *level, int x, int y, int z, int data, shared_ptr<Player> player);

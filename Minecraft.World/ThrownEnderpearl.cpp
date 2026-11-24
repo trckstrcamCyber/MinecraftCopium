@@ -3,6 +3,8 @@
 #include "net.minecraft.world.damagesource.h"
 #include "net.minecraft.world.entity.h"
 #include "net.minecraft.world.level.h"
+#include "net.minecraft.world.level.tile.h"
+#include "net.minecraft.world.level.tile.entity.h"
 #include "../Minecraft.Client/ServerPlayer.h"
 #include "../Minecraft.Client/PlayerConnection.h"
 #include "ThrownEnderpearl.h"
@@ -71,58 +73,66 @@ void ThrownEnderpearl::onHit(HitResult *res)
 			{
 				if (!serverPlayer->connection->done && serverPlayer->level == this->level)
 				{
-					// Custom: chance to spawn an Endermite
-					if (random->nextFloat() < 0.05f /* && level->getGameRules()->getBoolean("doMobSpawning") */)
-					{
-						Endermite* endermite = new Endermite(level);
-						endermite->setSpawnedByPlayer(true);
+					if ((res->type == HitResult::TILE) && (level->getTile(res->x, res->y, res->z) == Tile::end_gateway_Id)) {
+						shared_ptr<TheEndGatewayTileEntity> gateway = dynamic_pointer_cast<TheEndGatewayTileEntity>(level->getTileEntity(res->x, res->y, res->z));
+						if (gateway != nullptr) {
+							if (getOwner()->isRiding()) getOwner()->ride(nullptr);
+							gateway->teleportEntity(getOwner());
+						}
+					} else {
+						// Custom: chance to spawn an Endermite
+						if (random->nextFloat() < 0.05f /* && level->getGameRules()->getBoolean("doMobSpawning") */)
+						{
+							Endermite* endermite = new Endermite(level);
+							endermite->setSpawnedByPlayer(true);
 
-						endermite->moveTo(
-							serverPlayer->x,
-							serverPlayer->y,
-							serverPlayer->z,
-							serverPlayer->yRot,
-							serverPlayer->xRot
-						);
+							endermite->moveTo(
+								serverPlayer->x,
+								serverPlayer->y,
+								serverPlayer->z,
+								serverPlayer->yRot,
+								serverPlayer->xRot
+							);
 
-						level->addEntity(shared_ptr<Entity>(endermite));
-					}
-				    
-					if (getOwner()->isRiding())
-					{
-						getOwner()->ride(nullptr);
-					}
+							level->addEntity(shared_ptr<Entity>(endermite));
+						}
+
+						if (getOwner()->isRiding())
+						{
+							getOwner()->ride(nullptr);
+						}
 
 #if defined(_WINDOWS64) && defined(MINECRAFT_SERVER_BUILD)
 
-					{
-						double outX, outY, outZ;
-
-						bool cancelled = FourKitBridge::FirePlayerTeleport(
-							serverPlayer->entityId,
-							serverPlayer->x, serverPlayer->y, serverPlayer->z,
-							serverPlayer->dimension,
-							x, y, z,
-							serverPlayer->dimension,
-							0 /* ENDER_PEARL */,
-							&outX, &outY, &outZ
-						);
-
-						if (!cancelled)
 						{
-							getOwner()->teleportTo(outX, outY, outZ);
-							getOwner()->fallDistance = 0;
-							getOwner()->hurt(DamageSource::fall, 5);
+							double outX, outY, outZ;
+
+							bool cancelled = FourKitBridge::FirePlayerTeleport(
+								serverPlayer->entityId,
+								serverPlayer->x, serverPlayer->y, serverPlayer->z,
+								serverPlayer->dimension,
+								x, y, z,
+								serverPlayer->dimension,
+								0 /* ENDER_PEARL */,
+								&outX, &outY, &outZ
+							);
+
+							if (!cancelled)
+							{
+								getOwner()->teleportTo(outX, outY, outZ);
+								getOwner()->fallDistance = 0;
+								getOwner()->hurt(DamageSource::fall, 5);
+							}
 						}
-					}
 
 #else
 
-					getOwner()->teleportTo(x, y, z);
-					getOwner()->fallDistance = 0;
-					getOwner()->hurt(DamageSource::fall, 5);
+						getOwner()->teleportTo(x, y, z);
+						getOwner()->fallDistance = 0;
+						getOwner()->hurt(DamageSource::fall, 5);
 
 #endif
+					}
 				}
 			}
 		}

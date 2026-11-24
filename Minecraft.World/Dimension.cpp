@@ -253,3 +253,10 @@ int Dimension::getXZSize()
 {
 	return level->getLevelData()->getXZSize();
 }
+
+bool Dimension::isOutsideWorldEdge(int x, int z)
+{
+	int maxxz = ( getXZSize() * 16 ) / 2;
+	int minxz = -maxxz;
+	return ( x < minxz ) || ( x >= maxxz ) || ( z < minxz ) || ( z >= maxxz );
+}

@@ -82,6 +82,7 @@ void Zombie::defineSynchedData()
 	getEntityData()->define(DATA_BABY_ID, static_cast<byte>(0));
 	getEntityData()->define(DATA_VILLAGER_ID, static_cast<byte>(0));
 	getEntityData()->define(DATA_CONVERTING_ID, static_cast<byte>(0));
+	getEntityData()->define(DATA_PROFESSION_ID, static_cast<byte>(0));
 }
 
 int Zombie::getArmorValue()
@@ -127,12 +128,23 @@ void Zombie::setVillager(bool villager)
 	getEntityData()->set(DATA_VILLAGER_ID, static_cast<byte>(villager ? 1 : 0));
 }
 
+int Zombie::getProfession()
+{
+	int profession = getEntityData()->getByte(DATA_PROFESSION_ID);
+	return profession < 0 ? 0 : profession;
+}
+
+void Zombie::setProfession(int profession)
+{
+	getEntityData()->set(DATA_PROFESSION_ID, static_cast<byte>(profession));
+}
+
 void Zombie::aiStep()
 {
 	if (isSunSensitive() && level->isDay() && !level->isClientSide && !isBaby())
 	{
 		float br = getBrightness(1);
-		if (br > 0.5f && random->nextFloat() * 30 < (br - 0.4f) * 2 && level->canSeeSky(Mth::floor(x), static_cast<int>(floor(y + 0.5)), Mth::floor(z)))
+		if (br > 0.5f && random->nextFloat() * 30 < (br - 0.4f) * 2 && level->canSeeSky(Mth::floor(x), Mth::floor(y + getHeadHeight()), Mth::floor(z)))
 		{
 			bool burn = true;
 
@@ -352,6 +364,7 @@ void Zombie::addAdditonalSaveData(CompoundTag *tag)
 
 	if (isBaby()) tag->putBoolean(L"IsBaby", true);
 	if (isVillager()) tag->putBoolean(L"IsVillager", true);
+	if (isVillager()) tag->putInt(L"Profession", getProfession());
 	tag->putInt(L"ConversionTime", isConverting() ? villagerConversionTime : -1);
 }
 
@@ -361,6 +374,7 @@ void Zombie::readAdditionalSaveData(CompoundTag *tag)
 
 	if (tag->getBoolean(L"IsBaby")) setBaby(true);
 	if (tag->getBoolean(L"IsVillager")) setVillager(true);
+	if (tag->contains(L"Profession")) setProfession(tag->getInt(L"Profession"));
 	if (tag->contains(L"ConversionTime") && tag->getInt(L"ConversionTime") > -1) startConverting(tag->getInt(L"ConversionTime"));
 }
 
@@ -377,6 +391,7 @@ void Zombie::killed(shared_ptr<LivingEntity> mob)
 		level->removeEntity(mob);
 		zombie->finalizeMobSpawn(nullptr);
 		zombie->setVillager(true);
+		zombie->setProfession(dynamic_pointer_cast<Villager>(mob)->getProfession());
 		if (mob->isBaby()) zombie->setBaby(true);
 		level->addEntity(zombie);
 
@@ -403,6 +418,7 @@ MobGroupData *Zombie::finalizeMobSpawn(MobGroupData *groupData, int extraData /*
 		if (zombieData->isVillager || extraData == 2)	// neoLegacy - extraData 2 = Zombie Villager spawn egg
 		{
 			setVillager(true);
+			setProfession(random->nextInt(Villager::PROFESSION_MAX));
 		}
 
 		if (zombieData->isBaby)
@@ -532,6 +548,7 @@ void Zombie::finishConversion()
 	shared_ptr<Villager> villager = std::make_shared<Villager>(level);
 	villager->copyPosition(shared_from_this());
 	villager->finalizeMobSpawn(nullptr);
+	if (getProfession() < Villager::PROFESSION_MAX) villager->setProfession(getProfession());
 	villager->setRewardPlayersInVillage();
 	if (isBaby()) villager->setAge(-20 * 60 * 20);
 	level->removeEntity(shared_from_this());

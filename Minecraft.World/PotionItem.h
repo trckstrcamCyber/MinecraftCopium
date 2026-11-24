@@ -17,6 +17,7 @@ public:
 private:
 	unordered_map<int, vector<MobEffectInstance *> *> cachedMobEffects;
 
+protected:
 	Icon *iconThrowable;
 	Icon *iconDrinkable;
 	Icon *iconOverlay;
@@ -40,7 +41,8 @@ public:
 	virtual bool hasMultipleSpriteLayers();
 	virtual bool hasInstantenousEffects(int itemAuxValue);
 	virtual wstring getHoverName(shared_ptr<ItemInstance> itemInstance);
-	virtual void appendHoverText(shared_ptr<ItemInstance> itemInstance, shared_ptr<Player> player, vector<HtmlString> *lines, bool advanced);
+	virtual void appendHoverText(shared_ptr<ItemInstance> itemInstance, shared_ptr<Player> player, vector<HtmlString>* lines, bool advanced);
+	virtual void getEffectsText(shared_ptr<ItemInstance> itemInstance, shared_ptr<Player> player, vector<HtmlString>* lines);
 	virtual bool isFoil(shared_ptr<ItemInstance> itemInstance);
 
 	virtual unsigned int getUseDescriptionId(shared_ptr<ItemInstance> instance);
@@ -48,6 +50,10 @@ public:
 	//@Override
 	void registerIcons(IconRegister *iconRegister);
 	static Icon *getTexture(const wstring &name);
+
+protected:
+	virtual float getTooltipDurationScale() { return 1.0f; }
+public:
 
 	// 4J Stu - Based loosely on a function that gets added in java much later on (1.3)
 	static vector<pair<int, int> > *getUniquePotionValues();

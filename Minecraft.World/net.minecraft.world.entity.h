@@ -28,6 +28,8 @@
 
 // 1.6.4
 #include "LeashFenceKnotEntity.h"
+
+#include "AreaEffectCloud.h"
 #include "MobGroupData.h"
 #include "OwnableEntity.h"
 #include "EntitySelector.h"

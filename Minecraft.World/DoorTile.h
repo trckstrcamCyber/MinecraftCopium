@@ -74,6 +74,7 @@ public:
 	virtual bool TestUse();
 	virtual bool use(Level *level, int x, int y, int z, shared_ptr<Player> player, int clickedFace, float clickX, float clickY, float clickZ, bool soundOnly = false); // 4J added soundOnly param
 	void setOpen(Level *level, int x, int y, int z, bool shouldOpen);
+	int getToggleSound(bool open);
 	virtual void neighborChanged(Level *level, int x, int y, int z, int type);
 	// neoLegacy - Copper Age (review fix, 2026-11-20). Snapshot the
 	// oxidation before the TE is removed, so spawnResources can still

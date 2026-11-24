@@ -1176,6 +1176,15 @@ bool TileRenderer::tesselateInWorld( Tile* tt, int x, int y, int z, int forceDat
 	case Tile::SHAPE_THIN_PANE:
 		retVal = tesselateThinPaneInWorld(tt, x, y, z);
 		break;
+	case Tile::SHAPE_END_ROD:
+		retVal = tesselateEndRodInWorld(tt, x, y, z);
+		break;
+	case Tile::SHAPE_CHORUS_PLANT:
+		retVal = tesselateChorusPlantInWorld(tt, x, y, z);
+		break;
+	case Tile::SHAPE_CHORUS_FLOWER:
+		retVal = tesselateChorusFlowerInWorld(tt, x, y, z);
+		break;
 	case Tile::SHAPE_VINE:
 		retVal = tesselateVineInWorld( tt, x, y, z );
 		break;
@@ -10531,6 +10540,25 @@ void TileRenderer::renderTile( Tile* tile, int data, float brightness, float fAl
 		}
 		setShape( 0, 0, 0, 1, 1, 1 );
 	}
+	else if (shape == Tile::SHAPE_END_ROD)
+	{
+		glTranslatef(-0.5f, -0.5f, -0.5f);
+		tesselateEndRod(tile, Facing::UP, 0, 0, 0, true);
+		glTranslatef(0.5f, 0.5f, 0.5f);
+		setShape(0, 0, 0, 1, 1, 1);
+	}
+	else if (shape == Tile::SHAPE_CHORUS_PLANT || shape == Tile::SHAPE_CHORUS_FLOWER)
+	{
+		const float a = 2 / 16.0f;
+		const float b = 14 / 16.0f;
+		renderInventoryBox(tile, data, a, 0, a, b, b, b);
+		renderInventoryBox(tile, data, a, b, a, b, 1, b);
+		renderInventoryBox(tile, data, a, a, 0, b, b, a);
+		renderInventoryBox(tile, data, a, a, b, b, b, 1);
+		renderInventoryBox(tile, data, b, a, a, 1, b, b);
+		renderInventoryBox(tile, data, 0, a, a, a, b, b);
+		setShape(0, 0, 0, 1, 1, 1);
+	}
 	else if (shape == Tile::SHAPE_FENCE_GATE)
 	{
 		for (int i = 0; i < 3; i++)
@@ -10938,6 +10966,9 @@ bool TileRenderer::canRender( int renderShape )
 	if (renderShape == Tile::SHAPE_IRON_CHAIN) return true;
 	if (renderShape == Tile::SHAPE_SHELF) return true;
 	if (renderShape == Tile::SHAPE_BAMBOO) return true;
+	if (renderShape == Tile::SHAPE_END_ROD) return true;
+	if (renderShape == Tile::SHAPE_CHORUS_PLANT) return true;
+	if (renderShape == Tile::SHAPE_CHORUS_FLOWER) return true;
 	return false;
 }
 
@@ -10972,4 +11003,240 @@ Icon *TileRenderer::getTextureOrMissing(Icon *icon)
 #endif
 
 	return icon;
+}
+
+
+namespace
+{
+	void rotateForFacing(int facing, float &x, float &y, float &z)
+	{
+		float ox = x, oy = y, oz = z;
+		switch (facing)
+		{
+		case Facing::DOWN:	x = ox;  y = -oy; z = -oz; break;
+		case Facing::NORTH:	x = ox;  y = oz;  z = -oy; break;
+		case Facing::SOUTH:	x = ox;  y = -oz; z = oy;  break;
+		case Facing::WEST:	x = -oy; y = ox;  z = oz;  break;
+		case Facing::EAST:	x = oy;  y = -ox; z = oz;  break;
+		default: break;
+		}
+	}
+
+	struct EndRodQuadVertex
+	{
+		float x, y, z, u, v;
+	};
+
+	void emitEndRodFace(Tesselator *t, int facing, float ox, float oy, float oz, const EndRodQuadVertex *verts,
+		float nx, float ny, float nz, bool inventory)
+	{
+		rotateForFacing(facing, nx, ny, nz);
+		if (inventory)
+		{
+			t->begin();
+			t->normal(nx, ny, nz);
+		}
+		else
+		{
+			float br = 1.0f;
+			if (ny < -0.5f) br = 0.5f;
+			else if (nz > 0.5f || nz < -0.5f) br = 0.8f;
+			else if (nx > 0.5f || nx < -0.5f) br = 0.6f;
+			t->color(br, br, br);
+		}
+		for (int i = 0; i < 4; i++)
+		{
+			float x = verts[i].x - 0.5f;
+			float y = verts[i].y - 0.5f;
+			float z = verts[i].z - 0.5f;
+			rotateForFacing(facing, x, y, z);
+			t->vertexUV(ox + x + 0.5f, oy + y + 0.5f, oz + z + 0.5f, verts[i].u, verts[i].v);
+		}
+		if (inventory)
+		{
+			t->end();
+		}
+	}
+
+	void emitEndRodBox(Tesselator *t, Icon *tex, int facing, float ox, float oy, float oz,
+		float px0, float py0, float pz0, float px1, float py1, float pz1,
+		float su0, float sv0, float su1, float sv1, float cu0, float cv0, float cu1, float cv1, bool inventory)
+	{
+		float x0 = px0 / 16.0f, y0 = py0 / 16.0f, z0 = pz0 / 16.0f;
+		float x1 = px1 / 16.0f, y1 = py1 / 16.0f, z1 = pz1 / 16.0f;
+
+		const float inset = 0.05f;
+		float u0 = tex->getU(su0 + inset, true), u1 = tex->getU(su1 - inset, true);
+		float vt = tex->getV(sv0 + inset, true), vb = tex->getV(sv1 - inset, true);
+		float cU0 = tex->getU(cu0 + inset, true), cU1 = tex->getU(cu1 - inset, true);
+		float cV0 = tex->getV(cv0 + inset, true), cV1 = tex->getV(cv1 - inset, true);
+
+		const EndRodQuadVertex up[4] = { {x1, y1, z1, cU1, cV1}, {x1, y1, z0, cU1, cV0}, {x0, y1, z0, cU0, cV0}, {x0, y1, z1, cU0, cV1} };
+		const EndRodQuadVertex down[4] = { {x0, y0, z1, cU0, cV1}, {x0, y0, z0, cU0, cV0}, {x1, y0, z0, cU1, cV0}, {x1, y0, z1, cU1, cV1} };
+		const EndRodQuadVertex north[4] = { {x0, y1, z0, u1, vt}, {x1, y1, z0, u0, vt}, {x1, y0, z0, u0, vb}, {x0, y0, z0, u1, vb} };
+		const EndRodQuadVertex south[4] = { {x0, y1, z1, u0, vt}, {x0, y0, z1, u0, vb}, {x1, y0, z1, u1, vb}, {x1, y1, z1, u1, vt} };
+		const EndRodQuadVertex west[4] = { {x0, y1, z1, u1, vt}, {x0, y1, z0, u0, vt}, {x0, y0, z0, u0, vb}, {x0, y0, z1, u1, vb} };
+		const EndRodQuadVertex east[4] = { {x1, y0, z1, u0, vb}, {x1, y0, z0, u1, vb}, {x1, y1, z0, u1, vt}, {x1, y1, z1, u0, vt} };
+
+		emitEndRodFace(t, facing, ox, oy, oz, up, 0, 1, 0, inventory);
+		emitEndRodFace(t, facing, ox, oy, oz, down, 0, -1, 0, inventory);
+		emitEndRodFace(t, facing, ox, oy, oz, north, 0, 0, -1, inventory);
+		emitEndRodFace(t, facing, ox, oy, oz, south, 0, 0, 1, inventory);
+		emitEndRodFace(t, facing, ox, oy, oz, west, -1, 0, 0, inventory);
+		emitEndRodFace(t, facing, ox, oy, oz, east, 1, 0, 0, inventory);
+	}
+}
+
+void TileRenderer::tesselateEndRod(Tile *tt, int data, float x, float y, float z, bool inventory)
+{
+	Tesselator *t = Tesselator::getInstance();
+	Icon *tex = getTexture(tt, Facing::DOWN, data);
+	if (hasFixedTexture()) tex = fixedTexture;
+
+	int facing = EndRodTile::getFacing(data);
+
+	emitEndRodBox(t, tex, facing, x, y, z, 7, 1, 7, 9, 16, 9, 0, 0, 2, 15, 2, 0, 4, 2, inventory);
+	emitEndRodBox(t, tex, facing, x, y, z, 6, 0, 6, 10, 1, 10, 2, 6, 6, 7, 2, 2, 6, 6, inventory);
+}
+
+bool TileRenderer::tesselateEndRodInWorld(Tile *tt, int x, int y, int z)
+{
+	Tesselator *t = Tesselator::getInstance();
+	t->tex2(getLightColor(tt, level, x, y, z));
+	t->color(1.0f, 1.0f, 1.0f);
+	tesselateEndRod(tt, level->getData(x, y, z), static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), false);
+	return true;
+}
+
+bool TileRenderer::tesselateSubBoxInWorld(Tile *tt, int x, int y, int z, float x0, float y0, float z0, float x1, float y1, float z1, int excludeFaces)
+{
+	tt->setShape(x0, y0, z0, x1, y1, z1);
+	setShape(x0, y0, z0, x1, y1, z1);
+
+	int faceFlags = 0x3f;
+	if (!noCulling)
+	{
+		faceFlags = 0;
+		faceFlags |= tt->shouldRenderFace(level, x, y - 1, z, 0) ? 0x01 : 0;
+		faceFlags |= tt->shouldRenderFace(level, x, y + 1, z, 1) ? 0x02 : 0;
+		faceFlags |= tt->shouldRenderFace(level, x, y, z - 1, 2) ? 0x04 : 0;
+		faceFlags |= tt->shouldRenderFace(level, x, y, z + 1, 3) ? 0x08 : 0;
+		faceFlags |= tt->shouldRenderFace(level, x - 1, y, z, 4) ? 0x10 : 0;
+		faceFlags |= tt->shouldRenderFace(level, x + 1, y, z, 5) ? 0x20 : 0;
+	}
+	faceFlags &= ~excludeFaces;
+	if (faceFlags == 0) return false;
+
+	return tesselateBlockInWorld(tt, x, y, z, faceFlags);
+}
+
+bool TileRenderer::tesselateChorusPlantInWorld(Tile *tt, int x, int y, int z)
+{
+	ChorusPlantTile *plant = static_cast<ChorusPlantTile *>(tt);
+	const float a = 4 / 16.0f;
+	const float b = 12 / 16.0f;
+
+	bool down = plant->connectsTo(level, x, y, z, Facing::DOWN);
+	bool up = plant->connectsTo(level, x, y, z, Facing::UP);
+	bool north = plant->connectsTo(level, x, y, z, Facing::NORTH);
+	bool south = plant->connectsTo(level, x, y, z, Facing::SOUTH);
+	bool west = plant->connectsTo(level, x, y, z, Facing::WEST);
+	bool east = plant->connectsTo(level, x, y, z, Facing::EAST);
+
+	bool changed = tesselateSubBoxInWorld(tt, x, y, z, a, down ? 0 : a, a, b, up ? 1 : b, b, 0);
+	if (north) changed |= tesselateSubBoxInWorld(tt, x, y, z, a, a, 0, b, b, a, 0);
+	if (south) changed |= tesselateSubBoxInWorld(tt, x, y, z, a, a, b, b, b, 1, 0);
+	if (east) changed |= tesselateSubBoxInWorld(tt, x, y, z, b, a, a, 1, b, b, 0);
+	if (west) changed |= tesselateSubBoxInWorld(tt, x, y, z, 0, a, a, a, b, b, 0);
+
+	int64_t seed = static_cast<int64_t>(x * y + y) * z + z;
+	Random random(seed);
+	int variantGate = random.nextInt(5);
+	int northNodule = random.nextInt(3);
+	int southNodule = random.nextInt(3);
+	int eastNodule = random.nextInt(3);
+	int westNodule = random.nextInt(3);
+	if (variantGate > 1)
+	{
+		const float p = 1 / 16.0f;
+		if (!north)
+		{
+			if (northNodule == 1) changed |= tesselateSubBoxInWorld(tt, x, y, z, 5 * p, 5 * p, 2 * p, 11 * p, 11 * p, 4 * p, 0);
+			else changed |= tesselateSubBoxInWorld(tt, x, y, z, 4 * p, 4 * p, 3 * p, 12 * p, 12 * p, 4 * p, 0);
+		}
+		if (!south)
+		{
+			if (southNodule == 1) changed |= tesselateSubBoxInWorld(tt, x, y, z, 5 * p, 5 * p, 12 * p, 11 * p, 11 * p, 14 * p, 0);
+			else changed |= tesselateSubBoxInWorld(tt, x, y, z, 4 * p, 4 * p, 12 * p, 12 * p, 12 * p, 13 * p, 0);
+		}
+		if (!east)
+		{
+			if (eastNodule == 1) changed |= tesselateSubBoxInWorld(tt, x, y, z, 12 * p, 5 * p, 5 * p, 14 * p, 11 * p, 11 * p, 0);
+			else changed |= tesselateSubBoxInWorld(tt, x, y, z, 12 * p, 4 * p, 4 * p, 13 * p, 12 * p, 12 * p, 0);
+		}
+		if (!west)
+		{
+			if (westNodule == 1) changed |= tesselateSubBoxInWorld(tt, x, y, z, 2 * p, 5 * p, 5 * p, 4 * p, 11 * p, 11 * p, 0);
+			else changed |= tesselateSubBoxInWorld(tt, x, y, z, 3 * p, 4 * p, 4 * p, 4 * p, 12 * p, 12 * p, 0);
+		}
+	}
+
+	tt->updateShape(level, x, y, z);
+	setShape(0, 0, 0, 1, 1, 1);
+	return changed;
+}
+
+bool TileRenderer::tesselateChorusFlowerInWorld(Tile *tt, int x, int y, int z)
+{
+	const float a = 2 / 16.0f;
+	const float b = 14 / 16.0f;
+
+	bool changed = tesselateSubBoxInWorld(tt, x, y, z, a, 0, a, b, b, b, 0);
+	changed |= tesselateSubBoxInWorld(tt, x, y, z, a, b, a, b, 1, b, 0x01);
+	changed |= tesselateSubBoxInWorld(tt, x, y, z, a, a, 0, b, b, a, 0x08);
+	changed |= tesselateSubBoxInWorld(tt, x, y, z, a, a, b, b, b, 1, 0x04);
+	changed |= tesselateSubBoxInWorld(tt, x, y, z, b, a, a, 1, b, b, 0x10);
+	changed |= tesselateSubBoxInWorld(tt, x, y, z, 0, a, a, a, b, b, 0x20);
+
+	tt->updateShape(level, x, y, z);
+	setShape(0, 0, 0, 1, 1, 1);
+	return changed;
+}
+
+void TileRenderer::renderInventoryBox(Tile *tile, int data, float x0, float y0, float z0, float x1, float y1, float z1)
+{
+	Tesselator *t = Tesselator::getInstance();
+	setShape(x0, y0, z0, x1, y1, z1);
+
+	glTranslatef(-0.5f, -0.5f, -0.5f);
+	t->begin();
+	t->normal(0, -1, 0);
+	renderFaceDown(tile, 0, 0, 0, getTexture(tile, 0, data));
+	t->end();
+
+	t->begin();
+	t->normal(0, 1, 0);
+	renderFaceUp(tile, 0, 0, 0, getTexture(tile, 1, data));
+	t->end();
+
+	t->begin();
+	t->normal(0, 0, -1);
+	renderNorth(tile, 0, 0, 0, getTexture(tile, 2, data));
+	t->end();
+
+	t->begin();
+	t->normal(0, 0, 1);
+	renderSouth(tile, 0, 0, 0, getTexture(tile, 3, data));
+	t->end();
+
+	t->begin();
+	t->normal(-1, 0, 0);
+	renderWest(tile, 0, 0, 0, getTexture(tile, 4, data));
+	t->end();
+
+	t->begin();
+	t->normal(1, 0, 0);
+	renderEast(tile, 0, 0, 0, getTexture(tile, 5, data));
+	t->end();
+	glTranslatef(0.5f, 0.5f, 0.5f);
 }

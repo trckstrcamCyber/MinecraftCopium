@@ -43,10 +43,10 @@ MobEffect *MobEffect::reserved_24;
 MobEffect *MobEffect::reserved_25;
 MobEffect *MobEffect::reserved_26;
 MobEffect *MobEffect::reserved_27;
-MobEffect *MobEffect::reserved_28;
-MobEffect *MobEffect::reserved_29;
-MobEffect *MobEffect::reserved_30;
-MobEffect *MobEffect::reserved_31;
+MobEffect *MobEffect::glowing;
+MobEffect *MobEffect::levitation;
+MobEffect *MobEffect::luck;
+MobEffect *MobEffect::unluck;
 
 void MobEffect::staticCtor()
 {
@@ -55,7 +55,7 @@ void MobEffect::staticCtor()
 	movementSlowdown =	(new MobEffect(2, true, eMinecraftColour_Effect_MovementSlowDown))			->setDescriptionId(IDS_POTION_MOVESLOWDOWN)		->setPostfixDescriptionId(IDS_POTION_MOVESLOWDOWN_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Slowness)->addAttributeModifier(SharedMonsterAttributes::MOVEMENT_SPEED, eModifierId_POTION_MOVESLOWDOWN, -0.15f, AttributeModifier::OPERATION_MULTIPLY_TOTAL); //->setIcon(1, 0);
 	digSpeed =			(new MobEffect(3, false, eMinecraftColour_Effect_DigSpeed))					->setDescriptionId(IDS_POTION_DIGSPEED)			->setPostfixDescriptionId(IDS_POTION_DIGSPEED_POSTFIX)->setDurationModifier(1.5)->setIcon(MobEffect::e_MobEffectIcon_Haste); //->setIcon(2, 0);
 	digSlowdown =		(new MobEffect(4, true, eMinecraftColour_Effect_DigSlowdown))				->setDescriptionId(IDS_POTION_DIGSLOWDOWN)		->setPostfixDescriptionId(IDS_POTION_DIGSLOWDOWN_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_MiningFatigue); //->setIcon(3, 0);
-	damageBoost =		(new AttackDamageMobEffect(5, false, eMinecraftColour_Effect_DamageBoost))	->setDescriptionId(IDS_POTION_DAMAGEBOOST)		->setPostfixDescriptionId(IDS_POTION_DAMAGEBOOST_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Strength)->addAttributeModifier(SharedMonsterAttributes::ATTACK_DAMAGE, eModifierId_POTION_DAMAGEBOOST, 3, AttributeModifier::OPERATION_MULTIPLY_TOTAL); //->setIcon(4, 0);
+	damageBoost =		(new AttackDamageMobEffect(5, false, eMinecraftColour_Effect_DamageBoost))	->setDescriptionId(IDS_POTION_DAMAGEBOOST)		->setPostfixDescriptionId(IDS_POTION_DAMAGEBOOST_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Strength)->addAttributeModifier(SharedMonsterAttributes::ATTACK_DAMAGE, eModifierId_POTION_DAMAGEBOOST, 0, AttributeModifier::OPERATION_ADDITION); //->setIcon(4, 0);
 	heal =				(new InstantenousMobEffect(6, false, eMinecraftColour_Effect_Heal))			->setDescriptionId(IDS_POTION_HEAL)				->setPostfixDescriptionId(IDS_POTION_HEAL_POSTFIX);
 	harm =				(new InstantenousMobEffect(7, true, eMinecraftColour_Effect_Harm))			->setDescriptionId(IDS_POTION_HARM)				->setPostfixDescriptionId(IDS_POTION_HARM_POSTFIX);
 	jump =				(new MobEffect(8, false, eMinecraftColour_Effect_Jump))						->setDescriptionId(IDS_POTION_JUMP)				->setPostfixDescriptionId(IDS_POTION_JUMP_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_JumpBoost); //->setIcon(2, 1);
@@ -87,10 +87,10 @@ void MobEffect::staticCtor()
 	// Own HUD icon (the icons live inside the UI SWF).
 	heroOfTheVillage =	(new MobEffect(27, false, eMinecraftColour_Effect_HeroOfTheVillage))	->setDescriptionId(IDS_POTION_HEROOFTHEVILLAGE)	->setPostfixDescriptionId(IDS_POTION_HEROOFTHEVILLAGE_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_HeroOfTheVillage);
 	reserved_27 = nullptr;
-	reserved_28 = nullptr;
-	reserved_29 = nullptr;
-	reserved_30 = nullptr;
-	reserved_31 = nullptr;
+	glowing =			(new MobEffect(28, false, eMinecraftColour_Effect_Glowing))					->setDescriptionId(IDS_POTION_GLOWING)			->setPostfixDescriptionId(IDS_POTION_GLOWING_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Glowing);
+	levitation =		(new MobEffect(29, true, eMinecraftColour_Effect_Levitation))				->setDescriptionId(IDS_POTION_LEVITATION)			->setPostfixDescriptionId(IDS_POTION_LEVITATION_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Levitation);
+	luck =				(new MobEffect(30, false, eMinecraftColour_Effect_Luck))						->setDescriptionId(IDS_POTION_LUCK)				->setPostfixDescriptionId(IDS_POTION_LUCK_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Luck)->setDurationModifier(5.0 / 3.0);
+	unluck =			(new MobEffect(31, true, eMinecraftColour_Effect_BadLuck))					->setDescriptionId(IDS_POTION_UNLUCK)			->setPostfixDescriptionId(IDS_POTION_UNLUCK_POSTFIX)->setIcon(MobEffect::e_MobEffectIcon_Unluck);
 }
 
 MobEffect::MobEffect(int id, bool isHarmful, eMinecraftColour color) : id(id), _isHarmful(isHarmful), color(color)

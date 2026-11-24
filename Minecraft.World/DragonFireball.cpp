@@ -6,6 +6,9 @@
 #include "net.minecraft.world.level.h"
 #include "JavaMath.h"
 #include "DragonFireball.h"
+#include "AreaEffectCloud.h"
+#include "MobEffectInstance.h"
+#include "net.minecraft.world.effect.h"
 
 
 
@@ -29,33 +32,34 @@ DragonFireball::DragonFireball(Level *level, double x, double y, double z, doubl
 
 void DragonFireball::onHit(HitResult *res)
 {
-	if (!level->isClientSide)
+	if (!level->isClientSide && (res->entity == nullptr || res->entity != owner))
 	{
+		shared_ptr<AreaEffectCloud> cloud = std::make_shared<AreaEffectCloud>(level, x, y, z);
+		cloud->setOwner(owner);
+		cloud->setParticle(eParticleType_dragonbreath);
+		cloud->setRadius(3.0f);
+		cloud->setParticleSpawnRateOnTick(10);
+		cloud->setDuration(200);
+		cloud->setRadiusPerTick((7.0f - cloud->getRadius()) / static_cast<float>(cloud->getDuration()));
+		cloud->addEffect(new MobEffectInstance(MobEffect::harm->id, 1, 1));
+
 		AABB *aoe = bb->grow(SPLASH_RANGE, SPLASH_RANGE / 2, SPLASH_RANGE);
 		vector<shared_ptr<Entity> > *entitiesOfClass = level->getEntitiesOfClass(typeid(LivingEntity), aoe);
-		if ( entitiesOfClass )
+		if (entitiesOfClass != nullptr)
 		{
-			if (!entitiesOfClass->empty())
+			for (auto& it : *entitiesOfClass)
 			{
-				for (auto& it : *entitiesOfClass)
+				if (distanceToSqr(it) < SPLASH_RANGE_SQ)
 				{
-					shared_ptr<LivingEntity> e = dynamic_pointer_cast<LivingEntity>(it);
-					double dist = distanceToSqr(e);
-					if (dist < SPLASH_RANGE_SQ)
-					{
-						double scale = 1.0 - (sqrt(dist) / SPLASH_RANGE);
-						if (e == res->entity)
-						{
-							scale = 1;
-						}
-						e->hurt(DamageSource::dragonbreath, 8 * scale);
-					}
+					cloud->setPos(it->x, it->y, it->z);
+					break;
 				}
 			}
 			delete entitiesOfClass;
 		}
-		level->levelEvent(LevelEvent::ENDERDRAGON_FIREBALL_SPLASH, static_cast<int>(Math::round(x)), static_cast<int>(Math::round(y)), static_cast<int>(Math::round(z)), 0);
 
+		level->levelEvent(LevelEvent::ENDERDRAGON_FIREBALL_SPLASH, static_cast<int>(Math::round(x)), static_cast<int>(Math::round(y)), static_cast<int>(Math::round(z)), 0);
+		level->addEntity(cloud);
 		remove();
 	}
 }

@@ -3,6 +3,7 @@
 #include "TileEntityRenderer.h"
 
 class SkeletonHeadModel;
+class DragonHeadModel;
 
 class SkullTileRenderer : public TileEntityRenderer
 {
@@ -14,10 +15,12 @@ private:
 	static ResourceLocation WITHER_SKELETON_LOCATION;
 	static ResourceLocation ZOMBIE_LOCATION;
 	static ResourceLocation CREEPER_LOCATION;
+	static ResourceLocation DRAGON_LOCATION;
 
 	// note: this head fits most mobs, just change texture
 	SkeletonHeadModel *skeletonModel;
 	SkeletonHeadModel *zombieModel;
+	DragonHeadModel *dragonModel;
 
 public:
 	SkullTileRenderer();
@@ -25,5 +28,5 @@ public:
 
 	void render(shared_ptr<TileEntity> skull, double x, double y, double z, float a, bool setColor, float alpha, bool useCompiled = true);
 	void init(TileEntityRenderDispatcher *tileEntityRenderDispatcher);
-	void renderSkull(float x, float y, float z, int face, float rot, int type, const wstring &extra);
+	void renderSkull(float x, float y, float z, int face, float rot, int type, const wstring &extra, float mouthAnimation = 0.0f);
 };

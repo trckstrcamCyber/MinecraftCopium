@@ -50,11 +50,12 @@ private:
 	wstring levelTypeOptions;
 	int m_xzSize;	// 4J Added
 	int m_hellScale;
+	bool m_modernEnd;
 
 	void _init(int64_t seed, GameType *gameType, bool generateMapFeatures, bool hardcore, bool newSeaLevel, LevelType *levelType, int xzSize, int hellScale); // 4J Added xzSize and hellScale param
 
 public:
-	LevelSettings(int64_t seed, GameType *gameType, bool generateMapFeatures, bool hardcore, bool newSeaLevel, LevelType *levelType, int xzSize, int hellScale); // 4J Added xzSize and hellScale param
+	LevelSettings(int64_t seed, GameType *gameType, bool generateMapFeatures, bool hardcore, bool newSeaLevel, LevelType *levelType, int xzSize, int hellScale, bool modernEnd = true); // 4J Added xzSize and hellScale param
 	LevelSettings(LevelData *levelData);
 	LevelSettings *enableStartingBonusItems();		// 4J - brought forward from 1.3.2
 	LevelSettings *enableSinglePlayerCommands();
@@ -69,6 +70,7 @@ public:
 	bool useNewSeaLevel();
 	int getXZSize(); // 4J Added
 	int getHellScale(); // 4J Added
+	bool isModernEnd();
 	static GameType *validateGameType(int gameType);
 	wstring getLevelTypeOptions();
 };

@@ -468,3 +468,13 @@ void EnderMan::setCreepy(bool creepy)
 {
 	entityData->set(DATA_CREEPY, static_cast<byte>(creepy ? 1 : 0));
 }
+void EnderMan::dropEquipment(bool byPlayer, int playerBonusLevel)
+{
+	Monster::dropEquipment(byPlayer, playerBonusLevel);
+	int tile = getCarryingTile();
+	if (tile > 0 && tile < Tile::TILE_NUM_COUNT && Item::items[tile] != nullptr)
+	{
+		int data = Item::items[tile]->isStackedByData() ? getCarryingData() : 0;
+		spawnAtLocation(std::make_shared<ItemInstance>(tile, 1, data), 0.0f);
+	}
+}

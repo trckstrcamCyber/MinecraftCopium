@@ -176,13 +176,8 @@ int PlayerRenderer::prepareArmor(shared_ptr<LivingEntity> _player, int layer, fl
 				bindTexture(&CREEPER_LOCATION);
 				break;
 			case SkullTileEntity::TYPE_CHAR:
-			{
-				armor = armorParts3;
-				auto t = new SkeletonHeadModel(0, 0, 64, 32, 1);
-				armor->head = t->head;
-				bindTexture(&PlayerRenderer::DEFAULT_LOCATION);
-				break;
-			}
+			case SkullTileEntity::TYPE_DRAGON:
+				return -1;
 			case SkullTileEntity::TYPE_SKELETON:
 			default:
 				bindTexture(&SKELETON_LOCATION);
@@ -417,6 +412,15 @@ void PlayerRenderer::additionalRendering(shared_ptr<LivingEntity> _mob, float a)
 				}
 
 				entityRenderDispatcher->itemInHandRenderer->renderItem(mob, headGear, 0);
+			}
+			else if (headGear->getItem()->id == Item::skull_Id)
+			{
+                int headAux = headGear->getAuxValue();
+				if ((headAux == SkullTileEntity::TYPE_CHAR || headAux == SkullTileEntity::TYPE_DRAGON)) {
+					float s = 17 / 16.0f;
+					glScalef(s, -s, -s);
+					SkullTileRenderer::instance->renderSkull(-0.5f, 0, -0.5f, Facing::UP, 180, headAux, L"", mob->walkAnimPos - mob->walkAnimSpeed * (1 - a));
+				}
 			}
 			/*else if (headGear->getItem()->id == Item::skull_Id)
 			{

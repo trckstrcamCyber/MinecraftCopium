@@ -145,9 +145,10 @@ void LevelSettings::_init(int64_t seed, GameType *gameType, bool generateMapFeat
 	levelTypeOptions = L"";
 	m_xzSize = xzSize;
 	m_hellScale = hellScale;
+	m_modernEnd = true;
 }
 
-LevelSettings::LevelSettings(int64_t seed, GameType *gameType, bool generateMapFeatures, bool hardcore, bool newSeaLevel, LevelType *levelType, int xzSize, int hellScale) :
+LevelSettings::LevelSettings(int64_t seed, GameType *gameType, bool generateMapFeatures, bool hardcore, bool newSeaLevel, LevelType *levelType, int xzSize, int hellScale, bool modernEnd) :
 	seed(seed),
 	gameType(gameType),
 	hardcore(hardcore),
@@ -157,11 +158,13 @@ LevelSettings::LevelSettings(int64_t seed, GameType *gameType, bool generateMapF
 	startingBonusItems(false)
 {
 	_init(seed, gameType, generateMapFeatures, hardcore, newSeaLevel, levelType, xzSize, hellScale);
+	m_modernEnd = modernEnd;
 }
 
 LevelSettings::LevelSettings(LevelData *levelData)
 {
 	_init(levelData->getSeed(), levelData->getGameType(), levelData->isGenerateMapFeatures(), levelData->isHardcore(), levelData->useNewSeaLevel(), levelData->getGenerator(), levelData->getXZSize(), levelData->getHellScale() );
+	m_modernEnd = levelData->isModernEnd();
 }
 
 LevelSettings *LevelSettings::enableStartingBonusItems()
@@ -241,4 +244,9 @@ int LevelSettings::getHellScale()
 wstring LevelSettings::getLevelTypeOptions()
 {
 	return levelTypeOptions;
+}
+
+bool LevelSettings::isModernEnd()
+{
+	return m_modernEnd;
 }

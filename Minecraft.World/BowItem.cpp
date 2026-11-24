@@ -23,8 +23,11 @@ void BowItem::releaseUsing(shared_ptr<ItemInstance> itemInstance, Level *level, 
 {
 	bool infiniteArrows = player->abilities.instabuild || EnchantmentHelper::getEnchantmentLevel(Enchantment::arrowInfinite->id, itemInstance) > 0;
 
-	if (infiniteArrows || player->inventory->hasResource(Item::arrow_Id))
+	int ammoSlot = findAmmoSlot(player);
+	if (player->abilities.instabuild || ammoSlot >= 0)
 	{
+		shared_ptr<ItemInstance> ammo = ammoSlot >= 0 ? player->inventory->items[ammoSlot] : nullptr;
+		if (ammo != nullptr && ammo->id != Item::arrow_Id && !player->abilities.instabuild) infiniteArrows = false;
 		int timeHeld = getUseDuration(itemInstance) - durationLeft;
 		float pow = timeHeld / static_cast<float>(MAX_DRAW_DURATION);
 		pow = ((pow * pow) + pow * 2) / 3;
@@ -32,6 +35,7 @@ void BowItem::releaseUsing(shared_ptr<ItemInstance> itemInstance, Level *level, 
 		if (pow > 1) pow = 1;
 
 		shared_ptr<Arrow> arrow = std::make_shared<Arrow>(level, player, pow * 2.0f);
+		arrow->setFromItem(ammo);
 		if (pow == 1) arrow->setCritArrow(true);
 		int damageBonus = EnchantmentHelper::getEnchantmentLevel(Enchantment::arrowBonus->id, itemInstance);
 		if (damageBonus > 0)
@@ -65,7 +69,7 @@ void BowItem::releaseUsing(shared_ptr<ItemInstance> itemInstance, Level *level, 
 		}
 		else
 		{
-			player->inventory->removeResource(Item::arrow_Id);
+			if (--player->inventory->items[ammoSlot]->count <= 0) player->inventory->items[ammoSlot] = nullptr;
 		}
 		if (!level->isClientSide) level->addEntity(arrow);
 	}
@@ -88,7 +92,7 @@ UseAnim BowItem::getUseAnimation(shared_ptr<ItemInstance> itemInstance)
 
 shared_ptr<ItemInstance> BowItem::use(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player)
 {
-	if (player->abilities.instabuild || player->inventory->hasResource(Item::arrow_Id))
+	if (player->abilities.instabuild || hasAmmo(player))
 	{
 		player->startUsingItem(instance, getUseDuration(instance));
 	}
@@ -115,4 +119,38 @@ void BowItem::registerIcons(IconRegister *iconRegister)
 Icon *BowItem::getDrawnIcon(int amount)
 {
 	return icons[amount];
+}
+int BowItem::findAmmoSlot(shared_ptr<Player> player)
+{
+	Inventory *inventory = player->inventory.get();
+	int selected = inventory->selected;
+	if (selected >= 0 && selected < static_cast<int>(inventory->items.length) && inventory->items[selected] != nullptr && Arrow::isArrowItem(inventory->items[selected]->id))
+	{
+		return selected;
+	}
+	for (unsigned int i = 0; i < inventory->items.length; i++)
+	{
+		if (inventory->items[i] != nullptr && Arrow::isArrowItem(inventory->items[i]->id))
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+bool BowItem::hasAmmo(shared_ptr<Player> player)
+{
+	return findAmmoSlot(player) >= 0;
+}
+
+Icon *BowItem::GetOverrideCountIcon(shared_ptr<ItemInstance> itemInstance, shared_ptr<Player> player)
+{
+	if (player != nullptr && player->getUseItem() == itemInstance)
+	{
+		int ticksUsingItem = player->getTicksUsingItem();
+		if (ticksUsingItem >= MAX_DRAW_DURATION - 2) return getDrawnIcon(2);
+		if (ticksUsingItem > MAX_DRAW_DURATION * 2 / 3) return getDrawnIcon(1);
+		if (ticksUsingItem > 0) return getDrawnIcon(0);
+	}
+	return Item::GetOverrideCountIcon(itemInstance, player);
 }

@@ -172,7 +172,7 @@ bool FenceGateTile::use(Level *level, int x, int y, int z, shared_ptr<Player> pl
 	if (soundOnly)
 	{
 		// 4J - added - just do enough to play the sound
-		level->levelEvent(player, LevelEvent::SOUND_OPEN_DOOR, x, y, z, 0);	// 4J - changed event to pass player rather than nullptr as the source of the event so we can filter the broadcast properly
+		level->levelEvent(player, isOpen(level->getData(x, y, z)) ? LevelEvent::SOUND_CLOSE_FENCE_GATE : LevelEvent::SOUND_OPEN_FENCE_GATE, x, y, z, 0);	// 4J - changed event to pass player rather than nullptr as the source of the event so we can filter the broadcast properly
 		return false;
 	}
 
@@ -192,7 +192,7 @@ bool FenceGateTile::use(Level *level, int x, int y, int z, shared_ptr<Player> pl
 		}
 		level->setData(x, y, z, data | OPEN_BIT, Tile::UPDATE_CLIENTS);
 	}
-	level->levelEvent(player, LevelEvent::SOUND_OPEN_DOOR, x, y, z, 0);
+	level->levelEvent(player, isOpen(level->getData(x, y, z)) ? LevelEvent::SOUND_OPEN_FENCE_GATE : LevelEvent::SOUND_CLOSE_FENCE_GATE, x, y, z, 0);
 	return true;
 }
 
@@ -208,12 +208,12 @@ void FenceGateTile::neighborChanged(Level *level, int x, int y, int z, int type)
 		if (signal && !isOpen(data))
 		{
 			level->setData(x, y, z, data | OPEN_BIT, Tile::UPDATE_CLIENTS);
-			level->levelEvent(nullptr, LevelEvent::SOUND_OPEN_DOOR, x, y, z, 0);
+			level->levelEvent(nullptr, LevelEvent::SOUND_OPEN_FENCE_GATE, x, y, z, 0);
 		}
 		else if (!signal && isOpen(data))
 		{
 			level->setData(x, y, z, data & ~OPEN_BIT, Tile::UPDATE_CLIENTS);
-			level->levelEvent(nullptr, LevelEvent::SOUND_OPEN_DOOR, x, y, z, 0);
+			level->levelEvent(nullptr, LevelEvent::SOUND_CLOSE_FENCE_GATE, x, y, z, 0);
 		}
 	}
 }

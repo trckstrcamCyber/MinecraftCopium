@@ -339,6 +339,15 @@ MagmaTile* Tile::magma = nullptr;
 Tile* Tile::nether_wart_block = nullptr;
 Tile* Tile::red_nether_brick = nullptr;
 BoneBlockTile* Tile::bone_block = nullptr;
+EndRodTile* Tile::end_rod = nullptr;
+EndGatewayTile* Tile::end_gateway = nullptr;
+ChorusPlantTile* Tile::chorus_plant = nullptr;
+ChorusFlowerTile* Tile::chorus_flower = nullptr;
+Tile* Tile::purpur_block = nullptr;
+Tile* Tile::purpur_pillar = nullptr;
+Tile* Tile::purpur_stairs = nullptr;
+HalfSlabTile* Tile::purpurSlab = nullptr;
+HalfSlabTile* Tile::purpurSlabHalf = nullptr;
 Tile* Tile::calcite = nullptr; // my new block
 Tile *Tile::stairs_calcite = nullptr;
 Tile *Tile::calciteWall = nullptr;
@@ -774,6 +783,15 @@ void Tile::staticCtor()
 	Tile::nether_wart_block = (new Tile(nether_wart_block_Id, Material::grass))->setBaseItemTypeAndMaterial(Item::eBaseItemType_block, Item::eMaterial_wheat)->setDestroyTime(0.5f)->setSoundType(SOUND_WOOD)->setIconName(L"nether_wart_block")->setDescriptionId(IDS_TILE_NETHER_WART_BLOCK)->setUseDescriptionId(IDS_DESC_NETHER_WART_BLOCK);
 	Tile::red_nether_brick = (new Tile(red_nether_brick_Id, Material::stone))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(6)->setSoundType(SOUND_STONE)->setIconName(L"red_nether_brick")->setDescriptionId(IDS_TILE_RED_NETHER_BRICK)->setUseDescriptionId(IDS_DESC_RED_NETHER_BRICK);
 	Tile::bone_block = static_cast<BoneBlockTile*>((new BoneBlockTile(bone_block_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(1.5f)->setExplodeable(10)->setSoundType(SOUND_STONE)->setIconName(L"bone_block_side")->setDescriptionId(IDS_TILE_BONE_BLOCK)->setUseDescriptionId(IDS_DESC_BONE_BLOCK)->sendTileData());
+	Tile::end_rod = static_cast<EndRodTile*>((new EndRodTile(end_rod_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_torch, Item::eMaterial_purpur)->setDestroyTime(0.0f)->setLightEmission(15 / 16.0f)->setSoundType(SOUND_WOOD)->setIconName(L"end_rod")->setDescriptionId(IDS_TILE_END_ROD)->setUseDescriptionId(IDS_DESC_END_ROD)->sendTileData()->disableMipmap());
+	Tile::end_gateway = static_cast<EndGatewayTile*>((new EndGatewayTile(end_gateway_Id, Material::portal))->setDestroyTime(INDESTRUCTIBLE_DESTROY_TIME)->setExplodeable(6000000)->setDescriptionId(IDS_TILE_END_GATEWAY)->setUseDescriptionId(IDS_DESC_END_GATEWAY));
+	Tile::chorus_plant = static_cast<ChorusPlantTile*>((new ChorusPlantTile(chorus_plant_Id))->setDestroyTime(0.4f)->setSoundType(SOUND_WOOD)->setIconName(L"chorus_flower_plant")->setDescriptionId(IDS_TILE_CHORUS_PLANT)->setUseDescriptionId(IDS_DESC_CHORUS_PLANT));
+	Tile::chorus_flower = static_cast<ChorusFlowerTile*>((new ChorusFlowerTile(chorus_flower_Id))->setDestroyTime(0.4f)->setSoundType(SOUND_WOOD)->setIconName(L"chorus_flower")->setDescriptionId(IDS_TILE_CHORUS_FLOWER)->setUseDescriptionId(IDS_DESC_CHORUS_FLOWER)->sendTileData());
+	Tile::purpur_block = (new Tile(purpur_block_Id, Material::stone))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_purpur)->setDestroyTime(1.5f)->setExplodeable(10)->setSoundType(SOUND_STONE)->setIconName(L"purpur_block")->setDescriptionId(IDS_TILE_PURPUR_BLOCK)->setUseDescriptionId(IDS_DESC_PURPUR_BLOCK);
+	Tile::purpur_pillar = (new PurpurPillarTile(purpur_pillar_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_purpur)->setDestroyTime(1.5f)->setExplodeable(10)->setSoundType(SOUND_STONE)->setIconName(L"purpur_pillar")->setDescriptionId(IDS_TILE_PURPUR_PILLAR)->setUseDescriptionId(IDS_DESC_PURPUR_PILLAR)->sendTileData();
+	Tile::purpur_stairs = (new StairTile(purpur_stairs_Id, Tile::purpur_block, 0))->setBaseItemTypeAndMaterial(Item::eBaseItemType_stairs, Item::eMaterial_purpur)->setIconName(L"stairsPurpur")->setDescriptionId(IDS_TILE_PURPUR_STAIRS)->sendTileData()->setUseDescriptionId(IDS_DESC_STAIRS);
+	Tile::purpurSlab = static_cast<HalfSlabTile *>((new FullPurpurSlabTile(purpur_double_slab_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_slab, Item::eMaterial_purpur)->setDestroyTime(2.0f)->setExplodeable(10)->setSoundType(SOUND_STONE)->sendTileData()->setIconName(L"purpur_block")->setDescriptionId(IDS_TILE_PURPUR_SLAB)->setUseDescriptionId(IDS_DESC_SLAB));
+	Tile::purpurSlabHalf = static_cast<HalfSlabTile *>((new HalfPurpurSlabTile(purpur_slab_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_halfslab, Item::eMaterial_purpur)->setDestroyTime(2.0f)->setExplodeable(10)->setSoundType(SOUND_STONE)->sendTileData()->setIconName(L"purpur_block")->setDescriptionId(IDS_TILE_PURPUR_SLAB)->setUseDescriptionId(IDS_DESC_HALFSLAB));
 
 
 	Tile::daylight_detector_inverted = static_cast<DaylightDetectorTile*>((new DaylightDetectorTile(178, true))->setDestroyTime(0.2f)->setSoundType(SOUND_WOOD)->setIconName(L"daylight_detector")->setDescriptionId(IDS_TILE_DAYLIGHT_DETECTOR)->setUseDescriptionId(IDS_DESC_DAYLIGHT_DETECTOR));
@@ -1070,36 +1088,6 @@ void Tile::staticCtor()
 		Item::items[stripped_log_Id] = (new MultiTextureTileItem(Tile::stripped_log_Id - 256, Tile::strippedLog, strippedNamesA, 4))->setDescriptionId(IDS_TILE_STRIPPED_OAK_LOG)->setUseDescriptionId(IDS_DESC_LOG);
 		Item::items[stripped_log2_Id] = (new MultiTextureTileItem(Tile::stripped_log2_Id - 256, Tile::strippedLog2, strippedNamesB, 3))->setDescriptionId(IDS_TILE_STRIPPED_ACACIA_LOG)->setUseDescriptionId(IDS_DESC_LOG);
 	}
-
-	// neoLegacy - Copper Age variants (2026-11-23). Every copper-family tile
-	// whose texture varies by oxidation/waxed state gets a MultiTextureTileItem
-	// so each aux value (0 unaffected, 1 exposed, 2 weathered, 3 oxidized,
-	// 4-7 waxed) shows its own Java 26.3 name in the creative inventory
-	// ("Exposed Cut Copper Stairs", "Waxed Oxidized Copper Bulb", ...).
-	// The names arrays live on the tile classes (CopperTile, CopperThinTile,
-	// CopperGrateTile, CopperBulbTile, CopperFenceTile, CopperGolemStatueBlock)
-	// except the chest / stairs / trapdoor, whose oxidation lives in a tile
-	// entity -- those use static locals here, like the stripped logs above.
-	// The slab keeps its StoneSlabTileItem (half/full logic); its per-aux
-	// names come from CopperSlabTile::getAuxName instead. The door is a plain
-	// Item (DoorItem), named by DoorItem::getDescriptionId.
-	static const int copperChestNames[8] = { IDS_TILE_COPPER_CHEST, IDS_TILE_EXPOSED_COPPER_CHEST, IDS_TILE_WEATHERED_COPPER_CHEST, IDS_TILE_OXIDIZED_COPPER_CHEST, IDS_TILE_WAXED_COPPER_CHEST, IDS_TILE_WAXED_EXPOSED_COPPER_CHEST, IDS_TILE_WAXED_WEATHERED_COPPER_CHEST, IDS_TILE_WAXED_OXIDIZED_COPPER_CHEST };
-	static const int copperStairNames[8] = { IDS_TILE_CUT_COPPER_STAIRS, IDS_TILE_EXPOSED_CUT_COPPER_STAIRS, IDS_TILE_WEATHERED_CUT_COPPER_STAIRS, IDS_TILE_OXIDIZED_CUT_COPPER_STAIRS, IDS_TILE_WAXED_CUT_COPPER_STAIRS, IDS_TILE_WAXED_EXPOSED_CUT_COPPER_STAIRS, IDS_TILE_WAXED_WEATHERED_CUT_COPPER_STAIRS, IDS_TILE_WAXED_OXIDIZED_CUT_COPPER_STAIRS };
-	static const int copperTrapdoorNames[8] = { IDS_TILE_COPPER_TRAPDOOR, IDS_TILE_EXPOSED_COPPER_TRAPDOOR, IDS_TILE_WEATHERED_COPPER_TRAPDOOR, IDS_TILE_OXIDIZED_COPPER_TRAPDOOR, IDS_TILE_WAXED_COPPER_TRAPDOOR, IDS_TILE_WAXED_EXPOSED_COPPER_TRAPDOOR, IDS_TILE_WAXED_WEATHERED_COPPER_TRAPDOOR, IDS_TILE_WAXED_OXIDIZED_COPPER_TRAPDOOR };
-	Item::items[copper_block_Id] = (new MultiTextureTileItem(Tile::copper_block_Id - 256, Tile::copperBlock, (int*)CopperTile::COPPER_BLOCK_NAMES, 8))->setIconName(L"copper_block")->setDescriptionId(IDS_TILE_COPPER_BLOCK)->setUseDescriptionId(IDS_DESC_BLOCK_COPPER);
-	Item::items[cut_copper_Id] = (new MultiTextureTileItem(Tile::cut_copper_Id - 256, Tile::cutCopper, (int*)CopperTile::CUT_COPPER_NAMES, 8))->setIconName(L"cut_copper")->setDescriptionId(IDS_TILE_CUT_COPPER)->setUseDescriptionId(IDS_DESC_BLOCK_COPPER);
-	Item::items[chiseled_copper_Id] = (new MultiTextureTileItem(Tile::chiseled_copper_Id - 256, Tile::chiseledCopper, (int*)CopperTile::CHISELED_COPPER_NAMES, 8))->setIconName(L"chiseled_copper")->setDescriptionId(IDS_TILE_CHISELED_COPPER)->setUseDescriptionId(IDS_DESC_BLOCK_COPPER);
-	Item::items[copper_grate_Id] = (new MultiTextureTileItem(Tile::copper_grate_Id - 256, Tile::copperGrate, (int*)CopperGrateTile::COPPER_GRATE_NAMES, 8))->setIconName(L"copper_grate")->setDescriptionId(IDS_TILE_COPPER_GRATE)->setUseDescriptionId(IDS_DESC_BLOCK_COPPER);
-	Item::items[copper_bulb_Id] = (new MultiTextureTileItem(Tile::copper_bulb_Id - 256, Tile::copperBulb, (int*)CopperBulbTile::COPPER_BULB_NAMES, 8))->setIconName(L"copper_bulb")->setDescriptionId(IDS_TILE_COPPER_BULB)->setUseDescriptionId(IDS_DESC_COPPER_BULB);
-	Item::items[copper_chest_Id] = (new MultiTextureTileItem(Tile::copper_chest_Id - 256, Tile::copperChest, (int*)copperChestNames, 8))->setIconName(L"copper_chest")->setDescriptionId(IDS_TILE_COPPER_CHEST)->setUseDescriptionId(IDS_DESC_CHEST);
-	Item::items[copper_trapdoor_Id] = (new MultiTextureTileItem(Tile::copper_trapdoor_Id - 256, Tile::copperTrapdoor, (int*)copperTrapdoorNames, 8))->setIconName(L"copper_trapdoor")->setDescriptionId(IDS_TILE_COPPER_TRAPDOOR)->setUseDescriptionId(IDS_DESC_TRAPDOOR);
-	Item::items[copper_chain_Id] = (new MultiTextureTileItem(Tile::copper_chain_Id - 256, Tile::copperChain, (int*)CopperThinTile::COPPER_CHAIN_NAMES, 8))->setIconName(L"copper_chain")->setDescriptionId(IDS_TILE_COPPER_CHAIN)->setUseDescriptionId(IDS_DESC_COPPER_CHAIN);
-	Item::items[copper_bars_Id] = (new MultiTextureTileItem(Tile::copper_bars_Id - 256, Tile::copperBars, (int*)CopperFenceTile::COPPER_BARS_NAMES, 8))->setIconName(L"copper_bars")->setDescriptionId(IDS_TILE_COPPER_BARS)->setUseDescriptionId(IDS_DESC_COPPER_BARS);
-	Item::items[copper_lantern_Id] = (new MultiTextureTileItem(Tile::copper_lantern_Id - 256, Tile::copperLantern, (int*)CopperThinTile::COPPER_LANTERN_NAMES, 8))->setIconName(L"copper_lantern")->setDescriptionId(IDS_TILE_COPPER_LANTERN)->setUseDescriptionId(IDS_DESC_COPPER_LANTERN);
-	Item::items[lightning_rod_Id] = (new MultiTextureTileItem(Tile::lightning_rod_Id - 256, Tile::lightningRod, (int*)CopperThinTile::LIGHTNING_ROD_NAMES, 8))->setIconName(L"lightning_rod")->setDescriptionId(IDS_TILE_LIGHTNING_ROD)->setUseDescriptionId(IDS_DESC_LIGHTNING_ROD);
-	Item::items[copper_golem_statue_Id] = (new MultiTextureTileItem(Tile::copper_golem_statue_Id - 256, Tile::copperGolemStatue, (int*)CopperGolemStatueBlock::COPPER_GOLEM_STATUE_NAMES, 8))->setIconName(L"copper_golem_statue")->setDescriptionId(IDS_TILE_COPPER_GOLEM_STATUE)->setUseDescriptionId(IDS_DESC_COPPER_GOLEM_STATUE);
-	Item::items[cut_copper_stairs_Id] = (new MultiTextureTileItem(Tile::cut_copper_stairs_Id - 256, Tile::cutCopperStairs, (int*)copperStairNames, 8))->setIconName(L"cut_copper")->setDescriptionId(IDS_TILE_CUT_COPPER_STAIRS)->setUseDescriptionId(IDS_DESC_STAIRS);
-	Item::items[shelf_Id] = (new MultiTextureTileItem(Tile::shelf_Id - 256, Tile::shelf, (int*)ShelfTile::SHELF_NAMES, 7))->setIconName(L"oak_shelf")->setDescriptionId(IDS_TILE_OAK_SHELF)->setUseDescriptionId(IDS_DESC_SHELF);
 	Item::items[monster_egg_Id]		= ( new MultiTextureTileItem(Tile::monster_egg_Id - 256, monster_egg, (int *)StoneMonsterTile::STONE_MONSTER_NAMES, 3))->setIconName(L"monster_egg")->setDescriptionId(IDS_TILE_STONE_SILVERFISH)->setUseDescriptionId(IDS_DESC_STONE_SILVERFISH); // 4J - Brought forward from post-1.2 to fix stacking problem
 	Item::items[stone_Id]			= ( new MultiTextureTileItem(Tile::stone_Id - 256,Tile::stone,(int*)StoneTile::STONE_NAMES, StoneTile::STONE_NAMES_LENGTH))->setIconName(L"stone")->setDescriptionId(IDS_TILE_STONE);
 	Item::items[stonebrick_Id]			= ( new MultiTextureTileItem(Tile::stonebrick_Id - 256, stoneBrick,(int *)SmoothStoneBrickTile::SMOOTH_STONE_BRICK_NAMES, 4))->setIconName(L"stonebricksmooth")->setDescriptionId(IDS_TILE_STONE_BRICK_SMOOTH);
@@ -1135,6 +1123,8 @@ void Tile::staticCtor()
 	Item::items[red_sandstone_Id] = (new MultiTextureTileItem(Tile::red_sandstone_Id - 256, red_sandstone, (int*)RedSandStoneTile::SANDSTONE_NAMES, RedSandStoneTile::SANDSTONE_BLOCK_NAMES))->setIconName(L"red_sandstone")->setDescriptionId(IDS_TILE_RED_SANDSTONE)->setUseDescriptionId(IDS_DESC_SANDSTONE);
 	Item::items[stone_slab2_Id] = (new StoneSlabTileItem(Tile::stone_slab2_Id - 256, Tile::stoneSlab2Half, Tile::stoneSlab2, false))->setIconName(L"red_sandstone")->setDescriptionId(IDS_TILE_RED_SANDSTONE)->setUseDescriptionId(IDS_DESC_HALFSLAB);
 	Item::items[double_stone_slab2_Id] = (new StoneSlabTileItem(Tile::double_stone_slab2_Id - 256, Tile::stoneSlab2Half, Tile::stoneSlab2, true))->setIconName(L"red_sandstone")->setDescriptionId(IDS_TILE_RED_SANDSTONE)->setUseDescriptionId(IDS_DESC_SLAB);
+	Item::items[purpur_slab_Id] = (new StoneSlabTileItem(Tile::purpur_slab_Id - 256, Tile::purpurSlabHalf, Tile::purpurSlab, false))->setIconName(L"purpur_block")->setDescriptionId(IDS_TILE_PURPUR_SLAB)->setUseDescriptionId(IDS_DESC_HALFSLAB);
+	Item::items[purpur_double_slab_Id] = (new StoneSlabTileItem(Tile::purpur_double_slab_Id - 256, Tile::purpurSlabHalf, Tile::purpurSlab, true))->setIconName(L"purpur_block")->setDescriptionId(IDS_TILE_PURPUR_SLAB)->setUseDescriptionId(IDS_DESC_SLAB);
 	Item::items[log2_Id] = (new MultiTextureTileItem(Tile::log2_Id - 256, log2, (int*)TreeTile2::TREE_NAMES, TreeTile2::TREE_NAMES_LENGTH))->setIconName(L"log")->setDescriptionId(IDS_TILE_LOG)->setUseDescriptionId(IDS_DESC_LOG);
 	Item::items[sponge_Id] = (new MultiTextureTileItem(Tile::sponge_Id - 256, sponge, (int*)Sponge::SPONGE_NAMES, Sponge::SPONGE_NAMES_LENGTH))->setIconName(L"sponge")->setDescriptionId(IDS_TILE_SPONGE)->setUseDescriptionId(IDS_DESC_SPONGE);
     Item::items[blackstone_block_Id] =
@@ -2472,6 +2462,15 @@ const int Tile::magma_block_Id;
 const int Tile::nether_wart_block_Id;
 const int Tile::red_nether_brick_Id;
 const int Tile::bone_block_Id;
+const int Tile::end_rod_Id;
+const int Tile::end_gateway_Id;
+const int Tile::chorus_plant_Id;
+const int Tile::chorus_flower_Id;
+const int Tile::purpur_block_Id;
+const int Tile::purpur_pillar_Id;
+const int Tile::purpur_stairs_Id;
+const int Tile::purpur_double_slab_Id;
+const int Tile::purpur_slab_Id;
 const int Tile::stairs_calcite;
 const int Tile::calciteWall;
 const int Tile::blackstone_block_Id;

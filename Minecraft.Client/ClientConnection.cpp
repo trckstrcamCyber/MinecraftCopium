@@ -381,7 +381,7 @@ void ClientConnection::handleLogin(shared_ptr<LoginPacket> packet)
 		Level *dimensionLevel = minecraft->getLevel( packet->dimension );
 		if( dimensionLevel == nullptr )
 		{
-			level = new MultiPlayerLevel(this, new LevelSettings(packet->seed, GameType::byId(packet->gameType), false, packet->m_isHardcore, packet->m_newSeaLevel, packet->m_pLevelType, packet->m_xzSize, packet->m_hellScale), packet->dimension, packet->difficulty);
+			level = new MultiPlayerLevel(this, new LevelSettings(packet->seed, GameType::byId(packet->gameType), false, packet->m_isHardcore, packet->m_newSeaLevel, packet->m_pLevelType, packet->m_xzSize, packet->m_hellScale, packet->m_modernEnd), packet->dimension, packet->difficulty);
 
 			// 4J Stu - We want to share the SavedDataStorage between levels
 			int otherDimensionId = packet->dimension == 0 ? -1 : 0;
@@ -451,7 +451,7 @@ void ClientConnection::handleLogin(shared_ptr<LoginPacket> packet)
 				activeLevel = minecraft->getLevel(otherDimensionId);
 			}
 
-			MultiPlayerLevel *dimensionLevel = new MultiPlayerLevel(this, new LevelSettings(packet->seed, GameType::byId(packet->gameType), false, packet->m_isHardcore, packet->m_newSeaLevel, packet->m_pLevelType, packet->m_xzSize, packet->m_hellScale), packet->dimension, packet->difficulty);
+			MultiPlayerLevel *dimensionLevel = new MultiPlayerLevel(this, new LevelSettings(packet->seed, GameType::byId(packet->gameType), false, packet->m_isHardcore, packet->m_newSeaLevel, packet->m_pLevelType, packet->m_xzSize, packet->m_hellScale, packet->m_modernEnd), packet->dimension, packet->difficulty);
 
 			dimensionLevel->savedDataStorage = activeLevel->savedDataStorage;
 
@@ -622,6 +622,13 @@ void ClientConnection::handleAddEntity(shared_ptr<AddEntityPacket> packet)
 		break;
 	case AddEntityPacket::BOAT:
 		e = std::make_shared<Boat>(level, x, y, z);
+		break;
+	case AddEntityPacket::AREA_EFFECT_CLOUD:
+		e = std::make_shared<AreaEffectCloud>(level, x, y, z);
+		break;
+	case AddEntityPacket::SHULKER_BULLET:
+		e = std::make_shared<ShulkerBullet>(level, x, y, z, packet->xa / 8000.0, packet->ya / 8000.0, packet->za / 8000.0);
+		packet->data = 0;
 		break;
 	case AddEntityPacket::PRIMED_TNT:
         e = std::make_shared<PrimedTnt>(level, x, y, z, std::shared_ptr<LivingEntity>());
@@ -2068,6 +2075,8 @@ void ClientConnection::handleChat(shared_ptr<ChatPacket> packet)
 	// flag that a message is a death message
 	bool bIsDeathMessage = (packet->m_messageType>=ChatPacket::e_ChatDeathInFire) && (packet->m_messageType<=ChatPacket::e_ChatDeathIndirectMagicItem);
 
+	if( bIsDeathMessage ) minecraft->gui->setLastDeathMessage(m_userIndex, message);
+
 	if( displayOnGui ) minecraft->gui->addMessage(message, m_userIndex, bIsDeathMessage);
 
 	if (!displayOnGui && !message.empty()) minecraft->gui->setActionBarMessage(message);
@@ -3004,7 +3013,7 @@ void ClientConnection::handleRespawn(shared_ptr<RespawnPacket> packet)
 		MultiPlayerLevel *dimensionLevel = (MultiPlayerLevel *)minecraft->getLevel( packet->dimension );
 		if( dimensionLevel == nullptr )
 		{
-			dimensionLevel = new MultiPlayerLevel(this, new LevelSettings(packet->mapSeed, packet->playerGameType, false, packet->m_isHardcore, packet->m_newSeaLevel, packet->m_pLevelType, packet->m_xzSize, packet->m_hellScale), packet->dimension, packet->difficulty);
+			dimensionLevel = new MultiPlayerLevel(this, new LevelSettings(packet->mapSeed, packet->playerGameType, false, packet->m_isHardcore, packet->m_newSeaLevel, packet->m_pLevelType, packet->m_xzSize, packet->m_hellScale, packet->m_modernEnd), packet->dimension, packet->difficulty);
 
 			// 4J Stu - We want to shared the savedDataStorage between both levels
 			//if( dimensionLevel->savedDataStorage != nullptr )
@@ -3573,6 +3582,10 @@ void ClientConnection::handleTileEntityData(shared_ptr<TileEntityDataPacket> pac
 			{
 				// neoLegacy - Copper Age: the statue renderer reads the pose/facing from the tile entity every frame, so no chunk rebuild is needed
 				dynamic_pointer_cast<CopperGolemStatueBlockEntity>(te)->applyUpdate(packet->tag);
+			}
+			else if (packet->type == TileEntityDataPacket::TYPE_END_GATEWAY && dynamic_pointer_cast<TheEndGatewayTileEntity>(te) != nullptr)
+			{
+				dynamic_pointer_cast<TheEndGatewayTileEntity>(te)->load(packet->tag);
 			}
 		}
 	}

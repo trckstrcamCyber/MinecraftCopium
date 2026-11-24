@@ -59,6 +59,7 @@ FurnaceRecipes::FurnaceRecipes()
 	addFurnaceRecipy(Tile::gold_ore_Id, new ItemInstance(Item::gold_ingot), 1);
 	addFurnaceRecipy(Tile::diamond_ore_Id, new ItemInstance(Item::diamond), 1);
 	addFurnaceRecipy(Tile::sand_Id, new ItemInstance(Tile::glass), .1f);
+	addFurnaceRecipy(Item::chorus_fruit_Id, new ItemInstance(Item::chorus_fruit_popped), .1f);
 	addFurnaceRecipy(Item::porkchop_Id, new ItemInstance(Item::cooked_porkchop), .35f);
 	addFurnaceRecipy(Item::beef_Id, new ItemInstance(Item::cooked_beef), .35f);
 	addFurnaceRecipy(Item::rabbit_Id, new ItemInstance(Item::cooked_rabbit), .35f);

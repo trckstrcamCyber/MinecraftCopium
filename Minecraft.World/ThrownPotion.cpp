@@ -7,6 +7,7 @@
 #include "SharedConstants.h"
 #include "JavaMath.h"
 #include "ThrownPotion.h"
+#include "AreaEffectCloud.h"
 
 
 
@@ -45,7 +46,14 @@ ThrownPotion::ThrownPotion(Level *level, double x, double y, double z, int potio
 {
 	_init();
 
-	potionItem = std::make_shared<ItemInstance>(Item::potion, 1, potionValue);
+	if ((potionValue & LINGERING_FLAG) != 0)
+	{
+		potionItem = std::make_shared<ItemInstance>(Item::lingering_potion, 1, potionValue & ~LINGERING_FLAG);
+	}
+	else
+	{
+		potionItem = std::make_shared<ItemInstance>(Item::potion, 1, potionValue);
+	}
 }
 
 ThrownPotion::ThrownPotion(Level *level, double x, double y, double z, shared_ptr<ItemInstance> potion) : Throwable(level, x, y, z)
@@ -82,11 +90,27 @@ int ThrownPotion::getPotionValue()
 	return potionItem->getAuxValue();
 }
 
+bool ThrownPotion::isLingering()
+{
+	return potionItem != nullptr && potionItem->id == Item::lingering_potion_Id;
+}
+
 void ThrownPotion::onHit(HitResult *res)
 {
 	if (!level->isClientSide)
 	{
-		vector<MobEffectInstance *> *mobEffects = Item::potion->getMobEffects(potionItem);
+		if (isLingering())
+		{
+			shared_ptr<AreaEffectCloud> cloud = std::make_shared<AreaEffectCloud>(level, x, y, z);
+			cloud->setOwner(getOwner());
+			cloud->setRadius(3.0f);
+			cloud->setRadiusOnUse(-0.5f);
+			cloud->setWaitTime(10);
+			cloud->setRadiusPerTick(-cloud->getRadius() / cloud->getDuration());
+			cloud->setPotionValue(getPotionValue());
+			level->addEntity(cloud);
+		}
+		vector<MobEffectInstance *> *mobEffects = isLingering() ? nullptr : Item::potion->getMobEffects(potionItem);
 
 		if (mobEffects != nullptr && !mobEffects->empty())
 		{

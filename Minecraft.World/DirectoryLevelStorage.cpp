@@ -561,7 +561,11 @@ void DirectoryLevelStorage::flushSaveFile(bool autosave)
 // 4J Added
 void DirectoryLevelStorage::resetNetherPlayerPositions()
 {
-	if(app.GetResetNether())
+	if(app.GetResetNether()) resetPlayerPositionsInDimension(LevelData::DIMENSION_NETHER);
+}
+
+void DirectoryLevelStorage::resetPlayerPositionsInDimension(int dimension)
+{
 	{
 #if defined(__PS3__) || defined(__ORBIS__) || defined(__PSVITA__)
 		vector<FileEntry *> *playerFiles = m_saveFile->getValidPlayerDatFiles();
@@ -579,7 +583,7 @@ void DirectoryLevelStorage::resetNetherPlayerPositions()
 				{
 					// If the player is in the nether, set their y position above the top of the nether
 					// This will force the player to be spawned in a valid position in the overworld when they are loaded
-					if(tag->contains(L"Dimension") && tag->getInt(L"Dimension") == LevelData::DIMENSION_NETHER && tag->contains(L"Pos"))
+					if(tag->contains(L"Dimension") && tag->getInt(L"Dimension") == dimension && tag->contains(L"Pos"))
 					{
 						ListTag<DoubleTag> *pos = (ListTag<DoubleTag> *) tag->getList(L"Pos");
 						pos->get(1)->data = DBL_MAX;

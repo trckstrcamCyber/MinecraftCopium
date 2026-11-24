@@ -41,6 +41,8 @@
 #include "DripParticle.h"
 #include "EchantmentTableParticle.h"
 #include "DragonBreathParticle.h"
+#include "EndRodParticle.h"
+#include "FallingDustParticle.h"
 #include "FireworksParticles.h"
 #include "Lighting.h"
 #include "Options.h"
@@ -584,6 +586,7 @@ void LevelRenderer::renderEntities(Vec3 *cam, Culler *culler, float a)
 	mc->gameRenderer->turnOnLightLayer(a);		// 4J - brought forward from 1.8.2
 
 	vector<shared_ptr<Entity> > entities = level[playerIndex]->getAllEntities();
+	vector<shared_ptr<Entity> > glowingEntities;
 	totalEntities = static_cast<int>(entities.size());
 
 	for (auto& entity : level[playerIndex]->globalEntities)
@@ -622,7 +625,43 @@ void LevelRenderer::renderEntities(Vec3 *cam, Culler *culler, float a)
 			}
 			renderedEntities++;
 			EntityRenderDispatcher::instance->render(entity, a);
+			if (entity->isGlowing()) glowingEntities.push_back(entity);
 		}
+	}
+
+	if (!glowingEntities.empty())
+	{
+		const float rimScale = 1.08f;
+
+		EntityRenderer::solidColourPass = true;
+		glDisable(GL_DEPTH_TEST);
+		glDepthMask(false);
+		glDisable(GL_LIGHTING);
+		for (auto& entity : glowingEntities)
+		{
+			float cx = static_cast<float>(entity->xOld + (entity->x - entity->xOld) * a - EntityRenderDispatcher::xOff);
+			float cy = static_cast<float>(entity->yOld + (entity->y - entity->yOld) * a - EntityRenderDispatcher::yOff) + entity->bbHeight * 0.5f;
+			float cz = static_cast<float>(entity->zOld + (entity->z - entity->zOld) * a - EntityRenderDispatcher::zOff);
+			glPushMatrix();
+			glTranslatef(cx, cy, cz);
+			glScalef(rimScale, rimScale, rimScale);
+			glTranslatef(-cx, -cy, -cz);
+			glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+			EntityRenderDispatcher::instance->render(entity, a);
+			glPopMatrix();
+		}
+		EntityRenderer::solidColourPass = false;
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(true);
+		glDepthFunc(GL_LEQUAL);
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+		EntityRenderer::skipPostRender = true;
+		for (auto& entity : glowingEntities)
+		{
+			EntityRenderDispatcher::instance->render(entity, a);
+		}
+		EntityRenderer::skipPostRender = false;
 	}
 
 	Lighting::turnOn();
@@ -3167,6 +3206,12 @@ shared_ptr<Particle> LevelRenderer::addParticleInternal(ePARTICLE_TYPE eParticle
 	case eParticleType_dragonbreath:
 		particle = std::make_shared<DragonBreathParticle>(lev, x, y, z, xa, ya, za);
 		break;
+	case eParticleType_endRod:
+		particle = std::make_shared<EndRodParticle>(lev, x, y, z, xa, ya, za);
+		break;
+	case eParticleType_fallingDust:
+		particle = std::make_shared<FallingDustParticle>(lev, x, y, z, static_cast<float>(xa), static_cast<float>(ya), static_cast<float>(za));
+		break;
 	case eParticleType_barrier:
 		particle = std::make_shared<BarrierParticle>(lev, x, y, z, xa, ya, za);
 		break;
@@ -3494,6 +3539,37 @@ void LevelRenderer::levelEvent(shared_ptr<Player> source, int type, int x, int y
 			}
 			level[playerIndex]->playLocalSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_RANDOM_GLASS, 1, level[playerIndex]->random->nextFloat() * 0.1f + 0.9f, false);
 		}
+		break;
+	case LevelEvent::SOUND_PORTAL_TRAVEL:
+		mc->soundEngine->playUI(eSoundType_PORTAL_TRAVEL, 1.0f, random->nextFloat() * 0.4f + 0.8f);
+		break;
+	case LevelEvent::SOUND_OPEN_WOODEN_DOOR:
+	case LevelEvent::SOUND_CLOSE_WOODEN_DOOR:
+	case LevelEvent::SOUND_OPEN_IRON_DOOR:
+	case LevelEvent::SOUND_CLOSE_IRON_DOOR:
+	case LevelEvent::SOUND_OPEN_WOODEN_TRAP_DOOR:
+	case LevelEvent::SOUND_CLOSE_WOODEN_TRAP_DOOR:
+	case LevelEvent::SOUND_OPEN_IRON_TRAP_DOOR:
+	case LevelEvent::SOUND_CLOSE_IRON_TRAP_DOOR:
+	case LevelEvent::SOUND_OPEN_FENCE_GATE:
+	case LevelEvent::SOUND_CLOSE_FENCE_GATE:
+		{
+			int sound = eSoundType_BLOCK_WOODEN_DOOR_OPEN + (type - LevelEvent::SOUND_OPEN_WOODEN_DOOR);
+			level[playerIndex]->playLocalSound(x + 0.5, y + 0.5, z + 0.5, sound, 1.0f, random->nextFloat() * 0.1f + 0.9f, false);
+		}
+		break;
+	case LevelEvent::SOUND_CHORUS_GROW:
+		level[playerIndex]->playLocalSound(x, y, z, eSoundType_BLOCK_CHORUS_FLOWER_GROW, 1.0f, 1.0f, false);
+		break;
+	case LevelEvent::SOUND_CHORUS_DEATH:
+		level[playerIndex]->playLocalSound(x, y, z, eSoundType_BLOCK_CHORUS_FLOWER_DEATH, 1.0f, 1.0f, false);
+		break;
+	case LevelEvent::ANIMATION_END_GATEWAY_SPAWN:
+		level[playerIndex]->addParticle(eParticleType_hugeexplosion, x + 0.5, y + 0.5, z + 0.5, 0, 0, 0);
+		level[playerIndex]->playLocalSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_RANDOM_EXPLODE, 10.0f, ((random->nextFloat() - random->nextFloat()) * 0.2f + 1.0f) * 0.7f, false);
+		break;
+	case LevelEvent::ANIMATION_DRAGON_SUMMON_ROAR:
+		level[playerIndex]->playLocalSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_MOB_ENDERDRAGON_GROWL, 64.0f, random->nextFloat() * 0.3f + 0.8f, false);
 		break;
 	case LevelEvent::ENDERDRAGON_FIREBALL_SPLASH:
 		{
@@ -4174,8 +4250,7 @@ int LevelRenderer::checkAllPresentChunks(bool *faultFound)
 				{
 					for( int cz = 4; cz <= 12; cz++ )
 					{
-						int t0 = levelChunk->getTile(cx, 0, cz);
-						if( ( t0 != Tile::bedrock_Id ) && (t0 != Tile::dirt_Id) )
+						if (levelChunk->getTile(cx, 0, cz) == 255)
 						{
 							*faultFound = true;
 						}
@@ -4186,4 +4261,3 @@ int LevelRenderer::checkAllPresentChunks(bool *faultFound)
 	}
 	return presentCount;
 }
-

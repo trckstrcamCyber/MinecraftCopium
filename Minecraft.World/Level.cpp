@@ -1884,13 +1884,11 @@ AABBList *Level::getCubes(shared_ptr<Entity> source, AABB *box, bool noEntities/
 	int z0 = Mth::floor(box->z0);
 	int z1 = Mth::floor(box->z1 + 1);
 
-	int maxxz = ( dimension->getXZSize() * 16 ) / 2;
-	int minxz = -maxxz;
 	for (int x = x0; x < x1; x++)
 		for (int z = z0; z < z1; z++)
 		{
 			// 4J - If we are outside the map, return solid AABBs (rock is a bit of an arbitrary choice here, just need a correct AABB)
-			if( blockAtEdge && ( ( x < minxz ) || ( x >= maxxz ) || ( z < minxz ) || ( z >= maxxz ) ) )
+			if( blockAtEdge && dimension->isOutsideWorldEdge(x, z) )
 			{
 				for (int y = y0 - 1; y < y1; y++)
 				{

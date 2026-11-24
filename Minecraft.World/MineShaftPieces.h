@@ -15,7 +15,7 @@ public:
 	static void loadStatic();
 
 private:
-	static StructurePiece *createRandomShaftPiece(list<StructurePiece *> *pieces, Random *random, int footX, int footY, int footZ, int direction, int genDepth);
+	static StructurePiece *createRandomShaftPiece(list<StructurePiece *> *pieces, Random *random, int footX, int footY, int footZ, int direction, int genDepth, bool mesaWood);
 	static StructurePiece *generateAndAddPiece(StructurePiece *startPiece, list<StructurePiece *> *pieces, Random *random, int footX, int footY, int footZ, int direction, int depth);
 
 	/**
@@ -31,11 +31,13 @@ public:
 
 	private:
 		list<BoundingBox *> childEntranceBoxes;
+		bool mesaWood;
 
 	public:
 		MineShaftRoom();
-		MineShaftRoom(int genDepth, Random *random, int west, int north);
+		MineShaftRoom(int genDepth, Random *random, int west, int north, bool mesaWood = false);
 		~MineShaftRoom();
+		bool usesMesaWood() const { return mesaWood; }
 
 		virtual void addChildren(StructurePiece *startPiece, list<StructurePiece *> *pieces, Random *random);
 		virtual bool postProcess(Level *level, Random *random, BoundingBox *chunkBB);
@@ -60,6 +62,7 @@ public:
 		bool spiderCorridor; // was final
 		bool hasPlacedSpider;
 		int numSections;
+		bool mesaWood;
 
 	public:
 		MineShaftCorridor();
@@ -69,7 +72,7 @@ public:
 		void readAdditonalSaveData(CompoundTag *tag);
 
 	public:
-		MineShaftCorridor(int genDepth, Random *random, BoundingBox *corridorBox, int direction);
+		MineShaftCorridor(int genDepth, Random *random, BoundingBox *corridorBox, int direction, bool mesaWood = false);
 
 		static BoundingBox *findCorridorSize(list<StructurePiece *> *pieces, Random *random, int footX, int footY, int footZ, int direction);
 		virtual void addChildren(StructurePiece *startPiece, list<StructurePiece *> *pieces, Random *random);
@@ -94,6 +97,7 @@ public:
 	private:
 		int direction;
 		bool isTwoFloored;
+		bool mesaWood;
 
 	public:
 		MineShaftCrossing();
@@ -103,7 +107,7 @@ public:
 		void readAdditonalSaveData(CompoundTag *tag);
 
 	public:
-		MineShaftCrossing(int genDepth, Random *random, BoundingBox *crossingBox, int direction);
+		MineShaftCrossing(int genDepth, Random *random, BoundingBox *crossingBox, int direction, bool mesaWood = false);
 
 		static BoundingBox *findCrossing(list<StructurePiece *> *pieces, Random *random, int footX, int footY, int footZ, int direction);
 		virtual void addChildren(StructurePiece *startPiece, list<StructurePiece *> *pieces, Random *random);
@@ -116,13 +120,15 @@ public:
 	*/
 	class MineShaftStairs : public StructurePiece
 	{
+	private:
+		bool mesaWood;
+
 	public:
 		static StructurePiece *Create() { return new MineShaftStairs(); }
 		virtual EStructurePiece GetType() { return eStructurePiece_MineShaftStairs; }
 
-	public:
 		MineShaftStairs();
-		MineShaftStairs(int genDepth, Random *random, BoundingBox *stairsBox, int direction);
+		MineShaftStairs(int genDepth, Random *random, BoundingBox *stairsBox, int direction, bool mesaWood = false);
 
 	protected:
 		void addAdditonalSaveData(CompoundTag *tag);

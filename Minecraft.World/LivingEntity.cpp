@@ -157,6 +157,7 @@ void LivingEntity::defineSynchedData()
 	entityData->define(DATA_EFFECT_AMBIENCE_ID, static_cast<byte>(0));
 	entityData->define(DATA_ARROW_COUNT_ID, static_cast<byte>(0));
 	entityData->define(DATA_HEALTH_ID, 1.0f);
+	entityData->define(DATA_GLOWING_ID, static_cast<byte>(0));
 }
 
 void LivingEntity::registerAttributes()
@@ -263,7 +264,7 @@ void LivingEntity::baseTick()
 
 	if (!level->isClientSide && isAlive() && onGround && !isSneaking() && tickCount % 10 == 0)
 	{
-		int tileBelow = level->getTile(Mth::floor(x), Mth::floor(bb->y0) - 1, Mth::floor(z));
+		int tileBelow = level->getTile(Mth::floor(x), y - 0.1f, Mth::floor(z));
 		bool hasFrostWalker = EnchantmentHelper::getEnchantmentLevel(Enchantment::frostWalker->id, getEquipmentSlots()) > 0;
 		if (tileBelow == Tile::magma_block_Id && !hasFrostWalker && !isFireImmune())
 		{
@@ -637,6 +638,7 @@ void LivingEntity::tickEffects()
 				entityData->set(DATA_EFFECT_COLOR_ID, 0);
 				setInvisible(false);
 				setWeakened(false);
+				setGlowing(false);
 			}
 			else
 			{
@@ -651,6 +653,7 @@ void LivingEntity::tickEffects()
 				entityData->set(DATA_EFFECT_COLOR_ID, colorValue);
 				setInvisible(hasEffect(MobEffect::invisibility->id));
 				setWeakened(hasEffect(MobEffect::weakness->id));
+				setGlowing(hasEffect(MobEffect::glowing->id));
 			}
 		}
 		effectsDirty = false;
@@ -1243,7 +1246,7 @@ void LivingEntity::causeFallDamage(float distance)
 	MobEffectInstance *jumpBoost = getEffect(MobEffect::jump);
 	float padding = jumpBoost != nullptr ? jumpBoost->getAmplifier() + 1 : 0;
 
-	int dmg = static_cast<int>(ceil(distance - 3 - padding));
+	int dmg = static_cast<int>(ceil((distance - 3 - padding) * fallDamageMultiplier));
 	if (dmg > 0)
 	{
 		// 4J - new sounds here brought forward from 1.2.3
@@ -1847,7 +1850,16 @@ void LivingEntity::travel(float xa, float ya)
 
 		if (!level->isClientSide || (level->hasChunkAt(static_cast<int>(x), 0, static_cast<int>(z)) && level->getChunkAt(static_cast<int>(x), static_cast<int>(z))->loaded))
 		{
-			yd -= 0.08;
+			MobEffectInstance *levitation = getEffect(MobEffect::levitation);
+			if (levitation != nullptr)
+			{
+				yd += (0.05 * (levitation->getAmplifier() + 1) - yd) * 0.2;
+				fallDistance = 0;
+			}
+			else
+			{
+				yd -= 0.08;
+			}
 		}
 		else if (y > 0)
 		{
@@ -2404,4 +2416,14 @@ HitResult *LivingEntity::rayTrace(double blockReachDistance, float partialTicks)
     
     
     return this->level->clip(vec3, vec32, false, false);
+}
+
+bool LivingEntity::isGlowing()
+{
+	return entityData->getByte(DATA_GLOWING_ID) != 0;
+}
+
+void LivingEntity::setGlowing(bool value)
+{
+	entityData->set(DATA_GLOWING_ID, static_cast<byte>(value ? 1 : 0));
 }

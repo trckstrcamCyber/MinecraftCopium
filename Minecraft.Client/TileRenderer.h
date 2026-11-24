@@ -146,6 +146,12 @@ private:
 	bool tesselateLadderInWorld( Tile* tt, int x, int y, int z );
 	bool tesselateVineInWorld( Tile* tt, int x, int y, int z );
 	bool tesselateThinPaneInWorld(Tile *tt, int x, int y, int z);
+	bool tesselateEndRodInWorld(Tile *tt, int x, int y, int z);
+	void tesselateEndRod(Tile *tt, int data, float x, float y, float z, bool inventory);
+	bool tesselateChorusPlantInWorld(Tile *tt, int x, int y, int z);
+	bool tesselateChorusFlowerInWorld(Tile *tt, int x, int y, int z);
+	bool tesselateSubBoxInWorld(Tile *tt, int x, int y, int z, float x0, float y0, float z0, float x1, float y1, float z1, int excludeFaces);
+	void renderInventoryBox(Tile *tile, int data, float x0, float y0, float z0, float x1, float y1, float z1);
 	bool tesselateThinFenceInWorld( ThinFenceTile* tt, int x, int y, int z );
 	bool tesselateCrossInWorld( Tile* tt, int x, int y, int z );
 	bool tesselateStemInWorld( Tile* _tt, int x, int y, int z );

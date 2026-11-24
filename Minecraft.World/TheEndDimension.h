@@ -1,6 +1,8 @@
 #pragma once
 #include "Dimension.h"
 
+class EndDragonFight;
+
 class TheEndDimension : public Dimension
 {
 public:
@@ -17,4 +19,23 @@ public:
 	virtual Pos *getSpawnPos();
 	virtual int getSpawnYPosition();
 	virtual bool isFoggyAt(int x, int z);
+
+	static const int AREA_MAX = 5;
+	static const int AREA_CHUNK_X[AREA_MAX];
+	static const int AREA_CHUNK_Z[AREA_MAX];
+	static int AREA_COUNT;
+	static void setWorldSize(int overworldXZSize);
+	static bool isOuterAreaCentre(int chunkX, int chunkZ);
+	static const int AREA_HALF_CHUNKS = 6;
+
+	static int closestArea(int chunkX, int chunkZ);
+	static bool isChunkInArea(int chunkX, int chunkZ);
+	bool isModernEnd() const;
+	EndDragonFight *getDragonFight();
+
+	virtual int getXZSize();
+	virtual bool isOutsideWorldEdge(int x, int z);
+
+private:
+	EndDragonFight *dragonFight;
 };

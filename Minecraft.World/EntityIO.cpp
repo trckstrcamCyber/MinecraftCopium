@@ -103,6 +103,7 @@ void EntityIO::staticCtor()
       eMinecraftColour_Mob_Endermite_Colour2, IDS_ENDERMITE);
 
 	setId(Guardian::create, eTYPE_GUARDIAN, L"Guardian", 68, eMinecraftColour_Mob_Guardian_Colour1, eMinecraftColour_Mob_Guardian_Colour2, IDS_GUARDIAN);
+	setId(Shulker::create, eTYPE_SHULKER, L"Shulker", 69, eMinecraftColour_Mob_Shulker_Colour1, eMinecraftColour_Mob_Shulker_Colour2, IDS_SHULKER);
 	
 
 	setId(Pig::create, eTYPE_PIG, L"Pig", 90, eMinecraftColour_Mob_Pig_Colour1, eMinecraftColour_Mob_Pig_Colour2, IDS_PIG);
@@ -182,6 +183,9 @@ void EntityIO::staticCtor()
 	// 4J Added
 	setId(DragonFireball::create, eTYPE_DRAGON_FIREBALL, L"DragonFireball", 1000);
 
+	setId(AreaEffectCloud::create, eTYPE_AREA_EFFECT_CLOUD, L"AreaEffectCloud", 3);
+	setId(ShulkerBullet::create, eTYPE_SHULKER_BULLET, L"ShulkerBullet", 25);
+
 
 	// 4J-PB - moved to allow the eggs to be named and coloured in the Creative Mode menu
 	// 4J Added for custom spawn eggs
@@ -194,6 +198,7 @@ void EntityIO::staticCtor()
 	setId(EntityHorse::create,	eTYPE_HORSE,	L"EntityHorse", 100 | ((EntityHorse::TYPE_SKELETON + 1) << 12),	eMinecraftColour_Mob_Horse_Colour1,		eMinecraftColour_Mob_Horse_Colour2,		IDS_SKELETON_HORSE);
 	setId(EntityHorse::create,	eTYPE_HORSE,	L"EntityHorse", 100 | ((EntityHorse::TYPE_UNDEAD + 1) << 12),	eMinecraftColour_Mob_Horse_Colour1,		eMinecraftColour_Mob_Horse_Colour2,		IDS_ZOMBIE_HORSE);
 	setId(Skeleton::create,		eTYPE_SKELETON,	L"Skeleton",	51 | ((Skeleton::TYPE_WITHER + 1) << 12),		eMinecraftColour_Mob_WitherSkeleton_Colour1,	eMinecraftColour_Mob_WitherSkeleton_Colour2,	IDS_WITHER_SKELETON);
+	setId(Skeleton::create,		eTYPE_SKELETON,	L"Skeleton",	51 | ((Skeleton::TYPE_STRAY + 1) << 12),		eMinecraftColour_Mob_Stray_Colour1,		eMinecraftColour_Mob_Stray_Colour2,		IDS_STRAY);
 	setId(Zombie::create,		eTYPE_ZOMBIE,	L"Zombie",		54 | (2 << 12),									eMinecraftColour_Mob_ZombieVillager_Colour1,	eMinecraftColour_Mob_ZombieVillager_Colour2,	IDS_ZOMBIE_VILLAGER);
 
 #ifndef _CONTENT_PACKAGE

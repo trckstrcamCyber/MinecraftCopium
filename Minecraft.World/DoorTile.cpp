@@ -258,7 +258,8 @@ bool DoorTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player,
 		// 4J - added - just do enough to play the sound
 		if (isHandOpenable())
 		{
-			level->levelEvent(player, LevelEvent::SOUND_OPEN_DOOR, x, y, z, 0);
+			bool willOpen = (getCompositeData(level, x, y, z) & C_OPEN_MASK) == 0;
+			level->levelEvent(player, getToggleSound(willOpen), x, y, z, 0);
 		}
 		return false;
 	}
@@ -268,6 +269,7 @@ bool DoorTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player,
 	int compositeData = getCompositeData(level, x, y, z);
 	int lowerData = compositeData & C_LOWER_DATA_MASK;
 	lowerData ^= 4;
+	bool nowOpen = (compositeData & C_OPEN_MASK) == 0;
 	if ((compositeData & C_IS_UPPER_MASK) == 0)
 	{
 		level->setData(x, y, z, lowerData, Tile::UPDATE_CLIENTS);
@@ -279,7 +281,7 @@ bool DoorTile::use(Level *level, int x, int y, int z, shared_ptr<Player> player,
 		level->setTilesDirty(x, y - 1, z, x, y, z);
 	}
 
-	level->levelEvent(player, LevelEvent::SOUND_OPEN_DOOR, x, y, z, 0);
+	level->levelEvent(player, getToggleSound(nowOpen), x, y, z, 0);
 	return true;
 }
 
@@ -302,7 +304,7 @@ void DoorTile::setOpen(Level *level, int x, int y, int z, bool shouldOpen)
 		level->setTilesDirty(x, y - 1, z, x, y, z);
 	}
 
-	level->levelEvent(nullptr, LevelEvent::SOUND_OPEN_DOOR, x, y, z, 0);
+	level->levelEvent(nullptr, getToggleSound(shouldOpen), x, y, z, 0);
 }
 
 void DoorTile::neighborChanged(Level *level, int x, int y, int z, int type)
@@ -583,13 +585,14 @@ bool DoorTile::use(Level *level, const BlockPos &pos, Tile::BlockState *state, s
 	if (soundOnly)
 	{
 		if (material != Material::metal)
-			level->levelEvent(player, LevelEvent::SOUND_OPEN_DOOR, pos.getX(), pos.getY(), pos.getZ(), 0);
+			level->levelEvent(player, getToggleSound((getCompositeData(level, pos.getX(), pos.getY(), pos.getZ()) & C_OPEN_MASK) == 0), pos.getX(), pos.getY(), pos.getZ(), 0);
 		return false;
 	}
 
 	if (material == Material::metal) return true;
 
 	int composite = state ? state->value : getCompositeData(level, pos.getX(), pos.getY(), pos.getZ());
+	bool nowOpen = (composite & C_OPEN_MASK) == 0;
 	int lowerData = composite & C_LOWER_DATA_MASK;
 	lowerData ^= 4;
 
@@ -601,6 +604,11 @@ bool DoorTile::use(Level *level, const BlockPos &pos, Tile::BlockState *state, s
 		level->setTilesDirty(pos.getX(), pos.getY() - 1, pos.getZ(), pos.getX(), pos.getY(), pos.getZ());
 	}
 
-	level->levelEvent(player, LevelEvent::SOUND_OPEN_DOOR, pos.getX(), pos.getY(), pos.getZ(), 0);
+	level->levelEvent(player, getToggleSound(nowOpen), pos.getX(), pos.getY(), pos.getZ(), 0);
 	return true;
+}
+int DoorTile::getToggleSound(bool open)
+{
+	if (material == Material::metal) return open ? LevelEvent::SOUND_OPEN_IRON_DOOR : LevelEvent::SOUND_CLOSE_IRON_DOOR;
+	return open ? LevelEvent::SOUND_OPEN_WOODEN_DOOR : LevelEvent::SOUND_CLOSE_WOODEN_DOOR;
 }

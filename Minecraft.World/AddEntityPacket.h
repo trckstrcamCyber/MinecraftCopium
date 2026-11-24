@@ -8,6 +8,7 @@ class AddEntityPacket : public Packet, public enable_shared_from_this<AddEntityP
 public:
 	static const int BOAT = 1;
 	static const int ITEM = 2;
+	static const int AREA_EFFECT_CLOUD = 3;
 	static const int MINECART = 10;
 	static const int PRIMED_TNT = 50;
 	static const int ENDER_CRYSTAL = 51;
@@ -26,6 +27,7 @@ public:
 	static const int THROWN_EXPBOTTLE = 75;
 	static const int FIREWORKS = 76;
 	static const int LEASH_KNOT = 77;
+	static const int SHULKER_BULLET = 67;
 	static const int FISH_HOOK = 90;
 
 	// 4J Added TU9

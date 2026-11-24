@@ -21,6 +21,7 @@ private:
 	static const int DATA_BABY_ID = 12;
 	static const int DATA_VILLAGER_ID = 13;
 	static const int DATA_CONVERTING_ID = 14;
+	static const int DATA_PROFESSION_ID = 15;
 
 public:
 	static const float ZOMBIE_LEADER_CHANCE;
@@ -56,6 +57,8 @@ public:
 	virtual void setBaby(bool baby);
 	virtual bool isVillager();
 	virtual void setVillager(bool villager);
+	virtual int getProfession();
+	virtual void setProfession(int profession);
 	virtual void aiStep();
 	virtual bool hurt(DamageSource *source, float dmg);
 	virtual void tick();

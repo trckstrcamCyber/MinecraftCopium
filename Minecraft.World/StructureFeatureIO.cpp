@@ -1,4 +1,6 @@
 #include "stdafx.h"
+#include "EndCityFeature.h"
+#include "EndCityPieces.h"
 #include "net.minecraft.world.level.levelgen.structure.h"
 #include "StructureFeatureIO.h"
 
@@ -29,6 +31,8 @@ void StructureFeatureIO::staticCtor()
 	setStartId(eStructureStart_ScatteredFeatureStart, RandomScatteredLargeFeature::ScatteredFeatureStart::Create, L"Temple");
 	setStartId(eStructureStart_Monument, OceanMonumentFeature::MonumentStart::Create, L"Monument");
 	setStartId(eStructureStart_PillagerOutpostStart, PillagerOutpostFeature::OutpostStart::Create, L"Outpost");
+	setStartId(eStructureStart_EndCity, EndCityFeature::EndCityStart::Create, L"EndCity");
+	setPieceId(eStructurePiece_EndCityPiece, EndCityPieces::EndCityPiece::Create, L"ECP");
 
 	OceanMonumentPieces::loadStatic();
 	MineShaftPieces::loadStatic();

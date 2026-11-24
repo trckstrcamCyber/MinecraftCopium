@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "SoundTypes.h"
 #include "net.minecraft.world.phys.h"
 #include "net.minecraft.world.level.h"
 #include "net.minecraft.world.level.tile.h"
@@ -69,6 +70,7 @@ shared_ptr<ItemInstance> WaterLilyTileItem::use(shared_ptr<ItemInstance> itemIns
 		if (level->getMaterial(xt, yt, zt) == Material::water && level->getData(xt, yt, zt) == 0 && level->isEmptyTile(xt, yt + 1, zt))
 		{
 			level->setTileAndUpdate(xt, yt + 1, zt, Tile::waterLily->id);
+			level->playSound(xt + 0.5, yt + 1.5, zt + 0.5, eSoundType_BLOCK_WATERLILY_PLACE, 1.0f, 1.0f);
 			if (!player->abilities.instabuild)
 			{
 				itemInstance->count--;

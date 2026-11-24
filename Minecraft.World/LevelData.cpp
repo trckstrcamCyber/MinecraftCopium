@@ -8,6 +8,10 @@
 
 LevelData::LevelData()
 {
+	m_modernEnd = true;
+	m_endDragonKilled = false;
+	m_endPreviouslyKilled = false;
+	m_endGatewaySpawned = false;
 }
 
 LevelData::LevelData(CompoundTag *tag)
@@ -76,6 +80,17 @@ LevelData::LevelData(CompoundTag *tag)
 	thunderTime = tag->getInt(L"thunderTime");
 	thundering = tag->getBoolean(L"thundering");
 	hardcore = tag->getBoolean(L"hardcore");
+	m_modernEnd = tag->contains(L"ModernEnd") ? tag->getBoolean(L"ModernEnd") : false;
+	m_endDragonKilled = false;
+	m_endPreviouslyKilled = false;
+	m_endGatewaySpawned = false;
+	if (tag->contains(L"DragonFight"))
+	{
+		CompoundTag *fight = tag->getCompound(L"DragonFight");
+		m_endDragonKilled = fight->getBoolean(L"DragonKilled");
+		m_endPreviouslyKilled = fight->getBoolean(L"PreviouslyKilled");
+		m_endGatewaySpawned = fight->getBoolean(L"GatewaySpawned");
+	}
 
 	if (tag->contains(L"initialized"))
 	{
@@ -218,6 +233,10 @@ LevelData::LevelData(LevelSettings *levelSettings, const wstring& levelName)
 	this->levelName = levelName;
 	m_pGenerator = levelSettings->getLevelType();
 	hardcore = levelSettings->isHardcore();
+	m_modernEnd = levelSettings->isModernEnd();
+	m_endDragonKilled = false;
+	m_endPreviouslyKilled = false;
+	m_endGatewaySpawned = false;
 	generatorOptions = levelSettings->getLevelTypeOptions();
 	allowCommands = levelSettings->getAllowCommands();
 
@@ -298,6 +317,10 @@ LevelData::LevelData(LevelData *copy)
 	thunderTime = copy->thunderTime;
 	thundering = copy->thundering;
 	hardcore = copy->hardcore;
+	m_modernEnd = copy->m_modernEnd;
+	m_endDragonKilled = copy->m_endDragonKilled;
+	m_endPreviouslyKilled = copy->m_endPreviouslyKilled;
+	m_endGatewaySpawned = copy->m_endGatewaySpawned;
 	allowCommands = copy->allowCommands;
 	initialized = copy->initialized;
 	newSeaLevel = copy->newSeaLevel;
@@ -362,6 +385,14 @@ void LevelData::setTagData(CompoundTag *tag)
 	tag->putInt(L"thunderTime", thunderTime);
 	tag->putBoolean(L"thundering", thundering);
 	tag->putBoolean(L"hardcore", hardcore);
+	tag->putBoolean(L"ModernEnd", m_modernEnd);
+	{
+		CompoundTag *fight = new CompoundTag();
+		fight->putBoolean(L"DragonKilled", m_endDragonKilled);
+		fight->putBoolean(L"PreviouslyKilled", m_endPreviouslyKilled);
+		fight->putBoolean(L"GatewaySpawned", m_endGatewaySpawned);
+		tag->putCompound(L"DragonFight", fight);
+	}
 	tag->putBoolean(L"allowCommands", allowCommands);
 	tag->putBoolean(L"initialized", initialized);
 	// 4J: Game rules are now stored with app game host options
@@ -750,3 +781,20 @@ int LevelData::getHellScale()
 {
 	return m_hellScale;
 }
+
+bool LevelData::isModernEnd()
+{
+	return m_modernEnd;
+}
+
+void LevelData::setModernEnd(bool modernEnd)
+{
+	m_modernEnd = modernEnd;
+}
+
+bool LevelData::isEndDragonKilled() { return m_endDragonKilled; }
+void LevelData::setEndDragonKilled(bool killed) { m_endDragonKilled = killed; }
+bool LevelData::isEndPreviouslyKilled() { return m_endPreviouslyKilled; }
+void LevelData::setEndPreviouslyKilled(bool killed) { m_endPreviouslyKilled = killed; }
+bool LevelData::isEndGatewaySpawned() { return m_endGatewaySpawned; }
+void LevelData::setEndGatewaySpawned(bool spawned) { m_endGatewaySpawned = spawned; }

@@ -26,7 +26,7 @@ bool HoeItem::useOn(shared_ptr<ItemInstance> instance, shared_ptr<Player> player
 		if(!bTestUseOnOnly)
 		{
 			Tile *tile = Tile::farmland;
-			level->playSound(x + 0.5f, y + 0.5f, z + 0.5f, tile->soundType->getStepSound(), (tile->soundType->getVolume() + 1) / 2, tile->soundType->getPitch() * 0.8f);
+			level->playSound(x + 0.5f, y + 0.5f, z + 0.5f, eSoundType_ITEM_HOE_TILL, 1.0f, 1.0f);
 
 			if (level->isClientSide) return true;
 			level->setTileAndUpdate(x, y, z, tile->id);

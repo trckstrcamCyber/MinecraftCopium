@@ -2,6 +2,10 @@
 
 #include "ArmorItem.h"
 #include "ElytraItem.h"
+#include "ChorusFruitItem.h"
+#include "EndCrystalItem.h"
+#include "LingeringPotionItem.h"
+#include "TippedArrowItem.h"
 #include "BedItem.h"
 #include "BoatItem.h"
 #include "BowItem.h"

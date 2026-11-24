@@ -225,3 +225,20 @@ int DerivedLevelData::getHellScale()
 {
 	return wrapped->getHellScale();
 }
+
+bool DerivedLevelData::isModernEnd()
+{
+	return wrapped->isModernEnd();
+}
+
+void DerivedLevelData::setModernEnd(bool modernEnd)
+{
+	wrapped->setModernEnd(modernEnd);
+}
+
+bool DerivedLevelData::isEndDragonKilled() { return wrapped->isEndDragonKilled(); }
+void DerivedLevelData::setEndDragonKilled(bool killed) { wrapped->setEndDragonKilled(killed); }
+bool DerivedLevelData::isEndPreviouslyKilled() { return wrapped->isEndPreviouslyKilled(); }
+void DerivedLevelData::setEndPreviouslyKilled(bool killed) { wrapped->setEndPreviouslyKilled(killed); }
+bool DerivedLevelData::isEndGatewaySpawned() { return wrapped->isEndGatewaySpawned(); }
+void DerivedLevelData::setEndGatewaySpawned(bool spawned) { wrapped->setEndGatewaySpawned(spawned); }

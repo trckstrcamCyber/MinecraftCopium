@@ -105,6 +105,7 @@ public:
 
 public:
 	void setOpen(Level *level, int x, int y, int z, bool shouldOpen);
+	int getToggleSound(bool open);
 
 
 public:

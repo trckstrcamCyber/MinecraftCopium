@@ -7,6 +7,14 @@
 ResourceLocation ZombieRenderer::ZOMBIE_PIGMAN_LOCATION(TN_MOB_PIGZOMBIE);
 ResourceLocation ZombieRenderer::ZOMBIE_LOCATION(TN_MOB_ZOMBIE);
 ResourceLocation ZombieRenderer::ZOMBIE_VILLAGER_LOCATION(TN_MOB_ZOMBIE_VILLAGER);
+ResourceLocation ZombieRenderer::ZOMBIE_VILLAGER_PROFESSION_LOCATIONS[5] =
+{
+	ResourceLocation(TN_MOB_ZOMBIE_VILLAGER_FARMER),
+	ResourceLocation(TN_MOB_ZOMBIE_VILLAGER_LIBRARIAN),
+	ResourceLocation(TN_MOB_ZOMBIE_VILLAGER_PRIEST),
+	ResourceLocation(TN_MOB_ZOMBIE_VILLAGER_SMITH),
+	ResourceLocation(TN_MOB_ZOMBIE_VILLAGER_BUTCHER),
+};
 
 ZombieRenderer::ZombieRenderer() : HumanoidMobRenderer(new ZombieModel(), .5f, 1.0f)
 {
@@ -64,6 +72,8 @@ ResourceLocation *ZombieRenderer::getTextureLocation(shared_ptr<Entity> entity)
 
     if (mob->isVillager())
 	{
+		int profession = mob->getProfession();
+		if (profession >= 0 && profession < 5) return &ZOMBIE_VILLAGER_PROFESSION_LOCATIONS[profession];
         return &ZOMBIE_VILLAGER_LOCATION;
     }
     return &ZOMBIE_LOCATION;

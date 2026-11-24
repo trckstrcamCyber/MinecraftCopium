@@ -62,4 +62,5 @@ public:
 
 	// 4J Added
 	virtual int getXZSize();
+	virtual bool isOutsideWorldEdge(int x, int z);
 };

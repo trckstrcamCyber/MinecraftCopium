@@ -25,6 +25,8 @@ public:
 private:
 	static const int ID_FLAGS = 16;
 	static const int FLAG_CRIT = 1;
+	static const int ID_ARROW_TYPE = 17;
+	static const int ID_POTION = 18;
 
 private:
 	int xTile;
@@ -90,6 +92,26 @@ public:
 	virtual bool isAttackable();
 	void setCritArrow(bool critArrow);
 	bool isCritArrow();
+
+	static const int TYPE_NORMAL = 0;
+	static const int TYPE_SPECTRAL = 1;
+	static const int TYPE_TIPPED = 2;
+	static const int SPECTRAL_GLOW_DURATION = 200;
+
+	void setArrowType(int type, int potionValue = 0);
+	int getArrowType();
+	int getPotionValue();
+	void setFromItem(shared_ptr<ItemInstance> item);
+	shared_ptr<ItemInstance> getPickupItem();
+	static bool isArrowItem(int itemId);
+	void setCustomEffect(int effectId, int duration, int amplifier);
+
+private:
+	void applyArrowEffects(shared_ptr<LivingEntity> mob);
+	int inGroundTime;
+	int customEffectId;
+	int customEffectDuration;
+	int customEffectAmplifier;
 
 	// neoLegacy Added
 	void setExplosiveLevel(int level);

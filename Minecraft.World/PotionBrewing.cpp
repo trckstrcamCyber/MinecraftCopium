@@ -121,6 +121,7 @@ void PotionBrewing::staticCtor()
 		potionEffectDuration.insert(intStringMap::value_type( MobEffect::jump->getId(), L"0 & 1 & !2 & 3 & 0+6" ));
 		potionEffectDuration.insert(intStringMap::value_type( MobEffect::waterBreathing->getId(), L"0 & 1 & 2 & 3 & 0+6" ));
 		potionEffectDuration.insert(intStringMap::value_type( MobEffect::freezing->getId(), L"0 & !1 & 2 & 3 & 3+6" ));	// neoLegacy - Potion of Freezing
+		potionEffectDuration.insert(intStringMap::value_type( MobEffect::luck->getId(), L"0 & 1 & 2 & !3 & 0" ));
 
 		// glowstone increases amplification
 		potionEffectAmplifier.insert(intStringMap::value_type( MobEffect::movementSpeed->getId(), L"5" ));
@@ -604,10 +605,6 @@ vector<MobEffectInstance *> *PotionBrewing::getEffects(int brew, bool includeDis
 				duration >>= amplifier;
 				duration = static_cast<int>(Math::round((double)duration * effect->getDurationModifier()));
 
-				if ((brew & THROWABLE_MASK) != 0)
-				{
-					duration = static_cast<int>(Math::round((double)duration * .75 + .5));
-				}
 			}
 
 			if (list == nullptr)

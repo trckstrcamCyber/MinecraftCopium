@@ -49,6 +49,7 @@ public:
 	static const int DATA_EFFECT_COLOR_ID = 7;
 	static const int DATA_EFFECT_AMBIENCE_ID = 8;
 	static const int DATA_ARROW_COUNT_ID = 9;
+	static const int DATA_GLOWING_ID = 5;
 
 private:
 	CombatTracker* combatTracker;
@@ -213,6 +214,8 @@ public:
 	virtual bool onLadder();
 	virtual bool isShootable();
 	virtual bool isAlive();
+	virtual bool isGlowing();
+	virtual void setGlowing(bool value);
 	virtual void onChangedBlock(BlockPos pos);
 	virtual void causeFallDamage(float distance);
 	virtual void animateHurt();

@@ -28,6 +28,19 @@ public:
 	static const int SOUND_ANVIL_BROKEN = 1020;
 	static const int SOUND_ANVIL_USED = 1021;
 	static const int SOUND_ANVIL_LAND = 1022;
+	static const int SOUND_PORTAL_TRAVEL = 1032;
+	static const int SOUND_CHORUS_GROW = 1033;
+	static const int SOUND_CHORUS_DEATH = 1034;
+	static const int SOUND_OPEN_WOODEN_DOOR = 1040;
+	static const int SOUND_CLOSE_WOODEN_DOOR = 1041;
+	static const int SOUND_OPEN_IRON_DOOR = 1042;
+	static const int SOUND_CLOSE_IRON_DOOR = 1043;
+	static const int SOUND_OPEN_WOODEN_TRAP_DOOR = 1044;
+	static const int SOUND_CLOSE_WOODEN_TRAP_DOOR = 1045;
+	static const int SOUND_OPEN_IRON_TRAP_DOOR = 1046;
+	static const int SOUND_CLOSE_IRON_TRAP_DOOR = 1047;
+	static const int SOUND_OPEN_FENCE_GATE = 1048;
+	static const int SOUND_CLOSE_FENCE_GATE = 1049;
 
 	static const int PARTICLES_SHOOT = 2000;
 	static const int PARTICLES_DESTROY_BLOCK = 2001;
@@ -40,6 +53,9 @@ public:
 	static const int PARTICLES_ZORO_CRIT_STACK = 2100;	// data: bits 0-7 = current crit chance in %, bit 8 = a critical hit just landed
 	static const int PARTICLES_ZORO_RAGE_STACK = 2101;	// data: current damage bonus in % (0-200)
 	static const int PARTICLES_MACE_SMASH = 2102;		// x,y,z = block the target stood on; data: see MaceEffectParticle::FLAG_*
+
+	static const int ANIMATION_END_GATEWAY_SPAWN = 3000;
+	static const int ANIMATION_DRAGON_SUMMON_ROAR = 3001;
 
 	//static const int ENDERDRAGON_KILLED = 9000; // 4J Added to signal the the enderdragon was killed
 	static const int ENDERDRAGON_FIREBALL_SPLASH = 9001;

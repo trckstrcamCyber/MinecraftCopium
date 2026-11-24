@@ -54,6 +54,14 @@ public:
 	void setGameType(GameType *gameType);
 	bool isHardcore();
 	void setHardcore(bool hardcore);
+	bool isModernEnd();
+	void setModernEnd(bool modernEnd);
+	bool isEndDragonKilled();
+	void setEndDragonKilled(bool killed);
+	bool isEndPreviouslyKilled();
+	void setEndPreviouslyKilled(bool killed);
+	bool isEndGatewaySpawned();
+	void setEndGatewaySpawned(bool spawned);
 	LevelType *getGenerator();
 	void setGenerator(LevelType *generator);
 	bool getAllowCommands();

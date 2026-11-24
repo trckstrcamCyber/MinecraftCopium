@@ -20,6 +20,7 @@ public:
 	static const int TYPE_COPPER_OXIDATION = 10;	// neoLegacy - Copper Age (oxidation workaround: door/trapdoor/stairs oxidation)
 	static const int TYPE_COPPER_CHEST = 11;		// neoLegacy - Copper Age (oxidation workaround: chest oxidation)
 	static const int TYPE_COPPER_STATUE = 12;		// neoLegacy - Copper Age (oxidation workaround: statue pose + facing)
+	static const int TYPE_END_GATEWAY = 13;		// TU46 - The End (upstream 7 collides with TYPE_BED)
 
 	int x, y, z;
 	int type;

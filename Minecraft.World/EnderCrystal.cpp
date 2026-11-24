@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "EndDragonFight.h"
 #include "net.minecraft.world.level.h"
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.world.entity.h"
@@ -43,6 +44,10 @@ bool EnderCrystal::makeStepSound()
 void EnderCrystal::defineSynchedData()
 {
 	entityData->define(DATA_REMAINING_LIFE, life);
+	entityData->define(DATA_SHOW_BOTTOM, static_cast<byte>(1));
+	entityData->define(DATA_BEAM_TARGET_X, 0);
+	entityData->define(DATA_BEAM_TARGET_Y, -1);
+	entityData->define(DATA_BEAM_TARGET_Z, 0);
 }
 
 void EnderCrystal::tick()
@@ -71,10 +76,25 @@ void EnderCrystal::tick()
 
 void EnderCrystal::addAdditonalSaveData(CompoundTag *tag)
 {
+	tag->putBoolean(L"ShowBottom", showsBottom());
+	if (hasBeamTarget())
+	{
+		CompoundTag *beam = new CompoundTag();
+		beam->putInt(L"X", getBeamTargetX());
+		beam->putInt(L"Y", getBeamTargetY());
+		beam->putInt(L"Z", getBeamTargetZ());
+		tag->putCompound(L"BeamTarget", beam);
+	}
 }
 
 void EnderCrystal::readAdditionalSaveData(CompoundTag *tag)
 {
+	if (tag->contains(L"ShowBottom")) setShowBottom(tag->getBoolean(L"ShowBottom"));
+	if (tag->contains(L"BeamTarget"))
+	{
+		CompoundTag *beam = tag->getCompound(L"BeamTarget");
+		setBeamTarget(beam->getInt(L"X"), beam->getInt(L"Y"), beam->getInt(L"Z"));
+	}
 }
 
 
@@ -119,8 +139,52 @@ bool EnderCrystal::hurt(DamageSource *source, float damage)
 						break;
 					}
 				}
+
+				EndDragonFight *fight = EndDragonFight::get(level);
+				if (fight != nullptr) fight->onCrystalDestroyed(dynamic_pointer_cast<EnderCrystal>(shared_from_this()));
 			}
 		}
 	}
 	return true;
+}
+void EnderCrystal::setShowBottom(bool show)
+{
+	entityData->set(DATA_SHOW_BOTTOM, static_cast<byte>(show ? 1 : 0));
+}
+
+bool EnderCrystal::showsBottom()
+{
+	return entityData->getByte(DATA_SHOW_BOTTOM) != 0;
+}
+
+void EnderCrystal::setBeamTarget(int x, int y, int z)
+{
+	entityData->set(DATA_BEAM_TARGET_X, x);
+	entityData->set(DATA_BEAM_TARGET_Y, y);
+	entityData->set(DATA_BEAM_TARGET_Z, z);
+}
+
+void EnderCrystal::clearBeamTarget()
+{
+	entityData->set(DATA_BEAM_TARGET_Y, -1);
+}
+
+bool EnderCrystal::hasBeamTarget()
+{
+	return getBeamTargetY() >= 0;
+}
+
+int EnderCrystal::getBeamTargetX()
+{
+	return entityData->getInteger(DATA_BEAM_TARGET_X);
+}
+
+int EnderCrystal::getBeamTargetY()
+{
+	return entityData->getInteger(DATA_BEAM_TARGET_Y);
+}
+
+int EnderCrystal::getBeamTargetZ()
+{
+	return entityData->getInteger(DATA_BEAM_TARGET_Z);
 }

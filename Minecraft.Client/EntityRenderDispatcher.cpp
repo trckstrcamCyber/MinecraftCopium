@@ -194,6 +194,7 @@ EntityRenderDispatcher::EntityRenderDispatcher()
 	
 
 	renderers[eTYPE_ENTITY] = new DefaultRenderer();
+	renderers[eTYPE_AREA_EFFECT_CLOUD] = new DefaultRenderer();
 	renderers[eTYPE_PAINTING] = new PaintingRenderer();        
 	renderers[eTYPE_ITEM_FRAME] = new ItemFrameRenderer();
 	renderers[eTYPE_LEASHFENCEKNOT] = new LeashKnotRenderer();
@@ -232,6 +233,8 @@ EntityRenderDispatcher::EntityRenderDispatcher()
 
 	renderers[eTYPE_ARMORSTAND] = new ArmorStandRenderer();
 	renderers[eTYPE_ENDERMITE] = new EndermiteRenderer();
+	renderers[eTYPE_SHULKER] = new ShulkerRenderer();
+	renderers[eTYPE_SHULKER_BULLET] = new ShulkerBulletRenderer();
 	glDisable(GL_LIGHTING);
 
 	for( auto& it : renderers )

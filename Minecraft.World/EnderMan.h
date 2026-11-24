@@ -54,6 +54,7 @@ protected:
 	virtual int getDeathSound();
 	virtual int getDeathLoot();
 	// virtual void dropDeathLoot(bool wasKilledByPlayer, int playerBonusLevel);
+	virtual void dropEquipment(bool byPlayer, int playerBonusLevel);
 
 public:
 	void setCarryingTile(int carryingTile);

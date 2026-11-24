@@ -11,6 +11,9 @@ public:
 	static const wstring TEXTURE_PULL[];
 	static const int MAX_DRAW_DURATION = 20 * 1;
 
+	static int findAmmoSlot(shared_ptr<Player> player);
+	static bool hasAmmo(shared_ptr<Player> player);
+
 private:
 	static const int BOW_ICONS_COUNT = 3;
 	Icon **icons;
@@ -28,4 +31,5 @@ public:
 	//@Override
 	void registerIcons(IconRegister *iconRegister);
 	Icon *getDrawnIcon(int amount);
+	virtual Icon *GetOverrideCountIcon(shared_ptr<ItemInstance> itemInstance, shared_ptr<Player> player);
 };

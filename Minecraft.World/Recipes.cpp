@@ -587,6 +587,63 @@ void Recipes::_compileRecipes()
 		L'#', Tile::netherBrick,
 		L'S');
 
+	addShapedRecipy(new ItemInstance(Tile::purpur_block, 4),
+		L"sscig",
+		L"FF",
+		L"FF",
+
+		L'F', Item::chorus_fruit_popped,
+		L'S');
+
+	addShapedRecipy(new ItemInstance(Tile::purpur_pillar, 1),
+		L"ssctg",
+		L"#",
+		L"#",
+
+		L'#', Tile::purpurSlabHalf,
+		L'S');
+
+	addShapedRecipy(new ItemInstance(Tile::purpur_stairs, 4),
+		L"sssctg",
+		L"#  ",
+		L"## ",
+		L"###",
+
+		L'#', Tile::purpur_block,
+		L'S');
+
+	addShapedRecipy(new ItemInstance(Tile::purpur_stairs, 4),
+		L"sssctg",
+		L"#  ",
+		L"## ",
+		L"###",
+
+		L'#', Tile::purpur_pillar,
+		L'S');
+
+	addShapedRecipy(new ItemInstance(Tile::purpurSlabHalf, 6),
+		L"sctg",
+		L"###",
+
+		L'#', Tile::purpur_block,
+		L'S');
+
+	addShapedRecipy(new ItemInstance(Tile::purpurSlabHalf, 6),
+		L"sctg",
+		L"###",
+
+		L'#', Tile::purpur_pillar,
+		L'S');
+
+	addShapedRecipy(new ItemInstance((Tile*)Tile::end_rod, 4),
+		L"sscicig",
+		L"/",
+		L"#",
+
+		L'/', Item::blaze_rod,
+		L'#', Item::chorus_fruit_popped,
+		L'D');
+
 	addShapedRecipy(new ItemInstance(Tile::stairs_sandstone, 6), //
 		L"sssctg",
 		L"#  ", //
@@ -1107,6 +1164,48 @@ void Recipes::_compileRecipes()
 		L'#', Item::stick,
 		L'T');
 
+	addShapedRecipy(new ItemInstance(Item::spectral_arrow, 2),
+		L"ssscicig",
+		L" # ",
+		L"#X#",
+		L" # ",
+
+		L'#', Item::glowstone_dust,
+		L'X', Item::arrow,
+		L'T');
+
+	{
+		static const int tippedArrowPotions[] =
+		{
+			MACRO_MAKEPOTION_AUXVAL(0, 0, MASK_REGENERATION), MACRO_MAKEPOTION_AUXVAL(0, MASK_LEVEL2, MASK_REGENERATION), MACRO_MAKEPOTION_AUXVAL(0, MASK_EXTENDED, MASK_REGENERATION),
+			MACRO_MAKEPOTION_AUXVAL(0, 0, MASK_SPEED), MACRO_MAKEPOTION_AUXVAL(0, MASK_LEVEL2, MASK_SPEED), MACRO_MAKEPOTION_AUXVAL(0, MASK_EXTENDED, MASK_SPEED),
+			MACRO_MAKEPOTION_AUXVAL(0, 0, MASK_FIRE_RESISTANCE), MACRO_MAKEPOTION_AUXVAL(0, MASK_EXTENDED, MASK_FIRE_RESISTANCE),
+			MACRO_MAKEPOTION_AUXVAL(0, 0, MASK_POISON), MACRO_MAKEPOTION_AUXVAL(0, MASK_LEVEL2, MASK_POISON), MACRO_MAKEPOTION_AUXVAL(0, MASK_EXTENDED, MASK_POISON),
+			MACRO_MAKEPOTION_AUXVAL(0, 0, MASK_INSTANTHEALTH), MACRO_MAKEPOTION_AUXVAL(0, MASK_LEVEL2, MASK_INSTANTHEALTH),
+			MACRO_MAKEPOTION_AUXVAL(0, 0, MASK_NIGHTVISION), MACRO_MAKEPOTION_AUXVAL(0, MASK_EXTENDED, MASK_NIGHTVISION),
+			MACRO_MAKEPOTION_AUXVAL(0, 0, MASK_INVISIBILITY), MACRO_MAKEPOTION_AUXVAL(0, MASK_EXTENDED, MASK_INVISIBILITY),
+			MACRO_MAKEPOTION_AUXVAL(0, 0, MASK_WEAKNESS), MACRO_MAKEPOTION_AUXVAL(0, MASK_EXTENDED, MASK_WEAKNESS),
+			MACRO_MAKEPOTION_AUXVAL(0, 0, MASK_STRENGTH), MACRO_MAKEPOTION_AUXVAL(0, MASK_LEVEL2, MASK_STRENGTH), MACRO_MAKEPOTION_AUXVAL(0, MASK_EXTENDED, MASK_STRENGTH),
+			MACRO_MAKEPOTION_AUXVAL(0, 0, MASK_SLOWNESS), MACRO_MAKEPOTION_AUXVAL(0, MASK_EXTENDED, MASK_SLOWNESS),
+			MACRO_MAKEPOTION_AUXVAL(0, 0, MASK_INSTANTDAMAGE), MACRO_MAKEPOTION_AUXVAL(0, MASK_LEVEL2, MASK_INSTANTDAMAGE),
+			MACRO_MAKEPOTION_AUXVAL(0, 0, MASK_WATERBREATHING), MACRO_MAKEPOTION_AUXVAL(0, MASK_EXTENDED, MASK_WATERBREATHING),
+			MACRO_MAKEPOTION_AUXVAL(0, 0, MASK_JUMPBOOST), MACRO_MAKEPOTION_AUXVAL(0, MASK_LEVEL2, MASK_JUMPBOOST), MACRO_MAKEPOTION_AUXVAL(0, MASK_EXTENDED, MASK_JUMPBOOST),
+			MACRO_MAKEPOTION_AUXVAL(0, 0, MASK_LUCK),
+		};
+		for (int i = 0; i < sizeof(tippedArrowPotions) / sizeof(tippedArrowPotions[0]); i++)
+		{
+			addShapedRecipy(new ItemInstance(Item::tipped_arrow_Id, 8, tippedArrowPotions[i]),
+				L"sssciczg",
+				L"###",
+				L"#X#",
+				L"###",
+
+				L'#', Item::arrow,
+				L'X', new ItemInstance(Item::lingering_potion_Id, 1, tippedArrowPotions[i]),
+				L'T');
+		}
+	}
+
 	pWeaponRecipies->addRecipes(this);
 
 	addShapedRecipy(new ItemInstance(Item::bucket, 1), //
@@ -1470,6 +1569,76 @@ void Recipes::_compileRecipes()
 		L'#', Tile::wood, L'X', Item::book,
 		L'D');
 
+	// neoLegacy - Copper Age (Phase 7, Java shelf parity): Java 1.21.9
+	// shelf recipe — 6 stripped logs of one wood in the top and bottom
+	// rows -> 6 shelves of that wood. NORMAL crafting table (the shelf
+	// is removed from isComplexOnly() below — Java shelves are not a
+	// Complex-Table recipe). Stripped-log aux: oak 0, spruce 1, birch 2,
+	// jungle 3 (stripped_log_Id 240); acacia 0, dark oak 1, bamboo 2
+	// (stripped_log2_Id 241). Shelf aux = the same wood order 0-6.
+	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 0), //
+		L"sssczg",
+		L"###", //
+		L"   ", //
+		L"###", //
+
+		L'#', new ItemInstance(Tile::stripped_log_Id, 1, 0),
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 1), //
+		L"sssczg",
+		L"###", //
+		L"   ", //
+		L"###", //
+
+		L'#', new ItemInstance(Tile::stripped_log_Id, 1, 1),
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 2), //
+		L"sssczg",
+		L"###", //
+		L"   ", //
+		L"###", //
+
+		L'#', new ItemInstance(Tile::stripped_log_Id, 1, 2),
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 3), //
+		L"sssczg",
+		L"###", //
+		L"   ", //
+		L"###", //
+
+		L'#', new ItemInstance(Tile::stripped_log_Id, 1, 3),
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 4), //
+		L"sssczg",
+		L"###", //
+		L"   ", //
+		L"###", //
+
+		L'#', new ItemInstance(Tile::stripped_log2_Id, 1, 0),
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 5), //
+		L"sssczg",
+		L"###", //
+		L"   ", //
+		L"###", //
+
+		L'#', new ItemInstance(Tile::stripped_log2_Id, 1, 1),
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 6), //
+		L"sssczg",
+		L"###", //
+		L"   ", //
+		L"###", //
+
+		L'#', new ItemInstance(Tile::stripped_log2_Id, 1, 2),
+		L'D');
+
 	addShapedRecipy(new ItemInstance(Item::painting, 1), //
 		L"ssscictg",
 		L"###", //
@@ -1804,10 +1973,6 @@ void Recipes::_wipeRecipes()
 		delete[] req.iIngValA;
 		delete[] req.iIngAuxValA;
 		delete[] req.uiGridA;
-	}
-
-	for (int i = 0; i < iCount; i++) {
-		delete (*recipies)[i];
 	}
 
 	recipies->clear();
@@ -2154,11 +2319,12 @@ bool Recipes::isComplexOnly(Recipy *r)
 		|| result->id == Tile::copper_torch_Id
 		|| result->id == Tile::copper_button_Id
 		|| result->id == Tile::lightning_rod_Id
-		// neoLegacy - Copper Age: shelves are Complex-Table-only
-		// (Cameron 2026-11-23). The 6-stripped-logs recipes live in
-		// StructureRecipies.cpp; the normal table skips Complex-only
-		// recipes, so this gate must return true for shelf results.
-		|| result->id == Tile::shelf_Id
+		// neoLegacy - Copper Age (Phase 7, Java shelf parity): the shelf
+		// was REMOVED from this gate. Java shelves craft at a NORMAL
+		// table (6 stripped logs -> 6 shelves, see the recipes above),
+		// so isComplexOnly must return false for shelf results — the
+		// normal table skips Complex-only recipes (line ~2131) and the
+		// Complex Table skips non-Complex ones.
 		|| result->id == Tile::cut_copper_slab_Id
 		|| result->id == Tile::cut_copper_stairs_Id
 		|| result->id == Tile::rose_gold_block_Id

@@ -32,6 +32,7 @@
 #include "BonusChestFeature.h"
 #include "SpikeFeature.h"
 #include "EndPodiumFeature.h"
+#include "EndIslandFeature.h"
 #include "SavannaTreeFeature.h"
 #include "RoofTreeFeature.h"
 

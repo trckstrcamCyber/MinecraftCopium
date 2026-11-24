@@ -36,6 +36,10 @@ private:
 	GameType *gameType;
 	bool generateMapFeatures;
 	bool hardcore;
+	bool m_modernEnd;
+	bool m_endDragonKilled;
+	bool m_endPreviouslyKilled;
+	bool m_endGatewaySpawned;
 	bool allowCommands;
 	bool initialized;
 	bool newSeaLevel;		// 4J added
@@ -142,6 +146,14 @@ public:
 	virtual void setGeneratorOptions(const wstring &options);
 	virtual bool isHardcore();
 	virtual void setHardcore(bool hardcore);
+	virtual bool isModernEnd();
+	virtual void setModernEnd(bool modernEnd);
+	virtual bool isEndDragonKilled();
+	virtual void setEndDragonKilled(bool killed);
+	virtual bool isEndPreviouslyKilled();
+	virtual void setEndPreviouslyKilled(bool killed);
+	virtual bool isEndGatewaySpawned();
+	virtual void setEndGatewaySpawned(bool spawned);
 	virtual bool getAllowCommands();
 	virtual void setAllowCommands(bool allowCommands);
 	virtual bool isInitialized();

@@ -8,10 +8,17 @@
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.world.level.storage.h"
 #include "TheEndLevelRandomLevelSource.h"
+#include "TheEndDimension.h"
+#include "EndIslandFeature.h"
+#include "EndCityFeature.h"
+#include "ChorusFlowerTile.h"
 
-TheEndLevelRandomLevelSource::TheEndLevelRandomLevelSource(Level *level, int64_t seed)
+TheEndLevelRandomLevelSource::TheEndLevelRandomLevelSource(Level *level, int64_t seed, bool modernEnd)
 {
-	m_XZSize = END_LEVEL_MIN_WIDTH;
+	this->modernEnd = modernEnd;
+	m_XZSize = modernEnd ? END_LEVEL_MODERN_WIDTH : END_LEVEL_MIN_WIDTH;
+	islandFeature = new EndIslandFeature();
+	endCityFeature = modernEnd ? new EndCityFeature(this) : nullptr;
 
 	this->level = level;
 
@@ -34,6 +41,8 @@ TheEndLevelRandomLevelSource::~TheEndLevelRandomLevelSource()
 	delete perlinNoise1;
 	delete scaleNoise;
 	delete depthNoise;
+	delete islandFeature;
+	delete endCityFeature;
 }
 
 void TheEndLevelRandomLevelSource::prepareHeights(int xOffs, int zOffs, byteArray blocks, BiomeArray biomes)
@@ -177,8 +186,12 @@ LevelChunk *TheEndLevelRandomLevelSource::getChunk(int xOffs, int zOffs)
 	//    LevelChunk *levelChunk = new LevelChunk(level, blocks, xOffs, zOffs);			// 4J moved below
 	level->getBiomeSource()->getBiomeBlock(biomes, xOffs * 16, zOffs * 16, 16, 16, true);
 
-	prepareHeights(xOffs, zOffs, blocks, biomes);
-	buildSurfaces(xOffs, zOffs, blocks, biomes);
+	if (!modernEnd || TheEndDimension::isChunkInArea(xOffs, zOffs))
+	{
+		prepareHeights(xOffs, zOffs, blocks, biomes);
+		buildSurfaces(xOffs, zOffs, blocks, biomes);
+	}
+	if (endCityFeature != nullptr) endCityFeature->apply(this, level, xOffs, zOffs, blocks);
 
 	// 4J - this now creates compressed block data from the blocks array passed in, so moved it until after the blocks are actually finalised. We also
 	// now need to free the passed in blocks as the LevelChunk doesn't use the passed in allocation anymore.
@@ -234,6 +247,12 @@ doubleArray TheEndLevelRandomLevelSource::getHeights(doubleArray buffer, int x, 
 			float doffs = 100 - sqrt(xd * xd + zd * zd) * 8;
 			if (doffs > 80) doffs = 80;
 			if (doffs < -100) doffs = -100;
+			if (modernEnd)
+			{
+				doffs = getIslandHeightValue(x / 2, z / 2, xx, zz);
+				if (doffs > 80) doffs = 80;
+				if (doffs < -100) doffs = -100;
+			}
 			if (depth > 1) depth = 1;
 			depth = depth / 8;
 			depth = 0;
@@ -280,6 +299,17 @@ doubleArray TheEndLevelRandomLevelSource::getHeights(doubleArray buffer, int x, 
 				}
 
 
+				if (modernEnd)
+				{
+					int worldY = (y + yy) * CHUNK_HEIGHT;
+					double pdx = (x + xx) * CHUNK_WIDTH;
+					double pdy = worldY - level->seaLevel;
+					double pdz = (z + zz) * CHUNK_WIDTH;
+					double fade = (19.0 - sqrt(pdx * pdx + pdy * pdy + pdz * pdz)) / 16.0;
+					if (fade < 0) fade = 0;
+					if (fade > 1) fade = 1;
+					val = fade * (level->seaLevel < worldY + 1 ? -50.0 : 50.0) + (1 - fade) * val;
+				}
 				buffer[p] = val;
 				p++;
 			}
@@ -376,8 +406,37 @@ void TheEndLevelRandomLevelSource::postProcess(ChunkSource *parent, int xt, int 
 	int64_t zScale = pprandom->nextLong() / 2 * 2 + 1;
 	pprandom->setSeed(((xt * xScale) + (zt * zScale)) ^ level->getSeed());
 
+	if (endCityFeature != nullptr) endCityFeature->postProcess(level, pprandom, xt, zt);
+
 	Biome *biome = level->getBiome(xo + 16, zo + 16);
 	biome->decorate(level, pprandom, xo, zo);		// 4J - passing pprandom rather than level->random here to make this consistent with our parallel world generation
+
+	if (modernEnd && outerIslandCheck(xt, zt))
+	{
+		if (getIslandHeightValue(xt, zt, 1, 1) < -20.0f && pprandom->nextInt(14) == 0)
+		{
+			islandFeature->place(level, pprandom, xo + pprandom->nextInt(16) + 8, pprandom->nextInt(16) + 55, zo + pprandom->nextInt(16) + 8);
+			if (pprandom->nextInt(4) == 0)
+			{
+				islandFeature->place(level, pprandom, xo + pprandom->nextInt(16) + 8, pprandom->nextInt(16) + 55, zo + pprandom->nextInt(16) + 8);
+			}
+		}
+
+		if (getIslandHeightValue(xt, zt, 1, 1) > 40.0f)
+		{
+			int plants = pprandom->nextInt(5);
+			for (int i = 0; i < plants; i++)
+			{
+				int px = xo + pprandom->nextInt(16) + 8;
+				int pz = zo + pprandom->nextInt(16) + 8;
+				int py = level->getHeightmap(px, pz);
+				if (py > 0 && level->isEmptyTile(px, py, pz) && level->getTile(px, py - 1, pz) == Tile::end_stone_Id)
+				{
+					ChorusFlowerTile::generatePlant(level, px, py, pz, pprandom, 8);
+				}
+			}
+		}
+	}
 
 	HeavyTile::instaFall = false;
 
@@ -421,4 +480,54 @@ TilePos *TheEndLevelRandomLevelSource::findNearestMapFeature(Level *level, const
 
 void TheEndLevelRandomLevelSource::recreateLogicStructuresForChunk(int chunkX, int chunkZ)
 {
+	if (endCityFeature != nullptr) endCityFeature->apply(this, level, chunkX, chunkZ, byteArray());
+}
+double TheEndLevelRandomLevelSource::outerIslandProximity(int chunkX, int chunkZ)
+{
+	int area = TheEndDimension::closestArea(chunkX, chunkZ);
+	if (area == 0) return 12.0;
+
+	double xd = chunkX + 0.5 - TheEndDimension::AREA_CHUNK_X[area];
+	double zd = chunkZ + 0.5 - TheEndDimension::AREA_CHUNK_Z[area];
+	return max(fabs(xd), fabs(zd));
+}
+
+bool TheEndLevelRandomLevelSource::outerIslandCheck(int chunkX, int chunkZ)
+{
+	return outerIslandProximity(chunkX, chunkZ) < 3.0;
+}
+
+float TheEndLevelRandomLevelSource::getIslandHeightValue(int chunkX, int chunkZ, int xOffset, int zOffset)
+{
+	if (TheEndDimension::closestArea(chunkX, chunkZ) == 0)
+	{
+		float sampleX = chunkX * 2.0f + xOffset;
+		float sampleZ = chunkZ * 2.0f + zOffset;
+		return 100.0f - sqrt(sampleX * sampleX + sampleZ * sampleZ) * 9.0f;
+	}
+
+	int sampleX = chunkX * 2 + xOffset;
+	int sampleZ = chunkZ * 2 + zOffset;
+	float height = 100.0f - sqrt(static_cast<float>(sampleX * sampleX + sampleZ * sampleZ)) * 8.0f;
+	if (height > 80.0f) height = 80.0f;
+	if (height < -100.0f) height = -100.0f;
+
+	for (int ox = -4; ox <= 4; ox++)
+	{
+		for (int oz = -4; oz <= 4; oz++)
+		{
+			int islandX = chunkX + ox;
+			int islandZ = chunkZ + oz;
+			if (!outerIslandCheck(islandX, islandZ)) continue;
+
+			float scale = static_cast<float>(static_cast<int>(fabs(static_cast<double>(islandX)) * 3439.0 + fabs(static_cast<double>(islandZ)) * 147.0) % 6 + 18);
+			int dx = xOffset - ox * 2;
+			int dz = zOffset - oz * 2;
+			float islandHeight = 100.0f - sqrt(static_cast<float>(dx * dx + dz * dz)) * scale;
+			if (islandHeight > 80.0f) islandHeight = 80.0f;
+			if (islandHeight < -100.0f) islandHeight = -100.0f;
+			if (islandHeight > height) height = islandHeight;
+		}
+	}
+	return height;
 }

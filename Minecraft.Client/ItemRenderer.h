@@ -13,6 +13,7 @@ private:
     Random *random;
 	bool m_bItemFrame;
 public:
+	Icon *m_guiIconOverride = nullptr;
 	bool setColor;
 	float blitOffset;
 
