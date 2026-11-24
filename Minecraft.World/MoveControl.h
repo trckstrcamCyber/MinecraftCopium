@@ -19,6 +19,9 @@ private:
 	double wantedZ;
 	double speedModifier;
 	bool _hasWanted;
+	bool _strafing;
+	float strafeForwards;
+	float strafeRight;
 
 public:
 	MoveControl(Mob *mob);
@@ -27,6 +30,7 @@ public:
 	double getSpeedModifier();
 	void setWantedPosition(double x, double y, double z, double speedModifier);
 	void setSpeed(float speed);
+	void strafe(float forwards, float right);
 	virtual void tick();
 
 private:

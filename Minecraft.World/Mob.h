@@ -141,7 +141,7 @@ protected:
 public:
 	virtual int getMaxHeadXRot();
 
-protected:
+public:
 	void lookAt(shared_ptr<Entity> e, float yMax, float xMax);
 	bool isLookingAtAnEntity();
 	shared_ptr<Entity> getLookingAt();

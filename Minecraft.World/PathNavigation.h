@@ -33,6 +33,7 @@ public:
 	void setCanPassDoors(bool canPass);
 	bool canOpenDoors();
 	void setAvoidSun(bool avoidSun);
+	bool getAvoidSun() { return avoidSun; }
 	void setSpeedModifier(double speedModifier);
 	void setCanFloat(bool canFloat);
 	float getMaxDist();
