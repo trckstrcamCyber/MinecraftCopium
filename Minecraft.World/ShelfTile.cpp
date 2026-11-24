@@ -27,6 +27,25 @@ ShelfTile::ShelfTile(int id) : BaseEntityTile(id, Material::wood, isSolidRender(
 	for (int i = 0; i < 7; i++) poweredIcons[i] = nullptr;
 }
 
+const unsigned int ShelfTile::SHELF_NAMES[7] = {
+	IDS_TILE_OAK_SHELF,
+	IDS_TILE_SPRUCE_SHELF,
+	IDS_TILE_BIRCH_SHELF,
+	IDS_TILE_JUNGLE_SHELF,
+	IDS_TILE_ACACIA_SHELF,
+	IDS_TILE_DARK_OAK_SHELF,
+	IDS_TILE_BAMBOO_SHELF
+};
+
+unsigned int ShelfTile::getDescriptionId(int iData)
+{
+	// data bits 0-2 are the wood index (same as getTexture); clamp anything
+	// else (including -1, the no-data call) to oak.
+	int wood = iData & 7;
+	if (wood > 6) wood = 0;
+	return SHELF_NAMES[wood];
+}
+
 bool ShelfTile::isSolidRender(bool)
 {
 	return false;

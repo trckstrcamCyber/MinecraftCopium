@@ -1470,76 +1470,6 @@ void Recipes::_compileRecipes()
 		L'#', Tile::wood, L'X', Item::book,
 		L'D');
 
-	// neoLegacy - Copper Age (Phase 7, Java shelf parity): Java 1.21.9
-	// shelf recipe — 6 stripped logs of one wood in the top and bottom
-	// rows -> 6 shelves of that wood. NORMAL crafting table (the shelf
-	// is removed from isComplexOnly() below — Java shelves are not a
-	// Complex-Table recipe). Stripped-log aux: oak 0, spruce 1, birch 2,
-	// jungle 3 (stripped_log_Id 240); acacia 0, dark oak 1, bamboo 2
-	// (stripped_log2_Id 241). Shelf aux = the same wood order 0-6.
-	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 0), //
-		L"sssczg",
-		L"###", //
-		L"   ", //
-		L"###", //
-
-		L'#', new ItemInstance(Tile::stripped_log_Id, 1, 0),
-		L'D');
-
-	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 1), //
-		L"sssczg",
-		L"###", //
-		L"   ", //
-		L"###", //
-
-		L'#', new ItemInstance(Tile::stripped_log_Id, 1, 1),
-		L'D');
-
-	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 2), //
-		L"sssczg",
-		L"###", //
-		L"   ", //
-		L"###", //
-
-		L'#', new ItemInstance(Tile::stripped_log_Id, 1, 2),
-		L'D');
-
-	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 3), //
-		L"sssczg",
-		L"###", //
-		L"   ", //
-		L"###", //
-
-		L'#', new ItemInstance(Tile::stripped_log_Id, 1, 3),
-		L'D');
-
-	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 4), //
-		L"sssczg",
-		L"###", //
-		L"   ", //
-		L"###", //
-
-		L'#', new ItemInstance(Tile::stripped_log2_Id, 1, 0),
-		L'D');
-
-	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 5), //
-		L"sssczg",
-		L"###", //
-		L"   ", //
-		L"###", //
-
-		L'#', new ItemInstance(Tile::stripped_log2_Id, 1, 1),
-		L'D');
-
-	addShapedRecipy(new ItemInstance(Tile::shelf_Id, 6, 6), //
-		L"sssczg",
-		L"###", //
-		L"   ", //
-		L"###", //
-
-		L'#', new ItemInstance(Tile::stripped_log2_Id, 1, 2),
-		L'D');
-
 	addShapedRecipy(new ItemInstance(Item::painting, 1), //
 		L"ssscictg",
 		L"###", //
@@ -2224,12 +2154,11 @@ bool Recipes::isComplexOnly(Recipy *r)
 		|| result->id == Tile::copper_torch_Id
 		|| result->id == Tile::copper_button_Id
 		|| result->id == Tile::lightning_rod_Id
-		// neoLegacy - Copper Age (Phase 7, Java shelf parity): the shelf
-		// was REMOVED from this gate. Java shelves craft at a NORMAL
-		// table (6 stripped logs -> 6 shelves, see the recipes above),
-		// so isComplexOnly must return false for shelf results — the
-		// normal table skips Complex-only recipes (line ~2131) and the
-		// Complex Table skips non-Complex ones.
+		// neoLegacy - Copper Age: shelves are Complex-Table-only
+		// (Cameron 2026-11-23). The 6-stripped-logs recipes live in
+		// StructureRecipies.cpp; the normal table skips Complex-only
+		// recipes, so this gate must return true for shelf results.
+		|| result->id == Tile::shelf_Id
 		|| result->id == Tile::cut_copper_slab_Id
 		|| result->id == Tile::cut_copper_stairs_Id
 		|| result->id == Tile::rose_gold_block_Id
