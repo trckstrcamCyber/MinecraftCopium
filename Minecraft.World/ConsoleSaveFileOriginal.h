@@ -77,7 +77,7 @@ public:
 	virtual void LockSaveAccess();
 	virtual void ReleaseSaveAccess();
 
-#ifdef MINECRAFT_SERVER_BUILD
+#if defined(MINECRAFT_SERVER_BUILD) || defined(_WINDOWS64) || defined(_DURANGO) || defined(__ORBIS__)
 	static void flushPendingBackgroundSave();
 	static bool hasPendingBackgroundSave();
 #endif

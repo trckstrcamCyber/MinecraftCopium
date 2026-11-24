@@ -1435,7 +1435,8 @@ int UIScene_PauseMenu::ExitGameSaveDialogReturned(void *pParam,int iPad,C4JStora
 #if defined(_XBOX_ONE) || defined(__ORBIS__)
 				StorageManager.SetSaveDisabled(false);
 #endif
-				MinecraftServer::getInstance()->setSaveOnExit( true );
+				auto serverInstance = MinecraftServer::getInstance();
+				if (serverInstance != nullptr) serverInstance->setSaveOnExit(true);
 			}
 		}
 		else

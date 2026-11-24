@@ -1949,7 +1949,7 @@ void MinecraftServer::run(int64_t seed, void *lpParameter)
 				switch(eAction)
                 {
                 case eXuiServerAction_AutoSaveGame:
-#if defined(_XBOX_ONE) || defined(__ORBIS__) || defined(MINECRAFT_SERVER_BUILD)
+#if defined(_XBOX_ONE) || defined(__ORBIS__) || defined(_WINDOWS64) || defined(MINECRAFT_SERVER_BUILD)
                     {
 #if defined(_XBOX_ONE) || defined(__ORBIS__)
                         PIXBeginNamedEvent(0, "Autosave");

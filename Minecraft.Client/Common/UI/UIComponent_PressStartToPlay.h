@@ -61,6 +61,6 @@ public:
 	void showTrialTimer(bool show);
 	void setAutosaveTimer(const wstring &label);
 	void showAutosaveTimer(bool show);
-	void showSaveIcon(bool show);
+	void showSaveIcon(bool show, bool autoHide = true);
 	void showPlayerDisplayName(bool show);
 };

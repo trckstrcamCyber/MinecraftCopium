@@ -6,6 +6,7 @@
 #include "../../ProgressRenderer.h"
 #include "../../../Minecraft.World/net.minecraft.world.level.h"
 #include "../../../Minecraft.World/net.minecraft.world.phys.h"
+#include "../../../Minecraft.World/ConsoleSaveFileOriginal.h"
 #include "../../TexturePackRepository.h"
 #include "../../TexturePack.h"
 #include "../../DLCTexturePack.h"
@@ -33,11 +34,13 @@ int IUIScene_PauseMenu::ExitGameDialogReturned(void *pParam,int iPad,C4JStorage:
 
 		if(autosaveEnabled)
 		{
-			MinecraftServer::getInstance()->setSaveOnExit(true);
+			auto serverInstance = MinecraftServer::getInstance();
+			if (serverInstance != nullptr) serverInstance->setSaveOnExit(true);
 		}
 		else
 		{
-			MinecraftServer::getInstance()->setSaveOnExit(false);
+			auto serverInstance = MinecraftServer::getInstance();
+			if (serverInstance != nullptr) serverInstance->setSaveOnExit(false);
 		}
 
 		if(pScene) pScene->SetIgnoreInput(true);
@@ -111,7 +114,8 @@ int IUIScene_PauseMenu::ExitGameSaveDialogReturned(void *pParam,int iPad,C4JStor
 #if defined(_XBOX_ONE) || defined(__ORBIS__)
 				StorageManager.SetSaveDisabled(false);
 #endif
-				MinecraftServer::getInstance()->setSaveOnExit( true );
+				auto serverInstance = MinecraftServer::getInstance();
+				if (serverInstance != nullptr) serverInstance->setSaveOnExit(true);
 			}
 		}
 		else
@@ -151,7 +155,8 @@ int IUIScene_PauseMenu::ExitGameAndSaveReturned(void *pParam,int iPad,C4JStorage
 		StorageManager.SetSaveDisabled(false);
 #endif
 		if(pScene) pScene->SetIgnoreInput(true);
-		MinecraftServer::getInstance()->setSaveOnExit( true );
+		auto serverInstance = MinecraftServer::getInstance();
+		if (serverInstance != nullptr) serverInstance->setSaveOnExit(true);
 		// flag a app action of exit game
 		app.SetAction(iPad,eAppAction_ExitWorld);
 	}
@@ -197,7 +202,8 @@ int IUIScene_PauseMenu::ExitGameDeclineSaveReturned(void *pParam,int iPad,C4JSto
 		//StorageManager.SetSaveDisabled(false);
 #endif
 		if(pScene) pScene->SetIgnoreInput(true);
-		MinecraftServer::getInstance()->setSaveOnExit( false );
+		auto serverInstance = MinecraftServer::getInstance();
+		if (serverInstance != nullptr) serverInstance->setSaveOnExit(false);
 		// flag a app action of exit game
 		app.SetAction(iPad,eAppAction_ExitWorld);
 	}
@@ -395,6 +401,14 @@ int IUIScene_PauseMenu::SaveWorldThreadProc( LPVOID lpParameter )
 		{
 			Sleep(10);
 		}
+
+#if !defined(MINECRAFT_SERVER_BUILD) && (defined(_WINDOWS64) || defined(_DURANGO) || defined(__ORBIS__))
+		while (ConsoleSaveFileOriginal::hasPendingBackgroundSave())
+		{
+			ConsoleSaveFileOriginal::flushPendingBackgroundSave();
+			Sleep(10);
+		}
+#endif
 
 		if(!bAutosave && !MinecraftServer::serverHalted() && !app.GetChangingSessionType() ) app.SetGameStarted(true);
 

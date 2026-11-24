@@ -200,7 +200,7 @@ void UIComponent_PressStartToPlay::showAutosaveTimer(bool show)
 	}
 }
 
-void UIComponent_PressStartToPlay::showSaveIcon(bool show)
+void UIComponent_PressStartToPlay::showSaveIcon(bool show, bool autoHide)
 {
 	m_showingSaveIcon = show;
 	if(!ui.IsExpectingOrReloadingSkin() && hasMovie())
@@ -212,7 +212,7 @@ void UIComponent_PressStartToPlay::showSaveIcon(bool show)
 		if(show) app.DebugPrintf("Tried to show save icon while texture pack reload was in progress\n");
 	}
 
-	if(show)
+	if(show && autoHide)
 	{
 		killTimer(2);
 		addTimer(2, 1000);

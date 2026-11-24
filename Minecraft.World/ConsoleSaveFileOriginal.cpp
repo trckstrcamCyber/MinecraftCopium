@@ -12,7 +12,7 @@
 #include "../Minecraft.Client/Common/GameRules/LevelGenerationOptions.h"
 #include "../Minecraft.World/net.minecraft.world.level.chunk.storage.h"
 
-#ifdef MINECRAFT_SERVER_BUILD
+#if defined(MINECRAFT_SERVER_BUILD) || defined(_WINDOWS64) || defined(_DURANGO) || defined(__ORBIS__)
 #include <thread>
 #include <atomic>
 #include <mutex>
@@ -677,6 +677,21 @@ bool ConsoleSaveFileOriginal::doesFileExist(ConsoleSavePath file)
 
 void ConsoleSaveFileOriginal::Flush(bool autosave, bool updateThumbnail )
 {
+#if defined(MINECRAFT_SERVER_BUILD) || defined(_WINDOWS64) || defined(_DURANGO) || defined(__ORBIS__)
+#if defined(MINECRAFT_SERVER_BUILD)
+	const bool useBackgroundSave = true;
+#else
+	const bool useBackgroundSave = autosave;
+#endif
+	{
+		while (s_bgSaveActive.load(std::memory_order_acquire))
+		{
+			Sleep(10);
+		}
+		std::lock_guard<std::mutex> pendingSaveLock(s_bgSaveMutex);
+	}
+#endif
+
 	LockSaveAccess();
 
 #ifdef __PSVITA__
@@ -698,83 +713,73 @@ void ConsoleSaveFileOriginal::Flush(bool autosave, bool updateThumbnail )
 
 	unsigned int fileSize = header.GetFileSize();
 
-#ifdef MINECRAFT_SERVER_BUILD
-	// on the server we dont want to block the tick thread doing compression!!!
-	// sna[pshot pvSaveMem while we still hold the lock then hand it off to a background thread
-	byte *snap = new (std::nothrow) byte[fileSize];
-	if (snap)
+#if defined(MINECRAFT_SERVER_BUILD) || defined(_WINDOWS64) || defined(_DURANGO) || defined(__ORBIS__)
+	if (useBackgroundSave)
 	{
-		// copy the save buffer while we still own the lock so nothing can write to it mid-copy
-		QueryPerformanceCounter(&qwTime);
-		memcpy(snap, pvSaveMem, fileSize);
-		QueryPerformanceCounter(&qwNewTime);
-		app.DebugPrintf("snapshot %u bytes in %.3f sec\n", fileSize,
-						(qwNewTime.QuadPart - qwTime.QuadPart) * fSecsPerTick);
-
-		PBYTE thumb = nullptr;
-		DWORD thumbSz = 0;
-		app.GetSaveThumbnail(&thumb, &thumbSz);
-
-		BYTE meta[88];
-		ZeroMemory(meta, 88);
-		int64_t seed = 0;
-		bool hasSeed = false;
-		if (MinecraftServer *sv = MinecraftServer::getInstance(); sv && sv->levels[0])
+		byte *snap = new (std::nothrow) byte[fileSize];
+		if (snap)
 		{
-			seed = sv->levels[0]->getLevelData()->getSeed();
-			hasSeed = true;
-		}
-		int metaLen = app.CreateImageTextData(meta, seed, hasSeed,
-											  app.GetGameHostOption(eGameHostOption_All), Minecraft::GetInstance()->getCurrentTexturePackId());
+			QueryPerformanceCounter(&qwTime);
+			memcpy(snap, pvSaveMem, fileSize);
+			QueryPerformanceCounter(&qwNewTime);
+			app.DebugPrintf("snapshot %u bytes in %.3f sec\n", fileSize,
+							(qwNewTime.QuadPart - qwTime.QuadPart) * fSecsPerTick);
 
-		// telemetry
-		INT uid = 0;
-		StorageManager.GetSaveUniqueNumber(&uid);
-		TelemetryManager->RecordLevelSaveOrCheckpoint(ProfileManager.GetPrimaryPad(), uid, fileSize);
-
-		ReleaseSaveAccess();
-		s_bgSaveActive.store(true, std::memory_order_release);
-
-		std::thread([snap, fileSize, thumb, thumbSz, meta, metaLen, this]() {
-			Compression::UseDefaultThreadStorage();
-			unsigned int compLen = fileSize + 8;
-			byte *buf = static_cast<byte *>(StorageManager.AllocateSaveData(compLen));
-			if (!buf)
+			byte *compData = static_cast<byte *>(StorageManager.AllocateSaveData(fileSize + 8));
+			if (compData != nullptr)
 			{
-				// FAIL!! attempt precalc
-				compLen = 0;
-				Compression::getCompression()->Compress(nullptr, &compLen, snap, fileSize);
-				compLen += 8;
-				buf = static_cast<byte *>(StorageManager.AllocateSaveData(compLen));
-			}
-			if (buf)
-			{
-				// COM,PRESS
-				Compression::getCompression()->Compress(buf + 8, &compLen, snap, fileSize);
-				ZeroMemory(buf, 8);
-				memcpy(buf + 4, &fileSize, sizeof(fileSize));
+				PBYTE thumb = nullptr;
+				DWORD thumbSz = 0;
+				app.GetSaveThumbnail(&thumb, &thumbSz);
 
-				// store the result so flushPendingBackgroundSave() can pick it up on the main thread next tick
-				// StorageManager isnt thread safe so we cant call SetSaveImages or SaveSaveData from here. Bwoomp
-				std::lock_guard<std::mutex> lk(s_bgSaveMutex);
-				s_bgResult.owner = this;
-				s_bgResult.thumbData = thumb;
-				s_bgResult.thumbSize = thumbSz;
-				memcpy(s_bgResult.textMeta, meta, sizeof(meta));
-				s_bgResult.textMetaBytes = metaLen;
-				s_bgResult.pending = true;
+				BYTE meta[88];
+				ZeroMemory(meta, 88);
+				int64_t seed = 0;
+				bool hasSeed = false;
+				if (MinecraftServer *sv = MinecraftServer::getInstance(); sv && sv->levels[0])
+				{
+					seed = sv->levels[0]->getLevelData()->getSeed();
+					hasSeed = true;
+				}
+				int metaLen = app.CreateImageTextData(meta, seed, hasSeed,
+													  app.GetGameHostOption(eGameHostOption_All), Minecraft::GetInstance()->getCurrentTexturePackId());
+
+				INT uid = 0;
+				StorageManager.GetSaveUniqueNumber(&uid);
+				TelemetryManager->RecordLevelSaveOrCheckpoint(ProfileManager.GetPrimaryPad(), uid, fileSize);
+
+				s_bgSaveActive.store(true, std::memory_order_release);
+				ReleaseSaveAccess();
+
+				std::thread([snap, compData, fileSize, thumb, thumbSz, meta, metaLen, this]() {
+					Compression::UseDefaultThreadStorage();
+					unsigned int compLen = fileSize + 8;
+					Compression::getCompression()->Compress(compData + 8, &compLen, snap, fileSize);
+					ZeroMemory(compData, 8);
+					memcpy(compData + 4, &fileSize, sizeof(fileSize));
+
+					app.DebugPrintf("Background autosave compressed %u -> %u bytes\n", fileSize, compLen);
+					std::lock_guard<std::mutex> lk(s_bgSaveMutex);
+					s_bgResult.owner = this;
+					s_bgResult.thumbData = thumb;
+					s_bgResult.thumbSize = thumbSz;
+					memcpy(s_bgResult.textMeta, meta, sizeof(meta));
+					s_bgResult.textMetaBytes = metaLen;
+					s_bgResult.pending = true;
+					delete[] snap;
+				}).detach();
+				return;
 			}
-			else
-			{
-				app.DebugPrintf("save buf alloc failed\n");
-				s_bgSaveActive.store(false, std::memory_order_release);
-			}
+
 			delete[] snap;
-		}).detach();
-		return;
+			app.DebugPrintf("Background autosave buffer allocation failed; using synchronous save\n");
+		}
+		else
+		{
+			app.DebugPrintf("Background autosave snapshot allocation failed; using synchronous save\n");
+		}
 	}
-	app.DebugPrintf("snapshot alloc failed (%u bytes)\n", fileSize);
-#endif
+	#endif
 
 	// Assume that the compression will make it smaller so initially attempt to allocate the current file size
 	// We add 4 bytes to the start so that we can signal compressed data
@@ -941,6 +946,11 @@ int ConsoleSaveFileOriginal::SaveSaveDataCallback(LPVOID lpParam,bool bRes)
 {
 	ConsoleSaveFile *pClass=static_cast<ConsoleSaveFile *>(lpParam);
 
+	if (!bRes)
+	{
+		app.DebugPrintf("SaveSaveDataCallback: save write failed\n");
+	}
+
 #ifdef _WINDOWS64
 	// 4J Added: After save completes, capture the save folder name for hardcore world deletion
 	if (bRes && app.GetCurrentSaveFolderName().empty())
@@ -986,7 +996,7 @@ int ConsoleSaveFileOriginal::SaveSaveDataCallback(LPVOID lpParam,bool bRes)
 	}
 #endif
 
-#ifdef MINECRAFT_SERVER_BUILD
+#if defined(MINECRAFT_SERVER_BUILD) || defined(_WINDOWS64) || defined(_DURANGO) || defined(__ORBIS__)
 	s_bgSaveActive.store(false, std::memory_order_release);
 #endif
 
@@ -1238,7 +1248,7 @@ void *ConsoleSaveFileOriginal::getWritePointer(FileEntry *file)
 	return static_cast<char *>(pvSaveMem) + file->currentFilePointer;;
 }
 
-#ifdef MINECRAFT_SERVER_BUILD
+#if defined(MINECRAFT_SERVER_BUILD) || defined(_WINDOWS64) || defined(_DURANGO) || defined(__ORBIS__)
 void ConsoleSaveFileOriginal::flushPendingBackgroundSave()
 {
 	std::lock_guard<std::mutex> lk(s_bgSaveMutex);
