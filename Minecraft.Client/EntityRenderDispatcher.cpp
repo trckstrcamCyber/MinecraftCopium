@@ -105,6 +105,8 @@
 
 #include "ArmorStandRenderer.h"
 #include "EndermiteRenderer.h"
+#include "ShulkerRenderer.h"
+#include "ShulkerBulletRenderer.h"
 #include "GuardianRenderer.h"
 #include "GuardianModel.h"
 #include "MobRenderer.h"

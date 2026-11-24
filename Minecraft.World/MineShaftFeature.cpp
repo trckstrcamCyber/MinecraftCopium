@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "net.minecraft.world.level.levelgen.structure.h"
+#include "net.minecraft.world.level.biome.h"
 #include "JavaMath.h"
 #include "Mth.h"
 

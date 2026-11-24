@@ -13,6 +13,7 @@
 #include "ShelfTileEntityRenderer.h"	// neoLegacy - Copper Age (Round 5)
 #include "EnchantTableRenderer.h"
 #include "TheEndPortalRenderer.h"
+#include "TheEndGatewayRenderer.h"
 #include "SkullTileRenderer.h"
 #include "EnderChestRenderer.h"
 #include "BeaconRenderer.h"
