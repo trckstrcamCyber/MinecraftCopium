@@ -138,8 +138,6 @@ enum EUIScene
 #ifdef _DEBUG_MENUS_ENABLED
 	eUIScene_DebugOverlay,
 	eUIScene_DebugItemEditor,
-#endif
-#ifndef _CONTENT_PACKAGE
 	eUIScene_DebugCreateSchematic,
 	eUIScene_DebugSetCamera,
 #endif
