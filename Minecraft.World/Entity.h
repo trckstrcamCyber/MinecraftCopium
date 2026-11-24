@@ -333,6 +333,11 @@ public:
 
 	virtual void rideTick();
 	virtual void positionRider();
+	virtual void positionRider(shared_ptr<Entity> passenger) { positionRider(); }
+	virtual bool hasRider(shared_ptr<Entity> e) { return e != nullptr && rider.lock() == e; }
+	virtual void addRider(shared_ptr<Entity> e) { rider = e; }
+	virtual void removeRider(shared_ptr<Entity> e) { rider = weak_ptr<Entity>(); }
+	virtual shared_ptr<Entity> getExtraRider() { return nullptr; }
 	virtual double getRidingHeight();
 	virtual double getRideHeight();
 	virtual void ride(shared_ptr<Entity> e);

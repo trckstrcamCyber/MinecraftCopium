@@ -113,6 +113,7 @@ private:
 	int customEffectDuration;
 	int customEffectAmplifier;
 
+public:
 	// neoLegacy Added
 	void setExplosiveLevel(int level);
 	int getExplosiveLevel();
