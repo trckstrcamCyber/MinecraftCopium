@@ -759,7 +759,11 @@ void GameRenderer::setupCamera(float a, int eye)
 		glTranslatef(static_cast<float>(zoom_x), static_cast<float>(-zoom_y), 0);
 		glScaled(zoom, zoom, 1);
 	}
-	gluPerspective(fov, aspect, 0.05f, renderDistance * 2);
+	{
+		auto _sp = dynamic_pointer_cast<Player>(mc->cameraTargetPlayer);
+		float nearClip = (_sp && _sp->abilities.spectatorMode) ? 0.99f : 0.05f;
+		gluPerspective(fov, aspect, nearClip, renderDistance * 2);
+	}
 
 	if (mc->gameMode->isCutScene())
 	{
@@ -842,7 +846,11 @@ void GameRenderer::renderItemInHand(float a, int eye)
 		glTranslatef(static_cast<float>(zoom_x), static_cast<float>(-zoom_y), 0);
 		glScaled(zoom, zoom, 1);
 	}
-	gluPerspective(fov, aspect, 0.05f, renderDistance * 2);
+	{
+		auto _sp = dynamic_pointer_cast<Player>(mc->cameraTargetPlayer);
+		float nearClip = (_sp && _sp->abilities.spectatorMode) ? 0.99f : 0.05f;
+		gluPerspective(fov, aspect, nearClip, renderDistance * 2);
+	}
 
 	if (mc->gameMode->isCutScene())
 	{
