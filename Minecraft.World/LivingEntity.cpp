@@ -569,7 +569,7 @@ void LivingEntity::readAdditionalSaveData(CompoundTag *tag)
 		{
 			CompoundTag *effectTag = effects->get(i);
 			MobEffectInstance *effect = MobEffectInstance::load(effectTag);
-			activeEffects.insert( unordered_map<int, MobEffectInstance *>::value_type( effect->getId(), effect ) );
+			if (effect != nullptr) activeEffects.insert( unordered_map<int, MobEffectInstance *>::value_type( effect->getId(), effect ) );
 		}
 	}
 
@@ -836,23 +836,28 @@ void LivingEntity::onEffectAdded(MobEffectInstance *effect)
 {
 	effectsDirty = true;
 	if (!level->isClientSide && effect->getId() == MobEffect::freezing->id) playSound(eSoundType_RANDOM_FREEZING, 1.0f, 1.0f);	// neoLegacy - plays once when the freeze starts
-	if (!level->isClientSide) MobEffect::effects[effect->getId()]->addAttributeModifiers(dynamic_pointer_cast<LivingEntity>(shared_from_this()), getAttributes(), effect->getAmplifier());
+	int _id0 = effect->getId();
+	if (!level->isClientSide && _id0 >= 0 && _id0 < MobEffect::NUM_EFFECTS && MobEffect::effects[_id0])
+		MobEffect::effects[_id0]->addAttributeModifiers(dynamic_pointer_cast<LivingEntity>(shared_from_this()), getAttributes(), effect->getAmplifier());
 }
 
 void LivingEntity::onEffectUpdated(MobEffectInstance *effect, bool doRefreshAttributes)
 {
 	effectsDirty = true;
-	if (doRefreshAttributes && !level->isClientSide)
+	int _id1 = effect->getId();
+	if (doRefreshAttributes && !level->isClientSide && _id1 >= 0 && _id1 < MobEffect::NUM_EFFECTS && MobEffect::effects[_id1])
 	{
-		MobEffect::effects[effect->getId()]->removeAttributeModifiers(dynamic_pointer_cast<LivingEntity>(shared_from_this()), getAttributes(), effect->getAmplifier());
-		MobEffect::effects[effect->getId()]->addAttributeModifiers(dynamic_pointer_cast<LivingEntity>(shared_from_this()), getAttributes(), effect->getAmplifier());
+		MobEffect::effects[_id1]->removeAttributeModifiers(dynamic_pointer_cast<LivingEntity>(shared_from_this()), getAttributes(), effect->getAmplifier());
+		MobEffect::effects[_id1]->addAttributeModifiers(dynamic_pointer_cast<LivingEntity>(shared_from_this()), getAttributes(), effect->getAmplifier());
 	}
 }
 
 void LivingEntity::onEffectRemoved(MobEffectInstance *effect)
 {
 	effectsDirty = true;
-	if (!level->isClientSide) MobEffect::effects[effect->getId()]->removeAttributeModifiers(dynamic_pointer_cast<LivingEntity>(shared_from_this()), getAttributes(), effect->getAmplifier());
+	int _id2 = effect->getId();
+	if (!level->isClientSide && _id2 >= 0 && _id2 < MobEffect::NUM_EFFECTS && MobEffect::effects[_id2])
+		MobEffect::effects[_id2]->removeAttributeModifiers(dynamic_pointer_cast<LivingEntity>(shared_from_this()), getAttributes(), effect->getAmplifier());
 }
 
 void LivingEntity::heal(float heal)

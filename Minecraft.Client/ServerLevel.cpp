@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "ServerLevel.h"
+#include "../Minecraft.World/EndDragonFight.h"
 #include "../Minecraft.World/Material.h"
 #include "../Minecraft.World/HeapCheck.h"
 #include "../Minecraft.World/LightLayer.h"
@@ -224,6 +225,9 @@ void ServerLevel::tick()
 	}
 
 	dimension->biomeSource->update();
+
+	EndDragonFight *dragonFight = EndDragonFight::get(this);
+	if (dragonFight != nullptr) dragonFight->tick();
 
 	trySpawnWanderingTrader();
 	trySpawnDrowned();

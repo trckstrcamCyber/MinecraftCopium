@@ -182,6 +182,7 @@ CompoundTag *MobEffectInstance::save(CompoundTag *tag)
 MobEffectInstance *MobEffectInstance::load(CompoundTag *tag)
 {
 	int id = tag->getByte(L"Id");
+	if (id < 0 || id >= MobEffect::NUM_EFFECTS) return nullptr;
 	int amplifier = tag->getByte(L"Amplifier");
 	int duration = tag->getInt(L"Duration");
 	boolean ambient = tag->getBoolean(L"Ambient");

@@ -317,7 +317,8 @@ bool PlayerList::placeNewPlayer(Connection *connection, shared_ptr<ServerPlayer>
 	                                                     player->getAllPlayerGamePrivileges(),
 	                                                     level->getLevelData()->getXZSize(),
 	                                                     level->getLevelData()->getHellScale(),
-	                                                     level->getLevelData()->isHardcore()));
+	                                                     level->getLevelData()->isHardcore(),
+	                                                     level->getLevelData()->isModernEnd()));
 	playerConnection->send(std::make_shared<SetSpawnPositionPacket>(spawnPos->x, spawnPos->y, spawnPos->z));
 	playerConnection->send(std::make_shared<PlayerAbilitiesPacket>(&player->abilities));
 	playerConnection->send(std::make_shared<SetCarriedItemPacket>(player->inventory->selected));
@@ -934,7 +935,7 @@ shared_ptr<ServerPlayer> PlayerList::respawn(shared_ptr<ServerPlayer> serverPlay
 
 	player->connection->send( std::make_shared<RespawnPacket>( static_cast<char>(player->dimension), player->level->getSeed(), player->level->getMaxBuildHeight(),
 		player->gameMode->getGameModeForPlayer(), level->difficulty, level->getLevelData()->getGenerator(),
-		player->level->useNewSeaLevel(), player->entityId, level->getLevelData()->getXZSize(), level->getLevelData()->getHellScale(), level->getLevelData()->isHardcore() ) );
+		player->level->useNewSeaLevel(), player->entityId, level->getLevelData()->getXZSize(), level->getLevelData()->getHellScale(), level->getLevelData()->isHardcore(), level->getLevelData()->isModernEnd() ) );
 	player->connection->teleport(player->x, player->y, player->z, player->yRot, player->xRot);
 	player->connection->send( std::make_shared<SetExperiencePacket>( player->experienceProgress, player->totalExperience, player->experienceLevel) );
 
@@ -1053,7 +1054,7 @@ void PlayerList::toggleDimension(shared_ptr<ServerPlayer> player, int targetDime
 
 	player->connection->send(std::make_shared<RespawnPacket>(static_cast<char>(player->dimension), newLevel->getSeed(), newLevel->getMaxBuildHeight(),
                                                              player->gameMode->getGameModeForPlayer(), newLevel->difficulty, newLevel->getLevelData()->getGenerator(),
-                                                             newLevel->useNewSeaLevel(), player->entityId, newLevel->getLevelData()->getXZSize(), newLevel->getLevelData()->getHellScale(), newLevel->getLevelData()->isHardcore()));
+                                                             newLevel->useNewSeaLevel(), player->entityId, newLevel->getLevelData()->getXZSize(), newLevel->getLevelData()->getHellScale(), newLevel->getLevelData()->isHardcore(), newLevel->getLevelData()->isModernEnd()));
 
 	oldLevel->removeEntityImmediately(player);
 	player->removed = false;
