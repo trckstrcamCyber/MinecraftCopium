@@ -58,6 +58,11 @@ public:
 	void tick();
 	void clearMessages(int iPad=-1);
 	void addMessage(const wstring& string, int iPad,bool bIsDeathMessage=false);
+	void setLastDeathMessage(int iPad, const wstring &message);
+	wstring getLastDeathMessage(int iPad);
+private:
+	wstring m_lastDeathMessage[XUSER_MAX_COUNT];
+public:
 	void setNowPlaying(const wstring& string);
 	void displayClientMessage(int messageId, int iPad);
 

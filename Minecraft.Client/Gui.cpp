@@ -2161,6 +2161,23 @@ void Gui::addMessage(const wstring& _string,int iPad,bool bIsDeathMessage)
 
 }
 
+void Gui::setLastDeathMessage(int iPad, const wstring &message)
+{
+	if (iPad >= 0 && iPad < XUSER_MAX_COUNT)
+	{
+		m_lastDeathMessage[iPad] = message;
+	}
+	else
+	{
+		for (int i = 0; i < XUSER_MAX_COUNT; i++) m_lastDeathMessage[i] = message;
+	}
+}
+
+wstring Gui::getLastDeathMessage(int iPad)
+{
+	return (iPad >= 0 && iPad < XUSER_MAX_COUNT) ? m_lastDeathMessage[iPad] : L"";
+}
+
 // 4J Added
 float Gui::getOpacity(int iPad, DWORD index)
 {
