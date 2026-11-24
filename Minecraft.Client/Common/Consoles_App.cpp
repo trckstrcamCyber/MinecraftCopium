@@ -77,6 +77,8 @@
 
 //CMinecraftApp app;
 unsigned int CMinecraftApp::m_uiLastSignInData = 0;
+static_assert(sizeof(GAME_SETTINGS) == CMinecraftApp::GAME_SETTINGS_PROFILE_DATA_BYTES,
+	"GAME_SETTINGS must retain its profile data size");
 
 const float CMinecraftApp::fSafeZoneX = 64.0f; // 5% of 1280
 const float CMinecraftApp::fSafeZoneY = 36.0f; // 5% of 720
@@ -980,6 +982,18 @@ void CMinecraftApp::InitGameSettings()
 
 #endif
 
+		if (GameSettingsA[i]->dwPostProcessingSettingsSignature != 0x50505333)
+		{
+			GameSettingsA[i]->dwPostProcessingSettingsSignature = 0x50505333;
+			GameSettingsA[i]->ucBloomToggle = 0;
+			GameSettingsA[i]->ucDynamicLightingToggle = 0;
+			GameSettingsA[i]->ucFXAAToggle = 0;
+			GameSettingsA[i]->ucFXAAStrength = 75;
+			GameSettingsA[i]->ucMipMapToggle = 1;
+			GameSettingsA[i]->ucMipMapStrength = 5;
+			GameSettingsA[i]->bSettingsChanged = true;
+		}
+
 		Minecraft* minecraft = Minecraft::GetInstance();
 		if (minecraft != nullptr && minecraft->stats[i] != nullptr)
 		{
@@ -1046,6 +1060,13 @@ int CMinecraftApp::SetDefaultOptions(C_4JProfile::PROFILESETTINGS *pSettings,con
 	SetGameSettings(iPad,eGameSetting_UISize,1);
 	SetGameSettings(iPad,eGameSetting_UISizeSplitscreen,2);
 	SetGameSettings(iPad,eGameSetting_AnimatedCharacter,1);
+
+	SetGameSettings(iPad, eGameSetting_Bloom_Toggle, 0);
+	SetGameSettings(iPad, eGameSetting_DynamicLighting_Toggle, 0);
+	SetGameSettings(iPad, eGameSetting_FXAA_Toggle, 0);
+	SetGameSettings(iPad, eGameSetting_FXAA_Strength, 75);
+	SetGameSettings(iPad, eGameSetting_MipMap_Toggle, 1);
+	SetGameSettings(iPad, eGameSetting_MipMap_Strength, 5);
 
 	// TU 12
 	GameSettingsA[iPad]->ucCurrentFavoriteSkinPos=0;
@@ -1528,6 +1549,13 @@ void CMinecraftApp::ApplyGameSettingsChanged(int iPad)
 	ActionGameSettings(iPad,eGameSetting_UISizeSplitscreen);
 	ActionGameSettings(iPad,eGameSetting_AnimatedCharacter);
 
+	ActionGameSettings(iPad, eGameSetting_Bloom_Toggle);
+	ActionGameSettings(iPad, eGameSetting_DynamicLighting_Toggle);
+	ActionGameSettings(iPad, eGameSetting_FXAA_Toggle);
+	ActionGameSettings(iPad, eGameSetting_FXAA_Strength);
+	ActionGameSettings(iPad, eGameSetting_MipMap_Toggle);
+	ActionGameSettings(iPad, eGameSetting_MipMap_Strength);
+
 	ActionGameSettings(iPad,eGameSetting_PS3_EULA_Read);
 	ActionGameSettings(iPad,eGameSetting_VSync);
 
@@ -1755,6 +1783,24 @@ void CMinecraftApp::ActionGameSettings(int iPad,eGameSetting eVal)
 		//nothing to do here
 		break;
 	case eGameSetting_DeathMessages:
+		//nothing to do here
+		break;
+	case eGameSetting_Bloom_Toggle:
+		//nothing to do here
+		break;
+	case eGameSetting_FXAA_Toggle:
+		//nothing to do here
+		break;
+	case eGameSetting_FXAA_Strength:
+		//nothing to do here
+		break;
+	case eGameSetting_MipMap_Toggle:
+		//nothing to do here
+		break;
+	case eGameSetting_MipMap_Strength:
+		//nothing to do here
+		break;
+	case eGameSetting_DynamicLighting_Toggle:
 		//nothing to do here
 		break;
 	case eGameSetting_UISize:
@@ -2471,6 +2517,56 @@ void CMinecraftApp::SetGameSettings(int iPad,eGameSetting eVal,unsigned char ucV
 			GameSettingsA[iPad]->bSettingsChanged=true;
 		}
 		break;
+	case eGameSetting_Bloom_Toggle:
+		if (GameSettingsA[iPad]->ucBloomToggle != (ucVal != 0))
+		{
+			GameSettingsA[iPad]->ucBloomToggle = (ucVal != 0);
+			ActionGameSettings(iPad, eVal);
+			GameSettingsA[iPad]->bSettingsChanged = true;
+		}
+		break;
+	case eGameSetting_FXAA_Toggle:
+		if (GameSettingsA[iPad]->ucFXAAToggle != (ucVal != 0))
+		{
+			GameSettingsA[iPad]->ucFXAAToggle = (ucVal != 0);
+			ActionGameSettings(iPad, eVal);
+			GameSettingsA[iPad]->bSettingsChanged = true;
+		}
+		break;
+	case eGameSetting_FXAA_Strength:
+		ucVal = min(ucVal, static_cast<unsigned char>(100));
+		if (GameSettingsA[iPad]->ucFXAAStrength != ucVal)
+		{
+			GameSettingsA[iPad]->ucFXAAStrength = ucVal;
+			ActionGameSettings(iPad, eVal);
+			GameSettingsA[iPad]->bSettingsChanged = true;
+		}
+		break;
+	case eGameSetting_MipMap_Toggle:
+		if (GameSettingsA[iPad]->ucMipMapToggle != (ucVal != 0))
+		{
+			GameSettingsA[iPad]->ucMipMapToggle = (ucVal != 0);
+			ActionGameSettings(iPad, eVal);
+			GameSettingsA[iPad]->bSettingsChanged = true;
+		}
+		break;
+	case eGameSetting_MipMap_Strength:
+		ucVal = max(static_cast<unsigned char>(1), min(ucVal, static_cast<unsigned char>(5)));
+		if (GameSettingsA[iPad]->ucMipMapStrength != ucVal)
+		{
+			GameSettingsA[iPad]->ucMipMapStrength = ucVal;
+			ActionGameSettings(iPad, eVal);
+			GameSettingsA[iPad]->bSettingsChanged = true;
+		}
+		break;
+	case eGameSetting_DynamicLighting_Toggle:
+		if (GameSettingsA[iPad]->ucDynamicLightingToggle != (ucVal != 0))
+		{
+			GameSettingsA[iPad]->ucDynamicLightingToggle = (ucVal != 0);
+			ActionGameSettings(iPad, eVal);
+			GameSettingsA[iPad]->bSettingsChanged = true;
+		}
+		break;
 	case eGameSetting_UISize:
 		if((GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_UISIZE)!=((ucVal&0x03)<<11))
 		{
@@ -2781,6 +2877,18 @@ unsigned char CMinecraftApp::GetGameSettings(int iPad,eGameSetting eVal)
 	case eGameSetting_DeathMessages:
 		return (GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_DEATHMESSAGES)>>10;
 		break;
+	case eGameSetting_Bloom_Toggle:
+		return GameSettingsA[iPad]->ucBloomToggle;
+	case eGameSetting_FXAA_Toggle:
+		return GameSettingsA[iPad]->ucFXAAToggle;
+	case eGameSetting_FXAA_Strength:
+		return GameSettingsA[iPad]->ucFXAAStrength;
+	case eGameSetting_MipMap_Toggle:
+		return GameSettingsA[iPad]->ucMipMapToggle;
+	case eGameSetting_MipMap_Strength:
+		return GameSettingsA[iPad]->ucMipMapStrength;
+	case eGameSetting_DynamicLighting_Toggle:
+		return GameSettingsA[iPad]->ucDynamicLightingToggle;
 	case eGameSetting_UISize:
 		{
 			unsigned char ucVal=(GameSettingsA[iPad]->uiBitmaskValues&GAMESETTING_UISIZE)>>11;

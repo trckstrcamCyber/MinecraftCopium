@@ -194,6 +194,14 @@ enum eGameSetting
 	eGameSetting_SafeCam, //safe cam is safe sprint 
 	eGameSetting_Swap,
     eGameSetting_GameChat,
+
+	eGameSetting_Bloom_Toggle,
+	eGameSetting_DynamicLighting_Toggle,
+
+	eGameSetting_FXAA_Toggle,
+	eGameSetting_FXAA_Strength,
+	eGameSetting_MipMap_Toggle,
+	eGameSetting_MipMap_Strength,
 };
 
 
