@@ -743,12 +743,17 @@ vector<wstring>& ItemInstance::getHUDText()
 	if (m_hudText.size() == 1 && (this->id == Item::potion_Id))
 	{
 		// NOTE: PotionItem::getEffectsText is void at head (End version) — it fills
-		// the vector passed in, it does not allocate/return one.
+		// the vector passed in, it does not allocate/return one. ItemInstance
+		// inherits enable_shared_from_this, so pass shared_from_this() (the
+		// parameter is shared_ptr<ItemInstance>, a raw 'this' does not convert).
+		// HtmlString has no RemoveFormats/getString at head — its payload is the
+		// public .text member (upstream getHUDText uses .text too). Cap at 3
+		// effect lines: the HUD callers only display indices 1-3.
 		vector<HtmlString> lines;
-		((PotionItem*)Item::items[id])->getEffectsText(this, nullptr, &lines);
-		for (HtmlString& htmlString : lines)
+		((PotionItem*)Item::items[id])->getEffectsText(shared_from_this(), nullptr, &lines);
+		for (int i = 0; i < (int)lines.size() && i < 3; i++)
 		{
-			m_hudText.push_back(HtmlString::RemoveFormats(htmlString.getString()));
+			m_hudText.push_back(lines[i].text);
 		}
 	}
 	return m_hudText;
