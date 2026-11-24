@@ -1007,7 +1007,7 @@ public static partial class FourKitHost
             var toWorld = FourKit.getWorld(toDimId);
             var from = new Location(fromWorld, fromX, fromY, fromZ);
             var to = new Location(toWorld, toX, toY, toZ);
-            var teleportCause = cause >= 0 && cause <= (int)PlayerTeleportEvent.TeleportCause.UNKNOWN
+            var teleportCause = cause >= 0 && cause <= (int)PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT
                 ? (PlayerTeleportEvent.TeleportCause)cause
                 : PlayerTeleportEvent.TeleportCause.UNKNOWN;
 
@@ -1047,7 +1047,7 @@ public static partial class FourKitHost
             var toWorld = FourKit.getWorld(toDimId);
             var from = new Location(fromWorld, fromX, fromY, fromZ);
             var to = new Location(toWorld, toX, toY, toZ);
-            var teleportCause = cause >= 0 && cause <= (int)PlayerTeleportEvent.TeleportCause.UNKNOWN
+            var teleportCause = cause >= 0 && cause <= (int)PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT
                 ? (PlayerTeleportEvent.TeleportCause)cause
                 : PlayerTeleportEvent.TeleportCause.UNKNOWN;
 

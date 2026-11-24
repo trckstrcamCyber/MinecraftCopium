@@ -43,6 +43,8 @@ protected:
 
 public:
 	EntityRenderer();	// 4J - added
+	static bool solidColourPass;
+	static bool skipPostRender;
 	virtual ~EntityRenderer();
 public:
 	virtual void render(shared_ptr<Entity> entity, double x, double y, double z, float rot, float a) = 0;

@@ -1232,8 +1232,7 @@ void UIScene_CreateWorldMenu::CreateGame(UIScene_CreateWorldMenu* pClass, DWORD 
 		if( isNumber )
 			value = _fromString<int64_t>(wSeed);
 
-		//If the value is not 0 use it, otherwise use the algorithm from the java String.hashCode() function to hash it
-		if( value != 0 )
+		if( isNumber )
 			seedValue = value;
 		else
 		{

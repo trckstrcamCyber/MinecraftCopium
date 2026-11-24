@@ -20,5 +20,7 @@ protected:
 	virtual void decorate();
 
 
+public:
 	static SPIKE SpikeValA[8];
+	static const int SPIKE_BASE_Y = 62;
 };

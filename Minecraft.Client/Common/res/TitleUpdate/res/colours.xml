@@ -236,6 +236,10 @@ if __name__=="__main__": notecolors()
   <colour name="Effect_HealthBoost" value="f87d23"/>
   <colour name="Effect_Absorption" value="2552a5"/>
   <colour name="Effect_Saturation" value="f82423"/>
+  <colour name="Effect_Glowing" value="94a061"/>
+  <colour name="Effect_Levitation" value="ceffff"/>
+  <colour name="Effect_Luck" value="339900"/>
+  <colour name="Effect_BadLuck" value="c0a44d"/>
   <colour name="Potion_BaseColour" value="385dc6"/>
 
   <!-- Mob Egg colours -->
@@ -307,6 +311,11 @@ if __name__=="__main__": notecolors()
    <colour name="Mob_Drowned_Colour2" value="799C65"/>
    <colour name="Mob_Husk_Colour1" value="797061"/>
    <colour name="Mob_Husk_Colour2" value="E6CC94"/>
+   <colour name="Mob_Stray_Colour1" value="617677"/>
+   <colour name="Mob_Stray_Colour2" value="DDEAEA"/>
+   <colour name="Mob_Shulker_Colour1" value="946794"/>
+   <colour name="Mob_Shulker_Colour2" value="4D3852"/>
+   <colour name="Mob_Shulker_Shell" value="B68DB6"/>
    <colour name="Mob_Frostbite_Colour1" value="A9E1EC"/>
    <colour name="Mob_Frostbite_Colour2" value="1F5F7D"/>
    <colour name="Mob_Vindicator_Colour1" value="959B9B"/>

@@ -218,6 +218,10 @@ const wchar_t *ColourTable::ColourTableElements[eMinecraftColour_COUNT] =
 	L"Effect_HealthBoost",
 	L"Effect_Absorption",
 	L"Effect_Saturation",
+	L"Effect_Glowing",
+	L"Effect_Levitation",
+	L"Effect_Luck",
+	L"Effect_BadLuck",
 
 	L"Potion_BaseColour",
 
@@ -360,6 +364,11 @@ const wchar_t *ColourTable::ColourTableElements[eMinecraftColour_COUNT] =
 	L"Mob_Drowned_Colour2",
 	L"Mob_Husk_Colour1",
 	L"Mob_Husk_Colour2",
+	L"Mob_Stray_Colour1",
+	L"Mob_Stray_Colour2",
+	L"Mob_Shulker_Colour1",
+	L"Mob_Shulker_Colour2",
+	L"Mob_Shulker_Shell",
 	L"Mob_Frostbite_Colour1",
 	L"Mob_Frostbite_Colour2",
 	L"Mob_Vindicator_Colour1",

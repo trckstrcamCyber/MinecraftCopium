@@ -2967,6 +2967,10 @@
 		<value>Creeper Head</value>
 	</data>
 
+	<data name="IDS_ITEM_SKULL_DRAGON">
+		<value>Dragon Head</value>
+	</data>
+
 	<data name="IDS_NETHER_STAR">
 		<value>Nether Star</value>
 	</data>
@@ -9690,6 +9694,47 @@
 	<data name="IDS_ITEM_ELYTRA">
 		<value>Elytra</value>
 	</data>
+
+	<data name="IDS_TILE_END_ROD"><value>End Rod</value></data>
+	<data name="IDS_DESC_END_ROD"><value>A light source that can be placed facing in any direction.</value></data>
+	<data name="IDS_TILE_END_GATEWAY"><value>End Gateway</value></data>
+	<data name="IDS_DESC_END_GATEWAY"><value>Appears on the main island of The End after the Ender Dragon is defeated. Leads to the outer islands.</value></data>
+	<data name="IDS_TILE_CHORUS_PLANT"><value>Chorus Plant</value></data>
+	<data name="IDS_DESC_CHORUS_PLANT"><value>Grows on End Stone in the outer islands of The End. Drops Chorus Fruit when broken.</value></data>
+	<data name="IDS_TILE_CHORUS_FLOWER"><value>Chorus Flower</value></data>
+	<data name="IDS_DESC_CHORUS_FLOWER"><value>Plant on End Stone to grow a Chorus Plant.</value></data>
+	<data name="IDS_TILE_PURPUR_BLOCK"><value>Purpur Block</value></data>
+	<data name="IDS_DESC_PURPUR_BLOCK"><value>A decorative block found in End Cities. Crafted from Popped Chorus Fruit.</value></data>
+	<data name="IDS_TILE_PURPUR_PILLAR"><value>Purpur Pillar</value></data>
+	<data name="IDS_DESC_PURPUR_PILLAR"><value>A decorative pillar crafted from Purpur Slabs.</value></data>
+	<data name="IDS_TILE_PURPUR_STAIRS"><value>Purpur Stairs</value></data>
+	<data name="IDS_TILE_PURPUR_SLAB"><value>Purpur Slab</value></data>
+	<data name="IDS_ITEM_CHORUS_FRUIT"><value>Chorus Fruit</value></data>
+	<data name="IDS_DESC_ITEM_CHORUS_FRUIT"><value>Restores 2{*ICON_SHANK_01*}. Eating it teleports you to a random nearby location. Can be smelted into Popped Chorus Fruit.</value></data>
+	<data name="IDS_ITEM_CHORUS_FRUIT_POPPED"><value>Popped Chorus Fruit</value></data>
+	<data name="IDS_DESC_ITEM_CHORUS_FRUIT_POPPED"><value>Used to craft Purpur Blocks and End Rods.</value></data>
+	<data name="IDS_POTION_GLOWING"><value>Glowing</value></data>
+	<data name="IDS_POTION_GLOWING_POSTFIX"><value>of Glowing</value></data>
+	<data name="IDS_POTION_LEVITATION"><value>Levitation</value></data>
+	<data name="IDS_POTION_LEVITATION_POSTFIX"><value>of Levitation</value></data>
+	<data name="IDS_POTION_LUCK"><value>Luck</value></data>
+	<data name="IDS_POTION_LUCK_POSTFIX"><value>of Luck</value></data>
+	<data name="IDS_POTION_UNLUCK"><value>Bad Luck</value></data>
+	<data name="IDS_POTION_UNLUCK_POSTFIX"><value>of Bad Luck</value></data>
+	<data name="IDS_POTION_DESC_LUCK"><value>Makes the affected player luckier when fishing.</value></data>
+	<data name="IDS_ITEM_END_CRYSTAL"><value>End Crystal</value></data>
+	<data name="IDS_DESC_ITEM_END_CRYSTAL"><value>Can be placed on Obsidian or Bedrock. Placing four around the exit portal in The End summons the Ender Dragon again.</value></data>
+	<data name="IDS_ITEM_DRAGON_BREATH"><value>Dragon's Breath</value></data>
+	<data name="IDS_DESC_ITEM_DRAGON_BREATH"><value>Collected in a Glass Bottle from the Ender Dragon's breath attack. Brew into Splash Potions to make Lingering Potions.</value></data>
+	<data name="IDS_ITEM_SPECTRAL_ARROW"><value>Spectral Arrow</value></data>
+	<data name="IDS_DESC_SPECTRAL_ARROW"><value>Makes whatever it hits glow, so it can be seen through walls.</value></data>
+	<data name="IDS_ITEM_TIPPED_ARROW"><value>Tipped Arrow</value></data>
+	<data name="IDS_ITEM_TIPPED_ARROW_EFFECT"><value>Arrow {*postfix*}</value></data>
+	<data name="IDS_DESC_TIPPED_ARROW"><value>Gives whatever it hits the effect of the potion it was tipped in.</value></data>
+	<data name="IDS_ITEM_LINGERING_POTION"><value>{*splash*}Lingering {*prefix*}Potion {*postfix*}</value></data>
+	<data name="IDS_ITEM_LINGERING_WATER_BOTTLE"><value>Lingering Water Bottle</value></data>
+	<data name="IDS_SHULKER"><value>Shulker</value></data>
+	<data name="IDS_STRAY"><value>Stray</value></data>
 
 	<data name="IDS_TILE_GRASS_PATH"><value>Dirt Path</value></data>
 	<data name="IDS_TILE_BEETROOTS"><value>Beetroot</value></data>

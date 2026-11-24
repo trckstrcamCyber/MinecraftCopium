@@ -24,6 +24,7 @@ public class PlayerTeleportEvent : PlayerMoveEvent
         END_PORTAL,
         /// <summary>Indicates the teleportation was caused by an event not covered by this enum.</summary>
         UNKNOWN,
+        CHORUS_FRUIT,
     }
 
     private readonly TeleportCause _cause;

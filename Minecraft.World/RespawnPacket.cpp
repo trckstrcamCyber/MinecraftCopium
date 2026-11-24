@@ -18,9 +18,10 @@ RespawnPacket::RespawnPacket()
 	m_xzSize = LEVEL_MAX_WIDTH;
 	m_hellScale = HELL_LEVEL_MAX_SCALE;
 	m_isHardcore = false;
+	m_modernEnd = false;
 }
 
-RespawnPacket::RespawnPacket(char dimension, int64_t mapSeed, int mapHeight, GameType *playerGameType, char difficulty, LevelType *pLevelType, bool newSeaLevel, int newEntityId, int xzSize, int hellScale, bool isHardcore)
+RespawnPacket::RespawnPacket(char dimension, int64_t mapSeed, int mapHeight, GameType *playerGameType, char difficulty, LevelType *pLevelType, bool newSeaLevel, int newEntityId, int xzSize, int hellScale, bool isHardcore, bool modernEnd)
 {
 	this->dimension = dimension;
 	this->mapSeed = mapSeed;
@@ -33,6 +34,7 @@ RespawnPacket::RespawnPacket(char dimension, int64_t mapSeed, int mapHeight, Gam
 	m_xzSize = xzSize;
 	m_hellScale = hellScale;
 	m_isHardcore = isHardcore;
+	m_modernEnd = modernEnd;
 	app.DebugPrintf("RespawnPacket - Difficulty = %d\n",difficulty);
 
 }
@@ -47,7 +49,8 @@ void RespawnPacket::read(DataInputStream *dis) //throws IOException
 	dimension = dis->readByte();
 	int rawGameType = dis->readByte();
 	m_isHardcore = (rawGameType & 0x8) != 0;
-	playerGameType = GameType::byId(rawGameType & ~0x8);
+	m_modernEnd = (rawGameType & 0x10) != 0;
+	playerGameType = GameType::byId(rawGameType & ~0x18);
 	mapHeight = dis->readShort();
 	wstring typeName = readUtf(dis, 16);
 	m_pLevelType = LevelType::getLevelType(typeName);
@@ -70,7 +73,7 @@ void RespawnPacket::read(DataInputStream *dis) //throws IOException
 void RespawnPacket::write(DataOutputStream *dos) //throws IOException
 {
 	dos->writeByte(dimension);
-	dos->writeByte(m_isHardcore ? (playerGameType->getId() | 0x8) : playerGameType->getId());
+	dos->writeByte(playerGameType->getId() | (m_isHardcore ? 0x8 : 0) | (m_modernEnd ? 0x10 : 0));
 	dos->writeShort(mapHeight);
 	if (m_pLevelType == nullptr)
 	{

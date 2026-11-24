@@ -525,6 +525,19 @@ void PreStitchedTextureMap::loadUVs()
 		// (row 20 cols 0-4). (Row-20 entries elsewhere in this file belong
 		// to the terrain map.)
 		ADD_ICON(20,	5,	L"iron_nugget")
+		// neoLegacy - TU46 End (2026-11-23, UNCOMPILED): End item icons,
+		// items row 20 cols 6-13 -- the next free cells after the iron
+		// nugget (row 20 col 5). Sprites are spliced from upstream
+		// TitleUpdate/res/items.png (see BINARY_LIST.md); the
+		// 1_2_2/gui/items.png copy is missing 5 of the 8 sprites.
+		ADD_ICON(20,	6,	L"chorus_fruit")
+		ADD_ICON(20,	7,	L"chorus_fruit_popped")
+		ADD_ICON(20,	8,	L"end_crystal")
+		ADD_ICON(20,	9,	L"spectral_arrow")
+		ADD_ICON(20,	10,	L"tipped_arrow_base")
+		ADD_ICON(20,	11,	L"dragon_breath")
+		ADD_ICON(20,	12,	L"tipped_arrow_head")
+		ADD_ICON(20,	13,	L"potion_bottle_lingering")
 		ADD_ICON(4,		5,	L"fishing_rod_uncast")
 		ADD_ICON(4,		6,	L"clock")
 		ADD_ICON(4,		7,	L"bowl")
@@ -1504,6 +1517,21 @@ void PreStitchedTextureMap::loadUVs()
 		// Java lantern frame 0, unshifted, like the copper lantern cells.
 		ADD_ICON(38, 0,  L"iron_chain")
 		ADD_ICON(38, 1,  L"iron_lantern")
+		// neoLegacy - TU46 End (2026-11-23, UNCOMPILED): End tile icons,
+		// terrain row 38 cols 2-8 -- the next free cells after the iron
+		// chain + lantern (row 38 cols 0-1). Row 37 cols 0-6 are the
+		// powered shelf fronts (NOT free -- the "row 37 free" note in
+		// FIX-NOTES §6.6 is stale); row 37 cols 7-15, row 38 cols 2-15
+		// and rows 39-40 were verified free in BOTH terrain atlases at
+		// head e3e11b78 (see WS-NOTES.md). Sprites are spliced from
+		// upstream TitleUpdate/res/terrain.png (see BINARY_LIST.md).
+		ADD_ICON(38, 2,  L"purpur_block")
+		ADD_ICON(38, 3,  L"purpur_pillar")
+		ADD_ICON(38, 4,  L"purpur_pillar_top")
+		ADD_ICON(38, 5,  L"end_rod")
+		ADD_ICON(38, 6,  L"chorus_flower")
+		ADD_ICON(38, 7,  L"chorus_flower_dead")
+		ADD_ICON(38, 8,  L"chorus_flower_plant")
 
 	}
 }

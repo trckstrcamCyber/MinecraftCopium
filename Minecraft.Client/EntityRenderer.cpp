@@ -36,8 +36,17 @@ void EntityRenderer::bindTexture(shared_ptr<Entity> entity)
 	bindTexture(getTextureLocation(entity));
 }
 
+bool EntityRenderer::solidColourPass = false;
+bool EntityRenderer::skipPostRender = false;
+
 void EntityRenderer::bindTexture(ResourceLocation *location)
 {
+	if (solidColourPass)
+	{
+		glDisable(GL_TEXTURE_2D);
+		entityRenderDispatcher->textures->clearLastBoundId();
+		return;
+	}
 	entityRenderDispatcher->textures->bindTexture(location);
 }
 
@@ -49,6 +58,13 @@ bool EntityRenderer::bindTexture(const wstring& urlTexture, int backupTexture)
 	
 	//int id = t->loadHttpTexture(urlTexture, backupTexture);
 	int id = t->loadMemTexture(urlTexture, backupTexture);
+
+	if (solidColourPass && id >= 0)
+	{
+		glDisable(GL_TEXTURE_2D);
+		t->clearLastBoundId();
+		return true;
+	}
 
 	if (id >= 0)
 	{
@@ -384,6 +400,7 @@ void EntityRenderer::init(EntityRenderDispatcher *entityRenderDispatcher)
 
 void EntityRenderer::postRender(shared_ptr<Entity> entity, double x, double y, double z, float rot, float a, bool bRenderPlayerShadow)
 {
+	if (solidColourPass || skipPostRender) return;
 	if( !entityRenderDispatcher->isGuiRender )		// 4J - added, don't render shadow in gui as it uses its own blending, and we have globally enabled blending for interface opacity
 	{
 		if (bRenderPlayerShadow && entityRenderDispatcher->options->fancyGraphics && shadowRadius > 0 && !entity->isInvisible())

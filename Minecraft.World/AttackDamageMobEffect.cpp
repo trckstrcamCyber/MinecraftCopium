@@ -10,10 +10,10 @@ double AttackDamageMobEffect::getAttributeModifierValue(int amplifier, Attribute
 {
 	if (id == MobEffect::weakness->id)
 	{
-		return -0.5f * (amplifier + 1);
+		return -4.0 * (amplifier + 1);
 	}
 	else
 	{
-		return 1.3 * (amplifier + 1);
+		return 3.0 * (amplifier + 1);
 	}
 }

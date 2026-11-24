@@ -35,6 +35,7 @@ LoginPacket::LoginPacket()
 	m_xzSize = LEVEL_MAX_WIDTH;
 	m_hellScale = HELL_LEVEL_MAX_SCALE;
 	m_isHardcore = false;
+	m_modernEnd = false;
 }
 
 // Client -> Server
@@ -65,10 +66,11 @@ LoginPacket::LoginPacket(const wstring& userName, int clientVersion, PlayerUID o
 	m_xzSize = LEVEL_MAX_WIDTH;
 	m_hellScale = HELL_LEVEL_MAX_SCALE;
 	m_isHardcore = false;
+	m_modernEnd = false;
 }
 
 // Server -> Client
-LoginPacket::LoginPacket(const wstring& userName, int clientVersion, LevelType *pLevelType, int64_t seed, int gameType, char dimension, BYTE mapHeight, BYTE maxPlayers, char difficulty, INT multiplayerInstanceId, BYTE playerIndex, bool newSeaLevel, unsigned int uiGamePrivileges, int xzSize, int hellScale, bool isHardcore)
+LoginPacket::LoginPacket(const wstring& userName, int clientVersion, LevelType *pLevelType, int64_t seed, int gameType, char dimension, BYTE mapHeight, BYTE maxPlayers, char difficulty, INT multiplayerInstanceId, BYTE playerIndex, bool newSeaLevel, unsigned int uiGamePrivileges, int xzSize, int hellScale, bool isHardcore, bool modernEnd)
 {
 	this->userName = userName;
 	this->clientVersion = clientVersion;
@@ -95,6 +97,7 @@ LoginPacket::LoginPacket(const wstring& userName, int clientVersion, LevelType *
 	m_xzSize = xzSize;
 	m_hellScale = hellScale;
 	m_isHardcore = isHardcore;
+	m_modernEnd = modernEnd;
 }
 
 void LoginPacket::read(DataInputStream *dis) //throws IOException
@@ -110,7 +113,8 @@ void LoginPacket::read(DataInputStream *dis) //throws IOException
 	seed = dis->readLong();
 	gameType = dis->readInt();
 	m_isHardcore = (gameType & 0x8) != 0;
-	gameType = gameType & ~0x8;
+	m_modernEnd = (gameType & 0x10) != 0;
+	gameType = gameType & ~0x18;
 	dimension = dis->readByte();
 	mapHeight = dis->readByte();
 	maxPlayers = dis->readByte();
@@ -149,7 +153,7 @@ void LoginPacket::write(DataOutputStream *dos) //throws IOException
 		writeUtf(m_pLevelType->getGeneratorName(), dos);
 	}
 	dos->writeLong(seed);
-	dos->writeInt(m_isHardcore ? (gameType | 0x8) : gameType);
+	dos->writeInt(gameType | (m_isHardcore ? 0x8 : 0) | (m_modernEnd ? 0x10 : 0));
 	dos->writeByte(dimension);
 	dos->writeByte(mapHeight);
 	dos->writeByte(maxPlayers);

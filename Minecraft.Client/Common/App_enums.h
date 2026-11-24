@@ -415,6 +415,10 @@ enum eMinecraftColour
 	eMinecraftColour_Effect_HealthBoost,
 	eMinecraftColour_Effect_Absoprtion,
 	eMinecraftColour_Effect_Saturation,
+	eMinecraftColour_Effect_Glowing,
+	eMinecraftColour_Effect_Levitation,
+	eMinecraftColour_Effect_Luck,
+	eMinecraftColour_Effect_BadLuck,
 
 	eMinecraftColour_Potion_BaseColour,
 
@@ -584,6 +588,11 @@ enum eMinecraftColour
 	eMinecraftColour_Mob_Drowned_Colour2,
 	eMinecraftColour_Mob_Husk_Colour1,
 	eMinecraftColour_Mob_Husk_Colour2,
+	eMinecraftColour_Mob_Stray_Colour1,
+	eMinecraftColour_Mob_Stray_Colour2,
+	eMinecraftColour_Mob_Shulker_Colour1,
+	eMinecraftColour_Mob_Shulker_Colour2,
+	eMinecraftColour_Mob_Shulker_Shell,
 	eMinecraftColour_Mob_Frostbite_Colour1,
 	eMinecraftColour_Mob_Frostbite_Colour2,
 	eMinecraftColour_Mob_Vindicator_Colour1,
