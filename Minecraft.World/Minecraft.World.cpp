@@ -77,6 +77,7 @@ void MinecraftWorld_RunStaticCtors()
 			VillageFeature::staticCtor();
 			RandomScatteredLargeFeature::staticCtor();
 			PillagerOutpostFeature::staticCtor();
+			IllagerStructureFeature::staticCtor();
 		}
 	}
 	EnderMan::staticCtor();

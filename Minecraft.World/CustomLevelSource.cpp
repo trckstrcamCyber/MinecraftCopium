@@ -110,6 +110,8 @@ CustomLevelSource::CustomLevelSource(Level *level, int64_t seed, bool generateSt
 	scatteredFeature = new RandomScatteredLargeFeature();
 	outpostFeature = new PillagerOutpostFeature();
 	outpostFeature->setVillageFeature(villageFeature);
+	illagerStructureFeature = new IllagerStructureFeature();
+	illagerStructureFeature->setVillageFeature(villageFeature);
 	canyonFeature = new CanyonFeature();
 	oceanMonument = new OceanMonumentFeature();
 	this->level = level;
@@ -130,6 +132,7 @@ CustomLevelSource::~CustomLevelSource()
 	delete strongholdFeature;
 	delete villageFeature;
 	delete outpostFeature;
+	delete illagerStructureFeature;
 	delete mineShaftFeature;
 	delete canyonFeature;
 
@@ -404,6 +407,7 @@ LevelChunk *CustomLevelSource::getChunk(int xOffs, int zOffs)
 		strongholdFeature->apply(this, level, xOffs, zOffs, blocks);
 		scatteredFeature->apply(this, level, xOffs, zOffs, blocks);
 		outpostFeature->apply(this, level, xOffs, zOffs, blocks);
+		illagerStructureFeature->apply(this, level, xOffs, zOffs, blocks);
 	}
 	//        canyonFeature.apply(this, level, xOffs, zOffs, blocks);
 	// townFeature.apply(this, level, xOffs, zOffs, blocks);
@@ -529,6 +533,7 @@ void CustomLevelSource::postProcess(ChunkSource *parent, int xt, int zt)
 		strongholdFeature->postProcess(level, pprandom, xt, zt);
 		scatteredFeature->postProcess(level, random, xt, zt);
 		outpostFeature->postProcess(level, random, xt, zt);
+		illagerStructureFeature->postProcess(level, random, xt, zt);
 	}
 	PIXEndNamedEvent();
 
@@ -652,6 +657,10 @@ vector<Biome::MobSpawnerData *> *CustomLevelSource::getMobsAt(MobCategory *mobCa
 	{
 		return outpostFeature->getEnemies();
 	}
+	if (mobCategory == MobCategory::monster && illagerStructureFeature->isInsideFeature(x, y, z))
+	{
+		return illagerStructureFeature->getEnemies();
+	}
 	return biome->getMobs(mobCategory);
 #else
 	return nullptr;
@@ -687,6 +696,10 @@ TilePos *CustomLevelSource::findNearestMapFeature(Level *level, const wstring& f
 	{
 		return outpostFeature->searchForGeneratedFeature(level, x, y, z, LargeFeature::LOCATE_SEARCH_RADIUS_CHUNKS);
 	}
+	if (LargeFeature::ILLAGER_STRUCTURE == featureName && illagerStructureFeature != nullptr)
+	{
+		return illagerStructureFeature->searchForGeneratedFeature(level, x, y, z, LargeFeature::LOCATE_SEARCH_RADIUS_CHUNKS);
+	}
 #endif
 	return nullptr;
 }
@@ -701,6 +714,7 @@ void CustomLevelSource::recreateLogicStructuresForChunk(int chunkX, int chunkZ)
 		strongholdFeature->apply(this, level, chunkX, chunkZ, byteArray());
 		scatteredFeature->apply(this, level, chunkX, chunkZ, byteArray());
 		outpostFeature->apply(this, level, chunkX, chunkZ, byteArray());
+		illagerStructureFeature->apply(this, level, chunkX, chunkZ, byteArray());
 #endif
 	}
 }

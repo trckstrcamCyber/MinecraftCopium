@@ -11,6 +11,7 @@ class MineShaftFeature;
 class PerlinNoise;
 class RandomScatteredLargeFeature;
 class PillagerOutpostFeature;
+class IllagerStructureFeature;
 class OceanMonumentFeature;
 
 class RandomLevelSource : public ChunkSource
@@ -70,6 +71,7 @@ private:
 	MineShaftFeature *mineShaftFeature;
 	RandomScatteredLargeFeature *scatteredFeature;
 	PillagerOutpostFeature *outpostFeature;	// neoLegacy
+	IllagerStructureFeature *illagerStructureFeature;	// neoLegacy - Sorcerer Hut, Illusioner Tower, Illager Fort
 	LargeFeature *canyonFeature;
 	OceanMonumentFeature *oceanMonument;
 private:

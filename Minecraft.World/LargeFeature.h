@@ -12,6 +12,7 @@ public:
 	static const wstring MONUMENT;		// neoLegacy - for /locate
 	static const wstring TEMPLE;		// neoLegacy - for /locate
 	static const wstring OUTPOST;		// neoLegacy - for /locate
+	static const wstring ILLAGER_STRUCTURE;	// neoLegacy - for /locate: the nearest Sorcerer Hut, Illusioner Tower or Illager Fort
 
 	// neoLegacy - /locate: how many chunks StructureFeature::searchForGeneratedFeature
 	// spirals outward before giving up. 64 chunks (1024 blocks) comfortably covers

@@ -2540,10 +2540,15 @@ if (cmd == L"tp" || cmd == L"teleport")
 			featureKey = LargeFeature::OUTPOST;
 			displayName = L"Pillager Outpost";
 		}
+		else if (structureArg == L"illager")
+		{
+			featureKey = LargeFeature::ILLAGER_STRUCTURE;
+			displayName = L"Illager Structure (hut, tower or fort)";
+		}
 		else
 		{
 			warn(L"Unknown structure: " + structureArg);
-			warn(L"Available: village, stronghold, mineshaft, monument, temple, outpost");
+			warn(L"Available: village, stronghold, mineshaft, monument, temple, outpost, illager");
 			return;
 		}
 

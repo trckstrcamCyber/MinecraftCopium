@@ -53,5 +53,6 @@ public:
 
 private:
 	void renderHitbox(shared_ptr<Entity> entity, double x, double y, double z, float rot, float a);
+	void renderGlow(shared_ptr<Entity> entity, double x, double y, double z, float a);	// neoLegacy - Glowing
 
 };

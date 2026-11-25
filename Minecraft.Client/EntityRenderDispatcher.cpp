@@ -365,6 +365,78 @@ void EntityRenderDispatcher::render(shared_ptr<Entity> entity, double x, double 
 		renderer->render(entity, x, y, z, rot, a);
 		renderer->postRender(entity, x, y, z, rot, a, bRenderPlayerShadow);
 	}
+
+	// neoLegacy - Glowing: a coloured aura through walls (not around the player's own view)
+	if (entity->isGlowing() && entity.get() != cameraEntity.get()) renderGlow(entity, x, y, z, a);
+}
+
+// Glowing (the Horn of Sight's effect). The Colored Glow Lib mod gives every target its own colour, with a rainbow and animated colours; this follows that idea:
+// the colour comes from what the thing is, so every player sees the same one, and the aura breathes.
+//   rainbow: bosses (Wither, Ender Dragon, Invoker) and illager captains    purple: illagers, Ravagers, Witches    green: undead
+//   red: other monsters    yellow: animals    cyan: players    white: anything else
+// It is a translucent box slightly bigger than the hitbox, drawn without the depth test, so it shows through walls.
+void EntityRenderDispatcher::renderGlow(shared_ptr<Entity> entity, double x, double y, double z, float a)
+{
+	float cr = 1.0f, cg = 1.0f, cb = 1.0f;
+	shared_ptr<Illager> illager = dynamic_pointer_cast<Illager>(entity);
+	bool boss = entity->GetType() == eTYPE_WITHERBOSS || entity->GetType() == eTYPE_ENDERDRAGON || entity->GetType() == eTYPE_INVOKER;
+	if (boss || (illager != nullptr && illager->isCaptain()))
+	{
+		// rainbow: the hue turns with time, and each entity starts at its own point of the wheel
+		float hue = fmodf((entity->tickCount + a) * 4.0f + entity->entityId * 37.0f, 360.0f) / 60.0f;
+		int i = static_cast<int>(hue);
+		float f = hue - i;
+		switch (i % 6)
+		{
+		case 0: cr = 1.0f; cg = f; cb = 0.0f; break;
+		case 1: cr = 1.0f - f; cg = 1.0f; cb = 0.0f; break;
+		case 2: cr = 0.0f; cg = 1.0f; cb = f; break;
+		case 3: cr = 0.0f; cg = 1.0f - f; cb = 1.0f; break;
+		case 4: cr = f; cg = 0.0f; cb = 1.0f; break;
+		default: cr = 1.0f; cg = 0.0f; cb = 1.0f - f; break;
+		}
+	}
+	else if (illager != nullptr || entity->GetType() == eTYPE_RAVAGER || entity->GetType() == eTYPE_WITCH) { cr = 0.67f; cg = 0.24f; cb = 1.0f; }
+	else
+	{
+		shared_ptr<LivingEntity> living = dynamic_pointer_cast<LivingEntity>(entity);
+		if (living != nullptr && living->getMobType() == UNDEAD) { cr = 0.27f; cg = 1.0f; cb = 0.35f; }
+		else if (entity->instanceof(eTYPE_MONSTER)) { cr = 1.0f; cg = 0.24f; cb = 0.24f; }
+		else if (entity->instanceof(eTYPE_ANIMAL)) { cr = 1.0f; cg = 0.86f; cb = 0.24f; }
+		else if (entity->instanceof(eTYPE_PLAYER)) { cr = 0.31f; cg = 0.86f; cb = 1.0f; }
+	}
+
+	int alpha = 70 + static_cast<int>(30.0f * Mth::sin((entity->tickCount + a) * 0.2f));	// the aura breathes
+	int r = static_cast<int>(cr * 255), g = static_cast<int>(cg * 255), b = static_cast<int>(cb * 255);
+
+	glDepthMask(false);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	double hw = entity->bbWidth / 2 + 0.06;
+	double y0 = y - 0.06, y1 = y + entity->bbHeight + 0.06;
+	Tesselator *t = Tesselator::getInstance();
+	t->begin();
+	t->color(r, g, b, alpha);
+	// four sides, top and bottom
+	t->vertex(x - hw, y1, z - hw); t->vertex(x - hw, y0, z - hw); t->vertex(x + hw, y0, z - hw); t->vertex(x + hw, y1, z - hw);
+	t->vertex(x + hw, y1, z + hw); t->vertex(x + hw, y0, z + hw); t->vertex(x - hw, y0, z + hw); t->vertex(x - hw, y1, z + hw);
+	t->vertex(x + hw, y1, z - hw); t->vertex(x + hw, y0, z - hw); t->vertex(x + hw, y0, z + hw); t->vertex(x + hw, y1, z + hw);
+	t->vertex(x - hw, y1, z + hw); t->vertex(x - hw, y0, z + hw); t->vertex(x - hw, y0, z - hw); t->vertex(x - hw, y1, z - hw);
+	t->vertex(x - hw, y1, z - hw); t->vertex(x + hw, y1, z - hw); t->vertex(x + hw, y1, z + hw); t->vertex(x - hw, y1, z + hw);
+	t->vertex(x - hw, y0, z + hw); t->vertex(x + hw, y0, z + hw); t->vertex(x + hw, y0, z - hw); t->vertex(x - hw, y0, z - hw);
+	t->end();
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	glDepthMask(true);
 }
 
 double EntityRenderDispatcher::distanceToSqr(double x, double y, double z)

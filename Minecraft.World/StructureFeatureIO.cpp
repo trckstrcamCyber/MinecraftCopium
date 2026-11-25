@@ -32,6 +32,7 @@ void StructureFeatureIO::staticCtor()
 	setStartId(eStructureStart_Monument, OceanMonumentFeature::MonumentStart::Create, L"Monument");
 	setStartId(eStructureStart_PillagerOutpostStart, PillagerOutpostFeature::OutpostStart::Create, L"Outpost");
 	setStartId(eStructureStart_EndCity, EndCityFeature::EndCityStart::Create, L"EndCity");
+	setStartId(eStructureStart_IllagerStructureStart, IllagerStructureFeature::IllagerStart::Create, L"IllagerStructure");
 	setPieceId(eStructurePiece_EndCityPiece, EndCityPieces::EndCityPiece::Create, L"ECP");
 
 	OceanMonumentPieces::loadStatic();
@@ -41,6 +42,7 @@ void StructureFeatureIO::staticCtor()
 	StrongholdPieces::loadStatic();
 	ScatteredFeaturePieces::loadStatic();
 	PillagerOutpostFeature::loadStatic();
+	IllagerStructureFeature::loadStatic();
 }
 
 wstring StructureFeatureIO::getEncodeId(StructureStart *start)

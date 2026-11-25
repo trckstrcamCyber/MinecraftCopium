@@ -16,6 +16,7 @@ enum EStructureStart
 	eStructureStart_Monument,
 	eStructureStart_PillagerOutpostStart,	// neoLegacy
 	eStructureStart_EndCity,
+	eStructureStart_IllagerStructureStart,	// neoLegacy
 };
 
 enum EStructurePiece
@@ -97,6 +98,9 @@ enum EStructurePiece
 	eStructurePiece_PillagerOutpostPiece,
 
 	eStructurePiece_EndCityPiece,
+
+	// Illager Invasion structures (Sorcerer Hut, Illusioner Tower, Illager Fort)
+	eStructurePiece_IllagerStructurePiece,
 };
 
 class StructureFeatureIO
