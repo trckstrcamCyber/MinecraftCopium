@@ -2056,6 +2056,11 @@ void ServerPlayer::restoreFrom(shared_ptr<Player> oldPlayer, bool restoreAll)
 void ServerPlayer::onEffectAdded(MobEffectInstance *effect)
 {
 	Player::onEffectAdded(effect);
+	// Crash 3/4 (Nov 24): effects can be added/removed during login (placeNewPlayer ->
+	// updatePlayerGameMode -> updatePlayerAbilities removes night vision) before the
+	// connection is attached (PlayerList.cpp:274 runs before :285). Skip the packet
+	// when there is no connection yet; the client gets the full effect list on login.
+	if (connection == nullptr) return;
 	connection->send(std::make_shared<UpdateMobEffectPacket>(entityId, effect));
 }
 
@@ -2063,6 +2068,7 @@ void ServerPlayer::onEffectAdded(MobEffectInstance *effect)
 void ServerPlayer::onEffectUpdated(MobEffectInstance *effect, bool doRefreshAttributes)
 {
 	Player::onEffectUpdated(effect, doRefreshAttributes);
+	if (connection == nullptr) return; // No connection yet during login; see onEffectAdded.
 	connection->send(std::make_shared<UpdateMobEffectPacket>(entityId, effect));
 }
 
@@ -2070,6 +2076,7 @@ void ServerPlayer::onEffectUpdated(MobEffectInstance *effect, bool doRefreshAttr
 void ServerPlayer::onEffectRemoved(MobEffectInstance *effect)
 {
 	Player::onEffectRemoved(effect);
+	if (connection == nullptr) return; // No connection yet during login; see onEffectAdded.
 	connection->send(std::make_shared<RemoveMobEffectPacket>(entityId, effect));
 }
 
