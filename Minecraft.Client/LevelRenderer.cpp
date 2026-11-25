@@ -2132,6 +2132,11 @@ bool LevelRenderer::updateDirtyChunks()
 					for( int y = 0; y < CHUNK_Y_COUNT; y++ )
 					{
 						ClipChunk *pClipChunk = &chunks[p][(z * yChunks + y) * xChunks + x];
+						// Crash 2d/2f (Nov 25): a fresh chunk in a narrower dimension grid
+						// (e.g. the End's 44-wide grid) has globalIdx == -1, and indexing
+						// globalChunkFlags[-1] corrupts one heap-header byte. Skip it here,
+						// like cull() and renderChunks() already do.
+						if( pClipChunk->globalIdx == -1 ) continue;
 						// Early-out for non-dirty chunks - avoids distance calculation for the vast majority at steady state
 						if( !(globalChunkFlags[ pClipChunk->globalIdx ] & CHUNK_FLAG_DIRTY) )
 							continue;

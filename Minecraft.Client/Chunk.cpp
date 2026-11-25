@@ -228,6 +228,14 @@ void Chunk::rebuild()
 	if( ( globalIdx < 0 ) || ( globalIdx >= LevelRenderer::getGlobalChunkCount() ) ) return;
 	int lists = globalIdx * LevelRenderer::CHUNK_RENDER_LAYERS;
 	lists += levelRenderer->chunkLists;
+	// Crash 2f (Nov 25): the guard above validates globalIdx, but CBuffClear is
+	// called with lists + chunkLists — the OpenGL display-list base returned by
+	// glGenLists (MemoryTracker::genLists), not 0. The cc-11 backtrace proved the
+	// fault reaches CBuffClear through reset -> setPos -> rebuild with a post-offset
+	// index no earlier guard validated, so validate the FINAL index against the
+	// render lists actually allocated for this renderer before any CBuffClear or
+	// glNewList can use it.
+	if( ( lists < levelRenderer->chunkLists ) || ( lists + LevelRenderer::CHUNK_RENDER_LAYERS > levelRenderer->chunkLists + LevelRenderer::getGlobalChunkCount() * LevelRenderer::CHUNK_RENDER_LAYERS ) ) return;
 
 	PIXEndNamedEvent();
 
@@ -1027,12 +1035,18 @@ void Chunk::reset()
 			if (lists >= 0 && lists < LevelRenderer::getGlobalChunkCount() * LevelRenderer::CHUNK_RENDER_LAYERS)
 			{
 				lists += levelRenderer->chunkLists;
-				for (int i = 0; i < LevelRenderer::CHUNK_RENDER_LAYERS; i++)
+				// Crash 2f (Nov 25): the bound above checks the PRE-OFFSET index, but
+				// CBuffClear is called with lists + chunkLists (see rebuild()). Validate
+				// the FINAL index against the allocated render lists before clearing.
+				if (lists >= levelRenderer->chunkLists && lists + LevelRenderer::CHUNK_RENDER_LAYERS <= levelRenderer->chunkLists + LevelRenderer::getGlobalChunkCount() * LevelRenderer::CHUNK_RENDER_LAYERS)
 				{
-					// 4J - added - clear any renderer data associated with this unused list
-					RenderManager.CBuffClear(lists + i);
+					for (int i = 0; i < LevelRenderer::CHUNK_RENDER_LAYERS; i++)
+					{
+						// 4J - added - clear any renderer data associated with this unused list
+						RenderManager.CBuffClear(lists + i);
+					}
+					levelRenderer->setGlobalChunkFlags(x, y, z, level, 0);
 				}
-				levelRenderer->setGlobalChunkFlags(x, y, z, level, 0);
 			}
 		}
 		LeaveCriticalSection(&levelRenderer->m_csDirtyChunks);
