@@ -18,7 +18,6 @@
 #include "../Minecraft.Client/GameRenderer.h"
 #include "ItemEntity.h"
 #include "Minecart.h"
-#include <mutex>
 #include <unordered_map>
 #include <atomic>
 
@@ -53,10 +52,31 @@ void LevelChunk::staticCtor()
 }
 
 // neoLegacy - side table for tile ids >= 256, keyed by chunk-local position
+//
+// Crash 1 (Nov 24): the ext-tile lock is an SRWLOCK, not a std::mutex.
+// MSVC's std::mutex unlock path calls RtlWakeAddressAll, and Wine's
+// implementation faults (null read inside ntdll) under the End-entry
+// chunk-save load, crashing the server thread out of collectExtTiles.
+// SRWLOCK never goes through WaitOnAddress/WakeByAddressAll, so the save
+// path can't hit that Wine bug. Exclusive-only use: every site below
+// takes the lock exclusively, exactly as the mutex was used.
 struct LevelChunk::ExtTileTable
 {
-	std::mutex lock;
+	SRWLOCK lock;
 	std::unordered_map<int, int> tiles;
+	ExtTileTable() { InitializeSRWLock(&lock); }
+};
+
+// RAII exclusive guard for an ExtTileTable SRWLOCK (replaces
+// std::lock_guard<std::mutex> at the sites below).
+struct ExtTileTableLock
+{
+	SRWLOCK *lock;
+	explicit ExtTileTableLock(SRWLOCK *l) : lock(l) { AcquireSRWLockExclusive(lock); }
+	~ExtTileTableLock() { ReleaseSRWLockExclusive(lock); }
+private:
+	ExtTileTableLock(const ExtTileTableLock &) = delete;
+	ExtTileTableLock &operator=(const ExtTileTableLock &) = delete;
 };
 static inline int extKey(int x, int y, int z) { return (y << 8) | (z << 4) | x; }
 
@@ -305,7 +325,7 @@ void LevelChunk::stopSharingTilesAndData()
 		std::shared_ptr<ExtTileTable> copy = std::make_shared<ExtTileTable>();
 		if (cur != nullptr)
 		{
-			std::lock_guard<std::mutex> g(cur->lock);
+			ExtTileTableLock g(&cur->lock);
 			copy->tiles = cur->tiles;
 		}
 		std::atomic_store(&extTiles, copy);
@@ -2653,7 +2673,7 @@ int LevelChunk::resolveExtTile(int lowValue, int x, int y, int z)
 	if (lowValue != Tile::EXT_TILE_PLACEHOLDER) return lowValue;
 	std::shared_ptr<ExtTileTable> t = std::atomic_load(&extTiles);
 	if (t == nullptr) return 0;
-	std::lock_guard<std::mutex> g(t->lock);
+	ExtTileTableLock g(&t->lock);
 	std::unordered_map<int, int>::iterator it = t->tiles.find(extKey(x, y, z));
 	return it != t->tiles.end() ? it->second : 0;	// placeholder without an entry (not received yet) reads as air, never as the null tile 255
 }
@@ -2662,7 +2682,7 @@ void LevelChunk::setExtTile(int x, int y, int z, int tile)
 {
 	std::shared_ptr<ExtTileTable> t = std::atomic_load(&extTiles);
 	if (t == nullptr) return;
-	std::lock_guard<std::mutex> g(t->lock);
+	ExtTileTableLock g(&t->lock);
 	// neoLegacy - worker-crash fix: validate the ext id before storing it. Tile::tiles[] has only TILE_NUM_COUNT (4096)
 	// entries, and the chunk mesher (Chunk::rebuild) indexes it with the id from this table. An id >= 4096 (e.g. from a
 	// corrupted ExtTiles save tag or a bad network packet) would read out of bounds and crash the rebuild worker.
@@ -2680,7 +2700,7 @@ bool LevelChunk::hasExtTiles()
 {
 	std::shared_ptr<ExtTileTable> t = std::atomic_load(&extTiles);
 	if (t == nullptr) return false;
-	std::lock_guard<std::mutex> g(t->lock);
+	ExtTileTableLock g(&t->lock);
 	return !t->tiles.empty();
 }
 
@@ -2699,7 +2719,7 @@ void LevelChunk::collectExtTiles(int minX, int minY, int minZ, int maxX, int max
 	// deadlocked the game as soon as the first extended tile existed.
 	std::vector< std::pair<int, int> > snapshot;
 	{
-		std::lock_guard<std::mutex> g(t->lock);
+		ExtTileTableLock g(&t->lock);
 		snapshot.reserve(t->tiles.size());
 		for (std::unordered_map<int, int>::iterator it = t->tiles.begin(); it != t->tiles.end(); ++it)
 		{
@@ -2745,7 +2765,7 @@ void LevelChunk::getTileIds16(unsigned short *out)
 
 	std::shared_ptr<ExtTileTable> t = std::atomic_load(&extTiles);
 	if (t == nullptr) return;
-	std::lock_guard<std::mutex> g(t->lock);
+	ExtTileTableLock g(&t->lock);
 	for (std::unordered_map<int, int>::iterator it = t->tiles.begin(); it != t->tiles.end(); ++it)
 	{
 		int x = it->first & 15;
