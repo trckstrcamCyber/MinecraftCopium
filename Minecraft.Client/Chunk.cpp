@@ -215,7 +215,18 @@ void Chunk::rebuild()
 
 	int r = 1;
 
-	int lists = levelRenderer->getGlobalIndexForChunk(this->x,this->y,this->z,level) * LevelRenderer::CHUNK_RENDER_LAYERS;
+	// Crash 2c (Nov 25): getGlobalIndexForChunk returns -1 for any chunk outside the
+	// current dimension's render grid. That -1 is routine at the Overworld->End swap
+	// (the 80-wide Overworld grid is re-evaluated against the End's 44-wide grid), and
+	// rebuild() is the only live consumer that never checks for it: -1 became
+	// lists = chunkLists - CHUNK_RENDER_LAYERS, and CBuffClear read its short table
+	// below the base (fault at CBuffClear+0x20, same address in builds #28 and #29).
+	// The crash2b dimIdx guard cannot help here: it only changes one source of a bad
+	// index, and its own -1 output crashes in exactly the same way. A chunk with no
+	// global index has no render lists to write, so there is nothing to rebuild.
+	int globalIdx = levelRenderer->getGlobalIndexForChunk(this->x,this->y,this->z,level);
+	if( ( globalIdx < 0 ) || ( globalIdx >= LevelRenderer::getGlobalChunkCount() ) ) return;
+	int lists = globalIdx * LevelRenderer::CHUNK_RENDER_LAYERS;
 	lists += levelRenderer->chunkLists;
 
 	PIXEndNamedEvent();
