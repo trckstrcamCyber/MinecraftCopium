@@ -228,14 +228,17 @@ void Chunk::rebuild()
 	if( ( globalIdx < 0 ) || ( globalIdx >= LevelRenderer::getGlobalChunkCount() ) ) return;
 	int lists = globalIdx * LevelRenderer::CHUNK_RENDER_LAYERS;
 	lists += levelRenderer->chunkLists;
-	// Crash 2f (Nov 25): the guard above validates globalIdx, but CBuffClear is
-	// called with lists + chunkLists — the OpenGL display-list base returned by
-	// glGenLists (MemoryTracker::genLists), not 0. The cc-11 backtrace proved the
-	// fault reaches CBuffClear through reset -> setPos -> rebuild with a post-offset
-	// index no earlier guard validated, so validate the FINAL index against the
-	// render lists actually allocated for this renderer before any CBuffClear or
-	// glNewList can use it.
-	if( ( lists < levelRenderer->chunkLists ) || ( lists + LevelRenderer::CHUNK_RENDER_LAYERS > levelRenderer->chunkLists + LevelRenderer::getGlobalChunkCount() * LevelRenderer::CHUNK_RENDER_LAYERS ) ) return;
+	// Crash 2h (Nov 25): the cc-11 backtrace + cc-46 register dump proved the faulting
+	// index is the FINAL index (RBX = 0x80A4FF = 8,430,847), 42,239 entries past
+	// CBuffClear's 8,388,608-entry short table (16 MiB, allocated once in
+	// Renderer::Initialise). chunkLists is a 4J command-buffer base, not a GL base,
+	// and the cc-46 game-side census shows it can be ~8.1M+ at runtime. The crash2f
+	// guard that was here bounded lists against chunkLists + count*4 — the same bound
+	// the crash2c guard above already enforces (a tautology, crash2g), so it could
+	// never fire. The only bound that can stop this fault is the TABLE CAPACITY
+	// itself: a chunk whose final index would pass the table end has no valid render
+	// lists, so there is nothing to rebuild.
+	if( ( lists < 0 ) || ( lists + LevelRenderer::CHUNK_RENDER_LAYERS > 8388608 ) ) return;
 
 	PIXEndNamedEvent();
 
@@ -1035,10 +1038,14 @@ void Chunk::reset()
 			if (lists >= 0 && lists < LevelRenderer::getGlobalChunkCount() * LevelRenderer::CHUNK_RENDER_LAYERS)
 			{
 				lists += levelRenderer->chunkLists;
-				// Crash 2f (Nov 25): the bound above checks the PRE-OFFSET index, but
-				// CBuffClear is called with lists + chunkLists (see rebuild()). Validate
-				// the FINAL index against the allocated render lists before clearing.
-				if (lists >= levelRenderer->chunkLists && lists + LevelRenderer::CHUNK_RENDER_LAYERS <= levelRenderer->chunkLists + LevelRenderer::getGlobalChunkCount() * LevelRenderer::CHUNK_RENDER_LAYERS)
+				// Crash 2h (Nov 25): the outer bound checks the PRE-OFFSET index, but
+				// CBuffClear is called with the FINAL index. The cc-46 register dump
+				// proved the final index can be 0x80A4FF = 8,430,847, 42,239 past
+				// CBuffClear's 8,388,608-entry table — the crash2f inner guard re-checked
+				// chunkLists + count*4, which is the same bound the outer check already
+				// enforces (a tautology, crash2g). Only the TABLE CAPACITY can stop this
+				// fault: skip the clear when the final index would pass the table end.
+				if (lists >= 0 && lists + LevelRenderer::CHUNK_RENDER_LAYERS <= 8388608)
 				{
 					for (int i = 0; i < LevelRenderer::CHUNK_RENDER_LAYERS; i++)
 					{

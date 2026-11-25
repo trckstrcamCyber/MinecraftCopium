@@ -180,6 +180,12 @@ LevelRenderer::LevelRenderer(Minecraft *mc, Textures *textures)
 	this->textures = textures;
 #ifndef MINECRAFT_SERVER_BUILD
 	chunkLists = MemoryTracker::genLists(getGlobalChunkCount() * CHUNK_RENDER_LAYERS);		// One render list per chunk render layer.
+	// Crash 2h diagnostic (Nov 25): TEMPORARY — log the render-list base so the next
+	// run shows the actual value. The cc-46 register dump proved the faulting index is
+	// chunkLists + globalIdx*4 (RBX = 0x80A4FF), and the game-side census shows no game
+	// code can push chunkLists past a few thousand — so the ~8.1M base must come from
+	// inside the 4J lib. Remove this line once the value is known.
+	app.DebugPrintf("Crash2h: chunkLists = %d (count %d)\n", chunkLists, getGlobalChunkCount() * CHUNK_RENDER_LAYERS);
 	globalChunkFlags = new unsigned char[getGlobalChunkCount()];
 	memset(globalChunkFlags, 0, getGlobalChunkCount());
 
