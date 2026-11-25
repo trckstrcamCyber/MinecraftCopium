@@ -3820,6 +3820,14 @@ int LevelRenderer::getGlobalIndexForChunk(int x, int y, int z, Level *level)
 int LevelRenderer::getGlobalIndexForChunk(int x, int y, int z, int dimensionId)
 {
 	int dimIdx = getDimensionIndexFromId(dimensionId);
+	// Crash 2b (Nov 25): getDimensionIndexFromId is (3 - id) % 3, unchecked — a
+	// garbage dimension id (e.g. from a stale Level during the Overworld->End
+	// swap) yields dimIdx outside [0,2] and the MAX_LEVEL_RENDER_SIZE /
+	// DIMENSION_OFFSETS reads below go out of bounds, producing a wild index
+	// that CBuffClear then dereferences unchecked (fault at CBuffClear+0x20,
+	// build #28 portal-touch crash). Every consumer already treats -1 as
+	// "skip", so reject the bad dimension here, at the source.
+	if( ( dimIdx < 0 ) || ( dimIdx > 2 ) ) return -1;
 	int xx = ( x / CHUNK_XZSIZE ) + ( MAX_LEVEL_RENDER_SIZE[dimIdx] / 2 );
 	int yy = y / CHUNK_SIZE;
 	int zz = ( z / CHUNK_XZSIZE )  + ( MAX_LEVEL_RENDER_SIZE[dimIdx] / 2 );
