@@ -233,7 +233,7 @@ void IllagerStructureFeature::IllagerPiece::fillChest(Level *level, Random *rand
 		{
 			// an enchanted book with one random enchantment
 			WeighedTreasure *book = Item::enchanted_book->createForRandomTreasure(random, 1, 1, 1);
-			stack = book->item->copy();
+			stack = book->getItem()->copy();
 			delete book;
 		}
 		else
