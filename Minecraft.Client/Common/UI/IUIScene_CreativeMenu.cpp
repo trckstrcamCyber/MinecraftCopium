@@ -1030,6 +1030,7 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::bullet_556_Id)	// neoLegacy - 5.56 ammunition
 		ITEM(Item::jdemon_sword_Id)		// neoLegacy - JDemon sword
 		ITEM(Item::cmonster_sword_Id)	// neoLegacy - CMonster sword
+		ITEM(Item::ice_wand_Id)	// neoLegacy - Ice Wand (moved here from Materials, after the CMonster sword — Nov 24, 2026)
 		ITEM(Item::cursed_hilt_Id)
 		ITEM(Item::wado_ichimonji_Id)
 		ITEM(Item::sandai_kitetsu_Id)
@@ -1145,7 +1146,6 @@ void IUIScene_CreativeMenu::staticCtor()
 		ITEM(Item::sugar_Id)
 		ITEM(Item::slime_ball_Id)
 		ITEM(Item::ice_ball_Id)	// neoLegacy - Ice Ball
-		ITEM(Item::ice_wand_Id)	// neoLegacy - Ice Wand
 		ITEM(Item::blaze_rod_Id)
 		ITEM(Item::gold_nugget_Id)
 		ITEM(Item::copper_nugget_Id)

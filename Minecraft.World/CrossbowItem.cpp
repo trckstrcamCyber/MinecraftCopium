@@ -159,9 +159,22 @@ void CrossbowItem::shootLoaded(shared_ptr<ItemInstance> weapon, Level *level, sh
 
 	const int count = (multishot > 0 && !torch) ? 3 : 1;
 
+	// The arrow this crossbow was loaded with, kept in its tag (same
+	// pattern as the ChargedFirework rocket). A tipped arrow keeps its
+	// potion value, a spectral arrow its type; a plain arrow — or no
+	// stored arrow (Creative load with no ammo) — shoots a plain arrow,
+	// as before. Multishot fires three of the loaded type for one arrow.
+	shared_ptr<ItemInstance> chargedArrow;
+	if (weapon->hasTag())
+	{
+		CompoundTag *arrowTag = weapon->getTag()->getCompound(L"ChargedArrow");
+		if (arrowTag != nullptr) chargedArrow = ItemInstance::fromTag(arrowTag);
+	}
+
 	for (int i = 0; i < count; i++)
 	{
 		shared_ptr<Arrow> arrow = createCrossbowArrow(level, player, angles[i]);
+		if (chargedArrow != nullptr) arrow->setFromItem(chargedArrow);
 		if (piercing > 0) arrow->setPierceLevel(piercing);
 
 		// the arrow remembers the Looting of the crossbow it came from, so swapping weapons before it lands changes nothing
@@ -181,7 +194,8 @@ void CrossbowItem::shootLoaded(shared_ptr<ItemInstance> weapon, Level *level, sh
 	}
 }
 
-// The first thing in the inventory (hotbar first) this crossbow can load: an arrow or a firework rocket, or for a Torched crossbow a torch.
+// The first thing in the inventory (hotbar first) this crossbow can load: any arrow — plain, spectral or tipped (Arrow::isArrowItem, the
+// same predicate the bow uses) — or a firework rocket, or for a Torched crossbow a torch.
 int CrossbowItem::findAmmoSlot(shared_ptr<Player> player, shared_ptr<ItemInstance> crossbow)
 {
 	const bool torched = getAmmoId(crossbow) == Tile::torch_Id;
@@ -193,7 +207,7 @@ int CrossbowItem::findAmmoSlot(shared_ptr<Player> player, shared_ptr<ItemInstanc
 		{
 			if (stack->id == Tile::torch_Id) return static_cast<int>(i);
 		}
-		else if (stack->id == Item::arrow_Id || stack->id == Item::fireworks_Id)
+		else if (Arrow::isArrowItem(stack->id) || stack->id == Item::fireworks_Id)
 		{
 			return static_cast<int>(i);
 		}
@@ -221,7 +235,11 @@ shared_ptr<ItemInstance> CrossbowItem::use(shared_ptr<ItemInstance> instance, Le
 		}
 
 		shared_ptr<ItemInstance> empty = withItem(instance, Item::crossbow_Id);
-		if (empty->hasTag()) empty->getTag()->remove(L"ChargedFirework");
+		if (empty->hasTag())
+		{
+			empty->getTag()->remove(L"ChargedFirework");
+			empty->getTag()->remove(L"ChargedArrow");
+		}
 		empty->hurtAndBreak(firework ? 3 : 1, player);	// a rocket costs 3 durability
 		return empty;
 	}
@@ -247,6 +265,7 @@ void CrossbowItem::releaseUsing(shared_ptr<ItemInstance> itemInstance, Level *le
 
 	bool rocket = false;
 	shared_ptr<ItemInstance> rocketItem;
+	shared_ptr<ItemInstance> arrowItem;
 	if (slot >= 0)
 	{
 		shared_ptr<ItemInstance> stack = player->inventory->getItem(slot);
@@ -255,6 +274,16 @@ void CrossbowItem::releaseUsing(shared_ptr<ItemInstance> itemInstance, Level *le
 			rocket = true;
 			rocketItem = stack->copy();
 			rocketItem->count = 1;
+		}
+		else if (stack != nullptr && Arrow::isArrowItem(stack->id))
+		{
+			// The loaded arrow is kept in the crossbow's tag (same
+			// pattern as the ChargedFirework rocket), so shootLoaded
+			// can fire the same type — tipped arrows keep their potion
+			// value, spectral arrows their type. Only the count is
+			// forced to 1: one arrow is consumed, whatever the stack.
+			arrowItem = stack->copy();
+			arrowItem->count = 1;
 		}
 		if (!creative) player->inventory->removeItem(slot, 1);
 	}
@@ -266,6 +295,19 @@ void CrossbowItem::releaseUsing(shared_ptr<ItemInstance> itemInstance, Level *le
 	{
 		if (!loadedStack->hasTag()) loadedStack->setTag(new CompoundTag());
 		loadedStack->getTag()->putCompound(L"ChargedFirework", rocketItem->save(new CompoundTag()));
+	}
+	if (arrowItem != nullptr)
+	{
+		if (!loadedStack->hasTag()) loadedStack->setTag(new CompoundTag());
+		loadedStack->getTag()->putCompound(L"ChargedArrow", arrowItem->save(new CompoundTag()));
+	}
+	else if (loadedStack->hasTag())
+	{
+		// A plain-arrow load — or a Creative load with no ammo — must
+		// not inherit a stale ChargedArrow from the previous load:
+		// withItem copies the tag, so clear it here. (use() clears it
+		// again when the crossbow is fired.)
+		loadedStack->getTag()->remove(L"ChargedArrow");
 	}
 	player->inventory->setItem(player->inventory->selected, loadedStack);
 }
