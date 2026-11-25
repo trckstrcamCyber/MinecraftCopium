@@ -1008,7 +1008,12 @@ void Chunk::reset()
 		if( refCount == 0 )
 		{
 			int lists = levelRenderer->getGlobalIndexForChunk(x, y, z, level) * LevelRenderer::CHUNK_RENDER_LAYERS;
-			if(lists >= 0)
+			// Crash 2 (Nov 24): a stale dimension id during the Overworld->End swap makes
+			// getGlobalIndexForChunk return a wild POSITIVE index (0x80897f, ~25x the max
+			// valid 82175), so the old `lists >= 0` check alone let it reach CBuffClear,
+			// which indexes its short table unchecked. Bound the index to the allocated
+			// render lists (getGlobalChunkCount() * 4 = 328704).
+			if (lists >= 0 && lists < LevelRenderer::getGlobalChunkCount() * LevelRenderer::CHUNK_RENDER_LAYERS)
 			{
 				lists += levelRenderer->chunkLists;
 				for (int i = 0; i < LevelRenderer::CHUNK_RENDER_LAYERS; i++)
