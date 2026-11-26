@@ -873,7 +873,9 @@ void LevelRenderer::renderChunksDirect(int layer, double alpha)
 	{
 		for (int i = 0; i < numVisible; i++)
 		{
-			if (RenderManager.CBuffCall(lists[i], first))
+			// Crash 2l: never play back a list id the CBuff table cannot hold (8388608 entries).
+			// The End-trip id 0x808081 faulted in CBuffCall; skip it and keep rendering the rest.
+			if (lists[i] >= 0 && lists[i] < 8388608 && RenderManager.CBuffCall(lists[i], first))
 				first = false;
 		}
 	}
@@ -976,7 +978,8 @@ int LevelRenderer::renderChunks(int from, int to, int layer, double alpha)
 	{
 		for (int i = 0; i < numVisible; i++)
 		{
-			if (RenderManager.CBuffCall(lists[i], first))
+			// Crash 2l: never play back a list id the CBuff table cannot hold (8388608 entries).
+			if (lists[i] >= 0 && lists[i] < 8388608 && RenderManager.CBuffCall(lists[i], first))
 				first = false;
 			count++;
 		}
@@ -993,6 +996,8 @@ int LevelRenderer::renderChunks(int from, int to, int layer, double alpha)
 			if (layer < 2 && ( globalChunkFlags[pClipChunk->globalIdx] & emptyFlag ) == emptyFlag) continue;
 			int list = pClipChunk->globalIdx * CHUNK_RENDER_LAYERS + layer;
 			list += chunkLists;
+			// Crash 2l: never play back a list id the CBuff table cannot hold (8388608 entries).
+			if (list < 0 || list >= 8388608) continue;
 			if(RenderManager.CBuffCall(list, first))
 				first = false;
 			count++;
@@ -2807,12 +2812,17 @@ void LevelRenderer::cull(Culler *culler, float a)
 				if (pClipChunk->visible && pClipChunk->globalIdx != -1 && visibleLists_layer0 != nullptr)
 				{
 					int list = pClipChunk->globalIdx * CHUNK_RENDER_LAYERS + chunkLists;
-					if (!((flags & CHUNK_FLAG_EMPTY0) == CHUNK_FLAG_EMPTY0))
-						visibleLists_layer0[visibleCount_layer0++] = list;
-					if (!((flags & CHUNK_FLAG_EMPTY1) == CHUNK_FLAG_EMPTY1))
-						visibleLists_layer1[visibleCount_layer1++] = list + 1;
-					visibleLists_layer2[visibleCount_layer2++] = list + 2;
-					visibleLists_layer3[visibleCount_layer3++] = list + 3;
+					// Crash 2l: never queue a list id the CBuff table cannot hold (8388608 entries).
+					// The End-trip ids (~8.42M) faulted one frame later in CBuffCall; skip them here.
+					if (list >= 0 && list + CHUNK_RENDER_LAYERS <= 8388608)
+					{
+						if (!((flags & CHUNK_FLAG_EMPTY0) == CHUNK_FLAG_EMPTY0))
+							visibleLists_layer0[visibleCount_layer0++] = list;
+						if (!((flags & CHUNK_FLAG_EMPTY1) == CHUNK_FLAG_EMPTY1))
+							visibleLists_layer1[visibleCount_layer1++] = list + 1;
+						visibleLists_layer2[visibleCount_layer2++] = list + 2;
+						visibleLists_layer3[visibleCount_layer3++] = list + 3;
+					}
 				}
 			}
 		}
