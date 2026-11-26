@@ -287,6 +287,54 @@ void IllagerStructureFeature::IllagerPiece::spawnMobs(Level *level, Random *rand
 	}
 }
 
+// ---------------------------------------------------------------------------------------------------------------------------------
+// Iron lantern / iron chain overlay (2026-11-25, vanilla-faithful: iron pair 2331/2330, no new blocks).
+// The baked cells pack tile in 8 bits, so the generator's substitutions (a hanging lantern -> glowstone 89, a chain -> iron bars 101)
+// cannot hold the 12-bit extended ids. Instead, after the grid is placed, this overlay replaces the substituted cells with the real
+// tiles, in support-safe order: chains first, top-down (each chain then has a solid block or another chain above it), then lanterns
+// (which hang from the chain or a solid block above). IronThinTile inherits CopperThinTile's support rules, and placeBlock ->
+// setTileAndData triggers onPlace -> checkCanSurvive, so an unsupported chain/lantern would pop -- the order below is what keeps them.
+//
+// What is replaced (derived from the baked cells + the generator's convert(), see NOTES.md):
+//   * every glowstone (89,0) cell -> iron lantern 2331. All 124 have a solid block directly above and air below: the hanging-
+//     lantern signature (the generator maps a hanging lantern to glowstone). No glowstone cell is embedded in a floor or wall.
+//   * the ONE iron-bar run that is a chain -> iron chain 2330: the Fort's 8-long vertical run (log above, a hanging lantern
+//     directly below). All other iron bars are genuine window/structural bars and are left alone (236 of 268).
+// What is NOT replaced: every torch (50,5) stays a torch. A torch, a standing lantern and a candle all bake to (50,5) and cannot
+// be told apart from the baked data; Cameron ruled out a new candle block, so the standing lanterns stay torches for now.
+// One entry = x, y, z, tile, in template-local coordinates, in placement order (chains y-descending, then lanterns).
+// Indexed [variant][rotation]: 0 Sorcerer Hut, 1-3 Illusioner Tower, 4 Illager Fort; HUT has no entries.
+static const short OVERLAY_TOWER1_R0[] = {0,26,0,2331,0,26,14,2331,3,24,7,2331,7,4,7,2331,7,9,7,2331,7,14,7,2331,7,20,7,2331,14,26,0,2331,14,26,14,2331};
+static const short OVERLAY_TOWER1_R1[] = {0,26,0,2331,0,26,14,2331,7,4,7,2331,7,9,7,2331,7,14,7,2331,7,20,7,2331,7,24,3,2331,14,26,0,2331,14,26,14,2331};
+static const short OVERLAY_TOWER1_R2[] = {0,26,0,2331,0,26,14,2331,7,4,7,2331,7,9,7,2331,7,14,7,2331,7,20,7,2331,11,24,7,2331,14,26,0,2331,14,26,14,2331};
+static const short OVERLAY_TOWER1_R3[] = {0,26,0,2331,0,26,14,2331,7,4,7,2331,7,9,7,2331,7,14,7,2331,7,20,7,2331,7,24,11,2331,14,26,0,2331,14,26,14,2331};
+static const short OVERLAY_TOWER2_R0[] = {0,26,0,2331,0,26,14,2331,3,24,7,2331,7,4,7,2331,7,9,7,2331,7,14,7,2331,7,20,7,2331,7,26,7,2331,14,26,0,2331,14,26,14,2331};
+static const short OVERLAY_TOWER2_R1[] = {0,26,0,2331,0,26,14,2331,7,4,7,2331,7,9,7,2331,7,14,7,2331,7,20,7,2331,7,24,3,2331,7,26,7,2331,14,26,0,2331,14,26,14,2331};
+static const short OVERLAY_TOWER2_R2[] = {0,26,0,2331,0,26,14,2331,7,4,7,2331,7,9,7,2331,7,14,7,2331,7,20,7,2331,7,26,7,2331,11,24,7,2331,14,26,0,2331,14,26,14,2331};
+static const short OVERLAY_TOWER2_R3[] = {0,26,0,2331,0,26,14,2331,7,4,7,2331,7,9,7,2331,7,14,7,2331,7,20,7,2331,7,24,11,2331,7,26,7,2331,14,26,0,2331,14,26,14,2331};
+static const short OVERLAY_TOWER3_R0[] = {0,26,0,2331,0,26,14,2331,3,24,7,2331,7,4,7,2331,7,9,7,2331,7,14,7,2331,7,20,7,2331,14,26,0,2331,14,26,14,2331};
+static const short OVERLAY_TOWER3_R1[] = {0,26,0,2331,0,26,14,2331,7,4,7,2331,7,9,7,2331,7,14,7,2331,7,20,7,2331,7,24,3,2331,14,26,0,2331,14,26,14,2331};
+static const short OVERLAY_TOWER3_R2[] = {0,26,0,2331,0,26,14,2331,7,4,7,2331,7,9,7,2331,7,14,7,2331,7,20,7,2331,11,24,7,2331,14,26,0,2331,14,26,14,2331};
+static const short OVERLAY_TOWER3_R3[] = {0,26,0,2331,0,26,14,2331,7,4,7,2331,7,9,7,2331,7,14,7,2331,7,20,7,2331,7,24,11,2331,14,26,0,2331,14,26,14,2331};
+static const short OVERLAY_FORT_R0[] = {20,24,22,2330,20,23,22,2330,20,22,22,2330,20,21,22,2330,20,20,22,2330,20,19,22,2330,20,18,22,2330,20,17,22,2330,20,5,22,2331,20,10,22,2331,20,16,22,2331};
+static const short OVERLAY_FORT_R1[] = {5,24,20,2330,5,23,20,2330,5,22,20,2330,5,21,20,2330,5,20,20,2330,5,19,20,2330,5,18,20,2330,5,17,20,2330,5,5,20,2331,5,10,20,2331,5,16,20,2331};
+static const short OVERLAY_FORT_R2[] = {5,24,5,2330,5,23,5,2330,5,22,5,2330,5,21,5,2330,5,20,5,2330,5,19,5,2330,5,18,5,2330,5,17,5,2330,5,5,5,2331,5,10,5,2331,5,16,5,2331};
+static const short OVERLAY_FORT_R3[] = {22,24,5,2330,22,23,5,2330,22,22,5,2330,22,21,5,2330,22,20,5,2330,22,19,5,2330,22,18,5,2330,22,17,5,2330,22,5,5,2331,22,10,5,2331,22,16,5,2331};
+static const short *const IRON_OVERLAY[ILLAGER_STRUCT_VARIANTS][4] = {
+	{ nullptr, nullptr, nullptr, nullptr },												// HUT: none
+	{ OVERLAY_TOWER1_R0, OVERLAY_TOWER1_R1, OVERLAY_TOWER1_R2, OVERLAY_TOWER1_R3 },
+	{ OVERLAY_TOWER2_R0, OVERLAY_TOWER2_R1, OVERLAY_TOWER2_R2, OVERLAY_TOWER2_R3 },
+	{ OVERLAY_TOWER3_R0, OVERLAY_TOWER3_R1, OVERLAY_TOWER3_R2, OVERLAY_TOWER3_R3 },
+	{ OVERLAY_FORT_R0, OVERLAY_FORT_R1, OVERLAY_FORT_R2, OVERLAY_FORT_R3 },
+};
+// entry counts (quads, not shorts) matching the arrays above
+static const int IRON_OVERLAY_COUNT[ILLAGER_STRUCT_VARIANTS][4] = {
+	{ 0, 0, 0, 0 },
+	{ 9, 9, 9, 9 },
+	{ 10, 10, 10, 10 },
+	{ 9, 9, 9, 9 },
+	{ 11, 11, 11, 11 },
+};
 bool IllagerStructureFeature::IllagerPiece::postProcess(Level *level, Random *random, BoundingBox *chunkBB)
 {
 	if (tmpl == nullptr) return false;
@@ -375,6 +423,41 @@ bool IllagerStructureFeature::IllagerPiece::postProcess(Level *level, Random *ra
 		}
 	}
 
+	applyIronOverlay(level, chunkBB);
+
 	spawnMobs(level, random, chunkBB);
 	return true;
+}
+
+// Replace the baked glowstone / iron-bar substitutions with the real iron lantern (2331) and iron chain (2330) tiles, after the grid is placed.
+// The entries for this piece's template are already in placement order (chains top-down, then lanterns), so a single linear pass is support-safe:
+// the log / planks / fences above the lights are in from the grid loop, each chain lands on the chain (or log) above it, and each lantern lands
+// under the chain (or solid block) above it. placeBlock skips cells outside this chunk, so a multi-chunk piece overlays a chunk at a time.
+void IllagerStructureFeature::IllagerPiece::applyIronOverlay(Level *level, BoundingBox *chunkBB)
+{
+	if (tmpl == nullptr) return;
+
+	int variant = -1, rotation = -1;
+	for (int v = 0; v < ILLAGER_STRUCT_VARIANTS && variant < 0; v++)
+	{
+		for (int r = 0; r < 4; r++)
+		{
+			if (tmpl == &ILLAGER_STRUCT[v][r]) { variant = v; rotation = r; break; }
+		}
+	}
+	if (variant < 0) return;
+
+	const short *entries = IRON_OVERLAY[variant][rotation];
+	int count = IRON_OVERLAY_COUNT[variant][rotation];
+	if (entries == nullptr || count <= 0) return;
+
+	for (int i = 0; i < count; i++)
+	{
+		int x = entries[i * 4];
+		int y = entries[i * 4 + 1];
+		int z = entries[i * 4 + 2];
+		int tile = entries[i * 4 + 3];
+		// Iron has no state bits: data 0 for both the chain and the lantern (IronThinTile ignores data in getTexture).
+		placeBlock(level, tile, 0, x, y, z, chunkBB);
+	}
 }

@@ -13,8 +13,10 @@ class VillageFeature;
 //   Illusioner Tower - a tall tower (3 designs) in dark forests, swamps and taigas: Provokers, Vindicators, an Archivist, a Basher, an Illusioner, three chests.
 //   Illager Fort   - a wooden fort in taigas and snowy lands: Vindicators, Inquisitors, Provokers and four chests.
 // One feature hosts all three: each has its own spacing and chance, so a given chunk starts at most one of them. /locate illager finds the nearest of any kind.
-// Not the same as Java: the mod's Firecaller Hut and Labyrinth (live jigsaw assemblies) are not here; lanterns and candles are torches or glowstone (there are none in
-// this build), chains are iron bars, and the mod's allays and captive villagers are left out.
+// Not the same as Java: the mod's Firecaller Hut and Labyrinth (live jigsaw assemblies) are not here, and the mod's allays and captive villagers are
+// left out. The baked cells cannot hold the 12-bit extended ids, so the generator substituted a hanging lantern -> glowstone and a chain -> iron
+// bars; applyIronOverlay (IllagerStructureFeature.cpp) replaces those with the real iron lantern (2331) and iron chain (2330) at runtime, after the
+// grid is placed. Candles stay torches (there is no candle block in this build) and so do the standing lanterns, which bake to the same torch cell.
 class IllagerStructureFeature : public StructureFeature
 {
 public:
@@ -81,5 +83,6 @@ public:
 		void growFoundation(Level *level, BoundingBox *chunkBB, int wx, int wy, int wz, int tile, int data);
 		void fillChest(Level *level, Random *random, int wx, int wy, int wz, int lootType);
 		void spawnMobs(Level *level, Random *random, BoundingBox *chunkBB);
+		void applyIronOverlay(Level *level, BoundingBox *chunkBB);
 	};
 };
