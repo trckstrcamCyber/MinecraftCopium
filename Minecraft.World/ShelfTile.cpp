@@ -15,6 +15,7 @@
 #include "net.minecraft.world.phys.h"
 #include "net.minecraft.world.entity.item.h"
 #include "net.minecraft.world.entity.player.h"
+#include "../Minecraft.Client/ServerPlayer.h"
 #include "net.minecraft.world.item.h"
 #include "Facing.h"
 #include "Direction.h"
@@ -500,6 +501,16 @@ void ShelfTile::swapPoweredGroup(Level *level, int x, int y, int z, shared_ptr<P
 		}
 	}
 	player->inventory->setChanged();
+	// Live-sync the hotbar to the client: the swap changes up to 9 hotbar
+	// slots server-side, and Inventory::setChanged() is only a local flag
+	// (read nowhere) — the per-tick broadcastChanges does not push these
+	// (gamelog: client received only the held slot). CauldronTile
+	// precedent: refreshContainer(player->inventoryMenu) after a Tile
+	// use mutates the player's inventory.
+	if (player->instanceof(eTYPE_SERVERPLAYER))
+	{
+		dynamic_pointer_cast<ServerPlayer>(player)->refreshContainer(player->inventoryMenu);
+	}
 	level->playSound(x + 0.5, y + 0.5, z + 0.5, eSoundType_SHELF_MULTI_SWAP, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);
 }
 
