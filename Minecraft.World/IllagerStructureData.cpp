@@ -6323,11 +6323,13 @@ static const IllagerLootEntry LOOT_0[] = {
 	{ Item::name_tag_Id, 0, 1, 1, 50, 0 },
 	{ Item::golden_apple_Id, 0, 1, 1, 25, 0 },
 	{ Item::golden_apple_Id, 1, 1, 1, 5, 0 },
+	{ Item::lost_candle_Id, 0, 1, 1, 15, 0 },
 };
 static const IllagerLootEntry LOOT_1[] = {
 	{ Item::wheat_Id, 0, 1, 6, 100, 0 },
 	{ Item::string_Id, 0, 1, 6, 100, 0 },
 	{ Item::iron_ingot_Id, 0, 1, 4, 50, 0 },
+	{ Item::copper_ingot_Id, 0, 1, 4, 50, 0 },
 	{ Item::emerald_Id, 0, 1, 4, 50, 0 },
 	{ Item::paper_Id, 0, 2, 6, 100, 0 },
 	{ Item::stick_Id, 0, 2, 8, 100, 0 },
@@ -6339,6 +6341,7 @@ static const IllagerLootEntry LOOT_2[] = {
 	{ Item::wheat_Id, 0, 1, 6, 100, 0 },
 	{ Item::string_Id, 0, 1, 6, 100, 0 },
 	{ Item::iron_ingot_Id, 0, 1, 4, 50, 0 },
+	{ Item::copper_ingot_Id, 0, 1, 4, 50, 0 },
 	{ Item::emerald_Id, 0, 1, 4, 50, 0 },
 	{ Item::paper_Id, 0, 2, 6, 100, 0 },
 	{ Item::stick_Id, 0, 2, 8, 100, 0 },
@@ -6359,6 +6362,8 @@ static const IllagerLootEntry LOOT_3[] = {
 	{ Item::emerald_Id, 0, 0, 4, 50, 0 },
 	{ Item::arrow_Id, 0, 1, 6, 100, 0 },
 	{ Item::iron_axe_Id, 0, 1, 1, 15, 1 },
+	{ Item::copper_ingot_Id, 0, 1, 4, 50, 0 },
+	{ Item::raw_copper_Id, 0, 1, 3, 50, 0 },
 	{ Item::stick_Id, 0, 1, 3, 100, 0 },
 };
 static const IllagerLootEntry LOOT_4[] = {
@@ -6378,6 +6383,9 @@ static const IllagerLootEntry LOOT_4[] = {
 	{ Item::gold_ingot_Id, 0, 1, 3, 60, 0 },
 	{ Item::diamond_Id, 0, 1, 2, 30, 0 },
 	{ Item::iron_ingot_Id, 0, 1, 4, 60, 0 },
+	{ Item::copper_ingot_Id, 0, 1, 4, 50, 0 },
+	{ Item::raw_copper_Id, 0, 1, 3, 50, 0 },
+	{ Item::lost_candle_Id, 0, 1, 1, 15, 0 },
 };
 const IllagerLootEntry *const ILLAGER_LOOT[ILLAGER_LOOT_TYPES] = { LOOT_0, LOOT_1, LOOT_2, LOOT_3, LOOT_4 };
-const int ILLAGER_LOOT_COUNT[ILLAGER_LOOT_TYPES] = { 9, 9, 13, 9, 16 };
+const int ILLAGER_LOOT_COUNT[ILLAGER_LOOT_TYPES] = { 10, 10, 14, 11, 19 };
