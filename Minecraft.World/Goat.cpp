@@ -4,6 +4,7 @@
 #include "Abilities.h"
 #include "PathNavigation.h"
 #include "AttributeInstance.h"
+#include "CompoundTag.h"
 #include "ItemInstance.h"
 #include "Player.h"
 #include "net.minecraft.world.entity.h"
@@ -30,6 +31,7 @@ static const float GOAT_EXTRA_SAFE_FALL = 7.0f;
 
 Goat::Goat(Level *level) : Animal(level)
 {
+	hornsLeft = 2;		// one per horn; a ram into a solid block drops one (see GoatRamGoal)
 	// 4J Stu - This function call had to be moved here from the Entity ctor to ensure that
 	// the derived version of the function is called
 	this->defineSynchedData();
@@ -65,6 +67,29 @@ bool Goat::isRamming()
 void Goat::setRamming(bool ramming)
 {
 	entityData->set(DATA_RAMMING, static_cast<byte>(ramming ? 1 : 0));
+}
+
+// neoLegacy - drop one horn as an item when a ram slams the goat into a solid block
+// (Java: Goat.dropHorn(), up to two per goat — one per horn). Babies and hornless goats
+// drop nothing. Called from GoatRamGoal when the charge hits a wall.
+bool Goat::dropHorn()
+{
+	if (isBaby() || hornsLeft <= 0) return false;
+	spawnAtLocation(Item::goat_horn_Id, 1);
+	hornsLeft--;
+	return true;
+}
+
+void Goat::addAdditonalSaveData(CompoundTag *tag)
+{
+	Animal::addAdditonalSaveData(tag);
+	tag->putInt(L"HornsLeft", hornsLeft);
+}
+
+void Goat::readAdditionalSaveData(CompoundTag *tag)
+{
+	Animal::readAdditionalSaveData(tag);
+	if (tag->contains(L"HornsLeft")) hornsLeft = tag->getInt(L"HornsLeft");
 }
 
 bool Goat::useNewAi()
