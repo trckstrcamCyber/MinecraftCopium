@@ -276,6 +276,7 @@ public:
 	static Item *hallowed_gem;			// neoLegacy - Illager Invasion items (recipes)
 	static Item *horn_of_sight;
 	static Item *amethyst_shard;
+	static Item *spyglass;
 	static Item *goat_horn;
 	static Item *bamboo;	// neoLegacy
 	static Item *bamboo_door;
@@ -641,6 +642,7 @@ public:
 	static const int horn_of_sight_Id			= 617;
 	static const int amethyst_shard_Id		= 618;
 	static const int goat_horn_Id			= 619;
+	static const int spyglass_Id			= 620;	// neoLegacy - Amethyst Geodes (2026-11-26): next free id after goat_horn 619
 	static const int enchantment_encyclopedia_Id = 600;	// neoLegacy - Enchantment Encyclopedia (kept well clear of the 472+ block for new wood items)
 	static const int diamond_shovel_Id		= 277;
 	static const int diamond_pickaxe_Id		= 278;

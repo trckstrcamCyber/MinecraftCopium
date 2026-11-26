@@ -19,6 +19,8 @@
 
 #include "BlackStoneTile.h"
 #include "CalciteTile.h"
+#include "AmethystTile.h"
+#include "AmethystDecorativeTile.h"
 #include "StrippedLogTile.h"
 #include "BambooBlockTile.h"
 #include "BambooTile.h"
@@ -349,6 +351,13 @@ Tile* Tile::purpur_stairs = nullptr;
 HalfSlabTile* Tile::purpurSlab = nullptr;
 HalfSlabTile* Tile::purpurSlabHalf = nullptr;
 Tile* Tile::calcite = nullptr; // my new block
+Tile* Tile::amethystStone = nullptr;
+Tile* Tile::amethystCrystal = nullptr;
+Tile* Tile::amethystBricks = nullptr;
+Tile* Tile::amethystBrickStairs = nullptr;
+Tile* Tile::amethystBrickWall = nullptr;
+Tile* Tile::amethystCrystalBlock = nullptr;
+Tile* Tile::amethystCrystalLamp = nullptr;
 Tile *Tile::stairs_calcite = nullptr;
 Tile *Tile::calciteWall = nullptr;
 Tile *Tile::bamboo = nullptr;
@@ -826,6 +835,45 @@ void Tile::staticCtor()
     Tile::calcite = (new CalciteTile(217))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(1.75f)->setExplodeable(6.0f)->setSoundType(Tile::SOUND_STONE)->setDescriptionId(IDS_TILE_CALCITE)->sendTileData()->setUseDescriptionId(IDS_DESC_STONE);
     Tile::stairs_calcite = (new StairTile(218, Tile::calcite, 0))->setBaseItemTypeAndMaterial(Item::eBaseItemType_stairs, Item::eMaterial_stone)->setDestroyTime(1.75f)->setExplodeable(6.0f)->setSoundType(Tile::SOUND_STONE)->setDescriptionId(IDS_TILE_CALCITE_STAIRS)->sendTileData();
     Tile::calciteWall = (new CalciteWallTile(219, Tile::calcite))->setBaseItemTypeAndMaterial(Item::eBaseItemType_fence, Item::eMaterial_stone)->setDescriptionId(IDS_TILE_CALCITE_WALL)->setUseDescriptionId(IDS_DESC_COBBLESTONE_WALL);
+
+    // neoLegacy - Amethyst Geodes (2026-11-26).
+    Tile::amethystStone = (new AmethystTile(amethyst_stone_Id))
+        ->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)
+        ->setDestroyTime(1.5f)->setExplodeable(6.0f)
+        ->setSoundType(Tile::SOUND_STONE)
+        ->setDescriptionId(IDS_TILE_AMETHYST_BLOCK)
+        ->sendTileData()->setUseDescriptionId(IDS_DESC_STONE);
+
+    Tile::amethystCrystal = (new AmethystCrystalTile(amethyst_crystal_Id))
+        ->setDestroyTime(0.2f)->setSoundType(Tile::SOUND_GLASS)
+        ->setDescriptionId(IDS_TILE_AMETHYST_CLUSTER)
+        ->setLightBlock(0)->disableMipmap()->sendTileData();
+
+    // neoLegacy - Amethyst Geodes (2026-11-26): Better Amethyst decorative blocks.
+    Tile::amethystBricks = (new AmethystDecorativeTile(amethyst_bricks_Id, L"amethyst_bricks"))
+        ->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_quartz)
+        ->setDestroyTime(1.5f)->setExplodeable(6.0f)->setSoundType(Tile::SOUND_STONE)
+        ->setDescriptionId(IDS_TILE_AMETHYST_BRICKS)->sendTileData()->setUseDescriptionId(IDS_DESC_STONE);
+
+    Tile::amethystBrickStairs = (new StairTile(amethyst_brick_stairs_Id, Tile::amethystBricks, 0))
+        ->setBaseItemTypeAndMaterial(Item::eBaseItemType_stairs, Item::eMaterial_quartz)
+        ->setDestroyTime(1.5f)->setExplodeable(6.0f)->setSoundType(Tile::SOUND_STONE)
+        ->setDescriptionId(IDS_TILE_AMETHYST_BRICK_STAIRS)->sendTileData()->setUseDescriptionId(IDS_DESC_STAIRS);
+
+    Tile::amethystBrickWall = (new AmethystBrickWallTile(amethyst_brick_wall_Id, Tile::amethystBricks))
+        ->setBaseItemTypeAndMaterial(Item::eBaseItemType_fence, Item::eMaterial_quartz)
+        ->setDestroyTime(1.5f)->setExplodeable(6.0f)->setSoundType(Tile::SOUND_STONE)
+        ->setDescriptionId(IDS_TILE_AMETHYST_BRICK_WALL)->sendTileData()->setUseDescriptionId(IDS_DESC_COBBLESTONE_WALL);
+
+    Tile::amethystCrystalBlock = (new AmethystDecorativeTile(amethyst_crystal_block_Id, L"amethyst_crystal_block"))
+        ->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_quartz)
+        ->setDestroyTime(1.5f)->setExplodeable(6.0f)->setSoundType(Tile::SOUND_STONE)
+        ->setDescriptionId(IDS_TILE_AMETHYST_CRYSTAL_BLOCK)->sendTileData()->setUseDescriptionId(IDS_DESC_STONE);
+
+    Tile::amethystCrystalLamp = (new AmethystDecorativeTile(amethyst_crystal_lamp_Id, L"amethyst_crystal_lamp"))
+        ->setBaseItemTypeAndMaterial(Item::eBaseItemType_torch, Item::eMaterial_glowstone)
+        ->setDestroyTime(1.5f)->setExplodeable(6.0f)->setSoundType(Tile::SOUND_GLASS)
+        ->setLightEmission(1.0f)->setDescriptionId(IDS_TILE_AMETHYST_CRYSTAL_LAMP)->sendTileData()->setUseDescriptionId(IDS_DESC_GLOWSTONE);
     // neoLegacy - Bamboo cube blocks (same material/hardness/sound as the wooden equivalents)
     Tile::bamboo = (new BambooTile(bamboo_Id))->setDestroyTime(1.0f)->setExplodeable(1)->setSoundType(Tile::SOUND_WOOD)->setDescriptionId(IDS_TILE_BAMBOO)->setNotCollectStatistics()->sendTileData()->disableMipmap();
     Tile::bambooShoot = (new BambooShootTile(bamboo_shoot_Id))->setDestroyTime(0.0f)->setSoundType(Tile::SOUND_GRASS)->setDescriptionId(IDS_TILE_BAMBOO)->setNotCollectStatistics()->disableMipmap();

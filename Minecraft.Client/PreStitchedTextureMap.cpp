@@ -767,6 +767,7 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(31, 13, L"ice_ball");
 		ADD_ICON(31, 14, L"ice_wand");
 		ADD_ICON(31, 15, L"crossbow_standby");
+		ADD_ICON(31, 0, L"spyglass");
 		ADD_ICON(30, 9, L"crossbow_arrow");
 		ADD_ICON(30, 10, L"crossbow_pulling_0");
 		ADD_ICON(30, 11, L"crossbow_pulling_1");
@@ -1532,6 +1533,19 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(38, 6,  L"chorus_flower")
 		ADD_ICON(38, 7,  L"chorus_flower_dead")
 		ADD_ICON(38, 8,  L"chorus_flower_plant")
+		// neoLegacy - Amethyst Geodes (2026-11-26): terrain atlas row 39.
+		ADD_ICON(39, 0,  L"smooth_basalt")
+		ADD_ICON(39, 1,  L"basalt_side")
+		ADD_ICON(39, 2,  L"basalt_top")
+		ADD_ICON(39, 3,  L"budding_amethyst")
+		ADD_ICON(39, 4,  L"amethyst_block")
+		ADD_ICON(39, 5,  L"small_amethyst_bud")
+		ADD_ICON(39, 6,  L"medium_amethyst_bud")
+		ADD_ICON(39, 7,  L"large_amethyst_bud")
+		ADD_ICON(39, 8,  L"amethyst_cluster")
+		ADD_ICON(39, 9,  L"amethyst_bricks")
+		ADD_ICON(39, 10, L"amethyst_crystal_block")
+		ADD_ICON(39, 11, L"amethyst_crystal_lamp")
 
 	}
 }

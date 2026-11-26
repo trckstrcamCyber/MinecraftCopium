@@ -14,14 +14,17 @@ public:
     static const int POLISHED_BLACKSTONE_BRICKS = 3;
     static const int CHISELED_POLISHED_BLACKSTONE = 4;
     static const int CRACKED_POLISHED_BLACKSTONE_BRICKS = 5;
+    static const int SMOOTH_BASALT = 6;
 
-    static const int BLACKSTONE_NAMES_LENGTH = 6;
+    static const int BLACKSTONE_NAMES_LENGTH = 7;
 
     static const unsigned int BLACKSTONE_NAMES[BLACKSTONE_NAMES_LENGTH];
     static const std::wstring TEXTURE_NAMES[];
 
 private:
     Icon** icons;
+    Icon* smoothBasaltTopIcon;
+    Icon* smoothBasaltSideIcon;
 
 public:
     BlackStoneTile(int id);

@@ -13,7 +13,8 @@ const unsigned int StoneSlabTile2::SLAB_NAMES[SLAB_NAMES_LENGTH] =
 {
     IDS_TILE_STONESLAB_REDSAND,
     IDS_TILE_CALCITE,
-    IDS_TILE_BLACKSTONE
+    IDS_TILE_BLACKSTONE,
+    IDS_TILE_AMETHYST_BRICK_SLAB
 };
 
 StoneSlabTile2::StoneSlabTile2(int id)
@@ -38,6 +39,9 @@ Icon* StoneSlabTile2::getTexture(int face, int data)
 
     case BLACKSTONE_SLAB:
         return Tile::blackstone->getTexture(face);
+
+    case AMETHYST_BRICKS_SLAB:
+        return Tile::amethystBricks != nullptr ? Tile::amethystBricks->getTexture(face, 0) : icon;
     }
 
     return icon;

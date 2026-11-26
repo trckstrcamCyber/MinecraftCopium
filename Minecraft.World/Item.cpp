@@ -7,6 +7,7 @@
 #include "HornOfSightItem.h"
 #include "GoatHornItem.h"
 #include "CrossbowItem.h"
+#include "SpyglassItem.h"
 
 #include "net.minecraft.locale.h"
 #include "net.minecraft.world.h"
@@ -112,6 +113,7 @@ Item *Item::primal_essence = nullptr;
 Item *Item::hallowed_gem = nullptr;	// neoLegacy - Illager Invasion items (recipes)
 Item *Item::horn_of_sight = nullptr;
 Item *Item::amethyst_shard = nullptr;
+Item *Item::spyglass = nullptr;
 Item *Item::goat_horn = nullptr;
 Item *Item::bullet_9mm = nullptr;
 Item *Item::m16 = nullptr;
@@ -516,6 +518,11 @@ void Item::staticCtor()
 		->setIconName(L"amethyst_shard")->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_quartz)->setDescriptionId(IDS_ITEM_AMETHYST_SHARD)->setUseDescriptionId(IDS_DESC_AMETHYST_SHARD);
 	Item::goat_horn = (new GoatHornItem(goat_horn_Id - 256))
 		->setIconName(L"goat_horn")->setBaseItemTypeAndMaterial(eBaseItemType_pockettool,	eMaterial_music)->setDescriptionId(IDS_ITEM_GOAT_HORN)->setUseDescriptionId(IDS_DESC_GOAT_HORN);
+
+	Item::spyglass = (new SpyglassItem(spyglass_Id - 256))->handEquipped()
+		->setBaseItemTypeAndMaterial(eBaseItemType_devicetool, eMaterial_magic)
+		->setIconName(L"spyglass")->setDescriptionId(IDS_ITEM_SPYGLASS)
+		->setUseDescriptionId(IDS_DESC_SPYGLASS)->setMaxStackSize(1);
 	Item::crossbow_loaded_firework = (new CrossbowItem(crossbow_loaded_firework_Id - 256, true, true))->handEquipped()
 		->setIconName(L"crossbow_firework")->setMaxDamage(326)->setDescriptionId(IDS_ITEM_CROSSBOW)->setUseDescriptionId(IDS_DESC_CROSSBOW);
 

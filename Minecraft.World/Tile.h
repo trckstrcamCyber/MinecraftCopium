@@ -616,6 +616,16 @@ public:
     static const int iron_chain_Id = 2330;
     static const int iron_lantern_Id = 2331;
 
+    // neoLegacy - Amethyst Geodes (2026-11-26): the next free extended ids
+    // after the End block (2332-2340). 2341-2347 are the whole amethyst set.
+    static const int amethyst_stone_Id = 2341;
+    static const int amethyst_crystal_Id = 2342;
+    static const int amethyst_bricks_Id = 2343;
+    static const int amethyst_brick_stairs_Id = 2344;
+    static const int amethyst_brick_wall_Id = 2345;
+    static const int amethyst_crystal_block_Id = 2346;
+    static const int amethyst_crystal_lamp_Id = 2347;
+
     // neoLegacy - Jelly Block (honey-block behaviour, see JellyBlockTile.h). Uses a free vanilla-range id: extended ids (2304+) have crashed before.
     static const int jelly_block_Id = 210;
 
@@ -905,6 +915,13 @@ public:
     static Tile* blackstone;
     static Tile* stairs_blackstone;
     static Tile* blackstoneWall;
+    static Tile* amethystStone;
+    static Tile* amethystCrystal;
+    static Tile* amethystBricks;
+    static Tile* amethystBrickStairs;
+    static Tile* amethystBrickWall;
+    static Tile* amethystCrystalBlock;
+    static Tile* amethystCrystalLamp;
     static Tile* lucky_block;
     static GrindstoneTile* grindstone;
     static Tile* concrete_powder;

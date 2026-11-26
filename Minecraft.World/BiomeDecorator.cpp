@@ -10,6 +10,7 @@
 #include "LuckyBlockSpawnFeature.h"
 #include "AbandonedTentFeature.h"
 #include "MiniStructureFeatures.h"
+#include "AmethystGeodeFeature.h"
 
 BiomeDecorator::BiomeDecorator(Biome *biome)
 {
@@ -97,6 +98,7 @@ void BiomeDecorator::_init()
     rockPileFeature = new RockPileFeature();
     hunterPostFeature = new HunterPostFeature();
     miniCaveFeature = new MiniCaveFeature();
+    amethystGeodeFeature = new AmethystGeodeFeature();
 
     doublePlantCount = 0;
     waterlilyCount = 0;
@@ -122,6 +124,10 @@ void BiomeDecorator::decorate()
 {
     PIXBeginNamedEvent(0,"Decorate ores");
     decorateOres();
+    // neoLegacy - Amethyst Geodes (2026-11-26): place() takes the chunk origin
+    // (xo, zo) and offsets to a random in-chunk centre itself. Do NOT pre-offset
+    // here like the other features do — that would double-offset the geode.
+    amethystGeodeFeature->place(level, random, xo, 0, zo);
     PIXEndNamedEvent();
 
     PIXBeginNamedEvent(0,"Decorate sand/clay/gravel");

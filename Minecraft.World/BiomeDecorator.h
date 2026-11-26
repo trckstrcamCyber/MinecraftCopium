@@ -74,6 +74,7 @@ public:
 	Feature *rockPileFeature;
 	Feature *hunterPostFeature;
 	Feature *miniCaveFeature;
+	Feature *amethystGeodeFeature;
 
 	int doublePlantCount;
 	int waterlilyCount;

@@ -5,6 +5,8 @@
 #include "CoalItem.h"
 #include "Item.h"
 #include "ItemInstance.h"
+#include "StoneSlabTile2.h"
+#include "AmethystTile.h"
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.world.item.crafting.h"
 #include "BannerPatternRecipe.h"
@@ -1912,6 +1914,39 @@ void Recipes::_compileRecipes()
         L'O', Tile::obsidian, L'C', Item::minecart, L'R', Item::redstone, L'G', Tile::glass, L'D', Item::diamond,
         L'D');
 
+
+    // neoLegacy - Amethyst Geodes (2026-11-26): Complex-Table-only recipes.
+    // 2x2 Amethyst Blocks -> 4 Amethyst Bricks.
+    addShapedRecipy(new ItemInstance(Tile::amethystBricks, 4), L"ssczg",
+        L"##", L"##", L'#', new ItemInstance(Tile::amethystStone, 1, AmethystTile::AMETHYST_BLOCK), L'D');
+
+    // 3x3 shards -> Amethyst Crystal Block; reverse recipe returns nine shards.
+    addShapedRecipy(new ItemInstance(Tile::amethystCrystalBlock, 1), L"ssscig",
+        L"###", L"###", L"###", L'#', Item::amethyst_shard, L'D');
+    addShapedRecipy(new ItemInstance(Item::amethyst_shard, 9), L"sctg",
+        L"#", L'#', Tile::amethystCrystalBlock, L'D');
+
+    // Six bricks -> four stairs (both mirrored orientations).
+    addShapedRecipy(new ItemInstance(Tile::amethystBrickStairs, 4), L"sssctg",
+        L"B  ", L"BB ", L"BBB", L'B', Tile::amethystBricks, L'D');
+    addShapedRecipy(new ItemInstance(Tile::amethystBrickStairs, 4), L"sssctg",
+        L"  B", L" BB", L"BBB", L'B', Tile::amethystBricks, L'D');
+
+    // Three bricks -> six slabs (existing StoneSlabTile2 metadata variant 3).
+    addShapedRecipy(new ItemInstance(Tile::stone_slab2_Id, 6, StoneSlabTile2::AMETHYST_BRICKS_SLAB), L"sctg",
+        L"BBB", L'B', Tile::amethystBricks, L'D');
+
+    // Six bricks -> six walls.
+    addShapedRecipy(new ItemInstance(Tile::amethystBrickWall, 6), L"ssctg",
+        L"BBB", L"BBB", L'B', Tile::amethystBricks, L'D');
+
+    // Four shards around glowstone -> one Amethyst Crystal Lamp.
+    addShapedRecipy(new ItemInstance(Tile::amethystCrystalLamp, 1), L"ssscictg",
+        L" S ", L"SGS", L" S ", L'S', Item::amethyst_shard, L'G', Tile::glowstone, L'D');
+
+    // Spyglass (Java-faithful): one Amethyst Shard above two Copper Ingots.
+    addShapedRecipy(new ItemInstance(Item::spyglass, 1), L"ssscicig",
+        L" S ", L" I ", L" I ", L'S', Item::amethyst_shard, L'I', Item::copper_ingot, L'T');
 	buildRecipeIngredientsArray();
 }
 
@@ -2245,6 +2280,14 @@ bool Recipes::isComplexOnly(Recipy *r)
 		|| result->id == Item::mace_Id			// neoLegacy - Mace
 		|| result->id == Item::ice_ball_Id		// neoLegacy - Ice Ball <-> Ice
 		|| result->id == Tile::ice_Id
+		// neoLegacy - Amethyst Geodes (2026-11-26): Complex-Table-only like the copper recipes.
+		|| result->id == Tile::amethyst_bricks_Id
+		|| result->id == Tile::amethyst_brick_stairs_Id
+		|| result->id == Tile::amethyst_brick_wall_Id
+		|| result->id == Tile::amethyst_crystal_block_Id
+		|| result->id == Tile::amethyst_crystal_lamp_Id
+		|| result->id == Item::amethyst_shard_Id
+		|| result->id == Item::spyglass_Id
 		|| result->id == Item::enchantment_encyclopedia_Id	// neoLegacy - Enchantment Encyclopedia
 		// neoLegacy - Illager Invasion recipes: Complex-Table-only, like the
 		// copper recipes below (registered in the shared list, gated here).
@@ -2336,6 +2379,10 @@ bool Recipes::isComplexOnly(Recipy *r)
 		ShapelessRecipy *sr = dynamic_cast<ShapelessRecipy *>(r);
 		return sr != nullptr && sr->hasIngredient(Item::redstone_Id);
 	}
+	// neoLegacy - Amethyst Geodes (2026-11-26): the amethyst brick slab is a
+	// StoneSlabTile2 metadata variant, so gate it on the aux value — not on
+	// stone_slab2_Id alone, which would gate every slab variant.
+	if (result->id == Tile::stone_slab2_Id && result->getAuxValue() == StoneSlabTile2::AMETHYST_BRICKS_SLAB) return true;
 	return false;
 }
 

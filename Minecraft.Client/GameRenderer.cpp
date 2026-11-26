@@ -429,6 +429,14 @@ float GameRenderer::getFov(float a, bool applyEffects)
 		if (player != nullptr) fov *= player->getMac10().getFovFactor(a);
 		// neoLegacy - Freezing narrows your field of view (up to 20% when frozen solid)
 		if (player != nullptr) fov *= 1.0f - 0.2f * player->getFreezeProgress();
+		// neoLegacy - Amethyst Geodes (2026-11-26): Spyglass zoom applies only to the
+		// world view (getFov(true)), not the hand model.
+		if (player != nullptr)
+		{
+			shared_ptr<ItemInstance> usedItem = player->getUseItem();
+			if (usedItem != nullptr && usedItem->id == Item::spyglass_Id)
+				fov *= 0.1f;
+		}
 	}
 	if (player->getHealth() <= 0)
 	{

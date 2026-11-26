@@ -11,8 +11,9 @@ public:
     static const int RED_SANDSTONE_SLAB = 0;
     static const int CALCITE_SLAB       = 1;
     static const int BLACKSTONE_SLAB    = 2;
+    static const int AMETHYST_BRICKS_SLAB = 3;
 
-    static const int SLAB_NAMES_LENGTH = 3;
+    static const int SLAB_NAMES_LENGTH = 4;
     static const unsigned int SLAB_NAMES[SLAB_NAMES_LENGTH];
 
 private:

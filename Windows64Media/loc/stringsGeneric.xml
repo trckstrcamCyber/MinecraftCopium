@@ -10057,6 +10057,10 @@
 		<value>Cracked Polished BlackStone Bricks</value>
 	</data>
 
+	<data name="IDS_TILE_SMOOTH_BASALT">
+		<value>Smooth Basalt</value>
+	</data>
+
 	<!-- Separate blocks -->
 	<data name="IDS_TILE_BLACKSTONE_STAIRS">
 		<value>BlackStone Stairs</value>
@@ -10068,6 +10072,43 @@
 
 	<data name="IDS_TILE_BLACKSTONE_SLAB">
 		<value>BlackStone Slab</value>
+	</data>
+
+	<!-- Amethyst geodes -->
+	<data name="IDS_TILE_AMETHYST_BLOCK">
+		<value>Block of Amethyst</value>
+	</data>
+
+	<data name="IDS_TILE_BUDDING_AMETHYST">
+		<value>Budding Amethyst</value>
+	</data>
+
+	<data name="IDS_TILE_AMETHYST_CLUSTER">
+		<value>Amethyst Cluster</value>
+	</data>
+
+	<data name="IDS_TILE_AMETHYST_BRICKS">
+		<value>Amethyst Bricks</value>
+	</data>
+
+	<data name="IDS_TILE_AMETHYST_BRICK_STAIRS">
+		<value>Amethyst Brick Stairs</value>
+	</data>
+
+	<data name="IDS_TILE_AMETHYST_BRICK_SLAB">
+		<value>Amethyst Brick Slab</value>
+	</data>
+
+	<data name="IDS_TILE_AMETHYST_BRICK_WALL">
+		<value>Amethyst Brick Wall</value>
+	</data>
+
+	<data name="IDS_TILE_AMETHYST_CRYSTAL_BLOCK">
+		<value>Amethyst Crystal Block</value>
+	</data>
+
+	<data name="IDS_TILE_AMETHYST_CRYSTAL_LAMP">
+		<value>Amethyst Crystal Lamp</value>
 	</data>
 
 	<data name="IDS_TILE_LUCKY_BLOCK">
@@ -11539,5 +11580,11 @@
 	</data>
 	<data name="IDS_DESC_GOAT_HORN">
 		<value>A goat horn.</value>
+	</data>
+	<data name="IDS_ITEM_SPYGLASS">
+		<value>Spyglass</value>
+	</data>
+	<data name="IDS_DESC_SPYGLASS">
+		<value>A spyglass.</value>
 	</data>
 </root>
