@@ -13,16 +13,27 @@ GoatModel::GoatModel() : QuadrupedModel(6, 0)
 
 	float g = 0;
 
-	// Head: ears + goatee on the head itself, horns and the angled nose as part of it.
+	// Head: ears + goatee on the head itself, the angled nose as part of it.
 	head = new ModelPart(this, 2, 61);
 	head->addBox(-6, -11, -10, 3, 2, 1, g);					// right ear
 	head->mirror();
 	head->texOffs(2, 61)->addBox(2, -11, -10, 3, 2, 1, g);	// left ear (mirrored)
 	head->mirror();
 	head->texOffs(23, 52)->addBox(-0.5f, -3, -14, 0, 7, 5, g);	// goatee
-	head->texOffs(12, 55)->addBox(-0.01f, -16, -10, 2, 7, 2, g);	// left horn
-	head->texOffs(12, 55)->addBox(-2.99f, -16, -10, 2, 7, 2, g);	// right horn
 	head->setPos(1, 14, 0);
+
+	// Horns are their own parts (children of the head, so they follow the charging pose),
+	// so a horn that broke off can be hidden: DATA_HORNS bit 0 = left, bit 1 = right.
+	// Same boxes and texture offsets as before, so an intact goat renders identically.
+	leftHorn = new ModelPart(this, 12, 55);
+	leftHorn->addBox(-0.01f, -16, -10, 2, 7, 2, g);	// left horn
+	leftHorn->setPos(0, 0, 0);
+	head->addChild(leftHorn);
+
+	rightHorn = new ModelPart(this, 12, 55);
+	rightHorn->addBox(-2.99f, -16, -10, 2, 7, 2, g);	// right horn
+	rightHorn->setPos(0, 0, 0);
+	head->addChild(rightHorn);
 
 	nose = new ModelPart(this, 34, 46);
 	nose->addBox(-3, -4, -8, 5, 7, 10, g);
@@ -55,6 +66,8 @@ GoatModel::GoatModel() : QuadrupedModel(6, 0)
 	// 4J added - compile now to avoid random performance hit first time cubes are rendered
 	nose->compile(1.0f/16.0f);
 	head->compile(1.0f/16.0f);
+	leftHorn->compile(1.0f/16.0f);
+	rightHorn->compile(1.0f/16.0f);
 	body->compile(1.0f/16.0f);
 	leg0->compile(1.0f/16.0f);
 	leg1->compile(1.0f/16.0f);
@@ -70,12 +83,18 @@ void GoatModel::setupAnim(float time, float r, float bob, float yRot, float xRot
 	body->xRot = 0;
 
 	// Charging pose: head bowed, horns forward.
+	// A horn that broke off stays off: hide that side's horn part (DATA_HORNS).
 	if (entity != nullptr && entity->instanceof(eTYPE_GOAT))
 	{
 		shared_ptr<Goat> goat = dynamic_pointer_cast<Goat>(entity);
-		if (goat != nullptr && goat->isRamming())
+		if (goat != nullptr)
 		{
-			head->xRot = 0.55f;
+			if (goat->isRamming())
+			{
+				head->xRot = 0.55f;
+			}
+			leftHorn->visible = goat->hasLeftHorn();
+			rightHorn->visible = goat->hasRightHorn();
 		}
 	}
 }

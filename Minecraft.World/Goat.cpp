@@ -31,7 +31,7 @@ static const float GOAT_EXTRA_SAFE_FALL = 7.0f;
 
 Goat::Goat(Level *level) : Animal(level)
 {
-	hornsLeft = 2;		// one per horn; a ram into a solid block drops one (see GoatRamGoal)
+	// Horns start attached (DATA_HORNS defaults to 3 = both, in defineSynchedData).
 	// 4J Stu - This function call had to be moved here from the Entity ctor to ensure that
 	// the derived version of the function is called
 	this->defineSynchedData();
@@ -57,6 +57,7 @@ void Goat::defineSynchedData()
 {
 	Animal::defineSynchedData();
 	entityData->define(DATA_RAMMING, static_cast<byte>(0));
+	entityData->define(DATA_HORNS, static_cast<byte>(3));		// both horns attached
 }
 
 bool Goat::isRamming()
@@ -69,27 +70,62 @@ void Goat::setRamming(bool ramming)
 	entityData->set(DATA_RAMMING, static_cast<byte>(ramming ? 1 : 0));
 }
 
+// Synched horn state, readable on the client (the model hides a lost horn).
+bool Goat::hasLeftHorn()
+{
+	return (entityData->getByte(DATA_HORNS) & 1) != 0;
+}
+
+bool Goat::hasRightHorn()
+{
+	return (entityData->getByte(DATA_HORNS) & 2) != 0;
+}
+
 // neoLegacy - drop one horn as an item when a ram slams the goat into a solid block
-// (Java: Goat.dropHorn(), up to two per goat — one per horn). Babies and hornless goats
-// drop nothing. Called from GoatRamGoal when the charge hits a wall.
+// (Java: Goat.dropHorn(), up to two per goat — one per horn, picked at random among the
+// ones still attached). Babies and hornless goats drop nothing. The lost horn's bit is
+// cleared from DATA_HORNS, so the model hides it and it never comes back (no regrowth).
+// Called from GoatRamGoal when the charge hits a wall.
 bool Goat::dropHorn()
 {
-	if (isBaby() || hornsLeft <= 0) return false;
+	if (isBaby()) return false;
+	byte mask = entityData->getByte(DATA_HORNS);
+	if (mask == 0) return false;
+	// Pick one of the remaining horns at random (Java-faithful); with one left it is that one.
+	byte drop;
+	if (mask == 3) drop = (level->random->nextInt(2) == 0) ? static_cast<byte>(1) : static_cast<byte>(2);
+	else drop = mask;
+	entityData->set(DATA_HORNS, static_cast<byte>(mask & ~drop));
 	spawnAtLocation(Item::goat_horn_Id, 1);
-	hornsLeft--;
 	return true;
 }
 
 void Goat::addAdditonalSaveData(CompoundTag *tag)
 {
 	Animal::addAdditonalSaveData(tag);
-	tag->putInt(L"HornsLeft", hornsLeft);
+	tag->putBoolean(L"HasLeftHorn", hasLeftHorn());
+	tag->putBoolean(L"HasRightHorn", hasRightHorn());
 }
 
 void Goat::readAdditionalSaveData(CompoundTag *tag)
 {
 	Animal::readAdditionalSaveData(tag);
-	if (tag->contains(L"HornsLeft")) hornsLeft = tag->getInt(L"HornsLeft");
+	if (tag->contains(L"HasLeftHorn") && tag->contains(L"HasRightHorn"))
+	{
+		byte mask = 0;
+		if (tag->getBoolean(L"HasLeftHorn")) mask |= 1;
+		if (tag->getBoolean(L"HasRightHorn")) mask |= 2;
+		entityData->set(DATA_HORNS, mask);
+	}
+	else if (tag->contains(L"HornsLeft"))
+	{
+		// Pre-visual saves stored only a count: 2 = both horns, 1 = one horn, 0 = none.
+		// Which side was lost is unrecorded, so a one-horn goat keeps its left horn.
+		int left = tag->getInt(L"HornsLeft");
+		byte mask = (left >= 2) ? static_cast<byte>(3) : (left == 1) ? static_cast<byte>(1) : static_cast<byte>(0);
+		entityData->set(DATA_HORNS, mask);
+	}
+	// else: fresh goat, the ctor default (both horns) stands.
 }
 
 bool Goat::useNewAi()
