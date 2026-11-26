@@ -93,6 +93,8 @@ void GoatRamGoal::start()
 	timer = WINDUP_TICKS;
 	goat->setRamming(true);
 	goat->getNavigation()->stop();
+	// Head-down warning: the pre-ram snort before the charge.
+	goat->playSound(eSoundType_MOB_GOAT_PRE_RAM, 1.0f, 1.0f);
 }
 
 void GoatRamGoal::stop()
@@ -163,9 +165,11 @@ void GoatRamGoal::tick()
 		if (isBlockedBySolidBlock())
 		{
 			// Java: the ram into a natural hard block knocks a horn loose (up to two per goat).
-			// dropHorn() is a no-op once both horns are gone; the impact sound plays either way.
-			goat->dropHorn();
+			// dropHorn() is a no-op once both horns are gone; the impact sound plays either way,
+			// and a horn coming off adds its snap.
+			bool dropped = goat->dropHorn();
 			goat->playSound(eSoundType_MOB_GOAT_RAM_IMPACT, 1.0f, 1.0f);
+			if (dropped) goat->playSound(eSoundType_MOB_GOAT_HORN_BREAK, 1.0f, 1.0f);
 		}
 		phase = 0;		// ram over -> canContinueToUse() false -> stop()
 	}

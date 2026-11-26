@@ -881,6 +881,8 @@ set(_MINECRAFT_WORLD_COMMON_NET_MINECRAFT_WORLD_ENTITY_ANIMAL
   "${CMAKE_CURRENT_SOURCE_DIR}/LostCandleItem.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/HornOfSightItem.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/HornOfSightItem.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/GoatHornItem.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/GoatHornItem.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolem.cpp"	# neoLegacy - Copper Age (Phase 5)
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolem.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/CopperGolemAi.cpp"

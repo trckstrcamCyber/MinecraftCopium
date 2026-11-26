@@ -5,6 +5,7 @@
 #include "IllusionaryDustItem.h"
 #include "LostCandleItem.h"
 #include "HornOfSightItem.h"
+#include "GoatHornItem.h"
 #include "CrossbowItem.h"
 
 #include "net.minecraft.locale.h"
@@ -503,16 +504,17 @@ void Item::staticCtor()
 	Item::primal_essence = (new Item(primal_essence_Id - 256))
 		->setIconName(L"primal_essence")->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_magic)->setDescriptionId(IDS_ITEM_PRIMAL_ESSENCE)->setUseDescriptionId(IDS_DESC_PRIMAL_ESSENCE);
 	// neoLegacy - Illager Invasion recipe items, mirroring the
-	// platinum_chunk/sheet registrations above. The Hallowed Gem,
-	// amethyst shard and goat horn are plain Items; the Horn of Sight
-	// uses HornOfSightItem, which implements the Glowing use effect.
+	// platinum_chunk/sheet registrations above. The Hallowed Gem and
+	// amethyst shard are plain Items; the Horn of Sight uses HornOfSightItem,
+	// which implements the Glowing use effect, and the goat horn uses
+	// GoatHornItem, which blows one of the eight horn calls.
 	Item::hallowed_gem = (new Item(hallowed_gem_Id - 256))
 		->setIconName(L"hallowed_gem")->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_diamond)->setDescriptionId(IDS_ITEM_HALLOWED_GEM)->setUseDescriptionId(IDS_DESC_HALLOWED_GEM);
 	Item::horn_of_sight = (new HornOfSightItem(horn_of_sight_Id - 256))
 		->setIconName(L"horn_of_sight")->setBaseItemTypeAndMaterial(eBaseItemType_pockettool,	eMaterial_music)->setDescriptionId(IDS_ITEM_HORN_OF_SIGHT)->setUseDescriptionId(IDS_DESC_HORN_OF_SIGHT);
 	Item::amethyst_shard = (new Item(amethyst_shard_Id - 256))
 		->setIconName(L"amethyst_shard")->setBaseItemTypeAndMaterial(eBaseItemType_treasure,	eMaterial_quartz)->setDescriptionId(IDS_ITEM_AMETHYST_SHARD)->setUseDescriptionId(IDS_DESC_AMETHYST_SHARD);
-	Item::goat_horn = (new Item(goat_horn_Id - 256))
+	Item::goat_horn = (new GoatHornItem(goat_horn_Id - 256))
 		->setIconName(L"goat_horn")->setBaseItemTypeAndMaterial(eBaseItemType_pockettool,	eMaterial_music)->setDescriptionId(IDS_ITEM_GOAT_HORN)->setUseDescriptionId(IDS_DESC_GOAT_HORN);
 	Item::crossbow_loaded_firework = (new CrossbowItem(crossbow_loaded_firework_Id - 256, true, true))->handEquipped()
 		->setIconName(L"crossbow_firework")->setMaxDamage(326)->setDescriptionId(IDS_ITEM_CROSSBOW)->setUseDescriptionId(IDS_DESC_CROSSBOW);

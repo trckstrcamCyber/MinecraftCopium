@@ -554,6 +554,13 @@ const WCHAR *ConsoleSoundEngine::wchSoundNames[eSoundType_MAX]=
 	L"block.shelf.multi_swap",			//eSoundType_SHELF_MULTI_SWAP,
 	L"entity.boat.paddle_water",
 	L"entity.boat.paddle_land",
+
+	// neoLegacy - goat (see SoundTypes.h)
+	L"mob.goat.step",			//eSoundType_MOB_GOAT_STEP,
+	L"mob.goat.eat",			//eSoundType_MOB_GOAT_EAT,
+	L"mob.goat.pre_ram",		//eSoundType_MOB_GOAT_PRE_RAM,
+	L"mob.goat.horn_break",	//eSoundType_MOB_GOAT_HORN_BREAK,
+	L"item.goat_horn.call",	//eSoundType_ITEM_GOAT_HORN_CALL,
 };
 
 

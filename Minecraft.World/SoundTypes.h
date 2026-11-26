@@ -574,6 +574,13 @@ enum eSOUND_TYPE
 	eSoundType_ENTITY_BOAT_PADDLE_WATER,
 	eSoundType_ENTITY_BOAT_PADDLE_LAND,
 
+	// neoLegacy - goat (files under Windows64Media/Sound/Minecraft/mob/goat and item/goat_horn)
+	eSoundType_MOB_GOAT_STEP,			// goat step: step1-6
+	eSoundType_MOB_GOAT_EAT,			// goat eating wheat: eat1-3
+	eSoundType_MOB_GOAT_PRE_RAM,		// ram wind-up: pre_ram1-4
+	eSoundType_MOB_GOAT_HORN_BREAK,		// horn knocked loose on a wall hit: horn_break1-4
+	eSoundType_ITEM_GOAT_HORN_CALL,		// blowing the goat horn item: call1-8
+
 	eSoundType_MAX
 };
 

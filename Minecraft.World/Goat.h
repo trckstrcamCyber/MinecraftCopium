@@ -16,7 +16,9 @@ class CompoundTag;
 //   * can be milked with a bucket (like a cow), bred with wheat, and drops nothing but XP,
 //   * loses a horn (up to two) when a ram slams it into a solid block — the horn drops as an
 //     item (GoatRamGoal block-hit detection; see dropHorn()).
-// Its bleats reuse the sheep sounds at a higher pitch (no new audio assets needed).
+// Its sounds are the Java goat recordings (mob/goat/*: say/hurt/death/jump/ram_impact/step/eat/
+// pre_ram/horn_break) plus the goat-horn calls (item/goat_horn/call1-8); the step sound used to
+// reuse the sheep step before the goat recordings landed.
 class Goat : public Animal
 {
 public:

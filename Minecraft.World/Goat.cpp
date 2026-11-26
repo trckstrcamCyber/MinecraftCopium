@@ -136,7 +136,7 @@ int Goat::getDeathSound()
 
 void Goat::playStepSound(int xt, int yt, int zt, int t)
 {
-	playSound(eSoundType_MOB_SHEEP_STEP, 0.15f, 1);
+	playSound(eSoundType_MOB_GOAT_STEP, 0.15f, 1);
 }
 
 float Goat::getVoicePitch()
@@ -177,6 +177,14 @@ bool Goat::mobInteract(shared_ptr<Player> player)
 		}
 
 		return true;
+	}
+
+	// Feeding wheat (breeding): the goat's eat sound. Mirrors Animal::mobInteract's
+	// feeding condition so it only plays when the wheat is actually about to be eaten.
+	// Server-side only; the client hears it via the sound broadcast.
+	if (!level->isClientSide && item != nullptr && isFood(item) && getAge() == 0 && getInLoveValue() <= 0)
+	{
+		playSound(eSoundType_MOB_GOAT_EAT, 1.0f, 1.0f);
 	}
 	return Animal::mobInteract(player);
 }
