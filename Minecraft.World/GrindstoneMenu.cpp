@@ -48,6 +48,22 @@ void GrindstoneMenu::slotsChanged(shared_ptr<Container> container)
 	if (container == repairSlots) createResult();
 }
 
+// neoLegacy - Netherite tier (2026-11-26): map a diamond tool/armor item
+// id to its netherite upgrade, or nullptr if the item cannot be upgraded.
+static Item* getNetheriteUpgradeItem(int diamondId)
+{
+	if (diamondId == Item::diamond_sword_Id) return Item::netherite_sword;
+	if (diamondId == Item::diamond_shovel_Id) return Item::netherite_shovel;
+	if (diamondId == Item::diamond_pickaxe_Id) return Item::netherite_pickaxe;
+	if (diamondId == Item::diamond_axe_Id) return Item::netherite_axe;
+	if (diamondId == Item::diamond_hoe_Id) return Item::netherite_hoe;
+	if (diamondId == Item::diamond_helmet_Id) return Item::netherite_helmet;
+	if (diamondId == Item::diamond_chestplate_Id) return Item::netherite_chestplate;
+	if (diamondId == Item::diamond_leggings_Id) return Item::netherite_leggings;
+	if (diamondId == Item::diamond_boots_Id) return Item::netherite_boots;
+	return nullptr;
+}
+
 void GrindstoneMenu::createResult()
 {
 	shared_ptr<ItemInstance> itemA = repairSlots->getItem(INPUT_SLOT);
@@ -87,7 +103,26 @@ void GrindstoneMenu::createResult()
 	bool bIsPlainBook = (itemB != nullptr) && (itemB->id == Item::book->id);
 	const bool aIsEnchantedBook = (itemA->id == Item::enchanted_book_Id);
 
-	if (sameType && itemA->isDamageableItem() && itemA->getMaxDamage() > 0)
+	// neoLegacy - Netherite tier (2026-11-26): diamond tool/armor +
+	// netherite ingot -> netherite tool/armor. Checked first: an enchanted
+	// diamond item would otherwise match the plain-strip fallback below.
+	// Enchantments and damage carry over (Java smithing-table behaviour);
+	// the ingot is consumed when the result is taken. Free (xpReward 0).
+	Item* netheriteItem = nullptr;
+	if (itemB != nullptr && itemB->id == Item::netherite_ingot_Id)
+	{
+		netheriteItem = getNetheriteUpgradeItem(itemA->id);
+	}
+	if (netheriteItem != nullptr)
+	{
+		result = std::make_shared<ItemInstance>(netheriteItem, 1, 0);
+		result->setAuxValue(itemA->getDamageValue());
+		unordered_map<int, int> keepEnch(*enchantmentsA);
+		EnchantmentHelper::setEnchantments(&keepEnch, result);
+		pendingAction = ACTION_NETHERITE_UPGRADE;
+		xpReward = 0;
+	}
+	else if (sameType && itemA->isDamageableItem() && itemA->getMaxDamage() > 0)
 	{
 		// ---- Repair-combine: sum remaining durability + a 5% bonus. ----
 		// This clears enchantments same as a plain strip (curses excepted),

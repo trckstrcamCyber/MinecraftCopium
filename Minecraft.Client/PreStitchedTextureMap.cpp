@@ -768,6 +768,20 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(31, 14, L"ice_wand");
 		ADD_ICON(31, 15, L"crossbow_standby");
 		ADD_ICON(31, 0, L"spyglass");
+		// neoLegacy - Netherite tier (2026-11-26): items.png row 27, cols 0-12 (row 27 was entirely free).
+		ADD_ICON(27, 0, L"netherite_scrap");
+		ADD_ICON(27, 1, L"netherite_ingot");
+		ADD_ICON(27, 2, L"netherite_sword");
+		ADD_ICON(27, 3, L"netherite_pickaxe");
+		ADD_ICON(27, 4, L"netherite_axe");
+		ADD_ICON(27, 5, L"netherite_shovel");
+		ADD_ICON(27, 6, L"netherite_hoe");
+		ADD_ICON(27, 7, L"netherite_helmet");
+		ADD_ICON(27, 8, L"netherite_chestplate");
+		ADD_ICON(27, 9, L"netherite_leggings");
+		ADD_ICON(27, 10, L"netherite_boots");
+		ADD_ICON(27, 11, L"netherite_nugget");
+		ADD_ICON(27, 12, L"netherite_stick");
 		ADD_ICON(30, 9, L"crossbow_arrow");
 		ADD_ICON(30, 10, L"crossbow_pulling_0");
 		ADD_ICON(30, 11, L"crossbow_pulling_1");
@@ -1546,6 +1560,10 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(39, 9,  L"amethyst_bricks")
 		ADD_ICON(39, 10, L"amethyst_crystal_block")
 		ADD_ICON(39, 11, L"amethyst_crystal_lamp")
+
+		// neoLegacy - Netherite tier (2026-11-26): terrain row 40 (was entirely free).
+		ADD_ICON(40, 0, L"ancient_debris_side")
+		ADD_ICON(40, 1, L"ancient_debris_top")
 
 	}
 }

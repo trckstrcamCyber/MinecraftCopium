@@ -20,6 +20,7 @@
 #include "BlackStoneTile.h"
 #include "CalciteTile.h"
 #include "AmethystTile.h"
+#include "AncientDebrisTile.h"
 #include "AmethystDecorativeTile.h"
 #include "StrippedLogTile.h"
 #include "BambooBlockTile.h"
@@ -358,6 +359,7 @@ Tile* Tile::amethystBrickStairs = nullptr;
 Tile* Tile::amethystBrickWall = nullptr;
 Tile* Tile::amethystCrystalBlock = nullptr;
 Tile* Tile::amethystCrystalLamp = nullptr;
+Tile* Tile::ancientDebris = nullptr;
 Tile *Tile::stairs_calcite = nullptr;
 Tile *Tile::calciteWall = nullptr;
 Tile *Tile::bamboo = nullptr;
@@ -874,6 +876,11 @@ void Tile::staticCtor()
         ->setBaseItemTypeAndMaterial(Item::eBaseItemType_torch, Item::eMaterial_glowstone)
         ->setDestroyTime(1.5f)->setExplodeable(6.0f)->setSoundType(Tile::SOUND_GLASS)
         ->setLightEmission(1.0f)->setDescriptionId(IDS_TILE_AMETHYST_CRYSTAL_LAMP)->sendTileData()->setUseDescriptionId(IDS_DESC_GLOWSTONE);
+
+    // neoLegacy - Netherite tier (2026-11-26): ancient debris, Java-faithful
+    // hardness 30 (obsidian-tier) and very high blast resistance (1200).
+    Tile::ancientDebris = (new AncientDebrisTile(Tile::ancient_debris_Id))
+        ->setBaseItemTypeAndMaterial(Item::eBaseItemType_block, Item::eMaterial_netherite)->setDestroyTime(30.0f)->setExplodeable(1200.0f)->setSoundType(Tile::SOUND_STONE)->setDescriptionId(IDS_TILE_ANCIENT_DEBRIS)->sendTileData()->setUseDescriptionId(IDS_DESC_ORE_ANCIENT_DEBRIS);
     // neoLegacy - Bamboo cube blocks (same material/hardness/sound as the wooden equivalents)
     Tile::bamboo = (new BambooTile(bamboo_Id))->setDestroyTime(1.0f)->setExplodeable(1)->setSoundType(Tile::SOUND_WOOD)->setDescriptionId(IDS_TILE_BAMBOO)->setNotCollectStatistics()->sendTileData()->disableMipmap();
     Tile::bambooShoot = (new BambooShootTile(bamboo_shoot_Id))->setDestroyTime(0.0f)->setSoundType(Tile::SOUND_GRASS)->setDescriptionId(IDS_TILE_BAMBOO)->setNotCollectStatistics()->disableMipmap();

@@ -50,13 +50,13 @@ ResourceLocation *HumanoidMobRenderer::getArmorLocation(ArmorItem *armorItem, in
 ResourceLocation *HumanoidMobRenderer::getArmorLocation(ArmorItem *armorItem, int layer, bool overlay)
 {
 	// Armor-material name for the texture path. modelIndex is the material index:
-	// 0 cloth, 1 chain, 2 iron, 3 diamond, 4 gold, 5 copper, 6 rose gold.
+	// 0 cloth, 1 chain, 2 iron, 3 diamond, 4 gold, 5 copper, 6 rose gold, 7 netherite.
 	// MATERIAL_NAMES only holds the 5 vanilla entries, so indexing it with 5/6 read
 	// the wstring stored after the array in .data (a corrupt _Mysize of ~5.6 MB) and
 	// the armor-path copy crashed on copper equip (and built a garbage path for rose
 	// gold, so it never loaded). Resolve the name with a switch on a clamped index.
 	int index = armorItem->modelIndex;
-	if (index < 0 || index > 6)
+	if (index < 0 || index > 7)
 		index = 0;
 	const wchar_t *materialName;
 	switch (index)
@@ -68,6 +68,7 @@ ResourceLocation *HumanoidMobRenderer::getArmorLocation(ArmorItem *armorItem, in
 	case 4: materialName = L"gold"; break;
 	case 5: materialName = L"copper"; break;
 	case 6: materialName = L"rose_gold"; break;
+	case 7: materialName = L"netherite"; break;
 	default: materialName = L"cloth"; break;
 	}
 	wstring path = wstring(L"armor/").append(materialName).append(L"_").append(std::to_wstring(layer == 2 ? 2 : 1)).append((overlay ? L"_b" : L"")).append(L".png");

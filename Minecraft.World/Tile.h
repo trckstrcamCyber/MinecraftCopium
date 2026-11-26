@@ -625,6 +625,7 @@ public:
     static const int amethyst_brick_wall_Id = 2345;
     static const int amethyst_crystal_block_Id = 2346;
     static const int amethyst_crystal_lamp_Id = 2347;
+    static const int ancient_debris_Id = 2348;	// neoLegacy - Netherite tier (2026-11-26): next free ext tile after amethyst lamp 2347
 
     // neoLegacy - Jelly Block (honey-block behaviour, see JellyBlockTile.h). Uses a free vanilla-range id: extended ids (2304+) have crashed before.
     static const int jelly_block_Id = 210;
@@ -922,6 +923,7 @@ public:
     static Tile* amethystBrickWall;
     static Tile* amethystCrystalBlock;
     static Tile* amethystCrystalLamp;
+    static Tile* ancientDebris;
     static Tile* lucky_block;
     static GrindstoneTile* grindstone;
     static Tile* concrete_powder;

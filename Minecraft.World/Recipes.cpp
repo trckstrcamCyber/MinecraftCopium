@@ -1700,6 +1700,30 @@ void Recipes::_compileRecipes()
 		L'#', Item::iron_ingot,
 		L'D');
 
+	// neoLegacy - Netherite tier (2026-11-26): ingot is shapeless, 4 scrap +
+	// 4 gold ingots in the Crafting Table (Java recipe). Nugget exchange
+	// copies gold exactly. Workbench, NOT Complex-Table-only.
+	addShapelessRecipy(new ItemInstance(Item::netherite_ingot, 1), //
+		L"iiiiiiiig",
+		Item::netherite_scrap, Item::netherite_scrap, Item::netherite_scrap, Item::netherite_scrap,
+		Item::gold_ingot, Item::gold_ingot, Item::gold_ingot, Item::gold_ingot,
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Item::netherite_ingot), //
+		L"ssscig",
+		L"###", //
+		L"###", //
+		L"###", //
+
+		L'#', Item::netherite_nugget,
+		L'D');
+
+	addShapedRecipy(new ItemInstance(Item::netherite_nugget, 9), //
+		L"scig",
+		L"#", //
+		L'#', Item::netherite_ingot,
+		L'D');
+
 	// 4J-PB - moving into decorations to make the structures list smaller
 	// neoLegacy - one sign recipe per plank type (aux = WoodTile data, 6 = bamboo); every one gives THE sign item with that wood as its aux value
 	{

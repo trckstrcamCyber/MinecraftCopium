@@ -11587,4 +11587,72 @@
 	<data name="IDS_DESC_SPYGLASS">
 		<value>A spyglass.</value>
 	</data>
+
+	<!-- neoLegacy - Netherite tier (2026-11-26) -->
+	<data name="IDS_TILE_ANCIENT_DEBRIS">
+		<value>Ancient Debris</value>
+	</data>
+	<data name="IDS_DESC_ORE_ANCIENT_DEBRIS">
+		<value>Can be mined with a diamond pickaxe or better, then smelted in a furnace to produce netherite scrap.</value>
+	</data>
+	<data name="IDS_ITEM_NETHERITE_SCRAP">
+		<value>Netherite Scrap</value>
+	</data>
+	<data name="IDS_DESC_NETHERITE_SCRAP">
+		<value>Smelted from ancient debris. Four scraps and four gold ingots can be crafted into a netherite ingot.</value>
+	</data>
+	<data name="IDS_ITEM_NETHERITE_INGOT">
+		<value>Netherite Ingot</value>
+	</data>
+	<data name="IDS_ITEM_SWORD_NETHERITE">
+		<value>Netherite Sword</value>
+	</data>
+	<data name="IDS_ITEM_PICKAXE_NETHERITE">
+		<value>Netherite Pickaxe</value>
+	</data>
+	<data name="IDS_ITEM_HATCHET_NETHERITE">
+		<value>Netherite Axe</value>
+	</data>
+	<data name="IDS_ITEM_SHOVEL_NETHERITE">
+		<value>Netherite Shovel</value>
+	</data>
+	<data name="IDS_ITEM_HOE_NETHERITE">
+		<value>Netherite Hoe</value>
+	</data>
+	<data name="IDS_ITEM_HELMET_NETHERITE">
+		<value>Netherite Helmet</value>
+	</data>
+	<data name="IDS_DESC_HELMET_NETHERITE">
+		<value>Gives the user 3 Armor when worn.</value>
+	</data>
+	<data name="IDS_ITEM_CHESTPLATE_NETHERITE">
+		<value>Netherite Chestplate</value>
+	</data>
+	<data name="IDS_DESC_CHESTPLATE_NETHERITE">
+		<value>Gives the user 8 Armor when worn.</value>
+	</data>
+	<data name="IDS_ITEM_LEGGINGS_NETHERITE">
+		<value>Netherite Leggings</value>
+	</data>
+	<data name="IDS_DESC_LEGGINGS_NETHERITE">
+		<value>Gives the user 6 Armor when worn.</value>
+	</data>
+	<data name="IDS_ITEM_BOOTS_NETHERITE">
+		<value>Netherite Boots</value>
+	</data>
+	<data name="IDS_DESC_BOOTS_NETHERITE">
+		<value>Gives the user 3 Armor when worn.</value>
+	</data>
+	<data name="IDS_ITEM_NETHERITE_NUGGET">
+		<value>Netherite Nugget</value>
+	</data>
+	<data name="IDS_DESC_NETHERITE_NUGGET">
+		<value>Nine netherite nuggets can be crafted into a netherite ingot.</value>
+	</data>
+	<data name="IDS_ITEM_NETHERITE_STICK">
+		<value>Netherite Stick</value>
+	</data>
+	<data name="IDS_DESC_NETHERITE_STICK">
+		<value>A stick made of netherite.</value>
+	</data>
 </root>

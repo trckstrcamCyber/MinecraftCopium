@@ -96,7 +96,8 @@ public:
 		eMaterial_crossbow,	// neoLegacy
 		eMaterial_copper,	// neoLegacy - Copper Age (Phase 1)
 		eMaterial_rose_gold,	// neoLegacy - Copper Age (Phase 2)
-		eMaterial_purpur
+		eMaterial_purpur,
+		eMaterial_netherite	// neoLegacy - Netherite tier (2026-11-26)
 
 	}
 	eMaterial;
@@ -177,6 +178,7 @@ public:
 		static const Tier *CMON;	// neoLegacy - CMonster sword tier
 		static const Tier *COPPER;	// neoLegacy - Copper Age (Phase 2)
 		static const Tier *ROSE_GOLD;	// neoLegacy - Copper Age (Phase 2)
+		static const Tier *NETHERITE;	// neoLegacy - Netherite tier (2026-11-26)
 
 	private:
 		const int level;
@@ -226,6 +228,10 @@ public:
 	static Item *raw_rose_gold;
 	static Item *rose_gold_ingot;
 	static Item *rose_gold_nugget;
+	static Item *netherite_scrap;
+	static Item *netherite_ingot;
+	static Item *netherite_nugget;
+	static Item *netherite_stick;
 	static Item *iron_sword;
 
 	static Item *wooden_sword;
@@ -304,6 +310,11 @@ public:
 	static Item *rose_gold_pickaxe;
 	static Item *rose_gold_axe;
 
+	static Item *netherite_sword;
+	static Item *netherite_shovel;
+	static Item *netherite_pickaxe;
+	static Item *netherite_axe;
+
 	static Item *string;
 	static Item *feather;
 	static Item *gunpowder;
@@ -316,6 +327,8 @@ public:
 
 	static Item *copper_hoe;
 	static Item *rose_gold_hoe;
+
+	static Item *netherite_hoe;
 
 	static Item *wheat_seeds;
 	static Item *wheat;
@@ -355,6 +368,11 @@ public:
 	static ArmorItem *rose_gold_chestplate;
 	static ArmorItem *rose_gold_leggings;
 	static ArmorItem *rose_gold_boots;
+
+	static ArmorItem *netherite_helmet;
+	static ArmorItem *netherite_chestplate;
+	static ArmorItem *netherite_leggings;
+	static ArmorItem *netherite_boots;
 
 	static Item *flint;
 	static Item *raw_porkchop;
@@ -643,6 +661,19 @@ public:
 	static const int amethyst_shard_Id		= 618;
 	static const int goat_horn_Id			= 619;
 	static const int spyglass_Id			= 620;	// neoLegacy - Amethyst Geodes (2026-11-26): next free id after goat_horn 619
+	static const int netherite_scrap_Id	= 621;	// neoLegacy - Netherite tier (2026-11-26)
+	static const int netherite_ingot_Id	= 622;
+	static const int netherite_sword_Id	= 623;
+	static const int netherite_pickaxe_Id	= 624;
+	static const int netherite_axe_Id	= 625;
+	static const int netherite_shovel_Id	= 626;
+	static const int netherite_hoe_Id	= 627;
+	static const int netherite_helmet_Id	= 628;
+	static const int netherite_chestplate_Id	= 629;
+	static const int netherite_leggings_Id	= 630;
+	static const int netherite_boots_Id	= 631;
+	static const int netherite_nugget_Id	= 632;
+	static const int netherite_stick_Id	= 633;
 	static const int enchantment_encyclopedia_Id = 600;	// neoLegacy - Enchantment Encyclopedia (kept well clear of the 472+ block for new wood items)
 	static const int diamond_shovel_Id		= 277;
 	static const int diamond_pickaxe_Id		= 278;

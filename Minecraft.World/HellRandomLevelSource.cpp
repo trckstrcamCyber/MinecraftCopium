@@ -505,6 +505,17 @@ void HellRandomLevelSource::postProcess(ChunkSource *parent, int xt, int zt)
 		quartzFeature.place(level, pprandom, x, y, z);
 	}
 
+	// neoLegacy - Netherite tier (2026-11-26): ancient debris, Java-faithful
+	// small veins (1-3) centred on Y 15 (triangular roll, peak ~15).
+	OreFeature ancientDebrisFeature(Tile::ancient_debris_Id, 0, 2, Tile::netherrack_Id);
+	for (int i = 0; i < 2; i++)
+	{
+		int x = xo + pprandom->nextInt(16);
+		int y = pprandom->nextInt(8) + pprandom->nextInt(8) + 8;
+		int z = zo + pprandom->nextInt(16);
+		ancientDebrisFeature.place(level, pprandom, x, y, z);
+	}
+
 	for (int i = 0; i < 16; i++)
 	{
 		int x = xo + random->nextInt(16);

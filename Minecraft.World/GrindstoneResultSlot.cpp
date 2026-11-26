@@ -92,6 +92,27 @@ void GrindstoneResultSlot::onTake(shared_ptr<Player> player, shared_ptr<ItemInst
 		break;
 	}
 
+	case GrindstoneMenu::ACTION_NETHERITE_UPGRADE:
+	{
+		// neoLegacy - Netherite tier (2026-11-26): consume the diamond item
+		// from slot A and one netherite ingot from slot B.
+		m_menu->repairSlots->setItem(GrindstoneMenu::INPUT_SLOT, nullptr);
+		shared_ptr<ItemInstance> ingot = m_menu->repairSlots->getItem(GrindstoneMenu::ADDITIONAL_SLOT);
+		if (ingot != nullptr)
+		{
+			if (ingot->count > 1)
+			{
+				ingot->count--;
+				m_menu->repairSlots->setItem(GrindstoneMenu::ADDITIONAL_SLOT, ingot);
+			}
+			else
+			{
+				m_menu->repairSlots->setItem(GrindstoneMenu::ADDITIONAL_SLOT, nullptr);
+			}
+		}
+		break;
+	}
+
 	default:
 		break;
 	}

@@ -68,6 +68,7 @@ const int _ArmorMaterial::goldArray[] = {2, 5, 3, 1};
 const int _ArmorMaterial::diamondArray[] = {3, 8, 6, 3};
 const int _ArmorMaterial::copperArray[] = {2, 4, 3, 1};
 const int _ArmorMaterial::roseGoldArray[] = {3, 7, 5, 2};
+const int _ArmorMaterial::netheriteArray[] = {3, 8, 6, 3};
 const _ArmorMaterial *_ArmorMaterial::CLOTH = new _ArmorMaterial(5, _ArmorMaterial::clothArray, 15);
 const _ArmorMaterial *_ArmorMaterial::CHAIN = new _ArmorMaterial(15, _ArmorMaterial::chainArray, 12);
 const _ArmorMaterial *_ArmorMaterial::IRON = new _ArmorMaterial(15, _ArmorMaterial::ironArray, 9);
@@ -75,6 +76,7 @@ const _ArmorMaterial *_ArmorMaterial::GOLD = new _ArmorMaterial(7, _ArmorMateria
 const _ArmorMaterial *_ArmorMaterial::DIAMOND = new _ArmorMaterial(33, _ArmorMaterial::diamondArray, 10);
 const _ArmorMaterial *_ArmorMaterial::COPPER = new _ArmorMaterial(11, _ArmorMaterial::copperArray, 8);
 const _ArmorMaterial *_ArmorMaterial::ROSE_GOLD = new _ArmorMaterial(15, _ArmorMaterial::roseGoldArray, 25); // rebalanced 2026-11-19 per Cameron: iron durability factor (15), gold-like enchantability (25); protection unchanged
+const _ArmorMaterial *_ArmorMaterial::NETHERITE = new _ArmorMaterial(37, _ArmorMaterial::netheriteArray, 15); // neoLegacy - Netherite tier (2026-11-26): Java-faithful protection {3,8,6,3} (same as diamond), durability 37x -> {407,592,555,481}, enchant 15
 
 _ArmorMaterial::ArmorMaterial(int durabilityMultiplier, const int slotProtections[], int enchantmentValue)
 {
@@ -134,6 +136,10 @@ int _ArmorMaterial::getTierItemId() const
 	else if (this == ROSE_GOLD)
 	{
 		return Item::rose_gold_ingot_Id;
+	}
+	else if (this == NETHERITE)
+	{
+		return Item::netherite_ingot_Id;
 	}
 	return 0;
 }

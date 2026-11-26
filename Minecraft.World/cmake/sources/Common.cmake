@@ -2051,6 +2051,8 @@ set(_MINECRAFT_WORLD_COMMON_NET_MINECRAFT_WORLD_LEVEL_TILE
   "${CMAKE_CURRENT_SOURCE_DIR}/CalciteTile.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/AmethystTile.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/AmethystTile.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/AncientDebrisTile.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/AncientDebrisTile.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/AmethystDecorativeTile.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/AmethystDecorativeTile.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/SpyglassItem.cpp"

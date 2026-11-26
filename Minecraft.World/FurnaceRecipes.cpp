@@ -21,6 +21,8 @@ FurnaceRecipes::FurnaceRecipes()
 {
 	addFurnaceRecipy(Tile::iron_ore_Id, new ItemInstance(Item::iron_ingot), .7f);
 	addFurnaceRecipy(Tile::copper_ore_Id, new ItemInstance(Item::copper_ingot), .7f);
+	// neoLegacy - Netherite tier (2026-11-26): ancient debris smelts to netherite scrap (Java XP 2.0).
+	addFurnaceRecipy(Tile::ancient_debris_Id, new ItemInstance(Item::netherite_scrap), 2.0f);
 	addFurnaceRecipy(new ItemInstance(Item::raw_copper, 1, 0), new ItemInstance(Item::copper_ingot), .7f);
 
 	// neoLegacy - Copper Age (Phase 2): copper gear recycles to a copper nugget (0.1 XP, as in jar1201's copper_nugget_from_smelting.json, which also lists the horse armor); raw rose gold smelts to a rose gold ingot (1.0 XP, as in rosegold's rose_gold_ingot_from_smelting.json).
