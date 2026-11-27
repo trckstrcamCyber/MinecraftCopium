@@ -303,7 +303,12 @@ bool PlayerList::placeNewPlayer(Connection *connection, shared_ptr<ServerPlayer>
 	app.DebugPrintf("RECONNECT: placeNewPlayer smallId=%d entityId=%d dim=%d\n",
 		newSmallId, player->entityId, level->dimension->id);
 
-	playerConnection->send(Recipes::getInstance()->createUpdatePacket());
+	// The recipe registry is chunked (see Recipes::createUpdatePacket): send
+	// every chunk, in order, before the creative registry.
+	for (std::shared_ptr<CustomPayloadPacket> &recipePacket : Recipes::getInstance()->createUpdatePacket())
+	{
+		playerConnection->send(recipePacket);
+	}
 	playerConnection->send(IUIScene_CreativeMenu::createUpdatePacket());
 
 	playerConnection->send(std::make_shared<LoginPacket>(L"", player->entityId, level->getLevelData()->getGenerator(),

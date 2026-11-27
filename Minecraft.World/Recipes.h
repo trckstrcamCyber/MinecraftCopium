@@ -15,6 +15,7 @@ import net.minecraft.world.level.tile.StoneSlabTile;
 import net.minecraft.world.level.tile.Tile;
 */
 
+#include <vector>
 #include "Recipy.h"
 #include "../Minecraft.World/CustomPayloadPacket.h"
 
@@ -112,7 +113,7 @@ public:
 	void loadFromLocal();
 	void loadFromPacket(byteArray packetData);
 
-	std::shared_ptr<CustomPayloadPacket> createUpdatePacket();
+	std::vector<std::shared_ptr<CustomPayloadPacket>> createUpdatePacket();
 
 private:
 	void buildRecipeIngredientsArray();

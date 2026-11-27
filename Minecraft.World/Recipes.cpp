@@ -2466,7 +2466,15 @@ void Recipes::loadFromPacket(byteArray packetData)
 	ByteArrayInputStream bais(packetData);
 	DataInputStream input(&bais);
 
-	this->_wipeRecipes();
+	// Chunked registry transfer (see createUpdatePacket): the first chunk
+	// wipes the local registry, continuation chunks append to it, and the
+	// ingredients index is rebuilt only once, on the last chunk.
+	bool isContinuation = input.readByte() != 0;
+	bool isLast = input.readByte() != 0;
+	if (!isContinuation)
+	{
+		this->_wipeRecipes();
+	}
 	{
 		int iCount = input.readInt();
 		for (int i = 0; i < iCount; i++) {
@@ -2479,20 +2487,92 @@ void Recipes::loadFromPacket(byteArray packetData)
 			}
 		}
 	}
-	this->buildRecipeIngredientsArray();
+	if (isLast)
+	{
+		this->buildRecipeIngredientsArray();
+	}
 }
 
-std::shared_ptr<CustomPayloadPacket> Recipes::createUpdatePacket()
+// The recipe registry no longer fits in a single custom-payload packet:
+// payloads are capped at Short::MAX_VALUE (32767) bytes and the
+// CustomPayloadPacket constructor DEBUG_BREAKs past it, which killed the
+// game at login (crash on start, Nov 26). Split the registry into chunks,
+// each well under the cap. Chunk data layout:
+//   byte isContinuation (0 = first chunk, 1 = continuation)
+//   byte isLast         (0 = more chunks follow, 1 = last chunk)
+//   int  recipeCount    (recipes carried by this chunk)
+//   ...recipe bytes...
+// The client wipes its registry on the first chunk, appends on continuation
+// chunks, and rebuilds the ingredients index on the last chunk
+// (see loadFromPacket).
+static const int RECIPE_REGISTRY_CHUNK_MAX_BYTES = 30000;
+
+std::vector<std::shared_ptr<CustomPayloadPacket>> Recipes::createUpdatePacket()
 {
-	ByteArrayOutputStream baos;
-	DataOutputStream dos(&baos);
-
-	int iCount = recipies->size();
-	dos.writeInt(iCount);
-
-	for (int i = 0; i < iCount; i++) {
-		(*recipies)[i]->writeToStream(&dos);
+	// Serialize every recipe once so we know each one's exact size.
+	// (byteArray does not free its data, so each one is delete[]'d below.)
+	std::vector<byteArray> recipeBytes;
+	recipeBytes.reserve(recipies->size());
+	for (int i = 0; i < (int)recipies->size(); i++)
+	{
+		ByteArrayOutputStream recipeBaos;
+		DataOutputStream recipeDos(&recipeBaos);
+		(*recipies)[i]->writeToStream(&recipeDos);
+		recipeBytes.push_back(recipeBaos.toByteArray());
 	}
 
-	return std::make_shared<CustomPayloadPacket>(CustomPayloadPacket::UPDATE_RECIPE_REGISTRY, baos.toByteArray());
+	std::vector<std::shared_ptr<CustomPayloadPacket>> packets;
+	size_t next = 0;
+	bool isFirstChunk = true;
+	while (next < recipeBytes.size())
+	{
+		ByteArrayOutputStream chunkBaos;
+		DataOutputStream chunkDos(&chunkBaos);
+		int chunkCount = 0;
+		// Fill one chunk without exceeding the payload cap. Always take at
+		// least one recipe per chunk so we always make progress.
+		while (next < recipeBytes.size() &&
+		       (chunkCount == 0 ||
+		        chunkBaos.size() + recipeBytes[next].length <= RECIPE_REGISTRY_CHUNK_MAX_BYTES))
+		{
+			chunkDos.write(recipeBytes[next]);
+			chunkCount++;
+			next++;
+		}
+
+		bool isLast = (next >= recipeBytes.size());
+		byteArray chunkData = chunkBaos.toByteArray();
+		ByteArrayOutputStream packetBaos;
+		DataOutputStream packetDos(&packetBaos);
+		packetDos.writeByte(isFirstChunk ? 0 : 1);
+		packetDos.writeByte(isLast ? 1 : 0);
+		packetDos.writeInt(chunkCount);
+		packetDos.write(chunkData);
+		delete[] chunkData.data;
+
+		// The packet takes over this buffer (same as the old single-packet
+		// code, which also passed baos.toByteArray() straight in).
+		byteArray packetData = packetBaos.toByteArray();
+		packets.push_back(std::make_shared<CustomPayloadPacket>(
+			CustomPayloadPacket::UPDATE_RECIPE_REGISTRY, packetData));
+		isFirstChunk = false;
+	}
+
+	for (size_t i = 0; i < recipeBytes.size(); i++)
+		delete[] recipeBytes[i].data;
+
+	if (packets.empty())
+	{
+		// No recipes at all: still send one (empty) chunk so the client
+		// wipes its registry, matching the old single-packet behaviour.
+		ByteArrayOutputStream packetBaos;
+		DataOutputStream packetDos(&packetBaos);
+		packetDos.writeByte(0);
+		packetDos.writeByte(1);
+		packetDos.writeInt(0);
+		byteArray packetData = packetBaos.toByteArray();
+		packets.push_back(std::make_shared<CustomPayloadPacket>(
+			CustomPayloadPacket::UPDATE_RECIPE_REGISTRY, packetData));
+	}
+	return packets;
 }
