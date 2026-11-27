@@ -3,6 +3,7 @@
 #include "Item.h"
 #include "IconRegister.h"
 #include "net.minecraft.world.h"
+#include "net.minecraft.world.level.h"
 #include "net.minecraft.h"
 
 namespace
