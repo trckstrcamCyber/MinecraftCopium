@@ -123,6 +123,15 @@ int ShapedRecipy::size()
 	return width * height;
 }
 
+bool ShapedRecipy::hasIngredient(int itemId) const
+{
+	for (int i = 0; i < width * height; i++)
+	{
+		if (recipeItems[i] != nullptr && recipeItems[i]->id == itemId) return true;
+	}
+	return false;
+}
+
 // 4J-PB
 bool ShapedRecipy::reqs(int iRecipe) 
 {

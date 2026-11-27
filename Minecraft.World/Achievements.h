@@ -85,6 +85,22 @@ public:
 	static Achievement *zombieDoctor;
 	static Achievement *lionTamer;
 
+	// neoLegacy - Achievements Batch 1 (IDs 50-63, 2026-11-26).
+	static Achievement *weNeedToGoDeeper;
+	static Achievement *spawnTheWither;
+	static Achievement *wither;
+	static Achievement *beaconator;
+	static Achievement *overpowered;
+	static Achievement *copperAge;
+	static Achievement *copperclad;
+	static Achievement *roseGold;
+	static Achievement *netheriteScrap;
+	static Achievement *netherite;
+	static Achievement *crystalClear;
+	static Achievement *hornBlower;
+	static Achievement *endCity;
+	static Achievement *waxOn;
+
 	static void staticCtor();
 
     static void init();

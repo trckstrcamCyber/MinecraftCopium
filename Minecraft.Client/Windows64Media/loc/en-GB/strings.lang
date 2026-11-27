@@ -8626,4 +8626,89 @@ If you try to save while using the trial version, you will be given the option t
 	<data name="IDS_PROGRESS_COPYING_SAVE">
 		<value>Copying Save</value>
 	</data>	
+	<!-- neoLegacy - Achievements Batch 1 (IDs 50-63, 2026-11-26): I18n keys for the grid screen. UNVERIFIED: Language::getElement is a stub that returns the key itself (see NOTES.md); the live toast/menu path is the IDS strings above. -->
+	<data name="achievement.weNeedToGoDeeper">
+		<value>We Need to Go Deeper</value>
+	</data>
+	<data name="achievement.weNeedToGoDeeper.desc">
+		<value>Build a portal to the Nether.</value>
+	</data>
+	<data name="achievement.spawnTheWither">
+		<value>Spawn the Wither</value>
+	</data>
+	<data name="achievement.spawnTheWither.desc">
+		<value>Summon the Wither.</value>
+	</data>
+	<data name="achievement.wither">
+		<value>Wither</value>
+	</data>
+	<data name="achievement.wither.desc">
+		<value>Kill the Wither.</value>
+	</data>
+	<data name="achievement.beaconator">
+		<value>Beaconator</value>
+	</data>
+	<data name="achievement.beaconator.desc">
+		<value>Create a full beacon.</value>
+	</data>
+	<data name="achievement.overpowered">
+		<value>Overpowered</value>
+	</data>
+	<data name="achievement.overpowered.desc">
+		<value>Eat an Enchanted Golden Apple.</value>
+	</data>
+	<data name="achievement.copperAge">
+		<value>Copper Age</value>
+	</data>
+	<data name="achievement.copperAge.desc">
+		<value>Smelt your first Copper Ingot.</value>
+	</data>
+	<data name="achievement.copperclad">
+		<value>Copperclad</value>
+	</data>
+	<data name="achievement.copperclad.desc">
+		<value>Wear a full suit of Copper Armor.</value>
+	</data>
+	<data name="achievement.roseGold">
+		<value>Rose Gold</value>
+	</data>
+	<data name="achievement.roseGold.desc">
+		<value>Craft your first Rose Gold Ingot.</value>
+	</data>
+	<data name="achievement.netheriteScrap">
+		<value>Netherite Scrap</value>
+	</data>
+	<data name="achievement.netheriteScrap.desc">
+		<value>Smelt Ancient Debris into Netherite Scrap.</value>
+	</data>
+	<data name="achievement.netherite">
+		<value>Netherite</value>
+	</data>
+	<data name="achievement.netherite.desc">
+		<value>Upgrade Diamond gear at the Grindstone.</value>
+	</data>
+	<data name="achievement.crystalClear">
+		<value>Crystal Clear</value>
+	</data>
+	<data name="achievement.crystalClear.desc">
+		<value>Find an Amethyst Geode.</value>
+	</data>
+	<data name="achievement.hornBlower">
+		<value>Horn Blower</value>
+	</data>
+	<data name="achievement.hornBlower.desc">
+		<value>Blow a Goat Horn.</value>
+	</data>
+	<data name="achievement.endCity">
+		<value>The City at the End of the Game</value>
+	</data>
+	<data name="achievement.endCity.desc">
+		<value>Reach an End City.</value>
+	</data>
+	<data name="achievement.waxOn">
+		<value>Wax On</value>
+	</data>
+	<data name="achievement.waxOn.desc">
+		<value>Wax a Copper Block with Honeycomb.</value>
+	</data>
 </root>

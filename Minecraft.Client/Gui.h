@@ -13,6 +13,7 @@ class Gui : public GuiComponent
 private:
 	static ResourceLocation PUMPKIN_BLUR_LOCATION;
 	static ResourceLocation FREEZE_OVERLAY_LOCATION;	// neoLegacy
+	static ResourceLocation SPYSCOPE_OVERLAY_LOCATION;	// neoLegacy
 	// 4J-PB - this doesn't account for the safe zone, and the indent applied to messages
 	//static const int MAX_MESSAGE_WIDTH = 320;
 	static const int m_iMaxMessageWidth = 280;
@@ -51,6 +52,7 @@ private:
 	//void renderBossHealth(void);
 	void renderPumpkin(int w, int h);
 	void renderFreeze(float progress, int w, int h);	// neoLegacy
+	void renderScope(int w, int h);	// neoLegacy
 	void renderVignette(float br, int w, int h);
 	void renderTp(float br, int w, int h);
 	void renderSlot(int slot, int x, int y, float a);

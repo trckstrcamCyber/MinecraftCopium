@@ -24,6 +24,10 @@ private:
 public:
 	virtual shared_ptr<ItemInstance> assemble(shared_ptr<CraftingContainer> craftSlots);
 	virtual int size();
+
+	// neoLegacy - true if any ingredient is the given item/tile id (used by Recipes::isComplexOnly
+	// to tell the Complex Table's nugget -> ingot recipes apart from the other ingot recipes).
+	bool hasIngredient(int itemId) const;
 	ShapedRecipy* keepTag();
 
 	// 4J-PB - to return the items required to make a recipe

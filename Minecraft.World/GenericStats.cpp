@@ -600,6 +600,133 @@ Stat* GenericStats::lionTamer()
 	return instance->get_achievement(eAward_lionTamer);
 #endif
 }
+// neoLegacy - Achievements Batch 1 (IDs 50-63, 2026-11-26).
+Stat* GenericStats::weNeedToGoDeeper()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->get_achievement(eAward_WeNeedToGoDeeper);
+#else
+	return instance->get_achievement(eAward_WeNeedToGoDeeper);
+#endif
+}
+
+Stat* GenericStats::spawnTheWither()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->get_achievement(eAward_SpawnTheWither);
+#else
+	return instance->get_achievement(eAward_SpawnTheWither);
+#endif
+}
+
+Stat* GenericStats::wither()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->get_achievement(eAward_Wither);
+#else
+	return instance->get_achievement(eAward_Wither);
+#endif
+}
+
+Stat* GenericStats::beaconator()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->get_achievement(eAward_Beaconator);
+#else
+	return instance->get_achievement(eAward_Beaconator);
+#endif
+}
+
+Stat* GenericStats::overpowered()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->get_achievement(eAward_Overpowered);
+#else
+	return instance->get_achievement(eAward_Overpowered);
+#endif
+}
+
+Stat* GenericStats::copperAge()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->get_achievement(eAward_CopperAge);
+#else
+	return instance->get_achievement(eAward_CopperAge);
+#endif
+}
+
+Stat* GenericStats::copperclad()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->get_achievement(eAward_Copperclad);
+#else
+	return instance->get_achievement(eAward_Copperclad);
+#endif
+}
+
+Stat* GenericStats::roseGold()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->get_achievement(eAward_RoseGold);
+#else
+	return instance->get_achievement(eAward_RoseGold);
+#endif
+}
+
+Stat* GenericStats::netheriteScrap()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->get_achievement(eAward_NetheriteScrap);
+#else
+	return instance->get_achievement(eAward_NetheriteScrap);
+#endif
+}
+
+Stat* GenericStats::netherite()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->get_achievement(eAward_Netherite);
+#else
+	return instance->get_achievement(eAward_Netherite);
+#endif
+}
+
+Stat* GenericStats::crystalClear()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->get_achievement(eAward_CrystalClear);
+#else
+	return instance->get_achievement(eAward_CrystalClear);
+#endif
+}
+
+Stat* GenericStats::hornBlower()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->get_achievement(eAward_HornBlower);
+#else
+	return instance->get_achievement(eAward_HornBlower);
+#endif
+}
+
+Stat* GenericStats::endCity()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->get_achievement(eAward_EndCity);
+#else
+	return instance->get_achievement(eAward_EndCity);
+#endif
+}
+
+Stat* GenericStats::waxOn()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->get_achievement(eAward_WaxOn);
+#else
+	return instance->get_achievement(eAward_WaxOn);
+#endif
+}
+
 
 byteArray GenericStats::getParam_walkOneM(int distance)
 {
@@ -1285,3 +1412,130 @@ byteArray GenericStats::param_lionTamer()
 	return instance->getParam_achievement(eAward_lionTamer);
 #endif
 }
+// neoLegacy - Achievements Batch 1 (IDs 50-63, 2026-11-26).
+byteArray GenericStats::param_weNeedToGoDeeper()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->getParam_achievement(eAward_WeNeedToGoDeeper);
+#else
+	return instance->getParam_achievement(eAward_WeNeedToGoDeeper);
+#endif
+}
+
+byteArray GenericStats::param_spawnTheWither()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->getParam_achievement(eAward_SpawnTheWither);
+#else
+	return instance->getParam_achievement(eAward_SpawnTheWither);
+#endif
+}
+
+byteArray GenericStats::param_wither()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->getParam_achievement(eAward_Wither);
+#else
+	return instance->getParam_achievement(eAward_Wither);
+#endif
+}
+
+byteArray GenericStats::param_beaconator()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->getParam_achievement(eAward_Beaconator);
+#else
+	return instance->getParam_achievement(eAward_Beaconator);
+#endif
+}
+
+byteArray GenericStats::param_overpowered()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->getParam_achievement(eAward_Overpowered);
+#else
+	return instance->getParam_achievement(eAward_Overpowered);
+#endif
+}
+
+byteArray GenericStats::param_copperAge()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->getParam_achievement(eAward_CopperAge);
+#else
+	return instance->getParam_achievement(eAward_CopperAge);
+#endif
+}
+
+byteArray GenericStats::param_copperclad()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->getParam_achievement(eAward_Copperclad);
+#else
+	return instance->getParam_achievement(eAward_Copperclad);
+#endif
+}
+
+byteArray GenericStats::param_roseGold()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->getParam_achievement(eAward_RoseGold);
+#else
+	return instance->getParam_achievement(eAward_RoseGold);
+#endif
+}
+
+byteArray GenericStats::param_netheriteScrap()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->getParam_achievement(eAward_NetheriteScrap);
+#else
+	return instance->getParam_achievement(eAward_NetheriteScrap);
+#endif
+}
+
+byteArray GenericStats::param_netherite()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->getParam_achievement(eAward_Netherite);
+#else
+	return instance->getParam_achievement(eAward_Netherite);
+#endif
+}
+
+byteArray GenericStats::param_crystalClear()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->getParam_achievement(eAward_CrystalClear);
+#else
+	return instance->getParam_achievement(eAward_CrystalClear);
+#endif
+}
+
+byteArray GenericStats::param_hornBlower()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->getParam_achievement(eAward_HornBlower);
+#else
+	return instance->getParam_achievement(eAward_HornBlower);
+#endif
+}
+
+byteArray GenericStats::param_endCity()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->getParam_achievement(eAward_EndCity);
+#else
+	return instance->getParam_achievement(eAward_EndCity);
+#endif
+}
+
+byteArray GenericStats::param_waxOn()
+{
+#ifdef _EXTENDED_ACHIEVEMENTS
+	return instance->getParam_achievement(eAward_WaxOn);
+#else
+	return instance->getParam_achievement(eAward_WaxOn);
+#endif
+}
+

@@ -1680,9 +1680,10 @@ void Recipes::_compileRecipes()
 	// neoLegacy - Iron ingot <-> iron nugget (2026-11-23): moved here from
 	// StructureRecipies.cpp so both sit in the Decoration tab of the recipes
 	// next to the gold ingot <-> gold nugget pair above (group 'D'), mirroring
-	// gold's tags exactly. Still workbench, NOT Complex-Table-only: the 9 -> 1
-	// result (iron_ingot_Id) is shared with vanilla recipes, so it cannot be
-	// gated without side effects (see Recipes::isComplexOnly). The 1 -> 9 was
+	// gold's tags exactly. Complex-Table-only (2026-11-26): the 9 -> 1
+	// result (iron_ingot_Id) is shared with vanilla recipes, so it is gated
+	// on result + ingredient in Recipes::isComplexOnly, red-dye pattern;
+	// the 1 -> 9 is gated on the iron_nugget_Id result alone. The 1 -> 9 was
 	// shapeless in StructureRecipies.cpp; gold's 1 -> 9 is shaped 1-slot
 	// (L"scig"), which is functionally identical for a single ingredient.
 	addShapedRecipy(new ItemInstance(Item::iron_ingot), //
@@ -1702,7 +1703,8 @@ void Recipes::_compileRecipes()
 
 	// neoLegacy - Netherite tier (2026-11-26): ingot is shapeless, 4 scrap +
 	// 4 gold ingots in the Crafting Table (Java recipe). Nugget exchange
-	// copies gold exactly. Workbench, NOT Complex-Table-only.
+	// copies gold exactly. Nugget exchange is Complex-Table-only; only the
+	// shapeless scrap+gold ingot recipe stays workbench.
 	addShapelessRecipy(new ItemInstance(Item::netherite_ingot, 1), //
 		L"iiiiiiiig",
 		Item::netherite_scrap, Item::netherite_scrap, Item::netherite_scrap, Item::netherite_scrap,
@@ -2396,6 +2398,24 @@ bool Recipes::isComplexOnly(Recipy *r)
 		return true;
 	}
 
+	// neoLegacy - Nugget exchange (2026-11-26): the 1 -> 9 recipes are gated
+	// on their result ids, which no other recipe produces. The 9 -> 1 recipes
+	// cannot be gated on result alone (iron_ingot_Id is shared with vanilla
+	// recipes; netherite_ingot_Id is also the result of the shapeless
+	// scrap+gold ingot recipe at line 1708, which must stay workbench), so
+	// they are gated on result + ingredient, red-dye pattern.
+	if (result->id == Item::iron_nugget_Id) return true;
+	if (result->id == Item::netherite_nugget_Id) return true;
+	if (result->id == Item::iron_ingot_Id)
+	{
+		ShapedRecipy *shaped = dynamic_cast<ShapedRecipy *>(r);
+		return shaped != nullptr && shaped->hasIngredient(Item::iron_nugget_Id);
+	}
+	if (result->id == Item::netherite_ingot_Id)
+	{
+		ShapedRecipy *shaped = dynamic_cast<ShapedRecipy *>(r);
+		return shaped != nullptr && shaped->hasIngredient(Item::netherite_nugget_Id);
+	}
 	// Red dye has other (normal workbench) recipes, e.g. rose -> 2 red dye, so identify the
 	// Complex Table one by its redstone ingredient rather than by its result alone.
 	if (result->id == Item::dye_Id && result->getAuxValue() == DyePowderItem::RED)

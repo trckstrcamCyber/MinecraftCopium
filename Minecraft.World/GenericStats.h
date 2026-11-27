@@ -142,6 +142,22 @@ public:
 	static Stat* zombieDoctor();			// +Durango
 	static Stat* lionTamer();
 
+	// neoLegacy - Achievements Batch 1 (IDs 50-63, 2026-11-26).
+	static Stat* weNeedToGoDeeper();
+	static Stat* spawnTheWither();
+	static Stat* wither();
+	static Stat* beaconator();
+	static Stat* overpowered();
+	static Stat* copperAge();
+	static Stat* copperclad();
+	static Stat* roseGold();
+	static Stat* netheriteScrap();
+	static Stat* netherite();
+	static Stat* crystalClear();
+	static Stat* hornBlower();
+	static Stat* endCity();
+	static Stat* waxOn();
+
 	// STAT PARAMS - STATIC //
 
 	static byteArray param_walk(int distance);
@@ -246,6 +262,22 @@ public:
 	static byteArray param_ironMan();
 	static byteArray param_zombieDoctor();
 	static byteArray param_lionTamer();
+
+	// neoLegacy - Achievements Batch 1 (IDs 50-63, 2026-11-26).
+	static byteArray param_weNeedToGoDeeper();
+	static byteArray param_spawnTheWither();
+	static byteArray param_wither();
+	static byteArray param_beaconator();
+	static byteArray param_overpowered();
+	static byteArray param_copperAge();
+	static byteArray param_copperclad();
+	static byteArray param_roseGold();
+	static byteArray param_netheriteScrap();
+	static byteArray param_netherite();
+	static byteArray param_crystalClear();
+	static byteArray param_hornBlower();
+	static byteArray param_endCity();
+	static byteArray param_waxOn();
 
 protected:
 	// ACHIEVEMENTS - VIRTUAL //

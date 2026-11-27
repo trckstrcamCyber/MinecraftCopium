@@ -86,6 +86,22 @@ Achievement *Achievements::ironMan = nullptr;
 Achievement *Achievements::zombieDoctor = nullptr;
 Achievement *Achievements::lionTamer = nullptr;
 
+// neoLegacy - Achievements Batch 1 (IDs 50-63, 2026-11-26).
+Achievement *Achievements::weNeedToGoDeeper = nullptr;
+Achievement *Achievements::spawnTheWither = nullptr;
+Achievement *Achievements::wither = nullptr;
+Achievement *Achievements::beaconator = nullptr;
+Achievement *Achievements::overpowered = nullptr;
+Achievement *Achievements::copperAge = nullptr;
+Achievement *Achievements::copperclad = nullptr;
+Achievement *Achievements::roseGold = nullptr;
+Achievement *Achievements::netheriteScrap = nullptr;
+Achievement *Achievements::netherite = nullptr;
+Achievement *Achievements::crystalClear = nullptr;
+Achievement *Achievements::hornBlower = nullptr;
+Achievement *Achievements::endCity = nullptr;
+Achievement *Achievements::waxOn = nullptr;
+
 
 void Achievements::staticCtor()
 {
@@ -172,6 +188,22 @@ void Achievements::staticCtor()
 	Achievements::ironMan				= (new Achievement(eAward_ironMan,					L"ironMan",					0,0,	Tile::bookshelf,		(Achievement*) nullptr, "048", IDS_ACHIEVE_NAME_IRON_MAN, IDS_ACHIEVE_DESC_IRON_MAN) )->postConstruct();
 	Achievements::zombieDoctor			= (new Achievement(eAward_zombieDoctor,				L"zombieDoctor",			0,0,	Tile::bookshelf,		(Achievement*) nullptr, "049", IDS_ACHIEVE_NAME_ZOMBIE_DOCTOR, IDS_ACHIEVE_DESC_ZOMBIE_DOCTOR) )->postConstruct();
 	Achievements::lionTamer				= (new Achievement(eAward_lionTamer,				L"lionTamer",				0,0,	Tile::bookshelf,		(Achievement*) nullptr, "050", IDS_ACHIEVE_NAME_LION_TAMER, IDS_ACHIEVE_DESC_LION_TAMER) )->postConstruct();
+
+	// neoLegacy - Achievements Batch 1 (IDs 50-63, 2026-11-26). Appended after lionTamer; never insert above.
+	Achievements::weNeedToGoDeeper				= (new Achievement(eAward_WeNeedToGoDeeper,		L"weNeedToGoDeeper",		-1, 7,	Tile::obsidian,	(Achievement *) diamonds, "051", IDS_ACHIEVE_NAME_WE_NEED_TO_GO_DEEPER, IDS_ACHIEVE_DESC_WE_NEED_TO_GO_DEEPER))->postConstruct();
+	Achievements::spawnTheWither				= (new Achievement(eAward_SpawnTheWither,		L"spawnTheWither",		-4, 10,	Item::nether_star,	(Achievement *) blaze_rod, "052", IDS_ACHIEVE_NAME_SPAWN_THE_WITHER, IDS_ACHIEVE_DESC_SPAWN_THE_WITHER))->postConstruct();
+	Achievements::wither				= (new Achievement(eAward_Wither,		L"wither",		-4, 12,	Item::nether_star,	(Achievement *) spawnTheWither, "053", IDS_ACHIEVE_NAME_WITHER, IDS_ACHIEVE_DESC_WITHER))->postConstruct();
+	Achievements::beaconator				= (new Achievement(eAward_Beaconator,		L"beaconator",		-6, 6,	Tile::beacon,	(Achievement *) enchantments, "054", IDS_ACHIEVE_NAME_BEACONATOR, IDS_ACHIEVE_DESC_BEACONATOR))->postConstruct();
+	Achievements::overpowered				= (new Achievement(eAward_Overpowered,		L"overpowered",		-6, 2,	Item::golden_apple,	(Achievement *) overkill, "055", IDS_ACHIEVE_NAME_OVERPOWERED, IDS_ACHIEVE_DESC_OVERPOWERED))->postConstruct();
+	Achievements::copperAge				= (new Achievement(eAward_CopperAge,		L"copperAge",		1, 6,	Item::copper_ingot,	(Achievement *) acquireIron, "056", IDS_ACHIEVE_NAME_COPPER_AGE, IDS_ACHIEVE_DESC_COPPER_AGE))->postConstruct();
+	Achievements::copperclad				= (new Achievement(eAward_Copperclad,		L"copperclad",		1, 8,	Item::copper_chestplate,	(Achievement *) copperAge, "057", IDS_ACHIEVE_NAME_COPPERCLAD, IDS_ACHIEVE_DESC_COPPERCLAD))->postConstruct();
+	Achievements::roseGold				= (new Achievement(eAward_RoseGold,		L"roseGold",		5, 6,	Item::rose_gold_ingot,	(Achievement *) copperAge, "058", IDS_ACHIEVE_NAME_ROSE_GOLD, IDS_ACHIEVE_DESC_ROSE_GOLD))->postConstruct();
+	Achievements::netheriteScrap				= (new Achievement(eAward_NetheriteScrap,		L"netheriteScrap",		-3, 5,	Item::netherite_scrap,	(Achievement *) diamonds, "059", IDS_ACHIEVE_NAME_NETHERITE_SCRAP, IDS_ACHIEVE_DESC_NETHERITE_SCRAP))->postConstruct();
+	Achievements::netherite				= (new Achievement(eAward_Netherite,		L"netherite",		-3, 7,	Item::netherite_ingot,	(Achievement *) netheriteScrap, "060", IDS_ACHIEVE_NAME_NETHERITE, IDS_ACHIEVE_DESC_NETHERITE))->postConstruct();
+	Achievements::crystalClear				= (new Achievement(eAward_CrystalClear,		L"crystalClear",		-1, 9,	Item::amethyst_shard,	(Achievement *) diamonds, "061", IDS_ACHIEVE_NAME_CRYSTAL_CLEAR, IDS_ACHIEVE_DESC_CRYSTAL_CLEAR))->postConstruct();
+	Achievements::hornBlower				= (new Achievement(eAward_HornBlower,		L"hornBlower",		9, -3,	Item::goat_horn,	(Achievement *) killEnemy, "062", IDS_ACHIEVE_NAME_HORN_BLOWER, IDS_ACHIEVE_DESC_HORN_BLOWER))->postConstruct();
+	Achievements::endCity				= (new Achievement(eAward_EndCity,		L"endCity",		6, 13,	Tile::purpur_block,	(Achievement *) winGame, "063", IDS_ACHIEVE_NAME_END_CITY, IDS_ACHIEVE_DESC_END_CITY))->postConstruct();
+	Achievements::waxOn				= (new Achievement(eAward_WaxOn,		L"waxOn",		3, 8,	Item::honeycomb,	(Achievement *) copperAge, "064", IDS_ACHIEVE_NAME_WAX_ON, IDS_ACHIEVE_DESC_WAX_ON))->postConstruct();
 
 }
 

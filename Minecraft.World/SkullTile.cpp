@@ -132,8 +132,10 @@ int SkullTile::getResource(int data, Random *random, int playerBonusLevel)
 	return Item::skull_Id;
 }
 
-void SkullTile::checkMobSpawn(Level *level, int x, int y, int z, shared_ptr<SkullTileEntity> placedSkull)
+bool SkullTile::checkMobSpawn(Level *level, int x, int y, int z, shared_ptr<SkullTileEntity> placedSkull)
 {
+	// neoLegacy - Achievements Batch 1 (2026-11-26): 51 Spawn the Wither.
+	bool spawned = false;
 	if (placedSkull->getSkullType() == SkullTileEntity::TYPE_WITHER && y >= 2 && level->difficulty > Difficulty::PEACEFUL && !level->isClientSide)
 	{
 		// Check wither boss spawn
@@ -171,6 +173,7 @@ void SkullTile::checkMobSpawn(Level *level, int x, int y, int z, shared_ptr<Skul
 					witherBoss->yBodyRot = 90;
 					witherBoss->makeInvulnerable();
 					level->addEntity(witherBoss);
+					spawned = true;
 				}
 				else
 				{
@@ -198,7 +201,7 @@ void SkullTile::checkMobSpawn(Level *level, int x, int y, int z, shared_ptr<Skul
 				level->tileUpdated(x, y - 1, z + zo + 2, 0);
 				level->tileUpdated(x, y - 2, z + zo + 1, 0);
 
-				return;
+				return spawned;
 			}
 		}
 		// West-east alignment
@@ -233,6 +236,7 @@ void SkullTile::checkMobSpawn(Level *level, int x, int y, int z, shared_ptr<Skul
 					witherBoss->moveTo(x + xo + 1.5, y - 1.45, z + .5, 0, 0);
 					witherBoss->makeInvulnerable();
 					level->addEntity(witherBoss);
+					spawned = true;
 				}
 				else
 				{
@@ -260,10 +264,11 @@ void SkullTile::checkMobSpawn(Level *level, int x, int y, int z, shared_ptr<Skul
 				level->tileUpdated(x + xo + 2, y - 1, z, 0);
 				level->tileUpdated(x + xo + 1, y - 2, z, 0);
 
-				return;
+				return spawned;
 			}
 		}
 	}
+	return spawned;
 }
 
 bool SkullTile::isSkullAt(Level *level, int x, int y, int z, int skullType)

@@ -32,7 +32,10 @@ public:
 	void playerWillDestroy(Level *level, int x, int y, int z, int data, shared_ptr<Player> player);
 	void onRemove(Level *level, int x, int y, int z, int id, int data);
 	int getResource(int data, Random *random, int playerBonusLevel);
-	void checkMobSpawn(Level *level, int x, int y, int z, shared_ptr<SkullTileEntity> placedSkull);
+	// neoLegacy - Achievements Batch 1 (2026-11-26): 51 Spawn the Wither.
+	// Returns true when a Wither was actually spawned (not when the spawn
+	// was blocked by canCreateMore, Peaceful, or a non-matching pattern).
+	bool checkMobSpawn(Level *level, int x, int y, int z, shared_ptr<SkullTileEntity> placedSkull);
 
 private:
 	bool isSkullAt(Level *level, int x, int y, int z, int skullType);

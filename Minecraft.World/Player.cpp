@@ -2947,6 +2947,12 @@ void Player::killed(shared_ptr<LivingEntity> mob)
 		case eTYPE_ENDERDRAGON:
 			awardStat(GenericStats::killsEnderdragon(), GenericStats::param_noArgs());
 			break;
+		case eTYPE_WITHERBOSS:
+			// neoLegacy - Achievements Batch 1 (2026-11-26): 52 Wither. The
+			// gate above already covers the Wither (eTYPE_MONSTER includes
+			// eTYPE_ENEMY), so this case is reachable.
+			awardStat(GenericStats::wither(), GenericStats::param_wither());
+			break;
 		}
 	}
 	else if( mob->GetType() == eTYPE_COW )

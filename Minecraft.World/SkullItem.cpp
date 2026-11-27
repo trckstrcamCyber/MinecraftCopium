@@ -6,6 +6,7 @@
 #include "net.minecraft.h"
 #include "net.minecraft.world.h"
 #include "SkullItem.h"
+#include "net.minecraft.stats.h"
 
 const unsigned int SkullItem::NAMES[SKULL_COUNT] = {IDS_ITEM_SKULL_SKELETON, IDS_ITEM_SKULL_WITHER, IDS_ITEM_SKULL_ZOMBIE, IDS_ITEM_SKULL_CHARACTER, IDS_ITEM_SKULL_CREEPER, IDS_ITEM_SKULL_DRAGON};
 
@@ -57,7 +58,11 @@ bool SkullItem::useOn(shared_ptr<ItemInstance> instance, shared_ptr<Player> play
 			}
 			skull->setSkullType(instance->getAuxValue(), extra);
 			skull->setRotation(rot);
-			static_cast<SkullTile *>(Tile::skull)->checkMobSpawn(level, x, y, z, skull);
+			// neoLegacy - Achievements Batch 1 (2026-11-26): 51 Spawn the Wither.
+			// checkMobSpawn only spawns server-side (!isClientSide inside),
+			// so this awards only on the side that actually spawned it.
+			if (static_cast<SkullTile *>(Tile::skull)->checkMobSpawn(level, x, y, z, skull))
+				player->awardStat(GenericStats::spawnTheWither(), GenericStats::param_spawnTheWither());
 		}
 
 		instance->count--;

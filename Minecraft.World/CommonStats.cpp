@@ -204,6 +204,22 @@ Stat *CommonStats::get_achievement(eAward achievementId)
 	case eAward_zombieDoctor:			return (Stat *) Achievements::zombieDoctor;
 	case eAward_lionTamer:				return (Stat *) Achievements::lionTamer;
 
+	// neoLegacy - Achievements Batch 1 (IDs 50-63, 2026-11-26).
+	case eAward_WeNeedToGoDeeper:			return (Stat *) Achievements::weNeedToGoDeeper;
+	case eAward_SpawnTheWither:			return (Stat *) Achievements::spawnTheWither;
+	case eAward_Wither:			return (Stat *) Achievements::wither;
+	case eAward_Beaconator:			return (Stat *) Achievements::beaconator;
+	case eAward_Overpowered:			return (Stat *) Achievements::overpowered;
+	case eAward_CopperAge:			return (Stat *) Achievements::copperAge;
+	case eAward_Copperclad:			return (Stat *) Achievements::copperclad;
+	case eAward_RoseGold:			return (Stat *) Achievements::roseGold;
+	case eAward_NetheriteScrap:			return (Stat *) Achievements::netheriteScrap;
+	case eAward_Netherite:			return (Stat *) Achievements::netherite;
+	case eAward_CrystalClear:			return (Stat *) Achievements::crystalClear;
+	case eAward_HornBlower:			return (Stat *) Achievements::hornBlower;
+	case eAward_EndCity:			return (Stat *) Achievements::endCity;
+	case eAward_WaxOn:			return (Stat *) Achievements::waxOn;
+
 
 	default:						return (Stat *) nullptr;
 	}

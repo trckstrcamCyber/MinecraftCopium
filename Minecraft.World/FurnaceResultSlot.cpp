@@ -86,6 +86,9 @@ void FurnaceResultSlot::checkTakeAchievements(shared_ptr<ItemInstance> carried)
 			);
 	}
 	if (carried->id == Item::iron_ingot_Id) player->awardStat(GenericStats::acquireIron(), GenericStats::param_acquireIron());
+	// neoLegacy - Achievements Batch 1 (2026-11-26): 55 Copper Age, 58 Netherite Scrap.
+	if (carried->id == Item::copper_ingot_Id) player->awardStat(GenericStats::copperAge(), GenericStats::param_copperAge());
+	if (carried->id == Item::netherite_scrap_Id) player->awardStat(GenericStats::netheriteScrap(), GenericStats::param_netheriteScrap());
 	if (carried->id == Item::cooked_fish_Id) player->awardStat(GenericStats::cookFish(), GenericStats::param_cookFish());
 	//if (carried->id == Item::cooked_porkchop_Id) GenericStats::itemsCrafted(Item::cooked_porkchop_Id);
 

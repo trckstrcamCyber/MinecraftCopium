@@ -244,15 +244,24 @@ shared_ptr<ItemInstance> InventoryMenu::clicked(int slotIndex, int buttonNum, in
 
 
 	static int ironItems[4] = {Item::iron_helmet_Id,Item::iron_chestplate_Id,Item::iron_leggings_Id,Item::iron_boots_Id};
+	// neoLegacy - Achievements Batch 1 (2026-11-26): 56 Copperclad, full copper set.
+	static int copperItems[4] = {Item::copper_helmet_Id,Item::copper_chestplate_Id,Item::copper_leggings_Id,Item::copper_boots_Id};
+	bool fullIron = true, fullCopper = true;
 	for (int i = ARMOR_SLOT_START; i < ARMOR_SLOT_END; i++)
 	{
 		Slot *slot = slots.at(i);
-		if ( (slot==nullptr) || (!slot->hasItem()) || (slot->getItem()->getItem()->id != ironItems[i-ARMOR_SLOT_START]) )
+		if ( (slot==nullptr) || (!slot->hasItem()) )
 		{
-			return out;
+			fullIron = false;
+			fullCopper = false;
+			break;
 		}
+		int wornId = slot->getItem()->getItem()->id;
+		if (wornId != ironItems[i-ARMOR_SLOT_START]) fullIron = false;
+		if (wornId != copperItems[i-ARMOR_SLOT_START]) fullCopper = false;
 	}
-	player->awardStat(GenericStats::ironMan(),GenericStats::param_ironMan());
+	if (fullIron) player->awardStat(GenericStats::ironMan(),GenericStats::param_ironMan());
+	if (fullCopper) player->awardStat(GenericStats::copperclad(),GenericStats::param_copperclad());
 
 	return out;
 }

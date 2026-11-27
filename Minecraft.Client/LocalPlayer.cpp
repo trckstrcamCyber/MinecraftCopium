@@ -181,6 +181,17 @@ bool LocalPlayer::isEffectiveAi() const
 
 void LocalPlayer::aiStep()
 {
+	// neoLegacy - Achievements Batch 1 (2026-11-26): 62 The City at the End
+	// of the Game. End outer islands start ~1000 blocks from the centre;
+	// the central island is well inside that radius. Guarded by hasTaken
+	// so this per-tick check awards once instead of every tick.
+	if (dimension == 1 && (x > 1000 || x < -1000 || z > 1000 || z < -1000))
+	{
+		Achievement *endCity = (Achievement *) GenericStats::endCity();
+		if (endCity != nullptr && !minecraft->stats[m_iPad]->hasTaken(endCity))
+			awardStat(GenericStats::endCity(), GenericStats::param_endCity());
+	}
+
 	// neoLegacy - the raid bar: the server packs it into this player's synched data; show it with the boss bar
 	{
 		int raid = getEntityData()->getInteger(DATA_RAID_BAR_ID);
@@ -1309,6 +1320,20 @@ void LocalPlayer::awardStat(Stat *stat, byteArray param)
 					);
 
 				if (totalSum >= 30)	awardStat( GenericStats::theHaggler(), GenericStats::param_theHaggler() );
+			}
+		}
+
+		// AWARD : We Need to Go Deeper, mine obsidian.
+		// neoLegacy - Achievements Batch 1 (2026-11-26): 50. The obsidian
+		// blocksMined ItemStat already exists (Stats::buildBlockStats,
+		// BLOCKS_MINED_OFFSET+6), so no new stat is needed.
+		{
+			Stat *obsidianMined = GenericStats::blocksMined(Tile::obsidian_Id);
+
+			if (stat == obsidianMined)
+			{
+				if (pStats->getTotalValue(obsidianMined) > 0)
+					awardStat(GenericStats::weNeedToGoDeeper(), GenericStats::param_weNeedToGoDeeper());
 			}
 		}
 

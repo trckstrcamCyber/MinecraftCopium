@@ -45,6 +45,7 @@
 
 ResourceLocation Gui::PUMPKIN_BLUR_LOCATION = ResourceLocation(TN__BLUR__MISC_PUMPKINBLUR);
 ResourceLocation Gui::FREEZE_OVERLAY_LOCATION = ResourceLocation(TN_MISC_FREEZE_OVERLAY);	// neoLegacy
+ResourceLocation Gui::SPYSCOPE_OVERLAY_LOCATION = ResourceLocation(TN__BLUR__MISC_SPYSCOPE);	// neoLegacy
 
 #define RENDER_HUD 0
 //#ifndef _XBOX
@@ -270,6 +271,10 @@ void Gui::render(float a, bool mouseFree, int xMouse, int yMouse)
 
 	// neoLegacy - Freezing: frost creeps in from the screen edges as the effect builds up
 	if ((minecraft->player->ThirdPersonView() == 0) && minecraft->player->freezeTicks > 0) renderFreeze(minecraft->player->getFreezeProgress(), screenWidth, screenHeight);
+
+	// neoLegacy - Spyglass: scope overlay while the spyglass is being used in first person (same getUseItem check as the FOV zoom in GameRenderer.cpp)
+	shared_ptr<ItemInstance> usedItem = minecraft->player->getUseItem();
+	if ((minecraft->player->ThirdPersonView() == 0) && usedItem != nullptr && usedItem->id == Item::spyglass_Id) renderScope(screenWidth, screenHeight);
 	if (!minecraft->player->hasEffect(MobEffect::confusion))
 	{
 		float pt = minecraft->player->oPortalTime + (minecraft->player->portalTime - minecraft->player->oPortalTime) * a;
@@ -1865,6 +1870,32 @@ void Gui::renderFreeze(float progress, int w, int h)
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_ALPHA_TEST);
     glColor4f(1, 1, 1, 1);
+}
+
+// neoLegacy - spyglass scope overlay, same fullscreen quad as the pumpkin blur; fully opaque like the pumpkin blur
+void Gui::renderScope(int w, int h)
+{
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(false);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(1, 1, 1, 1);
+    glDisable(GL_ALPHA_TEST);
+
+	MemSect(31);
+    minecraft->textures->bindTexture(&SPYSCOPE_OVERLAY_LOCATION);
+	MemSect(0);
+    Tesselator *t = Tesselator::getInstance();
+    t->begin();
+    t->vertexUV(static_cast<float>(0), static_cast<float>(h), static_cast<float>(-90), static_cast<float>(0), static_cast<float>(1));
+    t->vertexUV(static_cast<float>(w), static_cast<float>(h), static_cast<float>(-90), static_cast<float>(1), static_cast<float>(1));
+    t->vertexUV(static_cast<float>(w), static_cast<float>(0), static_cast<float>(-90), static_cast<float>(1), static_cast<float>(0));
+    t->vertexUV(static_cast<float>(0), static_cast<float>(0), static_cast<float>(-90), static_cast<float>(0), static_cast<float>(0));
+    t->end();
+    glDepthMask(true);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_ALPHA_TEST);
+    glColor4f(1, 1, 1, 1);
+
 }
 
 void Gui::renderVignette(float br, int w, int h)

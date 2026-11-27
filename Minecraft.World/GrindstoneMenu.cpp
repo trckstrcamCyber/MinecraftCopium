@@ -49,7 +49,8 @@ void GrindstoneMenu::slotsChanged(shared_ptr<Container> container)
 }
 
 // neoLegacy - Netherite tier (2026-11-26): map a diamond tool/armor item
-// id to its netherite upgrade, or nullptr if the item cannot be upgraded.
+// id (plus the plain stick, which is neither) to its netherite upgrade,
+// or nullptr if the item cannot be upgraded.
 static Item* getNetheriteUpgradeItem(int diamondId)
 {
 	if (diamondId == Item::diamond_sword_Id) return Item::netherite_sword;
@@ -61,6 +62,7 @@ static Item* getNetheriteUpgradeItem(int diamondId)
 	if (diamondId == Item::diamond_chestplate_Id) return Item::netherite_chestplate;
 	if (diamondId == Item::diamond_leggings_Id) return Item::netherite_leggings;
 	if (diamondId == Item::diamond_boots_Id) return Item::netherite_boots;
+	if (diamondId == Item::stick_Id) return Item::netherite_stick;
 	return nullptr;
 }
 

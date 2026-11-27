@@ -280,6 +280,11 @@ void ItemEntity::playerTouch(shared_ptr<Player> player)
 		if (item->id == Item::blaze_rod_Id)
 			player->awardStat(GenericStats::blazeRod(), GenericStats::param_blazeRod());
 
+		// neoLegacy - Achievements Batch 1 (2026-11-26): 60 Crystal Clear.
+		// Same pickup site as diamonds / blaze rod above.
+		if (item->id == Item::amethyst_shard_Id)
+			player->awardStat(GenericStats::crystalClear(), GenericStats::param_crystalClear());
+
 		playSound(eSoundType_RANDOM_POP, 0.2f, ((random->nextFloat() - random->nextFloat()) * 0.7f + 1.0f) * 2.0f);
 		player->take(shared_from_this(), orgCount);
 		//            System.out.println(item.count + ", " + orgCount);

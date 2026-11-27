@@ -5,6 +5,7 @@
 #include "net.minecraft.world.entity.player.h"
 #include "net.minecraft.world.item.enchantment.h"
 #include "GrindstoneResultSlot.h"
+#include "net.minecraft.stats.h"
 #include "GrindstoneMenu.h"
 #include "GrindstoneContainer.h"
 #include "ExperienceOrb.h"
@@ -94,9 +95,23 @@ void GrindstoneResultSlot::onTake(shared_ptr<Player> player, shared_ptr<ItemInst
 
 	case GrindstoneMenu::ACTION_NETHERITE_UPGRADE:
 	{
-		// neoLegacy - Netherite tier (2026-11-26): consume the diamond item
-		// from slot A and one netherite ingot from slot B.
-		m_menu->repairSlots->setItem(GrindstoneMenu::INPUT_SLOT, nullptr);
+		// neoLegacy - Netherite tier (2026-11-26): consume ONE item from
+		// slot A (a stack of sticks must not be eaten whole) and one
+		// netherite ingot from slot B. Gear always has count 1, so it
+		// still clears the slot.
+		shared_ptr<ItemInstance> input = m_menu->repairSlots->getItem(GrindstoneMenu::INPUT_SLOT);
+		if (input != nullptr)
+		{
+			if (input->count > 1)
+			{
+				input->count--;
+				m_menu->repairSlots->setItem(GrindstoneMenu::INPUT_SLOT, input);
+			}
+			else
+			{
+				m_menu->repairSlots->setItem(GrindstoneMenu::INPUT_SLOT, nullptr);
+			}
+		}
 		shared_ptr<ItemInstance> ingot = m_menu->repairSlots->getItem(GrindstoneMenu::ADDITIONAL_SLOT);
 		if (ingot != nullptr)
 		{
@@ -116,6 +131,11 @@ void GrindstoneResultSlot::onTake(shared_ptr<Player> player, shared_ptr<ItemInst
 	default:
 		break;
 	}
+
+	// neoLegacy - Achievements Batch 1 (2026-11-26): 59 Netherite. The action
+	// was snapshotted above, before the slot writes reset pendingAction.
+	if (action == GrindstoneMenu::ACTION_NETHERITE_UPGRADE)
+		player->awardStat(GenericStats::netherite(), GenericStats::param_netherite());
 
 	if (!level->isClientSide)
 	{

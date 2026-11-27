@@ -36,6 +36,13 @@ FoodItem::FoodItem(int id, int nutrition, bool isMeat)
 shared_ptr<ItemInstance> FoodItem::useTimeDepleted(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player)
 {
 	instance->count--;
+	// neoLegacy - Achievements Batch 1 (2026-11-26): 54 Overpowered. The
+	// enchanted golden apple is the same item as the plain one with aux > 0
+	// (GoldenAppleItem::isFoil / getRarity); a plain apple (aux 0) must not
+	// count. Hooked here (eat completes), not in use() like eatPorkChop, so
+	// starting to eat and stopping does not award it.
+	if (instance->getItem() == Item::golden_apple && instance->getAuxValue() > 0)
+		player->awardStat(GenericStats::overpowered(), GenericStats::param_overpowered());
 	player->getFoodData()->eat(this);
 	// 4J - new sound brought forward from 1.2.3
 	level->playEntitySound(player, eSoundType_RANDOM_BURP, 0.5f, level->random->nextFloat() * 0.1f + 0.9f);

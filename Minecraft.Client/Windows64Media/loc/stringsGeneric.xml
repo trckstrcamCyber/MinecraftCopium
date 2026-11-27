@@ -9899,6 +9899,48 @@
 
 	<data name="IDS_ACHIEVE_NAME_LION_TAMER"><value>Lion Tamer</value></data>
 	<data name="IDS_ACHIEVE_DESC_LION_TAMER"><value>Tame an ocelot.</value></data>
+	<!-- neoLegacy - Achievements Batch 1 (IDs 50-63, 2026-11-26) -->
+	<data name="IDS_ACHIEVE_NAME_WE_NEED_TO_GO_DEEPER"><value>We Need to Go Deeper</value></data>
+	<data name="IDS_ACHIEVE_DESC_WE_NEED_TO_GO_DEEPER"><value>Build a portal to the Nether.</value></data>
+
+	<data name="IDS_ACHIEVE_NAME_SPAWN_THE_WITHER"><value>Spawn the Wither</value></data>
+	<data name="IDS_ACHIEVE_DESC_SPAWN_THE_WITHER"><value>Summon the Wither.</value></data>
+
+	<data name="IDS_ACHIEVE_NAME_WITHER"><value>Wither</value></data>
+	<data name="IDS_ACHIEVE_DESC_WITHER"><value>Kill the Wither.</value></data>
+
+	<data name="IDS_ACHIEVE_NAME_BEACONATOR"><value>Beaconator</value></data>
+	<data name="IDS_ACHIEVE_DESC_BEACONATOR"><value>Create a full beacon.</value></data>
+
+	<data name="IDS_ACHIEVE_NAME_OVERPOWERED"><value>Overpowered</value></data>
+	<data name="IDS_ACHIEVE_DESC_OVERPOWERED"><value>Eat an Enchanted Golden Apple.</value></data>
+
+	<data name="IDS_ACHIEVE_NAME_COPPER_AGE"><value>Copper Age</value></data>
+	<data name="IDS_ACHIEVE_DESC_COPPER_AGE"><value>Smelt your first Copper Ingot.</value></data>
+
+	<data name="IDS_ACHIEVE_NAME_COPPERCLAD"><value>Copperclad</value></data>
+	<data name="IDS_ACHIEVE_DESC_COPPERCLAD"><value>Wear a full suit of Copper Armor.</value></data>
+
+	<data name="IDS_ACHIEVE_NAME_ROSE_GOLD"><value>Rose Gold</value></data>
+	<data name="IDS_ACHIEVE_DESC_ROSE_GOLD"><value>Craft your first Rose Gold Ingot.</value></data>
+
+	<data name="IDS_ACHIEVE_NAME_NETHERITE_SCRAP"><value>Netherite Scrap</value></data>
+	<data name="IDS_ACHIEVE_DESC_NETHERITE_SCRAP"><value>Smelt Ancient Debris into Netherite Scrap.</value></data>
+
+	<data name="IDS_ACHIEVE_NAME_NETHERITE"><value>Netherite</value></data>
+	<data name="IDS_ACHIEVE_DESC_NETHERITE"><value>Upgrade Diamond gear at the Grindstone.</value></data>
+
+	<data name="IDS_ACHIEVE_NAME_CRYSTAL_CLEAR"><value>Crystal Clear</value></data>
+	<data name="IDS_ACHIEVE_DESC_CRYSTAL_CLEAR"><value>Find an Amethyst Geode.</value></data>
+
+	<data name="IDS_ACHIEVE_NAME_HORN_BLOWER"><value>Horn Blower</value></data>
+	<data name="IDS_ACHIEVE_DESC_HORN_BLOWER"><value>Blow a Goat Horn.</value></data>
+
+	<data name="IDS_ACHIEVE_NAME_END_CITY"><value>The City at the End of the Game</value></data>
+	<data name="IDS_ACHIEVE_DESC_END_CITY"><value>Reach an End City.</value></data>
+
+	<data name="IDS_ACHIEVE_NAME_WAX_ON"><value>Wax On</value></data>
+	<data name="IDS_ACHIEVE_DESC_WAX_ON"><value>Wax a Copper Block with Honeycomb.</value></data>
 
 	<data name="IDS_ACHIEVEMENT_VIEW"><value>Hold {*CONTROLLER_VK_Y*} to view</value></data>
 

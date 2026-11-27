@@ -33,6 +33,40 @@ void ResultSlot::onQuickCraft(shared_ptr<ItemInstance> picked, int count)
 	checkTakeAchievements(picked);
 }
 
+
+// neoLegacy - Achievements Batch 1 (2026-11-26): 63 Wax On. True when the
+// crafted result is a waxed copper-family block/item: the 15 waxing families
+// (copper_block, cut_copper, chiseled_copper, copper_grate, copper_golem_statue,
+// copper_bulb, copper_door, copper_trapdoor, copper_lantern, copper_chain,
+// lightning_rod, copper_bars, copper_chest, cut_copper_slab, cut_copper_stairs)
+// are all Complex-Table shapeless recipes whose result is the same id at
+// aux = oxidation stage | 4 (waxed bit). Unwaxed results have aux 0-3.
+static bool isWaxedCopperResult(shared_ptr<ItemInstance> carried)
+{
+	if ((carried->getAuxValue() & 4) == 0) return false;
+	switch (carried->id)
+	{
+	case Tile::copper_block_Id:
+	case Tile::cut_copper_Id:
+	case Tile::chiseled_copper_Id:
+	case Tile::copper_grate_Id:
+	case Tile::copper_golem_statue_Id:
+	case Tile::copper_bulb_Id:
+	case Tile::copper_trapdoor_Id:
+	case Tile::copper_lantern_Id:
+	case Tile::copper_chain_Id:
+	case Tile::lightning_rod_Id:
+	case Tile::copper_bars_Id:
+	case Tile::copper_chest_Id:
+	case Tile::cut_copper_slab_Id:
+	case Tile::cut_copper_stairs_Id:
+	case Item::copper_door_Id:
+		return true;
+	default:
+		return false;
+	}
+}
+
 void ResultSlot::checkTakeAchievements(shared_ptr<ItemInstance> carried)
 {
 	carried->onCraftedBy(player->level, dynamic_pointer_cast<Player>( player->shared_from_this() ), removeCount);
@@ -52,6 +86,13 @@ void ResultSlot::checkTakeAchievements(shared_ptr<ItemInstance> carried)
 
 	// 4J : WESTY : Added new acheivements. 
 	else if (carried->id == Tile::dispenser_Id) player->awardStat(GenericStats::dispenseWithThis(), GenericStats::param_dispenseWithThis());
+
+	// neoLegacy - Achievements Batch 1 (2026-11-26): 53 Beaconator (craft a beacon),
+	// 57 Rose Gold (Complex Table craft; this slot serves both the normal and
+	// Complex crafting menus), 63 Wax On (waxed copper result, see helper above).
+	else if (carried->id == Tile::beacon_Id) player->awardStat(GenericStats::beaconator(), GenericStats::param_beaconator());
+	else if (carried->id == Item::rose_gold_ingot_Id) player->awardStat(GenericStats::roseGold(), GenericStats::param_roseGold());
+	else if (isWaxedCopperResult(carried)) player->awardStat(GenericStats::waxOn(), GenericStats::param_waxOn());
 }
 
 void ResultSlot::onTake(shared_ptr<Player> player, shared_ptr<ItemInstance> carried)
