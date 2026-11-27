@@ -109,9 +109,9 @@ const int LevelRenderer::DIMENSION_OFFSETS[3] = { 0, (overworldSize * overworldS
 // so that we can render the "infinite" sea at the edges. Currently defined as:
 // Dimension idx 0 (overworld) : 80 ( = 54 + 13 + 13 )
 // Dimension idx 1 (nether)    : 44 ( = 18 + 13 + 13 )
-// Dimension idx 2 (the end)   : 44 ( = 18 + 13 + 13 )
+// Dimension idx 2 (the end)   : 64 ( = END_LEVEL_MAX_WIDTH )
 
-const int LevelRenderer::MAX_LEVEL_RENDER_SIZE[3] = { 80, 44, 44 };
+const int LevelRenderer::MAX_LEVEL_RENDER_SIZE[3] = { 80, 44, 64 };
 
 // Linked directly to the sizes in the previous array, these next values dictate the start offset for each dimension index into the global array for these things.
 // Each dimension uses MAX_LEVEL_RENDER_SIZE[i]^2 * 8 indices, as a MAX_LEVEL_RENDER_SIZE * MAX_LEVEL_RENDER_SIZE * 8 sized cube of references.
