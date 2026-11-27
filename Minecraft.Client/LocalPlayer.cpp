@@ -230,10 +230,9 @@ void LocalPlayer::aiStep()
 		{
 			if (riding != nullptr) this->ride(nullptr);
 		}
-		if (minecraft->screen != nullptr) minecraft->setScreen(nullptr);
-
 		if (portalTime == 0)
 		{
+			if (minecraft->screen != nullptr) minecraft->setScreen(nullptr);
 			minecraft->soundEngine->playUI(eSoundType_PORTAL_TRIGGER, 1, random->nextFloat() * 0.4f + 0.8f);
 		}
 		portalTime += 1 / 80.0f;
