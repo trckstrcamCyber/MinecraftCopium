@@ -15,7 +15,7 @@ private:
 		ACTION_NONE,
 		ACTION_STRIP,			// one item, its non-curse enchantments removed
 		ACTION_COMBINE,			// two matching items, durability combined +5%, non-curse enchantments removed
-		ACTION_BOOK_ABSORB		// item + plain book -> enchanted book carrying one enchantment, item keeps the rest
+		ACTION_BOOK_ABSORB,		// item + plain book -> enchanted book carrying one enchantment, item keeps the rest
 		ACTION_NETHERITE_UPGRADE	// diamond tool/armor + netherite ingot -> netherite tool/armor, enchantments + damage kept
 	};
 
