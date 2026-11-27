@@ -219,25 +219,28 @@ void Chunk::rebuild()
 	// current dimension's render grid. That -1 is routine at the Overworld->End swap
 	// (the 80-wide Overworld grid is re-evaluated against the End's 44-wide grid), and
 	// rebuild() is the only live consumer that never checks for it: -1 became
-	// lists = chunkLists - CHUNK_RENDER_LAYERS, and CBuffClear read its short table
+	// lists = chunkLists - CHUNK_RENDER_LAYERS under the old scheme, and CBuffClear read its short table
 	// below the base (fault at CBuffClear+0x20, same address in builds #28 and #29).
 	// The crash2b dimIdx guard cannot help here: it only changes one source of a bad
 	// index, and its own -1 output crashes in exactly the same way. A chunk with no
 	// global index has no render lists to write, so there is nothing to rebuild.
 	int globalIdx = levelRenderer->getGlobalIndexForChunk(this->x,this->y,this->z,level);
 	if( ( globalIdx < 0 ) || ( globalIdx >= LevelRenderer::getGlobalChunkCount() ) ) return;
-	int lists = globalIdx * LevelRenderer::CHUNK_RENDER_LAYERS;
-	lists += levelRenderer->chunkLists;
-	// Crash 2h (Nov 25): the cc-11 backtrace + cc-46 register dump proved the faulting
-	// index is the FINAL index (RBX = 0x80A4FF = 8,430,847), 42,239 entries past
-	// CBuffClear's 8,388,608-entry short table (16 MiB, allocated once in
-	// Renderer::Initialise). chunkLists is a 4J command-buffer base, not a GL base,
-	// and the cc-46 game-side census shows it can be ~8.1M+ at runtime. The crash2f
-	// guard that was here bounded lists against chunkLists + count*4 — the same bound
-	// the crash2c guard above already enforces (a tautology, crash2g), so it could
-	// never fire. The only bound that can stop this fault is the TABLE CAPACITY
-	// itself: a chunk whose final index would pass the table end has no valid render
-	// lists, so there is nothing to rebuild.
+	// Lazy CBuff lists (Nov 27, End City fix): the per-global-chunk base is now
+	// allocated lazily on LevelRenderer (getOrAllocChunkLists) instead of computed
+	// as chunkLists + globalIdx*4 from one huge upfront reservation. The old scheme
+	// pushed End City list ids past the 8,388,608-entry CBuff table (chunkLists can
+	// be ~8.1M+ at runtime), so the capacity guard below dropped those chunks
+	// silently and permanently (clearDirty() had already run). The accessor
+	// enforces the capacity bound itself; the guard below is kept as a second
+	// check (crash2l semantics) in case a stored base somehow exceeds the table.
+	// Crash 2h (Nov 25) background: the cc-11 backtrace + cc-46 register dump proved
+	// the faulting index is the FINAL index (RBX = 0x80A4FF = 8,430,847), 42,239 entries
+	// past CBuffClear's 8,388,608-entry short table (16 MiB, allocated once in
+	// Renderer::Initialise). The only bound that can stop this fault is the TABLE
+	// CAPACITY itself: a chunk whose final index would pass the table end has no
+	// valid render lists, so there is nothing to rebuild.
+	int lists = levelRenderer->getOrAllocChunkLists(globalIdx);
 	if( ( lists < 0 ) || ( lists + LevelRenderer::CHUNK_RENDER_LAYERS > 8388608 ) ) return;
 
 	PIXEndNamedEvent();
@@ -1029,32 +1032,29 @@ void Chunk::reset()
 //		printf("\t\t [dec] refcount %d at %d, %d, %d\n",refCount,x,y,z);
 		if( refCount == 0 )
 		{
-			int lists = levelRenderer->getGlobalIndexForChunk(x, y, z, level) * LevelRenderer::CHUNK_RENDER_LAYERS;
-			// Crash 2 (Nov 24): a stale dimension id during the Overworld->End swap makes
-			// getGlobalIndexForChunk return a wild POSITIVE index (0x80897f, ~25x the max
-			// valid 82175), so the old `lists >= 0` check alone let it reach CBuffClear,
-			// which indexes its short table unchecked. Bound the index to the allocated
-			// render lists (getGlobalChunkCount() * 4 = 328704).
-			if (lists >= 0 && lists < LevelRenderer::getGlobalChunkCount() * LevelRenderer::CHUNK_RENDER_LAYERS)
+			int globalIdx = levelRenderer->getGlobalIndexForChunk(x, y, z, level);
+			// Lazy CBuff lists (Nov 27, End City fix): the per-global-chunk base is
+			// stored on LevelRenderer and allocated lazily at rebuild time, so look it
+			// up here (no allocation) instead of computing chunkLists + globalIdx*4.
+			// Crash 2 / Crash 2h background (Nov 24-25): a stale dimension id during
+			// the Overworld->End swap could return a wild index, and the cc-46 register
+			// dump proved the FINAL index can be 0x80A4FF = 8,430,847, 42,239 past
+			// CBuffClear's 8,388,608-entry table. Only the TABLE CAPACITY can stop
+			// this fault: skip the clear when the final index would pass the table end.
+			// A chunk that never built a mesh has no stored base (lists == -1) and
+			// nothing to clear — but its flags are still reset below, so an unloaded
+			// chunk never keeps stale flags.
+			int lists = levelRenderer->getChunkLists(globalIdx);
+			if (lists >= 0 && lists + LevelRenderer::CHUNK_RENDER_LAYERS <= 8388608)
 			{
-				lists += levelRenderer->chunkLists;
-				// Crash 2h (Nov 25): the outer bound checks the PRE-OFFSET index, but
-				// CBuffClear is called with the FINAL index. The cc-46 register dump
-				// proved the final index can be 0x80A4FF = 8,430,847, 42,239 past
-				// CBuffClear's 8,388,608-entry table — the crash2f inner guard re-checked
-				// chunkLists + count*4, which is the same bound the outer check already
-				// enforces (a tautology, crash2g). Only the TABLE CAPACITY can stop this
-				// fault: skip the clear when the final index would pass the table end.
-				if (lists >= 0 && lists + LevelRenderer::CHUNK_RENDER_LAYERS <= 8388608)
+				for (int i = 0; i < LevelRenderer::CHUNK_RENDER_LAYERS; i++)
 				{
-					for (int i = 0; i < LevelRenderer::CHUNK_RENDER_LAYERS; i++)
-					{
-						// 4J - added - clear any renderer data associated with this unused list
-						RenderManager.CBuffClear(lists + i);
-					}
-					levelRenderer->setGlobalChunkFlags(x, y, z, level, 0);
+					// 4J - added - clear any renderer data associated with this unused list
+					RenderManager.CBuffClear(lists + i);
 				}
 			}
+			levelRenderer->freeChunkLists(globalIdx);
+			levelRenderer->setGlobalChunkFlags(x, y, z, level, 0);
 		}
 		LeaveCriticalSection(&levelRenderer->m_csDirtyChunks);
 	}
@@ -1073,8 +1073,12 @@ int Chunk::getList(int layer)
 	if (layer < 0 || layer >= LevelRenderer::CHUNK_RENDER_LAYERS) return -1;
 	if (!clipChunk->visible) return -1;
 
-	int lists = levelRenderer->getGlobalIndexForChunk(x, y, z,level) * LevelRenderer::CHUNK_RENDER_LAYERS;
-	lists += levelRenderer->chunkLists;
+	// Lazy CBuff lists (Nov 27, End City fix): look up the per-global-chunk base
+	// stored on LevelRenderer (no allocation); a chunk that never built a mesh has
+	// no base, so return -1 instead of computing a list id from it (-1 + layer
+	// would be a valid-looking id belonging to another chunk).
+	int lists = levelRenderer->getChunkLists(levelRenderer->getGlobalIndexForChunk(x, y, z, level));
+	if (lists < 0) return -1;
 
 	bool empty = (layer < 2) && levelRenderer->getGlobalChunkFlag(x, y, z, level, LevelRenderer::CHUNK_FLAG_EMPTY0, layer);
 	if (!empty) return lists + layer;

@@ -179,15 +179,24 @@ LevelRenderer::LevelRenderer(Minecraft *mc, Textures *textures)
 	this->mc = mc;
 	this->textures = textures;
 #ifndef MINECRAFT_SERVER_BUILD
+#ifdef __PS3__
 	chunkLists = MemoryTracker::genLists(getGlobalChunkCount() * CHUNK_RENDER_LAYERS);		// One render list per chunk render layer.
-	// Crash 2h diagnostic (Nov 25): TEMPORARY — log the render-list base so the next
-	// run shows the actual value. The cc-46 register dump proved the faulting index is
-	// chunkLists + globalIdx*4 (RBX = 0x80A4FF), and the game-side census shows no game
-	// code can push chunkLists past a few thousand — so the ~8.1M base must come from
-	// inside the 4J lib. Remove this line once the value is known.
-	app.DebugPrintf("Crash2h: chunkLists = %d (count %d)\n", chunkLists, getGlobalChunkCount() * CHUNK_RENDER_LAYERS);
+#else
+	// End Cities fix (Nov 27): lazy per-chunk render-list allocation replaced the
+	// upfront reservation. The old 397,824-list block pushed End list ids past the
+	// 8,388,608-entry CBuff table, so End City chunks were dropped as invisible.
+	// Each global chunk now allocates its own CHUNK_RENDER_LAYERS lists on demand
+	// via getOrAllocChunkLists(); chunkLists stays 0 on Win64. (PS3 still needs
+	// the contiguous block for its SPU cull task, so the reservation is kept there.)
+	// The crash2h diagnostic is gone too: it was marked TEMPORARY ("Remove this
+	// line once the value is known") and the value is now known (~8.1M, proven by
+	// the crash2m disassembly); on Win64 it would now print a misleading 0.
+	chunkLists = 0;
+#endif
 	globalChunkFlags = new unsigned char[getGlobalChunkCount()];
 	memset(globalChunkFlags, 0, getGlobalChunkCount());
+	globalChunkLists = new int[getGlobalChunkCount()];
+	for (int i = 0; i < getGlobalChunkCount(); i++) globalChunkLists[i] = -1;
 
 	starList = MemoryTracker::genLists(4);
 
@@ -994,8 +1003,9 @@ int LevelRenderer::renderChunks(int from, int to, int layer, double alpha)
 			if( !pClipChunk->visible ) continue;
 			if( pClipChunk->globalIdx == -1 ) continue;
 			if (layer < 2 && ( globalChunkFlags[pClipChunk->globalIdx] & emptyFlag ) == emptyFlag) continue;
-			int list = pClipChunk->globalIdx * CHUNK_RENDER_LAYERS + layer;
-			list += chunkLists;
+			int base = getChunkLists(pClipChunk->globalIdx);
+			if (base < 0) continue;
+			int list = base + layer;
 			// Crash 2l: never play back a list id the CBuff table cannot hold (8388608 entries).
 			if (list < 0 || list >= 8388608) continue;
 			if(RenderManager.CBuffCall(list, first))
@@ -1018,9 +1028,12 @@ int LevelRenderer::renderChunks(int from, int to, int layer, double alpha)
 		if (layer < 2 && ( globalChunkFlags[pClipChunk->globalIdx] & emptyFlag ) == emptyFlag) continue;	// Check that this particular layer isn't empty
 		if( !(globalChunkFlags[pClipChunk->globalIdx] & LevelRenderer::CHUNK_FLAG_CUT_OUT) ) continue;	// Does this chunk contain any cut out geometry
 
-		// List can be calculated directly from the chunk's global idex
-		int list = pClipChunk->globalIdx * CHUNK_RENDER_LAYERS + layer;
-		list += chunkLists;
+		// List comes from the chunk's lazily allocated per-chunk render lists
+		int base = getChunkLists(pClipChunk->globalIdx);
+		if (base < 0) continue;
+		int list = base + layer;
+		// Crash 2l: never play back a list id the CBuff table cannot hold (8388608 entries).
+		if (list < 0 || list >= 8388608) continue;
 
 		if(RenderManager.CBuffCallCutOut(list, first))
 		{
@@ -2811,7 +2824,7 @@ void LevelRenderer::cull(Culler *culler, float a)
 				// Build compact visible chunk lists for renderChunks()
 				if (pClipChunk->visible && pClipChunk->globalIdx != -1 && visibleLists_layer0 != nullptr)
 				{
-					int list = pClipChunk->globalIdx * CHUNK_RENDER_LAYERS + chunkLists;
+					int list = getChunkLists(pClipChunk->globalIdx);
 					// Crash 2l: never queue a list id the CBuff table cannot hold (8388608 entries).
 					// The End-trip ids (~8.42M) faulted one frame later in CBuffCall; skip them here.
 					if (list >= 0 && list + CHUNK_RENDER_LAYERS <= 8388608)
@@ -3392,7 +3405,17 @@ void LevelRenderer::skyColorChanged()
 
 void LevelRenderer::clear()
 {
+	for (int i = 0; i < getGlobalChunkCount(); i++)
+	{
+		if (globalChunkLists[i] >= 0)
+		{
+			MemoryTracker::releaseLists(globalChunkLists[i]);
+			globalChunkLists[i] = -1;
+		}
+	}
+#ifdef __PS3__
 	MemoryTracker::releaseLists(chunkLists);
+#endif
 }
 
 void LevelRenderer::globalLevelEvent(int type, int sourceX, int sourceY, int sourceZ, int data)
@@ -3885,6 +3908,62 @@ int LevelRenderer::getGlobalChunkCount()
 int LevelRenderer::getGlobalChunkCountForOverworld()
 {
 	return ( MAX_LEVEL_RENDER_SIZE[0] * MAX_LEVEL_RENDER_SIZE[0] * CHUNK_Y_COUNT );
+}
+
+// End Cities fix (Nov 27): per-global-chunk render-list bases. Each global chunk
+// allocates its own CHUNK_RENDER_LAYERS lists lazily via genLists(4) the first time
+// it is rebuilt, instead of the old single upfront reservation whose base pushed End
+// list ids past the 8,388,608-entry CBuff table. The array lives on LevelRenderer
+// (parallel to globalChunkFlags) because Chunk::rebuild() runs on a permaChunk copy
+// whose clipChunk is nullptr, so ClipChunk storage would null-deref.
+int LevelRenderer::getChunkLists(int globalIdx)
+{
+	if ((globalIdx < 0) || (globalIdx >= getGlobalChunkCount()))
+	{
+		return -1;
+	}
+	return globalChunkLists[globalIdx];
+}
+
+int LevelRenderer::getOrAllocChunkLists(int globalIdx)
+{
+	if ((globalIdx < 0) || (globalIdx >= getGlobalChunkCount()))
+	{
+		return -1;
+	}
+	EnterCriticalSection(&m_csDirtyChunks);
+	int base = globalChunkLists[globalIdx];
+	if (base < 0)
+	{
+		base = MemoryTracker::genLists(CHUNK_RENDER_LAYERS);
+		if (base < 0 || base + CHUNK_RENDER_LAYERS > 8388608)
+		{
+			// Coordinator fix: if genLists handed us a block that does not fit the
+			// table, hand it straight back instead of leaking it (it was never stored).
+			if (base >= 0) MemoryTracker::releaseLists(base);
+			LeaveCriticalSection(&m_csDirtyChunks);
+			return -1;
+		}
+		globalChunkLists[globalIdx] = base;
+	}
+	LeaveCriticalSection(&m_csDirtyChunks);
+	return base;
+}
+
+void LevelRenderer::freeChunkLists(int globalIdx)
+{
+	if ((globalIdx < 0) || (globalIdx >= getGlobalChunkCount()))
+	{
+		return;
+	}
+	EnterCriticalSection(&m_csDirtyChunks);
+	int base = globalChunkLists[globalIdx];
+	if (base >= 0)
+	{
+		MemoryTracker::releaseLists(base);
+		globalChunkLists[globalIdx] = -1;
+	}
+	LeaveCriticalSection(&m_csDirtyChunks);
 }
 
 unsigned char LevelRenderer::getGlobalChunkFlags(int x, int y, int z, Level *level)

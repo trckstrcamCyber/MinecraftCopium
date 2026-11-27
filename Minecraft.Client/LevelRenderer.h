@@ -256,12 +256,18 @@ public:
 	unsigned char		getGlobalChunkFlags(int x, int y, int z, Level *level);
 	void				setGlobalChunkFlags(int x, int y, int z, Level *level, unsigned char flags);
 
+	// Per-global-chunk render-list bases (lazy CBuff allocation; -1 = not allocated)
+	int					getChunkLists(int globalIdx);			// stored base, or -1 (no allocation)
+	int					getOrAllocChunkLists(int globalIdx);	// stored base, allocating CHUNK_RENDER_LAYERS lists if needed; -1 if invalid/failed
+	void				freeChunkLists(int globalIdx);			// release the stored base (if any) and reset to -1
+
 	// Reference counting
 	unsigned char		incGlobalChunkRefCount(int x, int y, int z, Level *level);
 	unsigned char		decGlobalChunkRefCount(int x, int y, int z, Level *level);
 
 	// Actual storage for flags
 	unsigned char		*globalChunkFlags;
+	int					*globalChunkLists;	// per-global-chunk render-list base (CHUNK_RENDER_LAYERS lists each), -1 = not allocated; parallel to globalChunkFlags
 
 	// The flag definitions
 	static const int    CHUNK_FLAG_COMPILED		= 0x01;
