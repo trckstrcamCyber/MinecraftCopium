@@ -1702,9 +1702,10 @@ void Recipes::_compileRecipes()
 		L'D');
 
 	// neoLegacy - Netherite tier (2026-11-26): ingot is shapeless, 4 scrap +
-	// 4 gold ingots in the Crafting Table (Java recipe). Nugget exchange
-	// copies gold exactly. Nugget exchange is Complex-Table-only; only the
-	// shapeless scrap+gold ingot recipe stays workbench.
+	// 4 gold ingots (Java recipe). Nugget exchange copies gold exactly.
+	// Complex-Table-only (2026-11-27, Cameron): the shapeless scrap+gold
+	// ingot recipe AND the nugget exchange are both gated in
+	// Recipes::isComplexOnly; the workbench offers neither.
 	addShapelessRecipy(new ItemInstance(Item::netherite_ingot, 1), //
 		L"iiiiiiiig",
 		Item::netherite_scrap, Item::netherite_scrap, Item::netherite_scrap, Item::netherite_scrap,
@@ -2401,9 +2402,11 @@ bool Recipes::isComplexOnly(Recipy *r)
 	// neoLegacy - Nugget exchange (2026-11-26): the 1 -> 9 recipes are gated
 	// on their result ids, which no other recipe produces. The 9 -> 1 recipes
 	// cannot be gated on result alone (iron_ingot_Id is shared with vanilla
-	// recipes; netherite_ingot_Id is also the result of the shapeless
-	// scrap+gold ingot recipe at line 1708, which must stay workbench), so
-	// they are gated on result + ingredient, red-dye pattern.
+	// recipes), so they are gated on result + ingredient, red-dye pattern.
+	// neoLegacy - Netherite ingot (2026-11-27, Cameron): the shapeless
+	// scrap+gold ingot recipe is Complex-Table-only too, so the
+	// netherite_ingot_Id branch gates BOTH ingot recipes -- the shaped
+	// 9-nugget one and the shapeless 4-scrap+4-gold one.
 	if (result->id == Item::iron_nugget_Id) return true;
 	if (result->id == Item::netherite_nugget_Id) return true;
 	if (result->id == Item::iron_ingot_Id)
@@ -2414,7 +2417,9 @@ bool Recipes::isComplexOnly(Recipy *r)
 	if (result->id == Item::netherite_ingot_Id)
 	{
 		ShapedRecipy *shaped = dynamic_cast<ShapedRecipy *>(r);
-		return shaped != nullptr && shaped->hasIngredient(Item::netherite_nugget_Id);
+		if (shaped != nullptr && shaped->hasIngredient(Item::netherite_nugget_Id)) return true;
+		ShapelessRecipy *shapeless = dynamic_cast<ShapelessRecipy *>(r);
+		return shapeless != nullptr && shapeless->hasIngredient(Item::netherite_scrap_Id);
 	}
 	// Red dye has other (normal workbench) recipes, e.g. rose -> 2 red dye, so identify the
 	// Complex Table one by its redstone ingredient rather than by its result alone.
