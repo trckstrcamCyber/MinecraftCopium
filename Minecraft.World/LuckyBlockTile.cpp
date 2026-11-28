@@ -291,7 +291,7 @@ WeighedTreasureArray LuckyBlockTile::chestTreasureTable()
 	static bool initialized = false;
 	if (!initialized)
 	{
-		table = WeighedTreasureArray(12);
+		table = WeighedTreasureArray(22);
 		table[0] = new WeighedTreasure(Item::diamond_Id, 0, 1, 3, 4);
 		table[1] = new WeighedTreasure(Item::iron_ingot_Id, 0, 2, 5, 10);
 		table[2] = new WeighedTreasure(Item::gold_ingot_Id, 0, 1, 4, 8);
@@ -304,6 +304,21 @@ WeighedTreasureArray LuckyBlockTile::chestTreasureTable()
 		table[9] = new WeighedTreasure(Tile::sapling_Id, 0, 1, 3, 6);
 		table[10] = new WeighedTreasure(Item::saddle_Id, 0, 1, 1, 3);
 		table[11] = new WeighedTreasure(Item::ender_pearl_Id, 0, 1, 2, 5);
+		// neoLegacy - Lucky Block update (2026-11-27): the new materials and
+		// small items added since the block was made. Copper / rose gold mirror
+		// the gold / emerald weights; nuggets come in a small stack; the spyglass
+		// and goat horn are rare single finds. Netherite and the JDemon / CMonster
+		// swords are deliberately NOT here.
+		table[12] = new WeighedTreasure(Item::copper_ingot_Id, 0, 1, 4, 8);
+		table[13] = new WeighedTreasure(Item::rose_gold_ingot_Id, 0, 1, 3, 6);
+		table[14] = new WeighedTreasure(Item::iron_nugget_Id, 0, 2, 6, 8);
+		table[15] = new WeighedTreasure(Item::amethyst_shard_Id, 0, 1, 3, 6);
+		table[16] = new WeighedTreasure(Item::raw_copper_Id, 0, 1, 3, 6);
+		table[17] = new WeighedTreasure(Item::honeycomb_Id, 0, 1, 3, 4);
+		table[18] = new WeighedTreasure(Item::platinum_chunk_Id, 0, 1, 2, 4);
+		table[19] = new WeighedTreasure(Item::hallowed_gem_Id, 0, 1, 1, 3);
+		table[20] = new WeighedTreasure(Item::spyglass_Id, 0, 1, 1, 3);
+		table[21] = new WeighedTreasure(Item::goat_horn_Id, 0, 1, 1, 3);
 		initialized = true;
 	}
 	return table;
@@ -318,8 +333,11 @@ void LuckyBlockTile::outcomeGoodLoot(Level *level, int x, int y, int z)
 		return;
 	}
 
-	static const int pool[] = { Item::diamond_Id, Item::emerald_Id, Item::gold_ingot_Id, Item::iron_ingot_Id };
-	int itemId = pool[level->random->nextInt(4)];
+	// neoLegacy - Lucky Block update (2026-11-27): the new ingots and raw
+	// materials now drop alongside the old ones. Netherite and the JDemon /
+	// CMonster swords are deliberately NOT in this pool.
+	static const int pool[] = { Item::diamond_Id, Item::emerald_Id, Item::gold_ingot_Id, Item::iron_ingot_Id, Item::copper_ingot_Id, Item::rose_gold_ingot_Id, Item::raw_copper_Id, Item::iron_nugget_Id, Item::amethyst_shard_Id };
+	int itemId = pool[level->random->nextInt(9)];
 	int count = 1 + level->random->nextInt(3);
 	dropItem(level, x, y, z, itemId, count);
 }
