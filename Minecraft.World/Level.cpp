@@ -4365,7 +4365,11 @@ shared_ptr<Player> Level::getNearestAttackablePlayer(double x, double y, double 
 	for (auto& p : players)
 	{
 		// 4J Stu - Added privilege check
-		if (p->abilities.invulnerable || !p->isAlive() || p->hasInvisiblePrivilege() )
+		// neoLegacy - true invisibility (JDemon sword / invisibility potion):
+		// invisible players are not attackable at all. This replaces the
+		// Java-style range scaling below (armor cover), which still let a
+		// fully-armored invisible player be spotted at ~70% range.
+		if (p->abilities.invulnerable || !p->isAlive() || p->hasInvisiblePrivilege() || p->isInvisible())
 		{
 			continue;
 		}
@@ -4373,20 +4377,10 @@ shared_ptr<Player> Level::getNearestAttackablePlayer(double x, double y, double 
 		double dist = p->distanceToSqr(x, y, z);
 		double visibleDist = maxDist;
 
-		// decrease the max attackable distance if the target player
-		// is sneaking or invisible
+		// decrease the max attackable distance if the target player is sneaking
 		if (p->isSneaking())
 		{
 			visibleDist *= .8f;
-		}
-		if (p->isInvisible())
-		{
-			float coverPercentage = p->getArmorCoverPercentage();
-			if (coverPercentage < .1f)
-			{
-				coverPercentage = .1f;
-			}
-			visibleDist *= (.7f * coverPercentage);
 		}
 
 		if ((visibleDist < 0 || dist < visibleDist * visibleDist) && (best == -1 || dist < best))

@@ -63,6 +63,18 @@ void PathfinderMob::serverAiStep()
 	{
 		if (attackTarget->isAlive())
 		{
+			// neoLegacy - true invisibility (JDemon sword / invisibility
+			// potion): drop a target that has become invisible. This is the
+			// legacy-path retention gate (mirrors the invulnerable check
+			// below); without it a spider/ghast/slime/enderman already
+			// attacking would keep its target forever, and Monster::hurt's
+			// retaliation target would also stick. The clear happens before
+			// checkHurtTarget, so no hit can land on an invisible target.
+			if (attackTarget->isInvisible())
+			{
+				attackTarget = nullptr;
+				return;
+			}
 		    if (attackTarget->instanceof(eTYPE_PLAYER)) {
 		        shared_ptr<Player> player = dynamic_pointer_cast<Player>(attackTarget);
 		        if (player->abilities.invulnerable)

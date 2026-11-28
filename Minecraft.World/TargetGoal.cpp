@@ -36,6 +36,11 @@ bool TargetGoal::canContinueToUse()
 	shared_ptr<LivingEntity> target = mob->getTarget();
 	if (target == nullptr) return false;
 	if (!target->isAlive()) return false;
+	// neoLegacy - true invisibility: drop a target that has become invisible
+	// (JDemon sword / invisibility potion). Without this, a mob already
+	// chasing would keep its target forever, because Sensing::canSee is
+	// line-of-sight only and never returns false for an invisible target.
+	if (target->isInvisible()) return false;
 
 	if (target->instanceof(eTYPE_PLAYER)) {
 		shared_ptr<Player> player = dynamic_pointer_cast<Player>(target);
@@ -81,6 +86,15 @@ bool TargetGoal::canAttack(shared_ptr<LivingEntity> target, bool allowInvulnerab
 	if (target == nullptr) return false;
 	if (target == mob->shared_from_this()) return false;
 	if (!target->isAlive()) return false;
+	// neoLegacy - true invisibility (JDemon sword / invisibility potion): an
+	// invisible target cannot be detected or acquired by any mob. This is the
+	// shared gate for every TargetGoal subclass (NearestAttackableTargetGoal,
+	// HurtByTargetGoal, NonTameRandomTargetGoal, DefendVillageTargetGoal,
+	// OwnerHurtByTargetGoal, OwnerHurtTargetGoal), so no per-mob change is
+	// needed. Note: attacking while invisible does not make a mob retaliate
+	// either - HurtByTargetGoal acquires through here, and Monster::hurt's
+	// legacy retaliation target is cleared by PathfinderMob::serverAiStep.
+	if (target->isInvisible()) return false;
 	if (!mob->canAttackType(target->GetType())) return false;
 
 	OwnableEntity *ownableMob = dynamic_cast<OwnableEntity *>(mob);
