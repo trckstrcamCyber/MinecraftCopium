@@ -14,6 +14,7 @@ HellRandomLevelSource::HellRandomLevelSource(Level *level, int64_t seed)
 	m_XZSize = ceil(static_cast<float>(xzSize) / hellScale);
 
 	netherBridgeFeature = new NetherBridgeFeature();
+	pyreheartFeature = new PyreheartSanctumFeature();
 	caveFeature = new LargeHellCaveFeature();
 
 	this->level = level;
@@ -33,6 +34,7 @@ HellRandomLevelSource::HellRandomLevelSource(Level *level, int64_t seed)
 HellRandomLevelSource::~HellRandomLevelSource()
 {
 	delete netherBridgeFeature;
+	delete pyreheartFeature;
 	delete caveFeature;
 
 	delete random;
@@ -283,6 +285,7 @@ LevelChunk *HellRandomLevelSource::getChunk(int xOffs, int zOffs)
 
 	caveFeature->apply(this, level, xOffs, zOffs, blocks);
 	netherBridgeFeature->apply(this, level, xOffs, zOffs, blocks);
+	pyreheartFeature->apply(this, level, xOffs, zOffs, blocks);
 
 	// 4J - this now creates compressed block data from the blocks array passed in, so needs to be after data is finalised.
 	// Also now need to free the passed in blocks as the LevelChunk doesn't use the passed in allocation anymore.
@@ -435,6 +438,7 @@ void HellRandomLevelSource::postProcess(ChunkSource *parent, int xt, int zt)
 	pprandom->setSeed(((xt * xScale) + (zt * zScale)) ^ level->getSeed());
 
 	netherBridgeFeature->postProcess(level, pprandom, xt, zt);
+	pyreheartFeature->postProcess(level, pprandom, xt, zt);
 
 	for (int i = 0; i < 8; i++)
 	{
@@ -576,10 +580,13 @@ vector<Biome::MobSpawnerData *> *HellRandomLevelSource::getMobsAt(MobCategory *m
 
 TilePos *HellRandomLevelSource::findNearestMapFeature(Level *level, const wstring& featureName, int x, int y, int z)
 {
-	return nullptr;
+    if (featureName == L"PyreheartSanctum" || featureName == L"HellFire" || featureName == L"Hellfire")
+        return pyreheartFeature->searchForGeneratedFeature(level, x, y, z, 64);
+    return nullptr;
 }
 
 void HellRandomLevelSource::recreateLogicStructuresForChunk(int chunkX, int chunkZ)
 {
 	netherBridgeFeature->apply(this, level, chunkX, chunkZ, byteArray());
+	pyreheartFeature->apply(this, level, chunkX, chunkZ, byteArray());
 }

@@ -45,6 +45,7 @@
 #include "CopperStairTile.h"	// neoLegacy - Copper Age (Phase 3)
 #include "CopperThinTile.h"	// neoLegacy - Copper Age (playtest fix, 2026-11-20)
 #include "IronThinTile.h"	// neoLegacy - Iron additions (2026-11-22)
+#include "PyreheartAltarTile.h"
 #include "CopperTile.h"	// neoLegacy - Copper Age (Phase 3)
 #include "CopperGolemStatueBlock.h"	// neoLegacy - Copper Age (Phase 5)
 #include "ShelfTile.h"	// neoLegacy - Copper Age (Phase 3)
@@ -149,6 +150,16 @@ Tile *Tile::copperBars = nullptr;
 Tile *Tile::copperLantern = nullptr;
 Tile *Tile::ironChain = nullptr;	// neoLegacy - Iron additions (2026-11-22): iron chain (2330)
 Tile *Tile::ironLantern = nullptr;	// neoLegacy - Iron additions (2026-11-22): iron lantern (2331)
+Tile *Tile::crimsonNetherBricks = nullptr;
+Tile *Tile::crackedCrimsonNetherBricks = nullptr;
+Tile *Tile::chiseledCrimsonNetherBricks = nullptr;
+Tile *Tile::warpedNetherBricks = nullptr;
+Tile *Tile::crackedWarpedNetherBricks = nullptr;
+Tile *Tile::chiseledWarpedNetherBricks = nullptr;
+Tile *Tile::soulLantern = nullptr;
+Tile *Tile::hellfireAnchor = nullptr;
+Tile *Tile::pyreheartAltar = nullptr;
+Tile *Tile::soulAnchor = nullptr;
 Tile *Tile::copperTorch = nullptr;
 Tile *Tile::copperButton = nullptr;
 Tile *Tile::lightningRod = nullptr;
@@ -606,6 +617,23 @@ void Tile::staticCtor()
 	// Iron lantern: always lit, like the copper lantern (fixed light
 	// emission; no lit/unlit state to vary by). No oxidation states.
 	Tile::ironLantern = (new IronThinTile(Tile::iron_lantern_Id, L"iron_lantern", 5.0f/16.0f, 0, 5.0f/16.0f, 11.0f/16.0f, 9.0f/16.0f, 11.0f/16.0f))						->setBaseItemTypeAndMaterial(Item::eBaseItemType_torch,	Item::eMaterial_iron)->setDestroyTime(3.5f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setLightEmission(1.0f)->setIconName(L"iron_lantern")->setDescriptionId(IDS_TILE_IRON_LANTERN)->setUseDescriptionId(IDS_DESC_IRON_LANTERN);
+
+	// HellFire encounter palette: the six decorative Nether brick variants
+	// from More Nether Bricks, plus the Soul Lantern from the Nether backport.
+	Tile::crimsonNetherBricks = (new Tile(Tile::crimson_nether_bricks_Id, Material::stone))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_STONE)->setIconName(L"crimson_nether_bricks")->setDescriptionId(IDS_TILE_CRIMSON_NETHER_BRICKS)->sendTileData();
+	Tile::crackedCrimsonNetherBricks = (new Tile(Tile::cracked_crimson_nether_bricks_Id, Material::stone))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_STONE)->setIconName(L"cracked_crimson_nether_bricks")->setDescriptionId(IDS_TILE_CRACKED_CRIMSON_NETHER_BRICKS)->sendTileData();
+	Tile::chiseledCrimsonNetherBricks = (new Tile(Tile::chiseled_crimson_nether_bricks_Id, Material::stone))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_STONE)->setIconName(L"chiseled_crimson_nether_bricks")->setDescriptionId(IDS_TILE_CHISELED_CRIMSON_NETHER_BRICKS)->sendTileData();
+	Tile::warpedNetherBricks = (new Tile(Tile::warped_nether_bricks_Id, Material::stone))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_STONE)->setIconName(L"warped_nether_bricks")->setDescriptionId(IDS_TILE_WARPED_NETHER_BRICKS)->sendTileData();
+	Tile::crackedWarpedNetherBricks = (new Tile(Tile::cracked_warped_nether_bricks_Id, Material::stone))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_STONE)->setIconName(L"cracked_warped_nether_bricks")->setDescriptionId(IDS_TILE_CRACKED_WARPED_NETHER_BRICKS)->sendTileData();
+	Tile::chiseledWarpedNetherBricks = (new Tile(Tile::chiseled_warped_nether_bricks_Id, Material::stone))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(2.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_STONE)->setIconName(L"chiseled_warped_nether_bricks")->setDescriptionId(IDS_TILE_CHISELED_WARPED_NETHER_BRICKS)->sendTileData();
+	Tile::soulLantern = (new IronThinTile(Tile::soul_lantern_Id, L"soul_fire_lantern", 5.0f/16.0f, 0, 5.0f/16.0f, 11.0f/16.0f, 9.0f/16.0f, 11.0f/16.0f))->setBaseItemTypeAndMaterial(Item::eBaseItemType_torch, Item::eMaterial_iron)->setDestroyTime(3.5f)->setExplodeable(6)->setSoundType(Tile::SOUND_METAL)->setLightEmission(1.0f)->setIconName(L"soul_fire_lantern")->setDescriptionId(IDS_TILE_SOUL_LANTERN)->sendTileData();
+
+	// Encounter-only cores. Anchors are breakable in the arena; the altar
+	// is an interactive Flint-and-Steel summon point.
+	Tile::hellfireAnchor = (new Tile(Tile::hellfire_anchor_Id, Material::stone))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(3.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_STONE)->setLightEmission(0.8f)->setIconName(L"hellfire_anchor")->setDescriptionId(IDS_TILE_HELLFIRE_ANCHOR)->sendTileData();
+	Tile::soulAnchor = (new Tile(Tile::soul_anchor_Id, Material::stone))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(3.0f)->setExplodeable(6)->setSoundType(Tile::SOUND_STONE)->setLightEmission(1.0f)->setIconName(L"soul_anchor")->setDescriptionId(IDS_TILE_SOUL_ANCHOR)->sendTileData();
+	Tile::pyreheartAltar = (new PyreheartAltarTile(Tile::pyreheart_altar_Id))->setBaseItemTypeAndMaterial(Item::eBaseItemType_structblock, Item::eMaterial_stone)->setDestroyTime(5.0f)->setExplodeable(1200)->setSoundType(Tile::SOUND_STONE)->setIconName(L"pyreheart_altar")->setDescriptionId(IDS_TILE_PYREHEART_ALTAR)->sendTileData();
+
 	Tile::copperTorch = (new TorchTile(Tile::copper_torch_Id))												->setBaseItemTypeAndMaterial(Item::eBaseItemType_torch,	Item::eMaterial_copper)->setDestroyTime(0.0f)->setLightEmission(15 / 16.0f)->setSoundType(Tile::SOUND_WOOD)->setIconName(L"copper_torch")->setDescriptionId(IDS_TILE_COPPER_TORCH)->setUseDescriptionId(IDS_DESC_COPPER_TORCH)->disableMipmap();
 	// Copper button: reuses the copper-block texture (0 new atlas cells).
 	Tile::copperButton = (new CopperButtonTile(Tile::copper_button_Id))										->setBaseItemTypeAndMaterial(Item::eBaseItemType_button,	Item::eMaterial_copper)->setDestroyTime(0.5f)->setSoundType(Tile::SOUND_METAL)->setIconName(L"copper_block")->setDescriptionId(IDS_TILE_COPPER_BUTTON)->setUseDescriptionId(IDS_DESC_COPPER_BUTTON);
@@ -2564,3 +2592,23 @@ const int Tile::blackstone_wall_Id;
 const int Tile::lucky_block_Id;
 const int Tile::jelly_block_Id;	// neoLegacy
 #endif
+
+const int Tile::crimson_nether_bricks_Id;
+
+const int Tile::cracked_crimson_nether_bricks_Id;
+
+const int Tile::chiseled_crimson_nether_bricks_Id;
+
+const int Tile::warped_nether_bricks_Id;
+
+const int Tile::cracked_warped_nether_bricks_Id;
+
+const int Tile::chiseled_warped_nether_bricks_Id;
+
+const int Tile::soul_lantern_Id;
+
+const int Tile::hellfire_anchor_Id;
+
+const int Tile::pyreheart_altar_Id;
+
+const int Tile::soul_anchor_Id;

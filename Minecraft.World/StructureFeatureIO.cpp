@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "EndCityFeature.h"
+#include "PyreheartSanctumFeature.h"
 #include "EndCityPieces.h"
 #include "net.minecraft.world.level.levelgen.structure.h"
 #include "StructureFeatureIO.h"
@@ -33,6 +34,8 @@ void StructureFeatureIO::staticCtor()
 	setStartId(eStructureStart_PillagerOutpostStart, PillagerOutpostFeature::OutpostStart::Create, L"Outpost");
 	setStartId(eStructureStart_EndCity, EndCityFeature::EndCityStart::Create, L"EndCity");
 	setStartId(eStructureStart_IllagerStructureStart, IllagerStructureFeature::IllagerStart::Create, L"IllagerStructure");
+	setStartId(eStructureStart_PyreheartSanctum, PyreheartSanctumFeature::SanctumStart::Create, L"PyreheartSanctum");
+	setPieceId(eStructurePiece_PyreheartSanctumPiece, PyreheartSanctumFeature::SanctumPiece::Create, L"PyreheartSanctumPiece");
 	setPieceId(eStructurePiece_EndCityPiece, EndCityPieces::EndCityPiece::Create, L"ECP");
 
 	OceanMonumentPieces::loadStatic();

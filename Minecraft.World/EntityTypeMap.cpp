@@ -58,6 +58,7 @@ static const unordered_map<wstring, eINSTANCEOF> s_nameToType = {
     { L"magmacube",        eTYPE_LAVASLIME        },
     { L"zombie_pigman",     eTYPE_PIGZOMBIE        },
     { L"witherboss",           eTYPE_WITHERBOSS       },
+    { L"hellfire",             eTYPE_HELLFIRE         },
     { L"enderdragon",      eTYPE_ENDERDRAGON      },
     { L"giant",            eTYPE_GIANT            },
     { L"endermite",        eTYPE_ENDERMITE        },

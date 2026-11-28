@@ -410,6 +410,8 @@ typedef enum _TEXTURE_NAME
 	// Appended at the end (Phase 3 precedent) so no existing TN_ value shifts;
 	// the preLoaded[] string below must stay in this same order.
 	TN_MOB_HORSE_ARMOR_COPPER,
+	TN_MOB_HELLFIRE_WILDFIRE,
+	TN_MOB_HELLFIRE_SOULFIRE,
 
 	TN_COUNT,
 	

@@ -430,6 +430,8 @@ const wchar_t *Textures::preLoaded[TN_COUNT] =
 	// Must stay in the same order as the TN_MOB_HORSE_ARMOR_COPPER enum;
 	// preLoaded[] must have exactly TN_COUNT entries.
 	L"mob/horse/armor/horse_armor_copper",
+	L"mob/hellfire/wildfire",
+	L"mob/hellfire/soulfire",
 };
 
 Textures::Textures(TexturePackRepository *skins, Options *options)

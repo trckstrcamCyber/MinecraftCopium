@@ -692,7 +692,7 @@
 			- Fixed Ender Pearl not teleporting you into gateway.
 			- Fixed Sign UI for 720p.
 			- Fixed Elytra displaying wrong death message.
-			- Fixed stuttering & missing fps in F3 menu.
+			- Fixed stuttering &amp; missing fps in F3 menu.
 			- Fixed Zombie villagers displaying incorrect textures.
 			- Fixed Mesa biome generation.
 			- You are now able to equip the End Dragon head.
@@ -11697,4 +11697,18 @@
 	<data name="IDS_DESC_NETHERITE_STICK">
 		<value>A stick made of netherite.</value>
 	</data>
+
+	<data name="IDS_ITEM_JDEMON_FRAGMENT"><value>JDemon Fragment</value></data>
+	<data name="IDS_DESC_JDEMON_FRAGMENT"><value>A shard of blue Soul Fire left behind by HellFire. Used to craft JDemon's Edge.</value></data>
+	<data name="IDS_HELLFIRE_BOSS"><value>HellFire</value></data>
+	<data name="IDS_TILE_CRIMSON_NETHER_BRICKS"><value>Crimson Nether Bricks</value></data>
+	<data name="IDS_TILE_CRACKED_CRIMSON_NETHER_BRICKS"><value>Cracked Crimson Nether Bricks</value></data>
+	<data name="IDS_TILE_CHISELED_CRIMSON_NETHER_BRICKS"><value>Chiseled Crimson Nether Bricks</value></data>
+	<data name="IDS_TILE_WARPED_NETHER_BRICKS"><value>Warped Nether Bricks</value></data>
+	<data name="IDS_TILE_CRACKED_WARPED_NETHER_BRICKS"><value>Cracked Warped Nether Bricks</value></data>
+	<data name="IDS_TILE_CHISELED_WARPED_NETHER_BRICKS"><value>Chiseled Warped Nether Bricks</value></data>
+	<data name="IDS_TILE_SOUL_LANTERN"><value>Soul Lantern</value></data>
+	<data name="IDS_TILE_HELLFIRE_ANCHOR"><value>Hellfire Anchor</value></data>
+	<data name="IDS_TILE_PYREHEART_ALTAR"><value>Pyreheart Altar</value></data>
+	<data name="IDS_TILE_SOUL_ANCHOR"><value>Soul Anchor</value></data>
 </root>

@@ -16,7 +16,7 @@ int IronThinTile::getRenderShape()
 	// Only the two iron ids ever reach this override (the tiles are built
 	// as IronThinTile in Tile.cpp), so the fallthrough stays SHAPE_BLOCK.
 	if (id == Tile::iron_chain_Id) return Tile::SHAPE_IRON_CHAIN;
-	if (id == Tile::iron_lantern_Id) return Tile::SHAPE_IRON_LANTERN;
+	if (id == Tile::iron_lantern_Id || id == Tile::soul_lantern_Id) return Tile::SHAPE_IRON_LANTERN;
 	return Tile::SHAPE_BLOCK;
 }
 

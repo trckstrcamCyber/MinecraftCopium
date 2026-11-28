@@ -54,6 +54,7 @@
 #include "SkeletonRenderer.h"
 #include "WitchRenderer.h"
 #include "WitherBossRenderer.h"
+#include "HellFireRenderer.h"
 #include "LeashKnotRenderer.h"
 #include "WitherSkullRenderer.h"
 #include "TntMinecartRenderer.h"
@@ -166,6 +167,7 @@ EntityRenderDispatcher::EntityRenderDispatcher()
 	renderers[eTYPE_ENDER_CRYSTAL] = new EnderCrystalRenderer();
 
 	renderers[eTYPE_WITHERBOSS] = new WitherBossRenderer();
+	renderers[eTYPE_HELLFIRE] = new HellFireRenderer();
 
 	renderers[eTYPE_RABBIT] = new RabbitRenderer();
 	renderers[eTYPE_POLARBEAR] = new PolarBearRenderer(new PolarBearModel(), 0.7f);
@@ -383,7 +385,7 @@ void EntityRenderDispatcher::renderGlow(shared_ptr<Entity> entity, double x, dou
 {
 	float cr = 1.0f, cg = 1.0f, cb = 1.0f;
 	shared_ptr<Illager> illager = dynamic_pointer_cast<Illager>(entity);
-	bool boss = entity->GetType() == eTYPE_WITHERBOSS || entity->GetType() == eTYPE_ENDERDRAGON || entity->GetType() == eTYPE_INVOKER;
+	bool boss = entity->GetType() == eTYPE_WITHERBOSS || entity->GetType() == eTYPE_HELLFIRE || entity->GetType() == eTYPE_ENDERDRAGON || entity->GetType() == eTYPE_INVOKER;
 	// neoLegacy - JDemon/CMonster v2: the CMonster scan marks its targets with
 	// glowing amplifier 1 (the Horn uses amplifier 0). Amplifier 1 is the
 	// CMonster highlight — players blue, ALL mobs red (undead, illagers and

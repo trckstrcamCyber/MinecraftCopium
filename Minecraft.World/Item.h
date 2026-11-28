@@ -254,6 +254,7 @@ public:
 	static Item *cursed_hilt;
 	// neoLegacy - JDemon / CMonster swords
 	static Item *jdemon_sword;
+	static Item *jdemon_fragment;
 	static Item *cmonster_sword;
 	// neoLegacy - MAC-10 firearm system
 	static Item *mac10;
@@ -595,6 +596,7 @@ public:
 	static const int shusui_Id				= 454;
 	static const int cursed_hilt_Id			= 455;	// neoLegacy
 	static const int jdemon_sword_Id			= 456;	// neoLegacy - JDemon sword
+	static const int jdemon_fragment_Id		= 634;	// HellFire boss guaranteed drop
 	static const int cmonster_sword_Id		= 457;	// neoLegacy - CMonster sword
 	static const int mac10_Id				= 465;	// neoLegacy - reserved custom item ID
 	static const int bullet_9mm_Id			= 466;	// neoLegacy - reserved custom item ID

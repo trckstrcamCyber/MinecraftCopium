@@ -10,6 +10,7 @@
 #include "FlowerFeature.h"
 #include "HellSpringFeature.h"
 #include "NetherBridgeFeature.h"
+#include "PyreheartSanctumFeature.h"
 
 class ProgressListener;
 
@@ -41,6 +42,7 @@ public:
 	~HellRandomLevelSource();
 
 	NetherBridgeFeature *netherBridgeFeature;
+	PyreheartSanctumFeature *pyreheartFeature;
 
 private:
 	void prepareHeights(int xOffs, int zOffs, byteArray blocks);

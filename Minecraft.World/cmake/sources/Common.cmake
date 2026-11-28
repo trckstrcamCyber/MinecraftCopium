@@ -949,6 +949,8 @@ source_group("net/minecraft/world/entity/boss/enderdragon" FILES ${_MINECRAFT_WO
 set(_MINECRAFT_WORLD_COMMON_NET_MINECRAFT_WORLD_ENTITY_BOSS_WITHER
   "${CMAKE_CURRENT_SOURCE_DIR}/WitherBoss.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/WitherBoss.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/HellFireBoss.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/HellFireBoss.h"
 )
 source_group("net/minecraft/world/entity/boss/wither" FILES ${_MINECRAFT_WORLD_COMMON_NET_MINECRAFT_WORLD_ENTITY_BOSS_WITHER})
 
@@ -1723,6 +1725,8 @@ set(_MINECRAFT_WORLD_COMMON_NET_MINECRAFT_WORLD_LEVEL_LEVELGEN_FEATURE
   "${CMAKE_CURRENT_SOURCE_DIR}/PineFeature.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/PumpkinFeature.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/PumpkinFeature.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/PyreheartSanctumFeature.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/PyreheartSanctumFeature.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/MelonFeature.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/MelonFeature.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/ReedsFeature.cpp"
@@ -2298,6 +2302,8 @@ set(_MINECRAFT_WORLD_COMMON_NET_MINECRAFT_WORLD_LEVEL_TILE
   "${CMAKE_CURRENT_SOURCE_DIR}/ThinFenceTile.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ThinFenceTile.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Tile.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/PyreheartAltarTile.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/PyreheartAltarTile.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Tile.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/TntTile.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/TntTile.h"

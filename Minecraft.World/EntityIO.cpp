@@ -4,6 +4,7 @@
 #include "System.h"
 #include "Entity.h"
 #include "WitherBoss.h"
+#include "HellFireBoss.h"
 #include "net.minecraft.world.entity.ambient.h"
 #include "net.minecraft.world.entity.animal.h"
 #include "net.minecraft.world.entity.item.h"
@@ -161,6 +162,7 @@ void EntityIO::staticCtor()
 	setId(Firecaller::create, eTYPE_FIRECALLER, L"Firecaller", 135, eMinecraftColour_Mob_Firecaller_Colour1, eMinecraftColour_Mob_Firecaller_Colour2, IDS_FIRECALLER);	// neoLegacy
 	setId(Surrendered::create, eTYPE_SURRENDERED, L"Surrendered", 136, eMinecraftColour_Mob_Surrendered_Colour1, eMinecraftColour_Mob_Surrendered_Colour2, IDS_SURRENDERED);	// neoLegacy
 	setId(Invoker::create, eTYPE_INVOKER, L"Invoker", 137, eMinecraftColour_Mob_Invoker_Colour1, eMinecraftColour_Mob_Invoker_Colour2, IDS_INVOKER);	// neoLegacy
+	setId(HellFireBoss::create, eTYPE_HELLFIRE, L"HellFire", 138);
 	setId(CopperGolem::create, eTYPE_COPPER_GOLEM, L"CopperGolem", 131, eMinecraftColour_Mob_CopperGolem_Colour1, eMinecraftColour_Mob_CopperGolem_Colour2, IDS_COPPER_GOLEM);	// neoLegacy - Copper Age (Phase 5)	setId(EvokerFangs::create, eTYPE_EVOKER_FANGS, L"EvokerFangs", 121);
 	setId(IceCube::create, eTYPE_ICE_CUBE, L"IceCube", 122);
 	setId(WanderingTrader::create, eTYPE_WANDERING_TRADER, L"WanderingTrader", 113,

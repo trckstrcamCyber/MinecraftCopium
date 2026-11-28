@@ -97,6 +97,7 @@ Item *Item::sandai_kitetsu = nullptr;
 Item *Item::enma = nullptr;
 Item *Item::shusui = nullptr;
 Item *Item::jdemon_sword = nullptr;	// neoLegacy - JDemon sword
+Item *Item::jdemon_fragment = nullptr;	// HellFire boss drop material
 Item *Item::cmonster_sword = nullptr;	// neoLegacy - CMonster sword
 Item *Item::cursed_hilt = nullptr;
 Item *Item::mac10 = nullptr;
@@ -441,6 +442,10 @@ void Item::staticCtor()
 	Item::jdemon_sword	= (new JDemonSword(jdemon_sword_Id - 256, _Tier::JDMON))
 		->setBaseItemTypeAndMaterial(eBaseItemType_sword, eMaterial_iron)
 		->setIconName(L"swordJDemon")->setDescriptionId(IDS_ITEM_SWORD_JDEMON)->setUseDescriptionId(IDS_DESC_SWORD);
+    Item::jdemon_fragment = (new Item(jdemon_fragment_Id - 256))
+        ->setBaseItemTypeAndMaterial(eBaseItemType_treasure, eMaterial_ender)
+        ->setIconName(L"jdemon_fragment")->setDescriptionId(IDS_ITEM_JDEMON_FRAGMENT)
+        ->setUseDescriptionId(IDS_DESC_JDEMON_FRAGMENT)->setMaxStackSize(16);
 	Item::cmonster_sword	= (new CMonsterSword(cmonster_sword_Id - 256, _Tier::CMON))
 		->setBaseItemTypeAndMaterial(eBaseItemType_sword, eMaterial_iron)
 		->setIconName(L"swordCMonster")->setDescriptionId(IDS_ITEM_SWORD_CMONSTER)->setUseDescriptionId(IDS_DESC_SWORD);

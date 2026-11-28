@@ -627,6 +627,19 @@ public:
     static const int amethyst_crystal_lamp_Id = 2347;
     static const int ancient_debris_Id = 2348;	// neoLegacy - Netherite tier (2026-11-26): next free ext tile after amethyst lamp 2347
 
+    // HellFire encounter palette: imported More Nether Bricks + Soul Lantern,
+    // followed by the encounter's breakable anchors and summoning altar.
+    static const int crimson_nether_bricks_Id = 2349;
+    static const int cracked_crimson_nether_bricks_Id = 2350;
+    static const int chiseled_crimson_nether_bricks_Id = 2351;
+    static const int warped_nether_bricks_Id = 2352;
+    static const int cracked_warped_nether_bricks_Id = 2353;
+    static const int chiseled_warped_nether_bricks_Id = 2354;
+    static const int soul_lantern_Id = 2355;
+    static const int hellfire_anchor_Id = 2356;
+    static const int pyreheart_altar_Id = 2357;
+    static const int soul_anchor_Id = 2358;
+
     // neoLegacy - Jelly Block (honey-block behaviour, see JellyBlockTile.h). Uses a free vanilla-range id: extended ids (2304+) have crashed before.
     static const int jelly_block_Id = 210;
 
@@ -696,6 +709,16 @@ public:
 	static Tile *copperLantern;
 	static Tile *ironChain;	// neoLegacy - Iron additions (2026-11-22): iron chain (2330)
 	static Tile *ironLantern;	// neoLegacy - Iron additions (2026-11-22): iron lantern (2331)
+    static Tile *crimsonNetherBricks;
+    static Tile *crackedCrimsonNetherBricks;
+    static Tile *chiseledCrimsonNetherBricks;
+    static Tile *warpedNetherBricks;
+    static Tile *crackedWarpedNetherBricks;
+    static Tile *chiseledWarpedNetherBricks;
+    static Tile *soulLantern;
+    static Tile *hellfireAnchor;
+    static Tile *pyreheartAltar;
+    static Tile *soulAnchor;
 	static Tile *copperTorch;
 	static Tile *copperButton;
 	static Tile *lightningRod;

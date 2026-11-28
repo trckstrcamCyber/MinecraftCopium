@@ -4981,7 +4981,8 @@ bool Level::canCreateMore(eINSTANCEOF type, ESPAWN_TYPE spawnType)
 			max = MobCategory::MAX_XBOX_IRONGOLEM;
 			break;
 		case eTYPE_WITHERBOSS:
-			count = countInstanceOf(eTYPE_WITHERBOSS, true) + countInstanceOf(eTYPE_ENDERDRAGON, true);
+		case eTYPE_HELLFIRE:
+			count = countInstanceOf(eTYPE_WITHERBOSS, true) + countInstanceOf(eTYPE_HELLFIRE, true) + countInstanceOf(eTYPE_ENDERDRAGON, true);
 			max = MobCategory::MAX_CONSOLE_BOSS;
 			break;
 		default:

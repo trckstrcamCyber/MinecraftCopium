@@ -538,6 +538,7 @@ void PreStitchedTextureMap::loadUVs()
 		ADD_ICON(20,	11,	L"dragon_breath")
 		ADD_ICON(20,	12,	L"tipped_arrow_head")
 		ADD_ICON(20,	13,	L"potion_bottle_lingering")
+		ADD_ICON(21, 0, L"jdemon_fragment")
 		ADD_ICON(4,		5,	L"fishing_rod_uncast")
 		ADD_ICON(4,		6,	L"clock")
 		ADD_ICON(4,		7,	L"bowl")
@@ -1564,6 +1565,17 @@ void PreStitchedTextureMap::loadUVs()
 		// neoLegacy - Netherite tier (2026-11-26): terrain row 40 (was entirely free).
 		ADD_ICON(40, 0, L"ancient_debris_side")
 		ADD_ICON(40, 1, L"ancient_debris_top")
+		// HellFire's temple materials; six More Nether Bricks variants plus Soul Lantern and phase anchors.
+		ADD_ICON(41, 0, L"crimson_nether_bricks")
+		ADD_ICON(41, 1, L"cracked_crimson_nether_bricks")
+		ADD_ICON(41, 2, L"chiseled_crimson_nether_bricks")
+		ADD_ICON(41, 3, L"warped_nether_bricks")
+		ADD_ICON(41, 4, L"cracked_warped_nether_bricks")
+		ADD_ICON(41, 5, L"chiseled_warped_nether_bricks")
+		ADD_ICON(41, 6, L"soul_fire_lantern")
+		ADD_ICON(41, 7, L"hellfire_anchor")
+		ADD_ICON(41, 8, L"pyreheart_altar")
+		ADD_ICON(41, 9, L"soul_anchor")
 
 	}
 }

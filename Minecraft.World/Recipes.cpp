@@ -161,6 +161,18 @@ void Recipes::_compileRecipes()
         L'#', Tile::wood, L'B', Item::stick, L'D', Item::iron_ingot,
         L'S');
 
+    // neoLegacy - JDemon's Edge: HellFire's rare fragment + rose gold + netherite stick.
+    // Kept on the Complex Table with other late-progression equipment.
+    addShapedRecipy(new ItemInstance(Item::jdemon_sword, 1), //
+        L"ssscicicig",
+        L" F ", //
+        L" R ", //
+        L" N ", //
+        L'F', Item::jdemon_fragment,
+        L'R', Item::rose_gold_ingot,
+        L'N', Item::netherite_stick,
+        L'T');
+
 	addShapedRecipy(new ItemInstance(Tile::enchantTable, 1), //
 		L"sssctcicig",
 		L" B ", //
@@ -2305,6 +2317,7 @@ bool Recipes::isComplexOnly(Recipy *r)
 		|| result->id == Item::flintlock_iron_Id
 		|| result->id == Item::flintlock_gold_Id
 		|| result->id == Item::mace_Id			// neoLegacy - Mace
+		|| result->id == Item::jdemon_sword_Id	// HellFire: JDemon's Edge is Complex-Table-only
 		|| result->id == Item::ice_ball_Id		// neoLegacy - Ice Ball <-> Ice
 		|| result->id == Tile::ice_Id
 		// neoLegacy - Amethyst Geodes (2026-11-26): Complex-Table-only like the copper recipes.

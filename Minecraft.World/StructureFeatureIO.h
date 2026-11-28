@@ -17,6 +17,7 @@ enum EStructureStart
 	eStructureStart_PillagerOutpostStart,	// neoLegacy
 	eStructureStart_EndCity,
 	eStructureStart_IllagerStructureStart,	// neoLegacy
+	eStructureStart_PyreheartSanctum,	// HellFire boss structure
 };
 
 enum EStructurePiece
@@ -101,6 +102,7 @@ enum EStructurePiece
 
 	// Illager Invasion structures (Sorcerer Hut, Illusioner Tower, Illager Fort)
 	eStructurePiece_IllagerStructurePiece,
+	eStructurePiece_PyreheartSanctumPiece,
 };
 
 class StructureFeatureIO

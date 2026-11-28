@@ -2192,3 +2192,16 @@
 #define IDS_ITEM_RAFT_BAMBOO                              2153
 #define IDS_ITEM_SWORD_JDEMON                             2154
 #define IDS_ITEM_SWORD_CMONSTER                           2155
+#define IDS_ITEM_JDEMON_FRAGMENT                         2156
+#define IDS_DESC_JDEMON_FRAGMENT                         2157
+#define IDS_HELLFIRE_BOSS                                2158
+#define IDS_TILE_CRIMSON_NETHER_BRICKS                   2159
+#define IDS_TILE_CRACKED_CRIMSON_NETHER_BRICKS           2160
+#define IDS_TILE_CHISELED_CRIMSON_NETHER_BRICKS          2161
+#define IDS_TILE_WARPED_NETHER_BRICKS                    2162
+#define IDS_TILE_CRACKED_WARPED_NETHER_BRICKS            2163
+#define IDS_TILE_CHISELED_WARPED_NETHER_BRICKS           2164
+#define IDS_TILE_SOUL_LANTERN                            2165
+#define IDS_TILE_HELLFIRE_ANCHOR                         2166
+#define IDS_TILE_PYREHEART_ALTAR                         2167
+#define IDS_TILE_SOUL_ANCHOR                             2168
