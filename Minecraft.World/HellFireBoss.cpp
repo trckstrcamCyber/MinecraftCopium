@@ -5,6 +5,7 @@
 #include "net.minecraft.world.entity.ai.attributes.h"
 #include "net.minecraft.world.entity.ai.goal.h"
 #include "net.minecraft.world.entity.ai.goal.target.h"
+#include "net.minecraft.world.entity.ai.navigation.h"
 #include "net.minecraft.world.entity.monster.h"
 #include "net.minecraft.world.entity.projectile.h"
 #include "net.minecraft.world.entity.h"
