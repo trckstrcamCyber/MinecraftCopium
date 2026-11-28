@@ -885,6 +885,8 @@ bool IUIScene_CraftingMenu::handleKeyDown(int iPad, int iAction, bool bRepeat)
 					if (bNoScrollSlots) {
 						iVSlotIndexA[1] = (iVSlotIndexA[1] + bannerCount - 1) % bannerCount;
 						ui.PlayUISFX(eSFX_Focus);
+						UpdateVerticalSlots();
+						UpdateHighlight();
 					} else {
 						if (bannerCount > 2) {
 							if (m_iCurrentSlotVIndex > 1) {
@@ -912,6 +914,8 @@ bool IUIScene_CraftingMenu::handleKeyDown(int iPad, int iAction, bool bRepeat)
 				if (bNoScrollSlots) {
 					iVSlotIndexA[1] = stepBannerPatternColorOption(patternId, iVSlotIndexA[1], -1);
 					ui.PlayUISFX(eSFX_Focus);
+					UpdateVerticalSlots();
+					UpdateHighlight();
 				} else {
 					if (m_iCurrentSlotVIndex > 1) {
 						m_iCurrentSlotVIndex--;
@@ -936,6 +940,8 @@ bool IUIScene_CraftingMenu::handleKeyDown(int iPad, int iAction, bool bRepeat)
 							iVSlotIndexA[1]--;
 						}
 						ui.PlayUISFX(eSFX_Focus);
+						UpdateVerticalSlots();
+						UpdateHighlight();
 					} else {
 						if(CanBeMadeA[m_iCurrentSlotHIndex].iCount>2) {
 							{
@@ -977,6 +983,8 @@ bool IUIScene_CraftingMenu::handleKeyDown(int iPad, int iAction, bool bRepeat)
 					if (bNoScrollSlots) {
 						iVSlotIndexA[1] = (iVSlotIndexA[1] + 1) % CurrentInventoryBanners.size();
 						ui.PlayUISFX(eSFX_Focus);
+						UpdateVerticalSlots();
+						UpdateHighlight();
 					} else {
 						const int bannerCount = static_cast<int>(CurrentInventoryBanners.size());
 
@@ -1006,6 +1014,8 @@ bool IUIScene_CraftingMenu::handleKeyDown(int iPad, int iAction, bool bRepeat)
 				if (bNoScrollSlots) {
 					iVSlotIndexA[1] = stepBannerPatternColorOption(patternId, iVSlotIndexA[1], 1);
 					ui.PlayUISFX(eSFX_Focus);
+					UpdateVerticalSlots();
+					UpdateHighlight();
 				} else {
 					if (m_iCurrentSlotVIndex < 1) {
 						m_iCurrentSlotVIndex++;
@@ -1030,6 +1040,8 @@ bool IUIScene_CraftingMenu::handleKeyDown(int iPad, int iAction, bool bRepeat)
 							iVSlotIndexA[1]++;
 						}
 						ui.PlayUISFX(eSFX_Focus);
+						UpdateVerticalSlots();
+						UpdateHighlight();
 					} else {
 						if (CanBeMadeA[m_iCurrentSlotHIndex].iCount > 2) {
 							if (m_iCurrentSlotVIndex != 2) {
