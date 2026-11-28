@@ -166,6 +166,12 @@ protected:
 
 private:
 	bool invulnerable;
+	// neoLegacy - JDemon true invisibility marker: true only while the JDemon
+	// sword's invisibility special is active. An invisibility potion grants
+	// the same effect and flag but never sets this. Plain member, NOT a
+	// shared flag — the shared-flags byte has no free bit (bit 2 is
+	// invulnerable, Entity.cpp isInvulnerableTo/setInvulnerable).
+	bool jdemonInvisible;
 	wstring uuid;
 
 protected:
@@ -362,6 +368,12 @@ public:
 	virtual bool isInvisible();
 	virtual bool isInvisibleTo(shared_ptr<Player> plr);
 	virtual void setInvisible(bool value);
+	// neoLegacy - JDemon true invisibility marker (see above). Server-side
+	// only: set by JDemonSword::use, cleared on release/expiry
+	// (LivingEntity::tickEffects) and saved/loaded with the entity.
+	// Mob detection gates key off this, not off isInvisible().
+	virtual bool isJDemonInvisible();
+	virtual void setJDemonInvisible(bool value);
 	virtual bool isGlowing();
 	virtual void setGlowing(bool value);
 	virtual bool isUsingItemFlag();

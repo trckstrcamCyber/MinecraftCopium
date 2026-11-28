@@ -351,6 +351,7 @@ void Entity::_init(bool useSmallId, Level *level)
 	dimension = 0;
 	portalEntranceDir = 0;
 	invulnerable = false;
+	jdemonInvisible = false;
 	if( useSmallId )
 	{
 		uuid = L"ent" + Mth::createInsecureUUID(random);
@@ -1489,6 +1490,12 @@ void Entity::saveWithoutId(CompoundTag *entityTag)
 	entityTag->putBoolean(L"OnGround", onGround);
 	entityTag->putInt(L"Dimension", dimension);
 	entityTag->putBoolean(L"Invulnerable", invulnerable);
+	// neoLegacy - JDemon true invisibility marker. Written only when set, so
+	// old saves and non-player entities carry no key (load defaults false).
+	if (jdemonInvisible)
+	{
+		entityTag->putBoolean(L"JDemonInvisible", true);
+	}
 	entityTag->putInt(L"PortalCooldown", changingDimensionDelay);
 
 	entityTag->putString(L"UUID", uuid);
@@ -1541,6 +1548,14 @@ void Entity::load(CompoundTag *tag)
 	onGround = tag->getBoolean(L"OnGround");
 	dimension = tag->getInt(L"Dimension");
 	invulnerable = tag->getBoolean(L"Invulnerable");
+	// neoLegacy - JDemon true invisibility marker (see save above). The
+	// invisibility effect itself is restored by
+	// LivingEntity::readAdditionalSaveData, so the marker must restore too
+	// or a reloaded JDemon-invisible player would be detectable by mobs.
+	if (tag->contains(L"JDemonInvisible"))
+	{
+		jdemonInvisible = tag->getBoolean(L"JDemonInvisible");
+	}
 	changingDimensionDelay = tag->getInt(L"PortalCooldown");
 
 	if (tag->contains(L"UUID"))
@@ -1910,6 +1925,19 @@ bool Entity::isInvisibleTo(shared_ptr<Player> viewer)
 void Entity::setInvisible(bool value)
 {
 	setSharedFlag(FLAG_INVISIBLE, value);
+}
+
+// neoLegacy - JDemon true invisibility marker. Plain member, not a shared
+// flag (see Entity.h): mob detection is server-side only, so it needs no
+// client sync — the visual invisibility still rides FLAG_INVISIBLE.
+bool Entity::isJDemonInvisible()
+{
+	return jdemonInvisible;
+}
+
+void Entity::setJDemonInvisible(bool value)
+{
+	jdemonInvisible = value;
 }
 
 bool Entity::isGlowing()

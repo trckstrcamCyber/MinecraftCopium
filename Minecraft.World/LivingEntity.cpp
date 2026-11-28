@@ -655,6 +655,15 @@ void LivingEntity::tickEffects()
 				setWeakened(hasEffect(MobEffect::weakness->id));
 				setGlowing(hasEffect(MobEffect::glowing->id));
 			}
+			// neoLegacy - JDemon true invisibility: the marker is set only by
+			// the JDemon sword (WeaponItem.cpp). Clear it whenever the
+			// invisibility effect itself is gone — expiry after 30 s, release,
+			// milk, /effect clear — or a player whose effect ended would keep
+			// the marker and stay undetectable. Never set here: a potion
+			// grants the same effect and must NOT set the marker. The flag
+			// and the marker clear in this same pass, so they agree to
+			// within a tick.
+			if (!hasEffect(MobEffect::invisibility->id)) setJDemonInvisible(false);
 		}
 		else
 		{

@@ -218,6 +218,11 @@ shared_ptr<ItemInstance> JDemonSword::use(shared_ptr<ItemInstance> instance, Lev
 			// is kept as well for immediacy.
 			player->addEffect(new MobEffectInstance(MobEffect::invisibility->id, EFFECT_TICKS, 0));
 			player->setInvisible(true);
+			// neoLegacy - JDemon true invisibility: set the JDemon-only marker
+			// alongside the effect/flag. A potion grants the same effect and
+			// flag but never sets this — mob detection gates key off the
+			// marker, not off isInvisible(). Cleared on release/expiry.
+			player->setJDemonInvisible(true);
 		}
 	}
 	return WeaponItem::use(instance, level, player);
@@ -227,6 +232,10 @@ shared_ptr<ItemInstance> JDemonSword::useTimeDepleted(shared_ptr<ItemInstance> i
 {
 	player->removeEffect(MobEffect::invisibility->id);
 	player->setInvisible(false);
+	// neoLegacy - JDemon true invisibility: clear the marker with the
+	// effect/flag. (The tickEffects re-sync clears it too when the effect
+	// is gone; this makes the release immediate.)
+	player->setJDemonInvisible(false);
 	return instance;
 }
 
@@ -237,6 +246,10 @@ void JDemonSword::releaseUsing(shared_ptr<ItemInstance> instance, Level *level, 
 	// so invisibility must be cleared here too or it would stick.
 	player->removeEffect(MobEffect::invisibility->id);
 	player->setInvisible(false);
+	// neoLegacy - JDemon true invisibility: clear the marker with the
+	// effect/flag. (The tickEffects re-sync clears it too when the effect
+	// is gone; this makes the release immediate.)
+	player->setJDemonInvisible(false);
 }
 
 CMonsterSword::CMonsterSword(int id, const Tier *tier) : WeaponItem(id, tier)

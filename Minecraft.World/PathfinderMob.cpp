@@ -63,14 +63,16 @@ void PathfinderMob::serverAiStep()
 	{
 		if (attackTarget->isAlive())
 		{
-			// neoLegacy - true invisibility (JDemon sword / invisibility
-			// potion): drop a target that has become invisible. This is the
-			// legacy-path retention gate (mirrors the invulnerable check
-			// below); without it a spider/ghast/slime/enderman already
-			// attacking would keep its target forever, and Monster::hurt's
-			// retaliation target would also stick. The clear happens before
-			// checkHurtTarget, so no hit can land on an invisible target.
-			if (attackTarget->isInvisible())
+			// neoLegacy - JDemon true invisibility: drop a target that has
+			// become JDemon-invisible. An invisibility potion is just a visual
+			// change and does NOT hide the drinker from mobs, so this keys off
+			// the JDemon marker, not isInvisible(). This is the legacy-path
+			// retention gate (mirrors the invulnerable check below); without
+			// it a spider/ghast/slime/enderman already attacking would keep
+			// its target forever, and Monster::hurt's retaliation target would
+			// also stick. The clear happens before checkHurtTarget, so no hit
+			// can land on a JDemon-invisible target.
+			if (attackTarget->isJDemonInvisible())
 			{
 				attackTarget = nullptr;
 				return;

@@ -4365,11 +4365,12 @@ shared_ptr<Player> Level::getNearestAttackablePlayer(double x, double y, double 
 	for (auto& p : players)
 	{
 		// 4J Stu - Added privilege check
-		// neoLegacy - true invisibility (JDemon sword / invisibility potion):
-		// invisible players are not attackable at all. This replaces the
-		// Java-style range scaling below (armor cover), which still let a
-		// fully-armored invisible player be spotted at ~70% range.
-		if (p->abilities.invulnerable || !p->isAlive() || p->hasInvisiblePrivilege() || p->isInvisible())
+		// neoLegacy - JDemon true invisibility: a JDemon-invisible player is
+		// not attackable at all. An invisibility potion is just a visual
+		// change and does NOT hide the drinker from mobs — this keys off the
+		// JDemon marker, not isInvisible(). (The Java-style range scaling
+		// below stays deleted: a potion changes nothing about detection.)
+		if (p->abilities.invulnerable || !p->isAlive() || p->hasInvisiblePrivilege() || p->isJDemonInvisible())
 		{
 			continue;
 		}
