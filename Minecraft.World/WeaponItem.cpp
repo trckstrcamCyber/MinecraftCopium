@@ -1,10 +1,12 @@
 #include "stdafx.h"
+#include "AABB.h"
 #include "net.minecraft.world.item.h"
 #include "net.minecraft.world.entity.h"
 #include "net.minecraft.world.entity.ai.attributes.h"
 #include "net.minecraft.world.entity.player.h"
 #include "net.minecraft.world.entity.monster.h"
 #include "net.minecraft.world.level.tile.h"
+#include "net.minecraft.world.level.h"
 #include "WeaponItem.h"
 #include "MobEffect.h"
 #include "MobEffectInstance.h"
@@ -189,12 +191,22 @@ bool JDemonSword::hurtEnemy(shared_ptr<ItemInstance> itemInstance, shared_ptr<Li
 
 shared_ptr<ItemInstance> JDemonSword::use(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player)
 {
+	// Grant the invisibility EFFECT for the whole block, not just the flag:
+	// LivingEntity's effect tick re-syncs FLAG_INVISIBLE from the active
+	// effects (LivingEntity.cpp, effectsDirty block: empty list clears the
+	// flag, otherwise it is set from hasEffect(invisibility)), so a bare
+	// setInvisible(true) would be wiped the next time any effect is added,
+	// removed or expires while the player is still blocking. The effect
+	// keeps the flag in sync through the effect system. setInvisible(true)
+	// is kept as well for immediacy.
+	player->addEffect(new MobEffectInstance(MobEffect::invisibility->id, getUseDuration(instance), 0));
 	player->setInvisible(true);
 	return WeaponItem::use(instance, level, player);
 }
 
 shared_ptr<ItemInstance> JDemonSword::useTimeDepleted(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player)
 {
+	player->removeEffect(MobEffect::invisibility->id);
 	player->setInvisible(false);
 	return instance;
 }
@@ -204,6 +216,7 @@ void JDemonSword::releaseUsing(shared_ptr<ItemInstance> instance, Level *level, 
 	// Blocking ends here when the player lets go early. useTimeDepleted only
 	// fires if the full use duration elapses, which is an hour for a sword,
 	// so invisibility must be cleared here too or it would stick.
+	player->removeEffect(MobEffect::invisibility->id);
 	player->setInvisible(false);
 }
 
@@ -219,6 +232,48 @@ bool CMonsterSword::hurtEnemy(shared_ptr<ItemInstance> itemInstance, shared_ptr<
 
 shared_ptr<ItemInstance> CMonsterSword::use(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player)
 {
-	player->addEffect(new MobEffectInstance(MobEffect::nightVision->id, 100, 0));
+	// Night vision for the whole block, not just 100 ticks (5 seconds):
+	// blocking can last up to the full use duration (an hour), and the old
+	// effect expired while the player was still blocking.
+	player->addEffect(new MobEffectInstance(MobEffect::nightVision->id, getUseDuration(instance), 0));
+	// Enemy highlight: the Horn of Sight scan (HornOfSightItem.cpp), but for
+	// EVERY monster, not just illager kin, and with no line-of-sight check —
+	// the point is revealing enemies through walls. Server-side only; the
+	// glow is applied by the server and synced to clients. Range and
+	// duration are the Horn's values (HornOfSightItem::RANGE = 48,
+	// GLOW_TICKS = 200), written as literals so this file does not depend
+	// on the Horn's header. One-shot on block start: there is no per-tick
+	// hook while an item is being used (Item.h has only use /
+	// useTimeDepleted / releaseUsing), so monsters that arrive later are not
+	// highlighted until the player blocks again.
+	if (!level->isClientSide)
+	{
+		AABB *box = player->bb->grow(48, 48.0, 48);
+		vector<shared_ptr<Entity> > *found = level->getEntitiesOfClass(typeid(Monster), box);
+		if (found != nullptr)
+		{
+			for (size_t i = 0; i < found->size(); i++)
+			{
+				shared_ptr<Monster> monster = dynamic_pointer_cast<Monster>(found->at(i));
+				if (monster == nullptr || !monster->isAlive()) continue;
+				if (monster->distanceToSqr(player) > 48 * 48) continue;
+				monster->addEffect(new MobEffectInstance(MobEffect::glowing->id, 200, 0));
+			}
+			delete found;
+		}
+	}
 	return WeaponItem::use(instance, level, player);
+}
+
+shared_ptr<ItemInstance> CMonsterSword::useTimeDepleted(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player)
+{
+	player->removeEffect(MobEffect::nightVision->id);
+	return instance;
+}
+
+void CMonsterSword::releaseUsing(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player, int durationLeft)
+{
+	// Blocking ends here when the player lets go early; useTimeDepleted only
+	// fires if the full use duration elapses, which is an hour for a sword.
+	player->removeEffect(MobEffect::nightVision->id);
 }
