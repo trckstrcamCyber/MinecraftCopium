@@ -46,10 +46,14 @@ public:
 };
 
 // neoLegacy - JDemon sword: sets enemies on fire on hit; holding block turns
-// the wielder invisible until they stop blocking.
+// the wielder invisible for 30 seconds, then a 1-minute cooldown before the
+// special can be granted again (blocking itself still works on cooldown).
 class JDemonSword : public WeaponItem
 {
 public:
+	static const int COOLDOWN_TICKS = 1200;	// 1 minute between invisibility specials
+	static const int EFFECT_TICKS = 600;		// the invisibility special lasts 30 seconds
+
 	JDemonSword(int id, const Tier *tier);
 	virtual bool hurtEnemy(shared_ptr<ItemInstance> itemInstance, shared_ptr<LivingEntity> mob, shared_ptr<LivingEntity> attacker);
 	virtual shared_ptr<ItemInstance> use(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player);
@@ -58,11 +62,16 @@ public:
 };
 
 // neoLegacy - CMonster sword: poisons enemies on hit; holding block grants
-// night vision while blocking and highlights nearby monsters (glowing)
-// so they show through walls.
+// night vision for 30 seconds and highlights nearby monsters (glowing, red)
+// and players (glowing, blue) so they show through walls, then a 1-minute
+// cooldown before the special can be granted again (blocking still works).
 class CMonsterSword : public WeaponItem
 {
 public:
+	static const int COOLDOWN_TICKS = 1200;	// 1 minute between highlight specials
+	static const int EFFECT_TICKS = 600;		// the night-vision / highlight special lasts 30 seconds
+	static const int SCAN_RANGE = 48;			// highlight range, in blocks (the Horn's range)
+
 	CMonsterSword(int id, const Tier *tier);
 	virtual bool hurtEnemy(shared_ptr<ItemInstance> itemInstance, shared_ptr<LivingEntity> mob, shared_ptr<LivingEntity> attacker);
 	virtual shared_ptr<ItemInstance> use(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player);

@@ -120,8 +120,17 @@ void LivingEntityRenderer::render(shared_ptr<Entity> _mob, double x, double y, d
 		resModel->prepareMobModel(mob, wp, ws, a);
 		renderModel(mob, wp, ws, bob, headRot - bodyRot, headRotx, fScale);
 
+		// neoLegacy - JDemon/CMonster v2: complete invisibility — an entity the
+		// viewer cannot see shows no armor and no held item / headgear / stuck
+		// arrows either (those all ride on additionalRendering below). Viewer-
+		// aware, not bare isInvisible(): a CMonster viewer looking at a JDemon
+		// user still sees their armor and sword. Skipped for the inventory
+		// screen (isGuiRender), which must keep showing the local player's gear.
+		bool hideGear = !entityRenderDispatcher->isGuiRender && mob->isInvisibleTo(dynamic_pointer_cast<Player>(Minecraft::GetInstance()->player));
+
 		for (int i = 0; i < MAX_ARMOR_LAYERS; i++)
 		{
+			if (hideGear) continue;
 			int armorType = prepareArmor(mob, i, a);
 			if (armorType > 0)
 			{
@@ -181,7 +190,7 @@ void LivingEntityRenderer::render(shared_ptr<Entity> _mob, double x, double y, d
 		}
 		glDepthMask(true);
 
-		additionalRendering(mob, a);
+		if (!hideGear) additionalRendering(mob, a);
 		float br = mob->getBrightness(a);
 		int overlayColor = getOverlayColor(mob, br, a);
 		glActiveTexture(GL_TEXTURE1);
@@ -266,7 +275,10 @@ void LivingEntityRenderer::renderModel(shared_ptr<LivingEntity> mob, float wp, f
 	else if(!mob->isInvisibleTo(dynamic_pointer_cast<Player>(Minecraft::GetInstance()->player)))
 	{
 		glPushMatrix();
-		glColor4f(1, 1, 1, 0.15f);
+		// neoLegacy - JDemon/CMonster v2: solid, not a ghost — this branch only
+		// fires for a viewer isInvisibleTo() returns false for (a CMonster user
+		// looking at a JDemon user), so the revealed player renders fully solid.
+		glColor4f(1, 1, 1, 1.0f);
 		glDepthMask(false);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

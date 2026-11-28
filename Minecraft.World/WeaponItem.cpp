@@ -7,6 +7,7 @@
 #include "net.minecraft.world.entity.monster.h"
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.world.level.h"
+#include "com.mojang.nbt.h"	// neoLegacy - JDemon/CMonster v2: the 1-minute cooldown lives on the item tag (HornOfSightItem.cpp)
 #include "WeaponItem.h"
 #include "MobEffect.h"
 #include "MobEffectInstance.h"
@@ -191,16 +192,33 @@ bool JDemonSword::hurtEnemy(shared_ptr<ItemInstance> itemInstance, shared_ptr<Li
 
 shared_ptr<ItemInstance> JDemonSword::use(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player)
 {
-	// Grant the invisibility EFFECT for the whole block, not just the flag:
-	// LivingEntity's effect tick re-syncs FLAG_INVISIBLE from the active
-	// effects (LivingEntity.cpp, effectsDirty block: empty list clears the
-	// flag, otherwise it is set from hasEffect(invisibility)), so a bare
-	// setInvisible(true) would be wiped the next time any effect is added,
-	// removed or expires while the player is still blocking. The effect
-	// keeps the flag in sync through the effect system. setInvisible(true)
-	// is kept as well for immediacy.
-	player->addEffect(new MobEffectInstance(MobEffect::invisibility->id, getUseDuration(instance), 0));
-	player->setInvisible(true);
+	// neoLegacy - JDemon/CMonster v2: the invisibility special lasts 30 seconds
+	// (EFFECT_TICKS) and then needs a 1-minute cooldown (COOLDOWN_TICKS) before it
+	// can be granted again. The cooldown is armed on the server-side item tag
+	// when the special is granted, following the Horn of Sight
+	// (HornOfSightItem.cpp): the server applies the effect and it syncs to the
+	// client. Blocking itself still works on cooldown, it just grants no
+	// invisibility, and the timer is not re-armed by blocking again.
+	if (!level->isClientSide)
+	{
+		int64_t now = level->getGameTime();
+		if (!instance->hasTag()) instance->setTag(new CompoundTag());
+		CompoundTag *tag = instance->getTag();
+		if (now >= tag->getLong(L"JDemonReady"))
+		{
+			tag->putLong(L"JDemonReady", now + COOLDOWN_TICKS);
+			// Grant the invisibility EFFECT for the 30-second special, not just the flag:
+			// LivingEntity's effect tick re-syncs FLAG_INVISIBLE from the active
+			// effects (LivingEntity.cpp, effectsDirty block: empty list clears the
+			// flag, otherwise it is set from hasEffect(invisibility)), so a bare
+			// setInvisible(true) would be wiped the next time any effect is added,
+			// removed or expires while the player is still blocking. The effect
+			// keeps the flag in sync through the effect system. setInvisible(true)
+			// is kept as well for immediacy.
+			player->addEffect(new MobEffectInstance(MobEffect::invisibility->id, EFFECT_TICKS, 0));
+			player->setInvisible(true);
+		}
+	}
 	return WeaponItem::use(instance, level, player);
 }
 
@@ -232,34 +250,62 @@ bool CMonsterSword::hurtEnemy(shared_ptr<ItemInstance> itemInstance, shared_ptr<
 
 shared_ptr<ItemInstance> CMonsterSword::use(shared_ptr<ItemInstance> instance, Level *level, shared_ptr<Player> player)
 {
-	// Night vision for the whole block, not just 100 ticks (5 seconds):
-	// blocking can last up to the full use duration (an hour), and the old
-	// effect expired while the player was still blocking.
-	player->addEffect(new MobEffectInstance(MobEffect::nightVision->id, getUseDuration(instance), 0));
-	// Enemy highlight: the Horn of Sight scan (HornOfSightItem.cpp), but for
-	// EVERY monster, not just illager kin, and with no line-of-sight check —
-	// the point is revealing enemies through walls. Server-side only; the
-	// glow is applied by the server and synced to clients. Range and
-	// duration are the Horn's values (HornOfSightItem::RANGE = 48,
-	// GLOW_TICKS = 200), written as literals so this file does not depend
-	// on the Horn's header. One-shot on block start: there is no per-tick
-	// hook while an item is being used (Item.h has only use /
-	// useTimeDepleted / releaseUsing), so monsters that arrive later are not
-	// highlighted until the player blocks again.
+	// neoLegacy - JDemon/CMonster v2: the night-vision + highlight special lasts
+	// 30 seconds (EFFECT_TICKS) and then needs a 1-minute cooldown
+	// (COOLDOWN_TICKS) before it can be granted again. Same arming as the
+	// JDemon sword above (server-side item tag, Horn of Sight pattern):
+	// blocking still works on cooldown, it just grants no effects, and the
+	// timer is not re-armed by blocking again.
 	if (!level->isClientSide)
 	{
-		AABB *box = player->bb->grow(48, 48.0, 48);
-		vector<shared_ptr<Entity> > *found = level->getEntitiesOfClass(typeid(Monster), box);
-		if (found != nullptr)
+		int64_t now = level->getGameTime();
+		if (!instance->hasTag()) instance->setTag(new CompoundTag());
+		CompoundTag *tag = instance->getTag();
+		if (now >= tag->getLong(L"CMonsterReady"))
 		{
-			for (size_t i = 0; i < found->size(); i++)
+			tag->putLong(L"CMonsterReady", now + COOLDOWN_TICKS);
+			// Night vision for the 30-second special, not just 100 ticks (5 seconds):
+			// blocking can last up to the full use duration (an hour), and the old
+			// effect expired while the player was still blocking.
+			player->addEffect(new MobEffectInstance(MobEffect::nightVision->id, EFFECT_TICKS, 0));
+			// Enemy highlight: the Horn of Sight scan (HornOfSightItem.cpp), but for
+			// EVERY monster, not just illager kin, and with no line-of-sight check —
+			// the point is revealing enemies through walls. Server-side only; the
+			// glow is applied by the server and synced to clients. One-shot on block
+			// start: there is no per-tick hook while an item is being used (Item.h has
+			// only use / useTimeDepleted / releaseUsing), so monsters that arrive
+			// later are not highlighted until the player blocks again.
+			// Amplifier 1 marks this as the CMonster highlight: renderGlow colours
+			// amplifier-1 glows blue for players and red for every mob, while the
+			// Horn's amplifier-0 glows keep their rainbow/purple/green/red colours.
+			AABB *box = player->bb->grow(SCAN_RANGE, 48.0, SCAN_RANGE);
+			vector<shared_ptr<Entity> > *found = level->getEntitiesOfClass(typeid(Monster), box);
+			if (found != nullptr)
 			{
-				shared_ptr<Monster> monster = dynamic_pointer_cast<Monster>(found->at(i));
-				if (monster == nullptr || !monster->isAlive()) continue;
-				if (monster->distanceToSqr(player) > 48 * 48) continue;
-				monster->addEffect(new MobEffectInstance(MobEffect::glowing->id, 200, 0));
+				for (size_t i = 0; i < found->size(); i++)
+				{
+					shared_ptr<Monster> monster = dynamic_pointer_cast<Monster>(found->at(i));
+					if (monster == nullptr || !monster->isAlive()) continue;
+					if (monster->distanceToSqr(player) > SCAN_RANGE * SCAN_RANGE) continue;
+					monster->addEffect(new MobEffectInstance(MobEffect::glowing->id, EFFECT_TICKS, 1));
+				}
+				delete found;
 			}
-			delete found;
+			// Players in range glow too, so the CMonster user can tell friend from
+			// foe through walls (blue for players, red for mobs — see renderGlow).
+			// The user themself is excluded.
+			vector<shared_ptr<Entity> > *players = level->getEntitiesOfClass(typeid(Player), box);
+			if (players != nullptr)
+			{
+				for (size_t i = 0; i < players->size(); i++)
+				{
+					shared_ptr<Player> other = dynamic_pointer_cast<Player>(players->at(i));
+					if (other == nullptr || other == player || !other->isAlive()) continue;
+					if (other->distanceToSqr(player) > SCAN_RANGE * SCAN_RANGE) continue;
+					other->addEffect(new MobEffectInstance(MobEffect::glowing->id, EFFECT_TICKS, 1));
+				}
+				delete players;
+			}
 		}
 	}
 	return WeaponItem::use(instance, level, player);

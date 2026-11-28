@@ -3301,9 +3301,19 @@ void Player::setEquippedSlot(int slot, shared_ptr<ItemInstance> item)
 	inventory->armor[slot] = item;
 }
 
-bool Player::isInvisibleTo(shared_ptr<Player> player)
+bool Player::isInvisibleTo(shared_ptr<Player> viewer)
 {
-	return isInvisible();
+	if (!isInvisible()) return false;
+	// neoLegacy - JDemon/CMonster v2: a viewer blocking with the CMonster sword
+	// while its night-vision special is active can see an invisible player
+	// (this revives the translucent-body branch in LivingEntityRenderer::
+	// renderModel, which renders the body solid for such a viewer, and the
+	// armor / held-item gate in LivingEntityRenderer::render follows the same
+	// test). Both halves of the test matter: blocking alone after the
+	// 30-second effect expires does not reveal, and a night-vision potion
+	// alone does not reveal either.
+	if (viewer != nullptr && viewer->hasEffect(MobEffect::nightVision->id) && viewer->isBlocking() && viewer->getUseItem() != nullptr && viewer->getUseItem()->id == Item::cmonster_sword_Id) return false;
+	return true;
 }
 
 ItemInstanceArray Player::getEquipmentSlots()

@@ -13,6 +13,8 @@
 #include "../Minecraft.World/net.minecraft.world.level.tile.h"
 #include "../Minecraft.World/net.minecraft.world.item.h"
 #include "../Minecraft.World/net.minecraft.world.item.alchemy.h"
+#include "../Minecraft.World/MobEffect.h"	// neoLegacy - JDemon/CMonster v2: renderGlow reads the glowing effect's amplifier
+#include "../Minecraft.World/MobEffectInstance.h"	// neoLegacy - JDemon/CMonster v2: MobEffectInstance::getAmplifier
 #include "SpiderRenderer.h"
 #include "PigRenderer.h"
 #include "SheepRenderer.h"
@@ -368,19 +370,44 @@ void EntityRenderDispatcher::render(shared_ptr<Entity> entity, double x, double 
 
 	// neoLegacy - Glowing: a coloured aura through walls (not around the player's own view)
 	if (entity->isGlowing() && entity.get() != cameraEntity.get()) renderGlow(entity, x, y, z, a);
+	// neoLegacy - JDemon/CMonster v2: a CMonster user blocking with the sword
+	// while its night-vision special is active also sees an invisible player
+	// through walls (same (a)+(b) test as isInvisibleTo, read off the camera
+	// player here — the camera player is the viewer for this render). The
+	// JDemon user carries no glowing effect, so renderGlow colours them with
+	// the existing player colour (cyan), not the CMonster blue — see renderGlow.
+	if (entity->isInvisible() && entity->instanceof(eTYPE_PLAYER) && entity.get() != cameraEntity.get())
+	{
+		shared_ptr<Player> viewer = dynamic_pointer_cast<Player>(cameraEntity);
+		if (viewer != nullptr && viewer->hasEffect(MobEffect::nightVision->id) && viewer->isBlocking() && viewer->getUseItem() != nullptr && viewer->getUseItem()->id == Item::cmonster_sword_Id) renderGlow(entity, x, y, z, a);
+	}
 }
 
 // Glowing (the Horn of Sight's effect). The Colored Glow Lib mod gives every target its own colour, with a rainbow and animated colours; this follows that idea:
 // the colour comes from what the thing is, so every player sees the same one, and the aura breathes.
 //   rainbow: bosses (Wither, Ender Dragon, Invoker) and illager captains    purple: illagers, Ravagers, Witches    green: undead
 //   red: other monsters    yellow: animals    cyan: players    white: anything else
+//   CMonster highlight (glowing amplifier 1): blue for players, red for every mob —
+//   this overrides the scheme above, so the Horn's amplifier-0 colours are unchanged.
 // It is a translucent box slightly bigger than the hitbox, drawn without the depth test, so it shows through walls.
 void EntityRenderDispatcher::renderGlow(shared_ptr<Entity> entity, double x, double y, double z, float a)
 {
 	float cr = 1.0f, cg = 1.0f, cb = 1.0f;
 	shared_ptr<Illager> illager = dynamic_pointer_cast<Illager>(entity);
 	bool boss = entity->GetType() == eTYPE_WITHERBOSS || entity->GetType() == eTYPE_ENDERDRAGON || entity->GetType() == eTYPE_INVOKER;
-	if (boss || (illager != nullptr && illager->isCaptain()))
+	// neoLegacy - JDemon/CMonster v2: the CMonster scan marks its targets with
+	// glowing amplifier 1 (the Horn uses amplifier 0). Amplifier 1 is the
+	// CMonster highlight — players blue, ALL mobs red (undead, illagers and
+	// bosses included) — so a CMonster user can tell friend from foe at a
+	// glance without the Horn's rainbow/purple/green language changing.
+	shared_ptr<LivingEntity> glowTarget = dynamic_pointer_cast<LivingEntity>(entity);
+	MobEffectInstance *glowEffect = (glowTarget != nullptr) ? glowTarget->getEffect(MobEffect::glowing) : nullptr;
+	if (glowEffect != nullptr && glowEffect->getAmplifier() == 1)
+	{
+		if (entity->instanceof(eTYPE_PLAYER)) { cr = 0.20f; cg = 0.40f; cb = 1.0f; }
+		else if (entity->instanceof(eTYPE_MONSTER)) { cr = 1.0f; cg = 0.24f; cb = 0.24f; }
+	}
+	else if (boss || (illager != nullptr && illager->isCaptain()))
 	{
 		// rainbow: the hue turns with time, and each entity starts at its own point of the wheel
 		float hue = fmodf((entity->tickCount + a) * 4.0f + entity->entityId * 37.0f, 360.0f) / 60.0f;
