@@ -21,6 +21,7 @@ UIScene_SettingsMenu::UIScene_SettingsMenu(int iPad, void *initData, UILayer *pa
 		removeControl( &m_buttons[BUTTON_ALL_AUDIO], bNotInGame);
 		removeControl( &m_buttons[BUTTON_ALL_GRAPHICS], bNotInGame);
 	}
+	removeControl( &m_buttons[BUTTON_ALL_UNUSED], bNotInGame);
 
 	doHorizontalResizeCheck();
 
@@ -56,6 +57,7 @@ void UIScene_SettingsMenu::handleReload()
 		removeControl( &m_buttons[BUTTON_ALL_AUDIO], bNotInGame);
 		removeControl( &m_buttons[BUTTON_ALL_GRAPHICS], bNotInGame);
 	}
+	removeControl( &m_buttons[BUTTON_ALL_UNUSED], bNotInGame);
 
 	doHorizontalResizeCheck();
 }

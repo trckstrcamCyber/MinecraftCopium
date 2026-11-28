@@ -45,8 +45,8 @@ const _Tier *_Tier::IRON = new _Tier(2, 250, 6, 2, 14); //
 const _Tier *_Tier::DIAMOND = new _Tier(3, 1561, 8, 3, 10); //
 const _Tier *_Tier::GOLD = new _Tier(0, 32, 12, 0, 22);
 const _Tier *_Tier::ZORO = new _Tier(4, 2031, 9, 5, 18); // neoLegacy - Zoro sword tier
-const _Tier *_Tier::JDMON = new _Tier(5, 2500, 10, 4, 30); // neoLegacy - JDemon sword tier (damage 4: one above diamond)
-const _Tier *_Tier::CMON = new _Tier(5, 2500, 10, 4, 30); // neoLegacy - CMonster sword tier (damage 4: one above diamond)
+const _Tier *_Tier::JDMON = new _Tier(5, 2500, 10, 5, 30); // neoLegacy - JDemon sword tier (damage 5: one above netherite)
+const _Tier *_Tier::CMON = new _Tier(5, 2500, 10, 5, 30); // neoLegacy - CMonster sword tier (damage 5: one above netherite)
 const _Tier *_Tier::COPPER = new _Tier(1, 190, 5, 1, 13); // neoLegacy - Copper Age (Phase 2)
 const _Tier *_Tier::ROSE_GOLD = new _Tier(2, 250, 12, 2, 22); // neoLegacy - Copper Age (Phase 2): level 2 = mines what iron can; rebalanced 2026-11-19 per Cameron: gold-like speed/ench (12/22), iron durability (250)
 const _Tier *_Tier::NETHERITE = new _Tier(4, 2031, 9, 4, 15); // neoLegacy - Netherite tier (2026-11-26): Java-faithful, above diamond
