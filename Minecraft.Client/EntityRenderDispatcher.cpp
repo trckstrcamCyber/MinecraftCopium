@@ -370,17 +370,6 @@ void EntityRenderDispatcher::render(shared_ptr<Entity> entity, double x, double 
 
 	// neoLegacy - Glowing: a coloured aura through walls (not around the player's own view)
 	if (entity->isGlowing() && entity.get() != cameraEntity.get()) renderGlow(entity, x, y, z, a);
-	// neoLegacy - JDemon/CMonster v2: a CMonster user blocking with the sword
-	// while its night-vision special is active also sees an invisible player
-	// through walls (same (a)+(b) test as isInvisibleTo, read off the camera
-	// player here — the camera player is the viewer for this render). The
-	// JDemon user carries no glowing effect, so renderGlow colours them with
-	// the existing player colour (cyan), not the CMonster blue — see renderGlow.
-	if (entity->isInvisible() && entity->instanceof(eTYPE_PLAYER) && entity.get() != cameraEntity.get())
-	{
-		shared_ptr<Player> viewer = dynamic_pointer_cast<Player>(cameraEntity);
-		if (viewer != nullptr && viewer->hasEffect(MobEffect::nightVision->id) && viewer->isBlocking() && viewer->getUseItem() != nullptr && viewer->getUseItem()->id == Item::cmonster_sword_Id) renderGlow(entity, x, y, z, a);
-	}
 }
 
 // Glowing (the Horn of Sight's effect). The Colored Glow Lib mod gives every target its own colour, with a rainbow and animated colours; this follows that idea:
@@ -405,7 +394,7 @@ void EntityRenderDispatcher::renderGlow(shared_ptr<Entity> entity, double x, dou
 	if (glowEffect != nullptr && glowEffect->getAmplifier() == 1)
 	{
 		if (entity->instanceof(eTYPE_PLAYER)) { cr = 0.20f; cg = 0.40f; cb = 1.0f; }
-		else if (entity->instanceof(eTYPE_MONSTER)) { cr = 1.0f; cg = 0.24f; cb = 0.24f; }
+		else if (entity->instanceof(eTYPE_MOB)) { cr = 1.0f; cg = 0.24f; cb = 0.24f; }	// v3: eTYPE_MOB, not MONSTER — Slime/Ghast/EnderDragon are Enemy but not Monster
 	}
 	else if (boss || (illager != nullptr && illager->isCaptain()))
 	{

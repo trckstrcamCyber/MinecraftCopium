@@ -117,7 +117,8 @@ void LuckyBlockTile::triggerLuckyOutcome(Level *level, int x, int y, int z, shar
 	//   84-86  (3) Small heal - Instant Health + brief Saturation
 	//   87-89  (3) Instant Harm - ouch
 	//   90-91  (2) Wither for a few seconds
-	//   92-94  (3) Mining Fatigue for a while
+	//   92-93  (2) Mining Fatigue for a while
+	//   94     (1) Random illager
 	//   95-96  (2) Lose 1-3 XP levels
 	//   97-99  (3) Hunger
 	int roll = level->random->nextInt(100);
@@ -212,8 +213,10 @@ void LuckyBlockTile::triggerLuckyOutcome(Level *level, int x, int y, int z, shar
 		outcomeInstantHarm(level, x, y, z, player);
 	else if (roll < 92)
 		outcomeWither(level, x, y, z, player);
-	else if (roll < 95)
+	else if (roll < 94)
 		outcomeMiningFatigue(level, x, y, z, player);
+	else if (roll < 95)
+		outcomeRandomIllager(level, x, y, z);
 	else if (roll < 97)
 		outcomeXpDrain(level, x, y, z, player);
 	else
@@ -419,6 +422,58 @@ void LuckyBlockTile::outcomeCreeperTrap(Level *level, int x, int y, int z)
 	shared_ptr<Creeper> creeper = std::make_shared<Creeper>(level);
 	creeper->moveTo(x + 0.5, y + 1, z + 0.5, level->random->nextFloat() * 360.0f, 0);
 	level->addEntity(creeper);
+}
+
+void LuckyBlockTile::outcomeRandomIllager(Level *level, int x, int y, int z)
+{
+	// One random illager, weighted (Iceologer 1 roll in 31, every other
+	// type 2 — see the roll below).
+	// finalizeMobSpawn() is what equips them (Pillager's crossbow,
+	// Vindicator's axe, Marauder's hatchet, Basher's shield, the
+	// spellcasters' bows) - the other Lucky Block mob outcomes skip it
+	// only because their mobs fight unarmed. Without it the illager
+	// spawns empty-handed. Same call RaidManager makes (RaidManager.cpp:618)
+	// and the Evoker makes for its Vexes (Evoker.cpp:58).
+	// No joinRaid()/makeCaptain(): a lucky-block illager is a lone spawn,
+	// not a raider. No custom name or persistence, matching the other
+	// hostile outcomes. Hostility is automatic: every illager ctor
+	// registers NearestAttackableTargetGoal(Player).
+	// Vex and Surrendered are NOT in this pool: they are Monster, not
+	// Illager (Vex.h, Surrendered.h) — the Invoker still summons its
+	// Surrendered the usual way. Witch is not an illager either.
+	shared_ptr<Mob> mob;
+	// Weighted: Iceologer gets 1 roll in 31, every other type gets 2
+	// (Iceologer ~3%, each other type ~6.5%) — Cameron Nov 27: the
+	// Iceologer was too common at uniform 1/16.
+	int roll = level->random->nextInt(31);
+	if (roll == 0)
+	{
+		mob = std::make_shared<Iceologer>(level);
+	}
+	else
+	{
+		switch ((roll - 1) / 2)
+		{
+		case 0: mob = std::make_shared<Pillager>(level); break;
+		case 1: mob = std::make_shared<Vindicator>(level); break;
+		case 2: mob = std::make_shared<Evoker>(level); break;
+		case 3: mob = std::make_shared<Illusioner>(level); break;
+		case 4: mob = std::make_shared<Ravager>(level); break;
+		case 5: mob = std::make_shared<Provoker>(level); break;
+		case 6: mob = std::make_shared<Sorcerer>(level); break;
+		case 7: mob = std::make_shared<Alchemist>(level); break;
+		case 8: mob = std::make_shared<Archivist>(level); break;
+		case 9: mob = std::make_shared<Necromancer>(level); break;
+		case 10: mob = std::make_shared<Basher>(level); break;
+		case 11: mob = std::make_shared<Marauder>(level); break;
+		case 12: mob = std::make_shared<Inquisitor>(level); break;
+		case 13: mob = std::make_shared<Firecaller>(level); break;
+		default: mob = std::make_shared<Invoker>(level); break;
+		}
+	}
+	mob->moveTo(x + 0.5, y + 1, z + 0.5, level->random->nextFloat() * 360.0f, 0);
+	mob->finalizeMobSpawn(nullptr);
+	level->addEntity(mob);
 }
 
 void LuckyBlockTile::outcomeTntTrap(Level *level, int x, int y, int z, shared_ptr<Player> player)

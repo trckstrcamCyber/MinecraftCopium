@@ -656,6 +656,19 @@ void LivingEntity::tickEffects()
 				setGlowing(hasEffect(MobEffect::glowing->id));
 			}
 		}
+		else
+		{
+			// neoLegacy - JDemon/CMonster v3: the client derives FLAG_INVISIBLE
+			// from its own synced effect list. The server-side branch above was
+			// the only place the flag was ever (re-)derived, so a server-granted
+			// invisibility (JDemon block, invisibility potion) left the
+			// client-side flag false forever and every renderer read
+			// (renderModel, hideGear, first-person held item) kept drawing the
+			// player. The effect itself arrives via UpdateMobEffectPacket and
+			// effectsDirty is set by onEffectAdded/onEffectRemoved on both
+			// sides, so this also clears the flag when the effect expires.
+			setInvisible(hasEffect(MobEffect::invisibility->id));
+		}
 		effectsDirty = false;
 	}
 	int colorValue = entityData->getInteger(DATA_EFFECT_COLOR_ID);

@@ -86,6 +86,7 @@ private:
 	void outcomeInstantHarm(Level *level, int x, int y, int z, shared_ptr<Player> player);
 	void outcomeWither(Level *level, int x, int y, int z, shared_ptr<Player> player);
 	void outcomeMiningFatigue(Level *level, int x, int y, int z, shared_ptr<Player> player);
+	void outcomeRandomIllager(Level *level, int x, int y, int z);
 	void outcomeXpDrain(Level *level, int x, int y, int z, shared_ptr<Player> player);
 	void outcomeHungerEffect(Level *level, int x, int y, int z, shared_ptr<Player> player);
 

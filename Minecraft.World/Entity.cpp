@@ -1,6 +1,5 @@
 ﻿#include "stdafx.h"
 #include "com.mojang.nbt.h"
-#include "MobEffect.h"	// neoLegacy - JDemon/CMonster v2: isInvisibleTo reads the viewer's night-vision effect
 #include "net.minecraft.world.item.h"
 #include "net.minecraft.world.item.enchantment.h"
 #include "net.minecraft.world.level.h"
@@ -1904,14 +1903,8 @@ bool Entity::isInvisible()
 
 bool Entity::isInvisibleTo(shared_ptr<Player> viewer)
 {
-	if (!isInvisible()) return false;
-	// neoLegacy - JDemon/CMonster v2: a viewer blocking with the CMonster sword
-	// while its night-vision special is active can see an invisible entity
-	// (same (a)+(b) test as Player::isInvisibleTo). Both halves of the test
-	// matter: blocking alone after the 30-second effect expires does not
-	// reveal, and a night-vision potion alone does not reveal either.
-	if (viewer != nullptr && viewer->hasEffect(MobEffect::nightVision->id) && viewer->isBlocking() && viewer->getUseItem() != nullptr && viewer->getUseItem()->id == Item::cmonster_sword_Id) return false;
-	return true;
+	// neoLegacy - JDemon/CMonster v3: reveal REMOVED, see Player::isInvisibleTo.
+	return isInvisible();
 }
 
 void Entity::setInvisible(bool value)

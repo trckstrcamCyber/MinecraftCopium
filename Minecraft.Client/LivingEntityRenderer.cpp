@@ -123,9 +123,10 @@ void LivingEntityRenderer::render(shared_ptr<Entity> _mob, double x, double y, d
 		// neoLegacy - JDemon/CMonster v2: complete invisibility — an entity the
 		// viewer cannot see shows no armor and no held item / headgear / stuck
 		// arrows either (those all ride on additionalRendering below). Viewer-
-		// aware, not bare isInvisible(): a CMonster viewer looking at a JDemon
-		// user still sees their armor and sword. Skipped for the inventory
-		// screen (isGuiRender), which must keep showing the local player's gear.
+		// aware via isInvisibleTo (v3: the CMonster reveal is removed, so no
+		// viewer can see an invisible entity — the test is just the flag
+		// again). Skipped for the inventory screen (isGuiRender), which must
+		// keep showing the local player's gear.
 		bool hideGear = !entityRenderDispatcher->isGuiRender && mob->isInvisibleTo(dynamic_pointer_cast<Player>(Minecraft::GetInstance()->player));
 
 		for (int i = 0; i < MAX_ARMOR_LAYERS; i++)
@@ -275,10 +276,11 @@ void LivingEntityRenderer::renderModel(shared_ptr<LivingEntity> mob, float wp, f
 	else if(!mob->isInvisibleTo(dynamic_pointer_cast<Player>(Minecraft::GetInstance()->player)))
 	{
 		glPushMatrix();
-		// neoLegacy - JDemon/CMonster v2: solid, not a ghost — this branch only
-		// fires for a viewer isInvisibleTo() returns false for (a CMonster user
-		// looking at a JDemon user), so the revealed player renders fully solid.
-		glColor4f(1, 1, 1, 1.0f);
+		// neoLegacy - JDemon/CMonster v3: back to the pre-v2 ghost alpha. The
+		// branch is dead again (isInvisibleTo is just isInvisible now, so it
+		// cannot return false for an invisible entity) — kept as-is rather
+		// than deleted, matching the pre-v2 code.
+		glColor4f(1, 1, 1, 0.15f);
 		glDepthMask(false);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

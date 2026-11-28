@@ -5,6 +5,7 @@
 #include "net.minecraft.world.entity.ai.attributes.h"
 #include "net.minecraft.world.entity.player.h"
 #include "net.minecraft.world.entity.monster.h"
+#include "Enemy.h"	// neoLegacy - JDemon/CMonster v3: CMonster scan filters by Enemy
 #include "net.minecraft.world.level.tile.h"
 #include "net.minecraft.world.level.h"
 #include "com.mojang.nbt.h"	// neoLegacy - JDemon/CMonster v2: the 1-minute cooldown lives on the item tag (HornOfSightItem.cpp)
@@ -269,7 +270,7 @@ shared_ptr<ItemInstance> CMonsterSword::use(shared_ptr<ItemInstance> instance, L
 			// effect expired while the player was still blocking.
 			player->addEffect(new MobEffectInstance(MobEffect::nightVision->id, EFFECT_TICKS, 0));
 			// Enemy highlight: the Horn of Sight scan (HornOfSightItem.cpp), but for
-			// EVERY monster, not just illager kin, and with no line-of-sight check —
+			// EVERY hostile mob, not just illager kin, and with no line-of-sight check —
 			// the point is revealing enemies through walls. Server-side only; the
 			// glow is applied by the server and synced to clients. One-shot on block
 			// start: there is no per-tick hook while an item is being used (Item.h has
@@ -279,15 +280,21 @@ shared_ptr<ItemInstance> CMonsterSword::use(shared_ptr<ItemInstance> instance, L
 			// amplifier-1 glows blue for players and red for every mob, while the
 			// Horn's amplifier-0 glows keep their rainbow/purple/green/red colours.
 			AABB *box = player->bb->grow(SCAN_RANGE, 48.0, SCAN_RANGE);
-			vector<shared_ptr<Entity> > *found = level->getEntitiesOfClass(typeid(Monster), box);
+			// neoLegacy - JDemon/CMonster v3: scan Mob, not Monster. Slime,
+			// Ghast and EnderDragon are Enemy but not Monster (Slime.h,
+			// Ghast.h, EnderDragon.h), so a typeid(Monster) scan never saw
+			// them. The Enemy filter keeps friendlies (animals, villagers,
+			// golems, EvokerFangs/IceCube) out; only Monster, Slime, Ghast
+			// and EnderDragon inherit Enemy anywhere in the codebase.
+			vector<shared_ptr<Entity> > *found = level->getEntitiesOfClass(typeid(Mob), box);
 			if (found != nullptr)
 			{
 				for (size_t i = 0; i < found->size(); i++)
 				{
-					shared_ptr<Monster> monster = dynamic_pointer_cast<Monster>(found->at(i));
-					if (monster == nullptr || !monster->isAlive()) continue;
-					if (monster->distanceToSqr(player) > SCAN_RANGE * SCAN_RANGE) continue;
-					monster->addEffect(new MobEffectInstance(MobEffect::glowing->id, EFFECT_TICKS, 1));
+					shared_ptr<LivingEntity> target = dynamic_pointer_cast<LivingEntity>(found->at(i));
+					if (target == nullptr || dynamic_cast<Enemy*>(target.get()) == nullptr || !target->isAlive()) continue;
+					if (target->distanceToSqr(player) > SCAN_RANGE * SCAN_RANGE) continue;
+					target->addEffect(new MobEffectInstance(MobEffect::glowing->id, EFFECT_TICKS, 1));
 				}
 				delete found;
 			}
